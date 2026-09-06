@@ -53,16 +53,26 @@ wait for the previous group to appear on pub.dev — the index is not instant.
       `scope:`, `CobaltLoggerSink` called positionally — were both in example
       snippets, which no compiler reads. Check the API of anything you changed
       this release.
-- [x] After publishing, put the plugin back where it belongs. Before the first
-      publish, `cobalt_lint` was enabled from `analysis_options.plugin.yaml`
-      rather than from `analysis_options.yaml`, in the repository root and in
-      `compat/external_consumer`, because the analysis server resolves a
-      synthetic plugin package against pub.dev and that fails while ours are
-      unpublished. Now that they are published, both `*.plugin.yaml` files are
-      deleted, `analysis_options.yaml` in both places carries a plain
-      `plugins: cobalt_lint: ^0.1.0`, and the `dependency_overrides` are gone.
-      The stand now proves the ordinary installation, which could not be
-      checked at all before this.
+- [x] After publishing, drop the `dependency_overrides` from the plugin
+      config — but do **not** move `plugins:` into `analysis_options.yaml`
+      itself. `cobalt_lint` is enabled from `analysis_options.plugin.yaml`,
+      copied over by hand, and that split is permanent, not a scaffold for
+      being unpublished. Before publication the analysis server's synthetic
+      `plugin_entrypoint` package could not resolve our own path dependencies
+      at all; that part is fixed by publishing. What publishing does **not**
+      fix is that `plugin_entrypoint` also resolves `analysis_server_plugin`
+      at a version the *SDK* chooses, and `analysis_server_plugin` pins the
+      analyzer it depends on exactly. `cobalt_lint` deliberately caps
+      `analyzer` below 13.0.0 to keep working on Flutter 3.38.9 (see "Flutter
+      and Dart versions" below), and an SDK whose bundled
+      `analysis_server_plugin` needs an analyzer at or above that — which the
+      beta channel already does — makes `dart analyze` crash **before a
+      single file is read**, everywhere in the repository, gating the build on
+      something that has nothing to do with the code. This was tried once,
+      broke CI on beta the same day, and was reverted. Both
+      `analysis_options.plugin.yaml` files now carry the plain
+      `plugins: cobalt_lint: ^0.1.0` a real consumer would write — publication
+      only shortened their content, it did not remove the file.
 - [ ] **Shipped strings** translated too, which is a different job from the
       documents above: `packages/cobalt_inspector/l10n/*.arb` and the examples'
       — `gallery`, `notes_app`, `flow_scopes`, `graph_events` and

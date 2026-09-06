@@ -1,0 +1,9 @@
+include: analysis_options.yaml
+
+# Turns on the cobalt_lint plugin for the stand, which is off by default for
+# the reason spelled out in the root `analysis_options.plugin.yaml`: it can
+# crash analysis on any SDK whose bundled `analysis_server_plugin` needs an
+# analyzer version cobalt_lint does not support. That is a standing
+# constraint, not something publication removes.
+plugins:
+  cobalt_lint: ^0.1.0

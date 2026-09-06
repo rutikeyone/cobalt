@@ -1,0 +1,30 @@
+include: analysis_options.yaml
+
+# Turns on the cobalt_lint plugin, which is off by default.
+#
+# Copy this over `analysis_options.yaml` when you want the rules in your
+# editor, and do not commit the result. It stays off by default for a reason
+# publication does not remove: the analysis server builds a synthetic
+# `plugin_entrypoint` package and resolves it **against pub.dev**, using an
+# `analysis_server_plugin` version the *SDK* chooses — not one this repository
+# writes.
+#
+# `analysis_server_plugin` pins the analyzer it depends on exactly, and
+# `cobalt_lint` deliberately declares `analyzer: ">=10.0.1 <13.0.0"`, to keep
+# supporting Flutter 3.38.9 (see RELEASING.md). Once an SDK's bundled
+# `analysis_server_plugin` asks for an analyzer version outside that range —
+# which the beta channel already does, requiring analyzer 14.x — the synthetic
+# package fails to resolve and analysis crashes before a single file is read,
+# on every file in the repository, not only ones this plugin would flag. That
+# is not a failure of the code being analysed, so it must not gate a build,
+# and it is why `analysis_options.yaml` does not enable the plugin itself.
+#
+# This is a standing constraint, not a pre-publication one: it holds for as
+# long as `cobalt_lint` supports an analyzer version older than whatever an
+# SDK's `analysis_server_plugin` requires, which is a permanent trade for
+# keeping the Code-Gen tools usable on Flutter 3.38.9.
+#
+# The rules themselves do not depend on any of this: they are covered by
+# tests that go through `analyzer_testing` and never start a server.
+plugins:
+  cobalt_lint: ^0.1.0

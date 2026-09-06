@@ -1,4 +1,7 @@
 include: package:lints/recommended.yaml
 
-plugins:
-  cobalt_lint: ^0.1.0
+# The cobalt_lint plugin is enabled from `analysis_options.plugin.yaml` beside
+# this file, not from here — permanently, not only until publication. See the
+# root `analysis_options.plugin.yaml` for why: it can crash `dart analyze` on
+# any SDK whose bundled `analysis_server_plugin` needs an analyzer version
+# cobalt_lint does not support.
