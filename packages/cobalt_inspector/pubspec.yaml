@@ -1,6 +1,6 @@
 name: cobalt_inspector
 description: In-app inspector for Cobalt — the live scope tree, what was built and with what lifetime, and the event log, on a screen inside your app.
-version: 0.1.0
+version: 0.1.1
 repository: https://github.com/rutikeyone/cobalt
 issue_tracker: https://github.com/rutikeyone/cobalt/issues
 topics:

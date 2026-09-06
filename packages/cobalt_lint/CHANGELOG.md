@@ -1,3 +1,17 @@
+## 0.1.1
+
+- Fixed `cobalt_resource_is_never_closed` reporting a false positive on any
+  field that is itself another retained Cobalt registration — a singleton,
+  lazy singleton, or async singleton the scope already disposes on its own,
+  independently of who holds a reference to it. The rule checked only whether
+  a field's type offers a teardown-shaped method, with no regard for whether
+  the scope already owns and closes that field's value through a separate
+  registration; on 0.1.0 this fired on the ordinary shape of a dependency
+  graph — any class taking a closeable dependency by constructor injection —
+  not only on the leak it was written to catch. A field of a transient or
+  parameterized registration is still reported, because the scope never
+  retains those and nobody else is going to close them.
+
 ## 0.1.0
 
 - `cobalt_resource_is_never_closed`: a registration that holds something

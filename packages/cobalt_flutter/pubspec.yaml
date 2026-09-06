@@ -1,6 +1,6 @@
 name: cobalt_flutter
 description: Flutter bindings for Cobalt — scope providers, widget-owned child scopes and BuildContext resolution helpers.
-version: 0.1.0
+version: 0.1.1
 repository: https://github.com/rutikeyone/cobalt
 issue_tracker: https://github.com/rutikeyone/cobalt/issues
 topics:

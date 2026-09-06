@@ -1,6 +1,6 @@
 name: cobalt_test_flutter
 description: Widget-test helpers for Cobalt — settle a graph that is still starting, and reach the root scope of a mounted application.
-version: 0.1.0
+version: 0.1.1
 repository: https://github.com/rutikeyone/cobalt
 issue_tracker: https://github.com/rutikeyone/cobalt/issues
 topics:

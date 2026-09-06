@@ -1,6 +1,6 @@
 name: cobalt_talker_flutter
 description: Dresses talker's log screen in the same palette as the Cobalt inspector, so the graph's events and its log read as one tool inside your app.
-version: 0.1.0
+version: 0.1.1
 repository: https://github.com/rutikeyone/cobalt
 issue_tracker: https://github.com/rutikeyone/cobalt/issues
 topics:
