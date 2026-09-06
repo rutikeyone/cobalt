@@ -120,6 +120,56 @@ class Watcher {
 ''');
   }
 
+  /// A field of a type the container registers and disposes on its own —
+  /// singleton, lazy, or async — is not this class's to close. The scope
+  /// releases the field's own registration independently, in its own turn of
+  /// the teardown order; nothing about holding a reference to it obligates
+  /// the holder.
+  void test_fieldThatIsItsOwnRetainedRegistration_isClean() async {
+    await assertNoDiagnostics('''
+$cobaltImport
+
+@cobaltInject
+class Log implements Disposable {
+  @override
+  void dispose() {}
+}
+
+abstract class Disposable {
+  void dispose();
+}
+
+@cobaltInject
+class Reporter {
+  Reporter(this._log);
+  final Log _log;
+}
+''');
+  }
+
+  /// A field whose type is registered but *transient* is never retained by
+  /// the scope, so nobody else is going to close it — this class is still the
+  /// one holding it and still has to say how.
+  void test_fieldThatIsATransientRegistration_isStillReported() async {
+    await assertDiagnostics(
+      '''
+$cobaltImport
+
+@cobaltTransient
+class Ticket {
+  Future<void> close() async {}
+}
+
+@cobaltInject
+class Gateway {
+  Gateway(this.ticket);
+  final Ticket ticket;
+}
+''',
+      [lint(149, 7)],
+    );
+  }
+
   void test_aFieldThatNeedsNoClosing_isClean() async {
     await assertNoDiagnostics('''
 $cobaltImport

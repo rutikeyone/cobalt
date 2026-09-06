@@ -113,9 +113,39 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (field.isStatic) continue;
       final type = field.type;
       if (type is! InterfaceType) continue;
-      if (teardownMethodOf(type.element) == null) continue;
-      return type.element.name ?? field.displayName;
+      final fieldElement = type.element;
+      if (fieldElement is ClassElement && _isScopeOwned(fieldElement)) {
+        continue;
+      }
+      if (teardownMethodOf(fieldElement) == null) continue;
+      return fieldElement.name ?? field.displayName;
     }
     return null;
+  }
+
+  /// Whether the scope already owns [fieldElement] through a registration of
+  /// its own, and disposes it independently in its own turn of the teardown
+  /// order.
+  ///
+  /// A field holding a reference to another retained registration is the
+  /// ordinary shape of a dependency graph — every constructor parameter that
+  /// is itself `@CobaltInject`/`@CobaltInit` looks exactly like this. Without
+  /// this check the rule fired on that shape as often as on a real leak: two
+  /// singletons in this repository's own example, `NoteRepository` and
+  /// `SearchIndex`, both hold a `NoteDatabase` the scope already disposes on
+  /// its own, and neither is this class's to close.
+  ///
+  /// A *transient* or *parameterized* registration is not retained, so
+  /// nothing else is going to close it — the holder still has to say how, and
+  /// this returns false for those on purpose.
+  bool _isScopeOwned(ClassElement fieldElement) {
+    if (!_parser.declares(fieldElement)) return false;
+    try {
+      final declaration = _parser.parseClass(fieldElement);
+      return declaration.lifetime != CobaltLifetime.transient &&
+          !declaration.constructorParameters.any((it) => it.isParam);
+    } on CobaltParseError {
+      return false;
+    }
   }
 }

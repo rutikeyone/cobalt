@@ -39,14 +39,22 @@ Because plugin_entrypoint depends on analysis_server_plugin ^0.3.21-dev
 which doesn't match any versions, version solving failed.
 ```
 
-That is not a failure of the code being analysed and it is not fixable from here — it is why
-this repository's own `analysis_options.yaml` did **not** enable the plugin before `cobalt_lint`
-was published, and why CI analyzed without it during that window. The rules themselves are covered
-by this package's tests, which drive them through `analyzer_testing` and never start a server.
+That case — an SDK vendoring a version pub.dev has never heard of — usually resolves itself once
+that version is published. A related failure does not: `analysis_server_plugin` pins the analyzer
+it depends on exactly, and `cobalt_lint` deliberately caps `analyzer` below 13.0.0 to keep working
+on Flutter 3.38.9. An SDK whose bundled `analysis_server_plugin` needs an analyzer at or above that
+makes the same crash permanent, not transitional — no future publication changes it, only a change
+to `cobalt_lint`'s own analyzer range would, and that range is a deliberate floor, not an oversight.
 
-Both problems end at publication: the overrides disappear, and the plugin resolves like any other
-package. This repository's own `analysis_options.yaml` now carries the plain three-line form above,
-same as any consumer's.
+Neither is a failure of the code being analysed, and neither is fixable from the plugin's side —
+which is why this repository's own `analysis_options.yaml` does **not** enable the plugin, even now
+that `cobalt_lint` is published. The block lives in `analysis_options.plugin.yaml`, copied over by
+hand, and that split is permanent. The rules themselves are covered by this package's tests, which
+drive them through `analyzer_testing` and never start a server.
+
+The overrides above are gone from this repository's own copy now that `cobalt_lint` is published —
+`analysis_options.plugin.yaml` carries the plain three-line form. What does not go away is the
+`plugins:` line living in that separate file rather than in `analysis_options.yaml` itself.
 
 ## Rules
 
@@ -83,7 +91,7 @@ registration are not retained. It also stays quiet when a `Disposable` from some
 the supertypes, because it matches by name rather than by library — a rule that cannot see the
 whole graph should fail towards silence.
 
-Ten of the twelve rules answer a question about one declaration. The other two —
+Eleven of the thirteen rules answer a question about one declaration. The other two —
 `cobalt_dependency_is_not_registered` and `cobalt_dependency_cycle` — answer one about the whole
 package, and the analysis server does not offer that view: it hands a rule one library at a time,
 and the only synchronous window onto the others is their **parsed**, unresolved source.
