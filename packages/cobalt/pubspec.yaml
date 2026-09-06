@@ -1,6 +1,6 @@
 name: cobalt
 description: Runtime core of Cobalt, a dependency injection framework with hierarchical scopes, deterministic disposal and async init graphs.
-version: 0.1.1
+version: 0.1.2
 repository: https://github.com/rutikeyone/cobalt
 issue_tracker: https://github.com/rutikeyone/cobalt/issues
 topics:

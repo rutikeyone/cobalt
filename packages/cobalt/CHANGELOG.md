@@ -1,3 +1,11 @@
+## 0.1.2
+
+- Removed a stray `RELEASING.md` that had been committed into this package's
+  own directory by accident (alongside an unrelated fix, in the commit that
+  introduced it) and shipped inside the 0.1.0 and 0.1.1 archives. It was an
+  outdated, unreferenced copy of the repository's actual release checklist —
+  not a file this package ever meant to carry.
+
 ## 0.1.1
 
 - No code changes in this package. Republished in lockstep with the fix

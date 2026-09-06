@@ -1,6 +1,6 @@
 name: cobalt_talker
 description: Cobalt adapter for talker — reports the DI graph's events as talker logs, each kind with its own title and colour.
-version: 0.1.1
+version: 0.1.2
 repository: https://github.com/rutikeyone/cobalt
 issue_tracker: https://github.com/rutikeyone/cobalt/issues
 topics:

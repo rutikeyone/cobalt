@@ -1,6 +1,6 @@
 name: cobalt_bloc
 description: Lets an Cobalt scope close the blocs it built — a mixin that bridges bloc's close() to Cobalt's AsyncDisposable, and the function to name where a mixin will not reach.
-version: 0.1.1
+version: 0.1.2
 repository: https://github.com/rutikeyone/cobalt
 issue_tracker: https://github.com/rutikeyone/cobalt/issues
 topics:

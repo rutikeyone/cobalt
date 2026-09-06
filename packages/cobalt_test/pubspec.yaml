@@ -1,6 +1,6 @@
 name: cobalt_test
 description: Test helpers for Cobalt — build and tear down graphs, override dependencies, and check that a hand-written graph resolves.
-version: 0.1.1
+version: 0.1.2
 repository: https://github.com/rutikeyone/cobalt
 issue_tracker: https://github.com/rutikeyone/cobalt/issues
 topics:

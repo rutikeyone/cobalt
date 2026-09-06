@@ -1,3 +1,11 @@
+## 0.1.2
+
+- No code changes in this package. Republished in lockstep with a
+  packaging fix in `cobalt` 0.1.2 (a stray file removed from its
+  archive) — see its changelog. A fix in one package still ships as a
+  patch for all fifteen, because publishing a subset is what lets the
+  set drift.
+
 ## 0.1.1
 
 - No code changes in this package. Republished in lockstep with the fix

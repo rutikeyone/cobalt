@@ -1,6 +1,6 @@
 name: cobalt_go_router
 description: go_router bindings for Cobalt — dependency scopes whose lifetime is a navigation flow, created on entry and disposed on exit.
-version: 0.1.1
+version: 0.1.2
 repository: https://github.com/rutikeyone/cobalt
 issue_tracker: https://github.com/rutikeyone/cobalt/issues
 topics:
