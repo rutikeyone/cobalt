@@ -1,10 +1,7 @@
 include: package:lints/recommended.yaml
 
-# The cobalt_lint plugin is enabled from `analysis_options.plugin.yaml`, not
-# from here. Naming it in this file makes every `dart analyze` in the
-# repository resolve a synthetic package against pub.dev, which fails on any
-# SDK whose bundled `analysis_server_plugin` is not published yet — CI met
-# exactly that. See that file for how to turn it on.
+plugins:
+  cobalt_lint: ^0.1.0
 
 analyzer:
   language:
