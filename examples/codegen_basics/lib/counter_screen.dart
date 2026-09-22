@@ -3,6 +3,7 @@ import 'package:codegen_basics/cobalt.g.dart';
 import 'package:codegen_basics/counter_bloc.dart';
 import 'package:codegen_basics/greeting.dart';
 import 'package:codegen_basics/l10n/codegen_basics_l10n.dart';
+import 'package:codegen_basics/leaderboard.dart';
 import 'package:flutter/material.dart';
 
 class CounterScreen extends StatelessWidget {
@@ -62,6 +63,11 @@ class _CounterState extends State<_Counter> {
           Text(l10n.environment(_bloc.environment)),
           Text(
             greeting.render(l10n.greeting(greeting.name, greeting.environment)),
+          ),
+          CobaltAsyncBuilder<Leaderboard>(
+            loading: Text(l10n.leaderboardLoading),
+            builder: (context, board) =>
+                Text(l10n.leaderboardReady(board.entries)),
           ),
           const SizedBox(height: 16),
           FilledButton(

@@ -10,12 +10,12 @@ environment:
 resolution: workspace
 
 dependencies:
-  cobalt: ^0.1.0
-  cobalt_flutter: ^0.1.0
+  cobalt: ^0.2.0
+  cobalt_flutter: ^0.2.0
   flutter:
     sdk: flutter
 
 dev_dependencies:
-  cobalt_test: ^0.1.0
+  cobalt_test: ^0.2.0
   flutter_test:
     sdk: flutter

@@ -14,5 +14,10 @@
     }
   },
 
-  "increment": "增加"
+  "increment": "增加",
+
+  "leaderboardLoading": "正在加载排行榜…",
+
+  "leaderboardReady": "排行榜已就绪：{entries} 条记录",
+  "@leaderboardReady": { "placeholders": { "entries": { "type": "int" } } }
 }

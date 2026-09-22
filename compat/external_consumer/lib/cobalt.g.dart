@@ -5,6 +5,7 @@
 import 'dart:async' as _i687;
 
 import 'package:cobalt/cobalt.dart' as _i573;
+import 'package:cobalt_external_consumer/src/archive.dart' as _i768;
 import 'package:cobalt_external_consumer/src/bind_platform.dart' as _i366;
 import 'package:cobalt_external_consumer/src/clock.dart' as _i612;
 import 'package:cobalt_external_consumer/src/database.dart' as _i530;
@@ -21,6 +22,31 @@ import 'package:cobalt_external_consumer/src/system_clock.dart' as _i271;
 import 'package:cobalt_external_consumer/src/telemetry.dart' as _i186;
 
 typedef $NoteEditorArgs = ({int id, String title, bool draft});
+
+final class _ArchiveFactory implements _i573.CobaltAsyncFactory<_i768.Archive> {
+  const _ArchiveFactory();
+
+  @override
+  _i687.Future<_i768.Archive> create(_i573.CobaltResolver resolver) async {
+    final instance = _i768.Archive(resolver.get<_i530.Database>());
+    await instance.init();
+    return instance;
+  }
+}
+
+final class _ArchiveIndexFactory
+    implements _i573.CobaltAsyncFactory<_i768.ArchiveIndex> {
+  const _ArchiveIndexFactory();
+
+  @override
+  _i687.Future<_i768.ArchiveIndex> create(_i573.CobaltResolver resolver) async {
+    final instance = _i768.ArchiveIndex(
+      await resolver.getAsync<_i768.Archive>(),
+    );
+    await instance.init();
+    return instance;
+  }
+}
 
 final class _SystemClockFactory implements _i573.CobaltFactory<_i612.Clock> {
   const _SystemClockFactory();
@@ -173,6 +199,7 @@ final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
       const _SessionCacheFactory(),
       dispose: _i995.closeSessionCache,
     );
+    scope.registerLazyAsyncSingleton<_i768.Archive>(const _ArchiveFactory());
     scope.registerLazySingleton<_i862.Diagnostics>(const _DiagnosticsFactory());
     scope.registerParamFactory<_i59.NoteEditor, $NoteEditorArgs>(
       const _NoteEditorFactory(),
@@ -185,6 +212,9 @@ final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
     scope.registerAsyncSingleton<_i375.SearchIndex>(
       const _SearchIndexFactory(),
       dependsOn: {const _i573.CobaltKey(_i530.Database)},
+    );
+    scope.registerLazyAsyncSingleton<_i768.ArchiveIndex>(
+      const _ArchiveIndexFactory(),
     );
     scope.registerFactory<_i1031.Report>(const _ReportFactory());
   }

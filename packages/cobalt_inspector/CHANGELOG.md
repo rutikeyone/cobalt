@@ -1,3 +1,8 @@
+## 0.2.0
+
+- Lazy async registrations get the `startup` colour, count as retained in the
+  detail sheet, and "build it" builds them through `getAsync`.
+
 ## 0.1.2
 
 - No code changes in this package. Republished in lockstep with a

@@ -1,3 +1,12 @@
+## 0.2.0
+
+- `CobaltAsyncBuilder<T>`: resolves with `getAsync` and builds from the result,
+  showing `loading` meanwhile and `errorBuilder` (with `retry`) on failure.
+  Something already built renders without a frame of `loading`. The
+  resolution is held in state, so a parent rebuild neither restarts it nor
+  retries a failed one by itself.
+- `context.cobaltAsync<T>()`.
+
 ## 0.1.2
 
 - No code changes in this package. Republished in lockstep with a

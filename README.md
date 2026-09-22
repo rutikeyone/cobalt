@@ -64,6 +64,7 @@ graph.
 | **Hierarchical scopes** | a tree, not a flat stack — two independent subtrees can coexist, which a stack cannot express |
 | **Ownership and teardown** | the scope releases what it built, LIFO by **creation** order, best-effort with one deadline for the whole tree |
 | **Two-phase startup** | `@CobaltBootstrap` before the container exists, `@CobaltInit` inside it, both awaited before `start` returns |
+| **Lazy async singletons** | built by the first `getAsync`, not at startup — for something expensive that lives as long as the app but few screens want |
 | **Topological ordering** | async initializers are layered by Kahn's algorithm; independent branches run through `Future.wait`, a cycle fails the build naming the cycle |
 | **Property injection** | `late final` fields filled by a generated mixin, so a class with five collaborators has an empty constructor |
 | **Compile-time completeness** | a dependency nothing registers fails the build, naming every gap at once |
@@ -75,7 +76,7 @@ graph.
 | **Observability** | typed events, not strings — logging, structured intake and crash reports with a trail |
 | **In-app inspector** | the live scope tree, what was built and with what lifetime, and everything reported |
 | **Navigation flows** | a scope whose lifetime is a go_router flow, without anything mirroring the router |
-| **Lint plugin** | twelve rules on the same parsing layer the generator uses |
+| **Lint plugin** | thirteen rules on the same parsing layer the generator uses |
 | **Test helpers** | scopes that dispose with the test, overrides that work the way production ones do |
 | **No global container** | nothing is ambient, so tests run in parallel and two graphs in one process are unrelated |
 

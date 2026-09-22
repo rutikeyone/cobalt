@@ -3,6 +3,7 @@ import 'package:codegen_basics/cobalt.g.dart';
 import 'package:codegen_basics/counter_screen.dart';
 import 'package:codegen_basics/greeting.dart';
 import 'package:codegen_basics/l10n/codegen_basics_l10n.dart';
+import 'package:codegen_basics/leaderboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -50,6 +51,25 @@ void main() {
     await tester.pump();
 
     expect(find.text('1'), findsOneWidget);
+  });
+
+  test('startup does not build the leaderboard', () async {
+    final scope = await $startCobalt();
+    addTearDown(scope.dispose);
+
+    expect(
+      () => scope.get<Leaderboard>(),
+      throwsA(isA<CobaltLazyAsyncError>()),
+      reason: 'it is lazy: the first getAsync builds it, not init()',
+    );
+  });
+
+  testWidgets('the screen that shows the leaderboard builds it', (
+    tester,
+  ) async {
+    await pumpScreen(tester);
+
+    expect(find.text('leaderboard ready: 3 entries'), findsOneWidget);
   });
 
   testWidgets('a parameterized registration is resolved with its record', (

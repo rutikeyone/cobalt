@@ -86,7 +86,9 @@ class RootScopeEmitter {
           .statement;
     }
 
-    final method = declaration.isAsyncInit
+    final method = declaration.isLazyAsync
+        ? 'registerLazyAsyncSingleton'
+        : declaration.isAsyncInit
         ? 'registerAsyncSingleton'
         : switch (declaration.lifetime) {
             CobaltLifetime.transient => 'registerFactory',

@@ -1,6 +1,6 @@
 name: cobalt_analyzer
 description: Shared static analysis layer for Cobalt. Parses Cobalt annotations once for both the generator and the lint plugin.
-version: 0.1.2
+version: 0.2.0
 repository: https://github.com/rutikeyone/cobalt
 issue_tracker: https://github.com/rutikeyone/cobalt/issues
 topics:
@@ -15,8 +15,8 @@ environment:
 resolution: workspace
 
 dependencies:
-  cobalt: ^0.1.0
-  cobalt_annotations: ^0.1.0
+  cobalt: ^0.2.0
+  cobalt_annotations: ^0.2.0
   analyzer: ">=10.0.1 <13.0.0"
   collection: ^1.19.0
   meta: ^1.16.0

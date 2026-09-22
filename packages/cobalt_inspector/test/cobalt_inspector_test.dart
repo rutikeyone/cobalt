@@ -108,6 +108,27 @@ void main() {
       expect(log.created, hasLength(1));
     });
 
+    testWidgets('builds a lazy async registration through getAsync', (
+      tester,
+    ) async {
+      scope.registerLazyAsyncSingleton<Warehouse>(
+        AsyncFnFactory((_) async => Warehouse()),
+      );
+      await tester.pumpWidget(inspectorUnderTest(scope, log));
+      await tester.pumpAndSettle();
+
+      expect(find.text('lazyAsyncSingleton'), findsWidgets);
+
+      await tester.tap(find.byKey(const Key('registration-Warehouse')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('build-it')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('built-value')), findsOneWidget);
+      expect(find.byKey(const Key('build-failed')), findsNothing);
+      expect(scope.get<Warehouse>(), isA<Warehouse>());
+    });
+
     testWidgets('offers no build for a parameterized factory', (tester) async {
       await tester.pumpWidget(inspectorUnderTest(scope, log));
       await tester.pumpAndSettle();
@@ -184,3 +205,5 @@ void main() {
     });
   });
 }
+
+final class Warehouse {}

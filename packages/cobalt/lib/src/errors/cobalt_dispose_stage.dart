@@ -8,6 +8,14 @@ enum CobaltDisposeStage {
   /// release than a fully built one, not less.
   awaitingInit,
 
+  /// Waiting for a lazy async registration that was still being built when
+  /// [CobaltScope.dispose] was called.
+  ///
+  /// Like [awaitingInit], a failure here is the build failing, and it already
+  /// reached whoever awaited `getAsync`. Waiting is what keeps a build that
+  /// finishes during teardown from escaping it.
+  awaitingLazyBuild,
+
   /// Releasing a child scope or an instance this scope owned.
   releasing,
 }

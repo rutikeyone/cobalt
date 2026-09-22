@@ -20,7 +20,8 @@ import 'package:cobalt_test/src/cobalt_graph_report.dart';
 /// Transients are built and, since the scope does not retain them, disposed
 /// here. Async singletons need their owner initialised, so each owning scope is
 /// initialised first; `init()` is idempotent, so this is free when it already
-/// ran.
+/// ran. Lazy async singletons are built through `getAsync`, like the lazy
+/// singletons beside them.
 Future<CobaltGraphReport> checkGraph(
   CobaltScope scope, {
   Map<CobaltKey, Object> params = const {},
@@ -55,7 +56,9 @@ Future<CobaltGraphReport> checkGraph(
     }
 
     try {
-      final instance = scope.debugResolve(key);
+      final instance = kind == CobaltRegistrationKind.lazyAsyncSingleton
+          ? await scope.debugResolveAsync(key)
+          : scope.debugResolve(key);
       if (kind == CobaltRegistrationKind.transient && instance != null) {
         loose.add(instance);
       }

@@ -10,7 +10,7 @@ environment:
 resolution: workspace
 
 dependencies:
-  cobalt_go_router: ^0.1.0
+  cobalt_go_router: ^0.2.0
   flutter:
     sdk: flutter
   flutter_localizations:
@@ -19,7 +19,7 @@ dependencies:
   go_router: ^17.0.0
 
 dev_dependencies:
-  cobalt_test_flutter: ^0.1.0
+  cobalt_test_flutter: ^0.2.0
   flutter_test:
     sdk: flutter
 

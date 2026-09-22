@@ -21,6 +21,7 @@ class CobaltInject {
     this.name,
     this.exposeAs,
     this.dispose,
+    this.lazyInit = false,
   });
 
   /// How long the instance lives. Defaults to [CobaltLifetime.lazySingleton].
@@ -53,6 +54,11 @@ class CobaltInject {
   /// A transient and a parameterized registration are never retained by the
   /// scope, so it could never call this — pairing them is a build error.
   final Function? dispose;
+
+  /// On a [CobaltModule] member returning a `Future`, builds it on the first
+  /// `getAsync` instead of during `scope.init()` — the module form of
+  /// `@CobaltInit(lazy: true)`. On anything else it is a build error.
+  final bool lazyInit;
 }
 
 /// Registers the class as a lazy singleton — one instance per scope, built on

@@ -1,6 +1,6 @@
 name: cobalt_generator
 description: Code generator for Cobalt. Emits the container, property-injection mixins and the two-phase startup. Use as a dev_dependency.
-version: 0.1.2
+version: 0.2.0
 repository: https://github.com/rutikeyone/cobalt
 issue_tracker: https://github.com/rutikeyone/cobalt/issues
 topics:
@@ -15,8 +15,8 @@ environment:
 resolution: workspace
 
 dependencies:
-  cobalt_analyzer: ^0.1.0
-  cobalt_annotations: ^0.1.0
+  cobalt_analyzer: ^0.2.0
+  cobalt_annotations: ^0.2.0
   analyzer: ">=10.0.1 <13.0.0"
   build: ^4.0.4
   code_builder: ^4.11.0

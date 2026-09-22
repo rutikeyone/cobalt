@@ -1,3 +1,12 @@
+## 0.2.0
+
+- `CobaltInjectableClass.isLazyAsync`, read from `@CobaltInit(lazy: true)` and
+  from `lazyInit` on a module member. IR written before it existed reads as not
+  lazy.
+- Refused while parsing: a lazy class that declares `dependsOn`, `lazyInit` on
+  a class (the class form is `@CobaltInit(lazy: true)`), and `lazyInit` on a
+  module member that does not return a `Future`.
+
 ## 0.1.2
 
 - No code changes in this package. Republished in lockstep with a

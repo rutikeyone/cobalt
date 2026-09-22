@@ -6,12 +6,25 @@ import 'package:code_builder/code_builder.dart';
 class InjectableFactoryEmitter {
   const InjectableFactoryEmitter();
 
-  Class emit(CobaltInjectableClass declaration, CobaltFactoryNames names) {
+  /// [awaited] holds the keys of lazy async registrations. Only a lazy
+  /// declaration may depend on one, and its factory awaits `getAsync` for it
+  /// instead of calling `get` — the container rejects every other dependent.
+  Class emit(
+    CobaltInjectableClass declaration,
+    CobaltFactoryNames names, {
+    Set<String> awaited = const {},
+  }) {
     final exposed = typeReferenceOf(declaration.exposedType);
     final provider = declaration.provider;
+    final resolve = declaration.isLazyAsync
+        ? (CobaltInjectedProperty parameter) =>
+              awaited.contains(keyOfDependency(parameter))
+              ? awaitedResolveCall(parameter)
+              : resolveCall(parameter)
+        : resolveCall;
     final construction = provider == null
-        ? _construct(declaration)
-        : _callProvider(declaration, provider);
+        ? _construct(declaration, resolve)
+        : _callProvider(declaration, provider, resolve);
 
     final args = declaration.takesCallSiteValues
         ? refer(names.argsOf(declaration))
@@ -58,26 +71,30 @@ class InjectableFactoryEmitter {
   /// positionally produces a file that does not compile, and every injectable
   /// class in this repository's own examples happens to be positional, so
   /// nothing noticed until a production graph was read.
-  Expression _construct(CobaltInjectableClass declaration) =>
-      typeReferenceOf(declaration.type).newInstance(
-        [
-          for (final parameter in declaration.constructorParameters)
-            if (!parameter.isNamed) _argument(parameter),
-        ],
-        {
-          for (final parameter in declaration.constructorParameters)
-            if (parameter.isNamed) parameter.field: _argument(parameter),
-        },
-      );
+  Expression _construct(
+    CobaltInjectableClass declaration,
+    Expression Function(CobaltInjectedProperty) resolve,
+  ) {
+    Expression argument(CobaltInjectedProperty parameter) => parameter.isParam
+        ? refer('args').property(parameter.field)
+        : resolve(parameter);
 
-  /// Where one argument comes from: the call site, or the graph.
-  Expression _argument(CobaltInjectedProperty parameter) => parameter.isParam
-      ? refer('args').property(parameter.field)
-      : resolveCall(parameter);
+    return typeReferenceOf(declaration.type).newInstance(
+      [
+        for (final parameter in declaration.constructorParameters)
+          if (!parameter.isNamed) argument(parameter),
+      ],
+      {
+        for (final parameter in declaration.constructorParameters)
+          if (parameter.isNamed) parameter.field: argument(parameter),
+      },
+    );
+  }
 
   Expression _callProvider(
     CobaltInjectableClass declaration,
     CobaltProviderRef provider,
+    Expression Function(CobaltInjectedProperty) resolve,
   ) {
     final module = typeReferenceOf(provider.module).constInstance(const []);
     final member = module.property(provider.member);
@@ -85,11 +102,11 @@ class InjectableFactoryEmitter {
     return member.call(
       [
         for (final parameter in declaration.constructorParameters)
-          if (!parameter.isNamed) resolveCall(parameter),
+          if (!parameter.isNamed) resolve(parameter),
       ],
       {
         for (final parameter in declaration.constructorParameters)
-          if (parameter.isNamed) parameter.field: resolveCall(parameter),
+          if (parameter.isNamed) parameter.field: resolve(parameter),
       },
     );
   }

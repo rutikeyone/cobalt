@@ -21,6 +21,9 @@ enum CobaltRegistrationKind {
   /// Built during `init()`, retained by the scope.
   asyncSingleton,
 
+  /// Built by the first `getAsync`, retained by the scope.
+  lazyAsyncSingleton,
+
   /// Built from a value the caller passes to `getWithParam`, not retained.
   parameterized,
 }

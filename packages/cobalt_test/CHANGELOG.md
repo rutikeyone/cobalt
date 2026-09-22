@@ -1,3 +1,8 @@
+## 0.2.0
+
+- `checkGraph` builds lazy async registrations through `getAsync`, so they are
+  checked like the lazy singletons beside them.
+
 ## 0.1.2
 
 - No code changes in this package. Republished in lockstep with a

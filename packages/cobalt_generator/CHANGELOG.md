@@ -1,3 +1,14 @@
+## 0.2.0
+
+- Lazy async registrations are emitted with `registerLazyAsyncSingleton`, and
+  their factories `await resolver.getAsync<T>()` for every dependency that is
+  lazy too — `isRegistered` first for a nullable one.
+- Build errors for what would fail on the device instead: a synchronous or
+  eager async class injecting a lazy one, an `@injected` field of a lazy type
+  on any class, and `dependsOn` naming a lazy registration. A lazy module
+  member is not given a derived `dependsOn`.
+- A graph without lazy registrations generates exactly what it did before.
+
 ## 0.1.2
 
 - No code changes in this package. Republished in lockstep with a

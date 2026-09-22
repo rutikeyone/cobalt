@@ -39,9 +39,11 @@ GetIt.I.registerSingleton<Database>(app.get<Database>());
 | `registerLazySingleton<T>(() => T())` | `registerLazySingleton<T>(const TFactory())` |
 | `registerSingletonAsync<T>(() async => …)` | `registerAsyncSingleton<T>(const TFactory())` |
 | `registerSingletonWithDependencies<T>(…, dependsOn: [A])` | `registerAsyncSingleton<T>(…, dependsOn: {CobaltKey(A)})` |
+| `registerLazySingletonAsync<T>(() async => …)` | `registerLazyAsyncSingleton<T>(const TFactory())` |
 | `registerFactoryParam<T, P, void>((p, _) => …)` | `registerParamFactory<T, P>(const TFactory())` |
 | `getIt<T>()` / `getIt.get<T>()` | `scope.get<T>()` |
 | `getIt<T>(instanceName: 'a')` | `scope.get<T>(name: 'a')` |
+| `await getIt.getAsync<T>()` | `await scope.getAsync<T>()` |
 | `getIt.isRegistered<T>()` | `scope.isRegistered<T>()` |
 | `pushNewScope(...)` | `scope.push('name')` |
 | `popScope()` | `await child.dispose()` |
@@ -96,10 +98,9 @@ final tabB = app.push('tab:b');   // 是兄弟，而不是压在 tabA 上面
   参数名，位置式 record 做不到。只有容器无法知道的值才进 record —— 依赖仍从 resolver 取，
   所以 record 通常比它替换掉的参数列表更短。在 Code-Gen Mode 下这些都不用手写：给参数加上
   `@CobaltParam`，生成器会写出 record 类型、工厂和注册。
-- **`registerFactoryAsync`、`registerLazySingletonAsync`** —— 异步构造属于 `registerAsyncSingleton`，
-  它参与第一阶段，因此没有按注册项的惰性异步构建，也没有 `getAsync`。推迟工作的是生命周期：把昂贵的东西
-  放进子作用域，在进入该功能时压入它，`CobaltScopeWidget` 会在其 `init()` 运行期间显示 `loading`。
-  未覆盖的情形是：某个昂贵对象必须与应用同寿，却只有少数界面需要它。
+- **`registerFactoryAsync`** —— 每次调用都重新异步构建。Cobalt 有惰性异步*单例*
+  （`registerLazyAsyncSingleton`，用 `getAsync` 读取）：由第一次调用构建并被持有；
+  但没有按调用的异步工厂。请在调用方构建这个值，或注册一个惰性单例来产出每次调用所需的东西。
 - **`resetLazySingletons`** —— 请改为释放作用域。在活着的持有者脚下重置实例，正是作用域要防止的那类 bug。
 - **全局实例。** 没有 `GetIt.I`。作用域要么被传递、要么被注入、要么通过 `context.cobalt<T>()` 从 widget 树
   里读取。这是有意为之：正是那个全局变量让 get_it 的图无法并行测试。

@@ -17,6 +17,26 @@ void main() {
       expect(report.entries, hasLength(2));
     });
 
+    test(
+      'builds a lazy async registration, and reports what it misses',
+      () async {
+        final scope = cobaltTestRoot()
+          ..registerLazySingleton<Clock>(const ValueFactory(Clock()))
+          ..registerLazyAsyncSingleton<Api>(
+            AsyncFnFactory((r) async => Api(r.get<Clock>())),
+          )
+          ..registerLazyAsyncSingleton<Broken>(
+            AsyncFnFactory((r) async => Broken(r.get<Logger>())),
+          );
+
+        final report = await checkGraph(scope);
+
+        expect(report.failures.single.key, const CobaltKey(Broken));
+        expect(report.failures.single.error, isA<CobaltNotRegisteredError>());
+        expect(scope.get<Api>(), isA<Api>());
+      },
+    );
+
     test('names a dependency nothing registers', () async {
       final scope = cobaltTestRoot()
         ..registerLazySingleton<Broken>(

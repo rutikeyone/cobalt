@@ -20,5 +20,14 @@
   },
 
   "increment": "increment",
-  "@increment": { "description": "Button that adds one to the counter." }
+  "@increment": { "description": "Button that adds one to the counter." },
+
+  "leaderboardLoading": "loading the leaderboard…",
+  "@leaderboardLoading": { "description": "Shown while the lazy leaderboard is being built on first use." },
+
+  "leaderboardReady": "leaderboard ready: {entries} entries",
+  "@leaderboardReady": {
+    "description": "The lazy leaderboard, once built.",
+    "placeholders": { "entries": { "type": "int", "example": "3" } }
+  }
 }

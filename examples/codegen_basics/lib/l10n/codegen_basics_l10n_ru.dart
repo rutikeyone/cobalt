@@ -23,4 +23,12 @@ class CodegenBasicsL10nRu extends CodegenBasicsL10n {
 
   @override
   String get increment => 'увеличить';
+
+  @override
+  String get leaderboardLoading => 'загружаем таблицу лидеров…';
+
+  @override
+  String leaderboardReady(int entries) {
+    return 'таблица лидеров готова, записей: $entries';
+  }
 }

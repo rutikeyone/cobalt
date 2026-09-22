@@ -6,6 +6,7 @@ import 'package:cobalt/src/errors/cobalt_dispose_error.dart';
 import 'package:cobalt/src/errors/cobalt_dispose_failure.dart';
 import 'package:cobalt/src/errors/cobalt_dispose_stage.dart';
 import 'package:cobalt/src/errors/cobalt_duplicate_registration_error.dart';
+import 'package:cobalt/src/errors/cobalt_lazy_async_error.dart';
 import 'package:cobalt/src/errors/cobalt_not_parameterized_error.dart';
 import 'package:cobalt/src/errors/cobalt_not_ready_error.dart';
 import 'package:cobalt/src/errors/cobalt_param_required_error.dart';
@@ -88,6 +89,9 @@ final class CobaltScope implements CobaltResolver {
   CobaltScopeState _state = CobaltScopeState.open;
   int _order = 0;
 
+  final _lazyBuilding = <LazyAsyncSingletonRegistration>{};
+  var _closing = false;
+
   /// Where this scope is in its lifecycle.
   CobaltScopeState get state => _state;
 
@@ -150,6 +154,8 @@ final class CobaltScope implements CobaltResolver {
         LazySingletonRegistration() => CobaltRegistrationKind.lazySingleton,
         TransientRegistration() => CobaltRegistrationKind.transient,
         AsyncSingletonRegistration() => CobaltRegistrationKind.asyncSingleton,
+        LazyAsyncSingletonRegistration() =>
+          CobaltRegistrationKind.lazyAsyncSingleton,
         ParamRegistration() => CobaltRegistrationKind.parameterized,
         null => null,
       };
@@ -169,6 +175,15 @@ final class CobaltScope implements CobaltResolver {
     final found = _lookup(key);
     if (found == null) return null;
     return found.scope._materialize(found.registration);
+  }
+
+  /// [debugResolve] by way of [getAsync]: builds a lazy async registration
+  /// that is not built yet, and waits for an `init()` still in progress.
+  Future<Object?> debugResolveAsync(CobaltKey key) async {
+    _assertUsable();
+    final found = _lookup(key);
+    if (found == null) return null;
+    return found.scope._resolveAsync(found.registration);
   }
 
   /// Resolves a parameterized [key] with [param], without naming its types.
@@ -344,6 +359,35 @@ final class CobaltScope implements CobaltResolver {
     );
   }
 
+  /// Registers [T] as a single instance built by the first [getAsync].
+  ///
+  /// For something expensive that lives as long as this scope but is wanted
+  /// by few of the screens under it: nothing is built during [init], so it
+  /// costs nothing until someone asks. The instance is retained and disposed
+  /// with the scope, in the order it was *created*.
+  ///
+  /// Unlike [registerAsyncSingleton] this may be called after [init], because
+  /// there is no phase to miss. An async singleton cannot name this one in its
+  /// `dependsOn` — `init()` has nothing to wait for — and throws
+  /// `CobaltDependsOnError` if it does.
+  ///
+  /// [dispose] closes an instance whose type implements neither [Disposable]
+  /// nor [AsyncDisposable].
+  void registerLazyAsyncSingleton<T extends Object>(
+    CobaltAsyncFactory<T> factory, {
+    String? name,
+    FutureOr<void> Function(T instance)? dispose,
+  }) {
+    _put(
+      LazyAsyncSingletonRegistration(
+        key: CobaltKey(T, name: name),
+        order: _order++,
+        factory: factory,
+        teardown: _teardownOf(dispose),
+      ),
+    );
+  }
+
   /// Refuses an async registration that phase 1 can no longer build.
   ///
   /// [init] collects what to build once, at its start, and memoizes its own
@@ -406,11 +450,42 @@ final class CobaltScope implements CobaltResolver {
       throw CobaltNotRegisteredError(
         key,
         this.name,
-        resolving: _tracker.chain,
+        resolving: _trail(),
         whileBuilding: _building,
       );
     }
     return found.scope._materialize(found.registration) as T;
+  }
+
+  @override
+  Future<T> getAsync<T extends Object>({String? name}) async {
+    _assertUsable();
+    final key = CobaltKey(T, name: name);
+    final found = _lookup(key);
+    if (found == null) {
+      throw CobaltNotRegisteredError(
+        key,
+        this.name,
+        resolving: _trail(),
+        whileBuilding: _building,
+      );
+    }
+    return await found.scope._resolveAsync(found.registration) as T;
+  }
+
+  @override
+  Future<List<T>> getAllAsync<T extends Object>() async {
+    _assertUsable();
+    final seen = <CobaltKey>{};
+    final result = <T>[];
+    for (CobaltScope? scope = this; scope != null; scope = scope.parent) {
+      for (final registration in scope._registrations.values.toList()) {
+        if (registration.key.type != T) continue;
+        if (!seen.add(registration.key)) continue;
+        result.add(await scope._resolveAsync(registration) as T);
+      }
+    }
+    return result;
   }
 
   @override
@@ -422,7 +497,7 @@ final class CobaltScope implements CobaltResolver {
       throw CobaltNotRegisteredError(
         key,
         this.name,
-        resolving: _tracker.chain,
+        resolving: _trail(),
         whileBuilding: _building,
       );
     }
@@ -511,6 +586,15 @@ final class CobaltScope implements CobaltResolver {
             registration.key,
             dependency,
             reason: 'nothing registers',
+          );
+        }
+        if (found.registration is LazyAsyncSingletonRegistration) {
+          throw CobaltDependsOnError(
+            registration.key,
+            dependency,
+            reason:
+                'is a lazy async registration, built by the first getAsync '
+                'rather than by init()',
           );
         }
         if (found.registration is! AsyncSingletonRegistration) {
@@ -623,6 +707,7 @@ final class CobaltScope implements CobaltResolver {
         _state == CobaltScopeState.disposing) {
       return;
     }
+    _closing = true;
 
     final elapsed = Stopwatch()..start();
     final failures = <CobaltDisposeFailure>[];
@@ -670,6 +755,20 @@ final class CobaltScope implements CobaltResolver {
           _state == CobaltScopeState.disposing) {
         return;
       }
+    }
+
+    for (final building in _lazyBuilding.toList(growable: false)) {
+      final inFlight = building.inFlight;
+      if (inFlight == null) continue;
+      await within(
+        '${building.key} (lazy build)',
+        () => inFlight,
+        stage: CobaltDisposeStage.awaitingLazyBuild,
+      );
+    }
+    if (_state == CobaltScopeState.disposed ||
+        _state == CobaltScopeState.disposing) {
+      return;
     }
 
     _state = CobaltScopeState.disposing;
@@ -752,7 +851,7 @@ final class CobaltScope implements CobaltResolver {
     );
 
     final couldNotRelease = failures.any(
-      (failure) => !failure.isInitFailure || failure.isTimeout,
+      (failure) => !failure.isBuildFailure || failure.isTimeout,
     );
     if (couldNotRelease) {
       throw CobaltDisposeError(name, failures);
@@ -815,21 +914,155 @@ final class CobaltScope implements CobaltResolver {
       case AsyncSingletonRegistration():
         final existing = registration.instance;
         if (existing == null || !registration.isReady) {
-          throw CobaltNotReadyError(
-            registration.key,
-            resolving: _tracker.chain,
-          );
+          throw CobaltNotReadyError(registration.key, resolving: _trail());
         }
         return existing;
+
+      case LazyAsyncSingletonRegistration():
+        final existing = registration.instance;
+        if (existing != null) return existing;
+        throw CobaltLazyAsyncError(registration.key, resolving: _trail());
 
       case ParamRegistration():
         throw CobaltParamRequiredError(registration.key);
     }
   }
 
+  /// [_materialize] for [getAsync]: builds a lazy async registration, and
+  /// waits for an async singleton `init()` is still building.
+  Future<Object> _resolveAsync(CobaltRegistration registration) async {
+    switch (registration) {
+      case LazyAsyncSingletonRegistration():
+        return _buildLazy(registration);
+
+      case AsyncSingletonRegistration():
+        final existing = registration.instance;
+        if (existing != null && registration.isReady) return existing;
+        final pending = _initFuture;
+        if (pending == null ||
+            identical(CobaltResolutionTracker.phaseOneOwner, this)) {
+          throw CobaltNotReadyError(registration.key, resolving: _trail());
+        }
+        await pending;
+        final built = registration.instance;
+        if (built != null && registration.isReady) return built;
+        throw CobaltNotReadyError(registration.key, resolving: _trail());
+
+      case SingletonRegistration() ||
+          LazySingletonRegistration() ||
+          TransientRegistration() ||
+          ParamRegistration():
+        return _materialize(registration);
+    }
+  }
+
+  /// Builds [registration] once, however many callers ask at the same time.
+  ///
+  /// Every concurrent caller awaits the one future in flight. A build that
+  /// fails is not cached: the next call starts a fresh one.
+  ///
+  /// The build is marked in flight before the factory is called, because an
+  /// async factory runs synchronously up to its first `await`: a chain that
+  /// closes on itself in that stretch has to find the key already building.
+  Future<Object> _buildLazy(LazyAsyncSingletonRegistration registration) {
+    final existing = registration.instance;
+    if (existing != null) return Future.value(existing);
+
+    final inFlight = registration.inFlight;
+    if (inFlight != null) {
+      if (CobaltResolutionTracker.lazyChain.contains(registration.key)) {
+        return CobaltResolutionTracker.guardLazy(
+          registration.key,
+          () => inFlight,
+        );
+      }
+      return inFlight;
+    }
+
+    if (_closing || !isUsable) {
+      return Future.error(
+        CobaltScopeStateError(
+          'Scope "$name" is being disposed, so ${registration.key} will not '
+          'be built.',
+        ),
+      );
+    }
+
+    final completer = Completer<Object>();
+    final build = completer.future;
+    registration.inFlight = build;
+    _lazyBuilding.add(registration);
+    build.then(
+      (_) => _settleLazy(registration, build),
+      onError: (Object _) => _settleLazy(registration, build),
+    );
+
+    CobaltResolutionTracker.guardLazy(registration.key, () async {
+      final instance = await registration.factory.create(this);
+      if (_state == CobaltScopeState.disposing ||
+          _state == CobaltScopeState.disposed) {
+        try {
+          await _releaseLate(instance, registration.teardown);
+        } catch (error, stackTrace) {
+          Zone.current.handleUncaughtError(error, stackTrace);
+        }
+        throw CobaltScopeStateError(
+          'Scope "$name" was disposed while ${registration.key} was being '
+          'built. The instance was closed as soon as it arrived.',
+        );
+      }
+      registration.instance = instance;
+      _afterCreate(
+        instance,
+        registration.key,
+        kind: CobaltRegistrationKind.lazyAsyncSingleton,
+        retain: true,
+        teardown: registration.teardown,
+      );
+      return instance;
+    }).then(completer.complete, onError: completer.completeError);
+
+    return build;
+  }
+
+  void _settleLazy(
+    LazyAsyncSingletonRegistration registration,
+    Future<Object> build,
+  ) {
+    if (identical(registration.inFlight, build)) registration.inFlight = null;
+    _lazyBuilding.remove(registration);
+  }
+
+  /// Closes an instance that finished building after its scope was torn down.
+  static Future<void> _releaseLate(
+    Object instance,
+    CobaltTeardown? teardown,
+  ) async {
+    if (teardown != null) {
+      await teardown(instance);
+      return;
+    }
+    switch (instance) {
+      case AsyncDisposable():
+        await instance.dispose();
+      case Disposable():
+        instance.dispose();
+    }
+  }
+
+  /// What is being built, outermost first: the lazy async builds that led
+  /// here, then the synchronous chain below them.
+  List<CobaltKey> _trail() => [
+    ...CobaltResolutionTracker.lazyChain,
+    ..._tracker.chain,
+  ];
+
   Future<void> _createAsync(AsyncSingletonRegistration registration) =>
       _tracker.guardAsync(registration.key, () async {
-        final instance = await registration.factory.create(this);
+        final instance = await CobaltResolutionTracker.inPhaseOne(
+          this,
+          () => registration.factory.create(this),
+        );
         registration.instance = instance;
         registration.isReady = true;
         _afterCreate(

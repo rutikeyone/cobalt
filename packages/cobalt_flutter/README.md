@@ -60,6 +60,26 @@ CobaltScopeWidget(
 `name` is optional everywhere and defaults to the builder's type. If the scope registers async
 singletons, `loading` is shown while `init()` runs and `errorBuilder` receives anything it throws.
 
+## A lazy async registration on one screen
+
+Something expensive that lives as long as its scope but is wanted by one screen is registered with
+`registerLazyAsyncSingleton` (or `@CobaltInit(lazy: true)`), and `CobaltAsyncBuilder` is how the
+screen waits for it:
+
+```dart
+CobaltAsyncBuilder<SearchEngine>(
+  loading: const Center(child: CircularProgressIndicator()),
+  errorBuilder: (context, error, retry) => RetryView(onRetry: retry),
+  builder: (context, engine) => SearchScreen(engine: engine),
+)
+```
+
+The first screen to mount it builds the engine and shows `loading` meanwhile; every later one finds
+it built and renders without a frame of `loading`. The resolution is held in the widget's state, so
+a parent rebuild neither restarts it nor retries a failed one by itself — `retry` does. Without an
+`errorBuilder` the failure is rethrown during build. For a one-off await outside a builder,
+`context.cobaltAsync<T>()` reads through the nearest scope.
+
 ## Who owns the root scope
 
 `CobaltAppScope` does. It takes the graph the same way `CobaltApplication.start` does, builds it,

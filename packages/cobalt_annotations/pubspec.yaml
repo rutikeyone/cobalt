@@ -1,6 +1,6 @@
 name: cobalt_annotations
 description: Annotations for Cobalt — @CobaltInject, @injected, @CobaltBootstrap, @CobaltInit and @CobaltScopeRoot.
-version: 0.1.2
+version: 0.2.0
 repository: https://github.com/rutikeyone/cobalt
 issue_tracker: https://github.com/rutikeyone/cobalt/issues
 topics:

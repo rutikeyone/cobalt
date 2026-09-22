@@ -123,6 +123,18 @@ abstract class CodegenBasicsL10n {
   /// In en, this message translates to:
   /// **'increment'**
   String get increment;
+
+  /// Shown while the lazy leaderboard is being built on first use.
+  ///
+  /// In en, this message translates to:
+  /// **'loading the leaderboard…'**
+  String get leaderboardLoading;
+
+  /// The lazy leaderboard, once built.
+  ///
+  /// In en, this message translates to:
+  /// **'leaderboard ready: {entries} entries'**
+  String leaderboardReady(int entries);
 }
 
 class _CodegenBasicsL10nDelegate

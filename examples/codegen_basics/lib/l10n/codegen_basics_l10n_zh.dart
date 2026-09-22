@@ -23,4 +23,12 @@ class CodegenBasicsL10nZh extends CodegenBasicsL10n {
 
   @override
   String get increment => '增加';
+
+  @override
+  String get leaderboardLoading => '正在加载排行榜…';
+
+  @override
+  String leaderboardReady(int entries) {
+    return '排行榜已就绪：$entries 条记录';
+  }
 }

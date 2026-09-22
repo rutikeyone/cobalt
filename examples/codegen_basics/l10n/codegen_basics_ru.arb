@@ -14,5 +14,10 @@
     }
   },
 
-  "increment": "увеличить"
+  "increment": "увеличить",
+
+  "leaderboardLoading": "загружаем таблицу лидеров…",
+
+  "leaderboardReady": "таблица лидеров готова, записей: {entries}",
+  "@leaderboardReady": { "placeholders": { "entries": { "type": "int" } } }
 }

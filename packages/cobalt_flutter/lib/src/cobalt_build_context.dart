@@ -39,4 +39,12 @@ extension CobaltBuildContext on BuildContext {
     P param, {
     String? name,
   }) => CobaltScopeProvider.of(this).getWithParam<T, P>(param, name: name);
+
+  /// Resolves [T] from the nearest scope with `getAsync`, building a lazy
+  /// async registration the first time it is asked for.
+  ///
+  /// To build a subtree from the result, `CobaltAsyncBuilder` holds the
+  /// future across rebuilds and handles loading and failure.
+  Future<T> cobaltAsync<T extends Object>({String? name}) =>
+      CobaltScopeProvider.of(this).getAsync<T>(name: name);
 }

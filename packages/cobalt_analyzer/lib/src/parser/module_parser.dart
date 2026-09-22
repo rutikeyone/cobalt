@@ -123,12 +123,23 @@ class CobaltModuleParser {
       );
     }
 
+    final isLazyAsync = annotation.readBool('lazyInit');
+    if (isLazyAsync && !isAsync) {
+      throw CobaltParseError(
+        '$where is marked lazyInit but does not return a Future. lazyInit '
+        'defers an async build to the first getAsync; a synchronous member is '
+        'already built on first use by the default lifetime. Drop lazyInit.',
+        member,
+      );
+    }
+
     return CobaltInjectableClass(
       type: produced,
       lifetime: lifetime,
       name: annotation.readString('name'),
       exposeAs: _exposeAsOf(annotation),
       isAsyncInit: isAsync,
+      isLazyAsync: isLazyAsync,
       environments: environmentsOf(member),
       constructorParameters: [
         for (final parameter in member.formalParameters)

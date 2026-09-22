@@ -1,3 +1,10 @@
+## 0.2.0
+
+- `@CobaltInit(lazy: true)`, and the shorthand `@cobaltLazyInit`: the class is
+  built by the first `getAsync` instead of during `scope.init()`.
+- `@CobaltInject(lazyInit: true)` — the same for a `@CobaltModule` member
+  returning a `Future`.
+
 ## 0.1.2
 
 - No code changes in this package. Republished in lockstep with a

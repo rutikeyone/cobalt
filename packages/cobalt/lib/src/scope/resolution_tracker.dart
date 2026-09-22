@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cobalt/src/graph/cobalt_cycle_error.dart';
 import 'package:cobalt/src/key/cobalt_key.dart';
 
@@ -74,4 +76,48 @@ final class CobaltResolutionTracker {
       exit(key);
     }
   }
+
+  static final _lazyChainKey = Object();
+
+  /// The lazy async builds that led to the code running now, outermost first.
+  ///
+  /// Carried in the [Zone] rather than in this tracker, because it has to
+  /// survive `await`: each lazy build runs its factory in a zone that extends
+  /// its caller's chain, so the chain belongs to one call and not to the tree.
+  /// That is the difference that matters. A key another caller is building is
+  /// something to wait for; a key in *this* chain is a cycle, and waiting for
+  /// it would never end.
+  static List<CobaltKey> get lazyChain =>
+      (Zone.current[_lazyChainKey] as List<CobaltKey>?) ?? const [];
+
+  /// Runs [build] as the lazy build of [key], extending [lazyChain].
+  ///
+  /// Throws [CobaltCycleError] instead when [key] is already in the chain.
+  static Future<T> guardLazy<T>(CobaltKey key, Future<T> Function() build) {
+    final chain = lazyChain;
+    final index = chain.indexOf(key);
+    if (index >= 0) {
+      return Future.error(
+        CobaltCycleError([
+          for (final entry in chain.skip(index)) entry.toString(),
+          key.toString(),
+        ]),
+      );
+    }
+    return runZoned(
+      build,
+      zoneValues: {
+        _lazyChainKey: List<CobaltKey>.unmodifiable([...chain, key]),
+      },
+    );
+  }
+
+  static final _phaseOneKey = Object();
+
+  /// The scope whose `init()` is running the code running now, if any.
+  static Object? get phaseOneOwner => Zone.current[_phaseOneKey];
+
+  /// Runs [build] as part of [owner]'s phase 1.
+  static Future<T> inPhaseOne<T>(Object owner, Future<T> Function() build) =>
+      runZoned(build, zoneValues: {_phaseOneKey: owner});
 }

@@ -43,4 +43,23 @@ abstract interface class CobaltResolver {
 
   /// Whether [T] can be resolved from this scope or any ancestor.
   bool isRegistered<T extends Object>({String? name});
+
+  /// Returns the instance registered for [T], building it first if it is a
+  /// lazy async registration nobody has asked for yet.
+  ///
+  /// Every other kind resolves as [get] would. The one other difference is an
+  /// async singleton that `init()` is still building: this waits for `init()`
+  /// instead of throwing `CobaltNotReadyError` — unless it is called from
+  /// inside that same `init()`, where waiting could never end, and it throws as
+  /// [get] does.
+  ///
+  /// Concurrent calls for the same key share one build. A build that fails is
+  /// not remembered: every caller waiting on it gets the error, and the next
+  /// call tries again. A lazy build that asks, through its own chain, for the
+  /// key it is building throws `CobaltCycleError` naming the path.
+  Future<T> getAsync<T extends Object>({String? name});
+
+  /// [getAll], building any lazy async registration of [T] that is not built
+  /// yet, in the same order.
+  Future<List<T>> getAllAsync<T extends Object>();
 }

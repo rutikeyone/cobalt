@@ -174,13 +174,14 @@ cd examples/manual_mode && dart run
 
 ## 3. 注册与读取
 
-### 五种注册方式
+### 六种注册方式
 
 | 调用 | 何时构建 | 作用域是否持有 |
 |---|---|---|
 | `registerSingleton<T>(value)` | 已由你构建 | 是 |
 | `registerLazySingleton<T>(factory)` | 首次解析时 | 是 |
 | `registerAsyncSingleton<T>(factory)` | 在 `init()` 中，按依赖顺序 | 是 |
+| `registerLazyAsyncSingleton<T>(factory)` | 首次 `getAsync` 时 | 是 |
 | `registerFactory<T>(factory)` | 每次解析 | 否 |
 | `registerParamFactory<T, P>(factory)` | 每次解析，带一个参数 | 否 |
 
@@ -198,7 +199,7 @@ scope
 在同一个作用域里注册同一个键两次会抛异常；从子作用域遮蔽它则不会——
 那是替换某样东西的正规方式，测试里和生产里都一样。
 
-### 五种读取方式
+### 六种读取方式
 
 ```dart
 scope.get<Repository>();                       // 没有注册就抛异常
@@ -206,6 +207,7 @@ scope.getOrNull<Telemetry>();                  // 改为返回 null——见 §1
 scope.get<Logger>(name: 'audit');              // 命名注册
 scope.getAll<NoteFormatter>();                 // 该类型的全部注册，就近作用域在前
 scope.getWithParam<Counter, String>('alice');  // 参数化注册
+await scope.getAsync<SearchEngine>();          // 先构建惰性异步注册——见 §8
 ```
 
 `isRegistered<T>()` 不构建任何东西就能回答。
@@ -534,6 +536,39 @@ scope
 异步注册必须在 `init()` 运行之前就存在。它只取启动那一刻找到的那些，且只运行一次，
 所以往一个已经激活的作用域里再注册一个是错误，而不是悄悄永远不构建。
 请改为压入一个子作用域并初始化它。
+
+### 第一次被请求时才构建
+
+阶段 1 在启动时构建所有东西。对于一个开销很大、与应用同寿、却只有少数界面需要的对象，
+这笔交易并不划算——改为惰性注册，在第一次 `getAsync` 之前什么都不会构建：
+
+```dart
+scope.registerLazyAsyncSingleton<SearchEngine>(const SearchEngineFactory());
+
+final engine = await scope.getAsync<SearchEngine>();
+```
+
+作用域像对待其他单例一样持有并释放它，顺序按**创建**顺序。
+并发调用共享同一次构建。失败的构建不会被记住：每个在等待的调用方都会收到这个错误，
+下一次调用会重新尝试。它可以在 `init()` 之后注册，因为它没有可以错过的阶段。
+
+构建完成后可以同步读取。在那之前，`get` 会抛出 `CobaltLazyAsyncError` 并提示使用 `getAsync`——
+`getAll` 也一样，它旁边有 `getAllAsync`。惰性工厂可以通过解析器等待另一个惰性注册；
+绕回到自身键的链是带路径的 `CobaltCycleError`，而不是卡死。
+异步单例不能在 `dependsOn` 中点名一个惰性注册——`init()` 没有东西可等。
+
+`dispose` 会等待进行中的构建，并释放它构建出的东西。超过截止时间仍在运行的构建会像其他超时步骤一样被放弃，
+它最终完成时，结果会被立即关闭。
+
+在组件里，`CobaltAsyncBuilder` 在第一个界面构建它时显示 `loading`，之后每个界面都会直接渲染：
+
+```dart
+CobaltAsyncBuilder<SearchEngine>(
+  loading: const Center(child: CircularProgressIndicator()),
+  errorBuilder: (context, error, retry) => RetryView(onRetry: retry),
+  builder: (context, engine) => SearchScreen(engine: engine),
+)
+```
 
 ---
 

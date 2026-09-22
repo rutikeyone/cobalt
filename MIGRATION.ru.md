@@ -41,9 +41,11 @@ GetIt.I.registerSingleton<Database>(app.get<Database>());
 | `registerLazySingleton<T>(() => T())` | `registerLazySingleton<T>(const TFactory())` |
 | `registerSingletonAsync<T>(() async => …)` | `registerAsyncSingleton<T>(const TFactory())` |
 | `registerSingletonWithDependencies<T>(…, dependsOn: [A])` | `registerAsyncSingleton<T>(…, dependsOn: {CobaltKey(A)})` |
+| `registerLazySingletonAsync<T>(() async => …)` | `registerLazyAsyncSingleton<T>(const TFactory())` |
 | `registerFactoryParam<T, P, void>((p, _) => …)` | `registerParamFactory<T, P>(const TFactory())` |
 | `getIt<T>()` / `getIt.get<T>()` | `scope.get<T>()` |
 | `getIt<T>(instanceName: 'a')` | `scope.get<T>(name: 'a')` |
+| `await getIt.getAsync<T>()` | `await scope.getAsync<T>()` |
 | `getIt.isRegistered<T>()` | `scope.isRegistered<T>()` |
 | `pushNewScope(...)` | `scope.push('name')` |
 | `popScope()` | `await child.dispose()` |
@@ -106,12 +108,10 @@ final tabB = app.push('tab:b');   // сосед, а не «сверху на tab
   по-прежнему приходят из резолвера, поэтому запись обычно короче списка параметров, который она
   заменяет. В Code-Gen Mode всё это писать не нужно: пометьте параметры `@CobaltParam`, и генератор
   сам напишет тип записи, фабрику и регистрацию.
-- **`registerFactoryAsync`, `registerLazySingletonAsync`** — асинхронное построение принадлежит
-  `registerAsyncSingleton`, который участвует в фазе 1, поэтому ленивой async-регистрации и
-  `getAsync` нет. Работу откладывает время жизни: положите дорогое в дочерний скоуп и пушьте его,
-  когда открывается фича, — `CobaltScopeWidget` покажет `loading`, пока идёт его `init()`. Не
-  покрытым остаётся случай, когда дорогое обязано жить столько же, сколько приложение, и нужно
-  немногим экранам.
+- **`registerFactoryAsync`** — новая async-сборка на каждый вызов. У Cobalt есть ленивый async-
+  *синглтон* (`registerLazyAsyncSingleton`, читается через `getAsync`): строится первым вызовом и
+  удерживается; async-фабрики на каждый вызов нет. Постройте значение у вызывающего или
+  зарегистрируйте ленивый синглтон, который выдаёт то, что нужно каждому вызову.
 - **`resetLazySingletons`** — вместо этого разберите скоуп. Сброс инстансов под живыми держателями это
   ровно тот класс багов, ради предотвращения которого скоупы и существуют.
 - **Глобальный инстанс.** Никакого `GetIt.I` нет. Скоуп передают, инжектят или читают из дерева виджетов

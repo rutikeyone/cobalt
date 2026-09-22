@@ -42,9 +42,11 @@ the most edges, and until its dependencies are Cobalt's you gain nothing.
 | `registerLazySingleton<T>(() => T())` | `registerLazySingleton<T>(const TFactory())` |
 | `registerSingletonAsync<T>(() async => …)` | `registerAsyncSingleton<T>(const TFactory())` |
 | `registerSingletonWithDependencies<T>(…, dependsOn: [A])` | `registerAsyncSingleton<T>(…, dependsOn: {CobaltKey(A)})` |
+| `registerLazySingletonAsync<T>(() async => …)` | `registerLazyAsyncSingleton<T>(const TFactory())` |
 | `registerFactoryParam<T, P, void>((p, _) => …)` | `registerParamFactory<T, P>(const TFactory())` |
 | `getIt<T>()` / `getIt.get<T>()` | `scope.get<T>()` |
 | `getIt<T>(instanceName: 'a')` | `scope.get<T>(name: 'a')` |
+| `await getIt.getAsync<T>()` | `await scope.getAsync<T>()` |
 | `getIt.isRegistered<T>()` | `scope.isRegistered<T>()` |
 | `pushNewScope(...)` | `scope.push('name')` |
 | `popScope()` | `await child.dispose()` |
@@ -112,13 +114,11 @@ Be aware of these before you commit to the move:
   Code-Gen Mode you do not write any of that: mark the parameters with
   `@CobaltParam` and the generator emits the record type, the factory and the
   registration.
-- **`registerFactoryAsync`, `registerLazySingletonAsync`** — async construction
-  belongs to `registerAsyncSingleton`, which participates in phase 1, so there
-  is no per-registration lazy async build and no `getAsync`. What defers the
-  work is lifetime: put the expensive thing in a child scope and push that
-  scope when the feature is entered, and `CobaltScopeWidget` shows `loading`
-  while its `init()` runs. The case that leaves uncovered is something
-  expensive that must live as long as the app and is wanted by few screens.
+- **`registerFactoryAsync`** — a fresh async build on every call. Cobalt has a
+  lazy async *singleton* (`registerLazyAsyncSingleton`, read with `getAsync`),
+  built by the first call and kept; a per-call async factory is not there.
+  Build the value in the caller, or register a lazy singleton that produces
+  what each call needs.
 - **`resetLazySingletons`** — dispose the scope instead. Resetting instances
   underneath live holders is the class of bug scopes exist to prevent.
 - **A global instance.** There is no `GetIt.I`. A scope is passed, injected, or

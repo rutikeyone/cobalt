@@ -601,6 +601,39 @@ class SearchIndex implements AsyncInitializable {
 `CobaltApplication.start` 在两个阶段都完成后才返回，
 所以没有 `allReady()` 要调用，也没有「已注册但尚未就绪」这种状态需要你去推理。
 
+### 第一次被请求时才构建
+
+阶段 1 在启动时构建所有东西。对于一个开销很大、与应用同寿、却只有少数界面需要的对象，
+把它标为惰性，在第一次 `getAsync` 之前什么都不会构建：
+
+```dart
+@CobaltInit(lazy: true)   // 或 @cobaltLazyInit
+class SearchEngine implements AsyncInitializable {
+  SearchEngine(this._index, this._clock);
+
+  final Model _index;     // 它本身也是惰性的——生成的工厂会等待它
+  final Clock _clock;     // 普通注册，照常读取
+
+  @override
+  Future<void> init() async => _index.warmUp();
+}
+```
+
+在返回 `Future` 的模块成员上，写法是 `@CobaltInject(lazyInit: true)`。
+
+生成器用 `registerLazyAsyncSingleton` 注册它，它的工厂会为每个同样是惰性的依赖等待 `getAsync`。
+有三种情况是构建错误，因为否则每一种都会在设备上失败：
+
+- 同步或急切异步的类注入了一个惰性注册——在有人等待之前没有东西可以交给它；
+  把依赖方也改成惰性，或在需要的地方用 `getAsync` 解析；
+- 任何类上惰性类型的 `@injected` 字段——字段是同步填充的；
+- 指向惰性注册、或声明在惰性注册上的 `dependsOn`——`dependsOn` 排序的是 `init()`，
+  而惰性注册不是由 `init()` 构建的。
+
+运行时的行为与手写模式指南中描述的一致：并发调用共享同一次构建，失败的构建由下一次调用重试，
+第一次 `getAsync` 之前调用 `get` 会抛出 `CobaltLazyAsyncError`，销毁会等待进行中的构建。
+在组件里，`CobaltAsyncBuilder<SearchEngine>` 在第一个界面构建它时显示 `loading`，之后每个界面都会直接渲染。
+
 ---
 
 ## 12. 来自调用方的值

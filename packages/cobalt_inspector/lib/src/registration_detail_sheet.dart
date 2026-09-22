@@ -76,7 +76,8 @@ class _RegistrationDetailSheetState extends State<RegistrationDetailSheet> {
             value: switch (registration.kind) {
               CobaltRegistrationKind.singleton ||
               CobaltRegistrationKind.lazySingleton ||
-              CobaltRegistrationKind.asyncSingleton => strings.tornDownYes,
+              CobaltRegistrationKind.asyncSingleton ||
+              CobaltRegistrationKind.lazyAsyncSingleton => strings.tornDownYes,
               CobaltRegistrationKind.transient ||
               CobaltRegistrationKind.parameterized => strings.tornDownNo,
               null => strings.tornDownUnknown,
@@ -114,11 +115,15 @@ class _RegistrationDetailSheetState extends State<RegistrationDetailSheet> {
     );
   }
 
-  void _build() {
+  Future<void> _build() async {
     try {
-      final instance = widget.scope.debugResolve(widget.registration.key);
+      final instance = await widget.scope.debugResolveAsync(
+        widget.registration.key,
+      );
+      if (!mounted) return;
       setState(() => _built = '${instance.runtimeType}');
     } on Object catch (error) {
+      if (!mounted) return;
       setState(() => _failed = '$error');
     }
   }

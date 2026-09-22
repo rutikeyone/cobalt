@@ -12,11 +12,11 @@ environment:
 resolution: workspace
 
 dependencies:
-  cobalt: ^0.1.0
-  cobalt_flutter: ^0.1.0
-  cobalt_go_router: ^0.1.0
-  cobalt_inspector: ^0.1.0
-  cobalt_talker: ^0.1.0
+  cobalt: ^0.2.0
+  cobalt_flutter: ^0.2.0
+  cobalt_go_router: ^0.2.0
+  cobalt_inspector: ^0.2.0
+  cobalt_talker: ^0.2.0
   flutter:
     sdk: flutter
   flutter_localizations:

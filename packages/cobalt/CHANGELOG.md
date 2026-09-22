@@ -1,3 +1,33 @@
+## 0.2.0
+
+- Lazy async singletons. `registerLazyAsyncSingleton<T>(factory)` registers
+  something built by the first `getAsync<T>()` rather than during `init()` —
+  for what lives as long as the scope but few screens want. Concurrent calls
+  share one build; a failed build is not remembered, so the next call
+  retries; the instance is retained and released in creation order. It may be
+  registered after `init()`.
+- `getAsync<T>()` and `getAllAsync<T>()` on `CobaltResolver` and
+  `CobaltScope`. `getAsync` on an async singleton `init()` is still building
+  waits for it — except from inside that same `init()`, where it throws
+  `CobaltNotReadyError` as `get` does, because waiting could never end.
+- `CobaltLazyAsyncError` when a lazy registration is read synchronously
+  before it is built — by `get`, `getOrNull` or `getAll`.
+- A lazy build that asks, through its own chain, for the key it is building
+  throws `CobaltCycleError` with the path instead of deadlocking. The chain
+  is carried per call in a `Zone`, so a key another caller is building is
+  waited for rather than reported as a cycle.
+- `dispose` waits for lazy builds in flight under the same deadline
+  (`CobaltDisposeStage.awaitingLazyBuild`); one that finishes after the
+  deadline is closed as soon as it arrives. A lazy build that threw does not
+  make `dispose` throw — `CobaltDisposeFailure.isBuildFailure`.
+- `dependsOn` naming a lazy registration fails `init()` with
+  `CobaltDependsOnError`.
+- `debugResolveAsync(CobaltKey)`, and `CobaltRegistrationKind.lazyAsyncSingleton`
+  from `debugKindOf`.
+- **Breaking:** `CobaltRegistrationKind` and `CobaltDisposeStage` each gained a
+  value, so an exhaustive `switch` over either needs a new case, and
+  `CobaltResolver` gained two methods for anything implementing it.
+
 ## 0.1.2
 
 - Removed a stray `RELEASING.md` that had been committed into this package's

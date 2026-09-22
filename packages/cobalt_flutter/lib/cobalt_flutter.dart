@@ -10,6 +10,7 @@ export 'package:cobalt/cobalt.dart';
 
 export 'package:cobalt_flutter/src/cobalt_app_scope.dart';
 export 'package:cobalt_flutter/src/cobalt_app_scope_controller.dart';
+export 'package:cobalt_flutter/src/cobalt_async_builder.dart';
 export 'package:cobalt_flutter/src/cobalt_build_context.dart';
 export 'package:cobalt_flutter/src/errors/cobalt_no_app_scope_error.dart';
 export 'package:cobalt_flutter/src/errors/cobalt_no_scope_error.dart';

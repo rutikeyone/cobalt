@@ -622,6 +622,41 @@ no-op it looks like: there is no build to wait for.
 `CobaltApplication.start` returns when both phases are done, so there is no `allReady()` to call and no
 "registered but not ready" state to reason about.
 
+### Built when first asked for
+
+Phase 1 builds everything at startup. For something expensive that lives as long as the app but is
+wanted by few screens, mark it lazy, and nothing is built until the first `getAsync`:
+
+```dart
+@CobaltInit(lazy: true)   // or @cobaltLazyInit
+class SearchEngine implements AsyncInitializable {
+  SearchEngine(this._index, this._clock);
+
+  final Model _index;     // itself lazy — the generated factory awaits it
+  final Clock _clock;     // an ordinary registration, read as usual
+
+  @override
+  Future<void> init() async => _index.warmUp();
+}
+```
+
+On a module member returning a `Future`, the same is `@CobaltInject(lazyInit: true)`.
+
+The generator registers it with `registerLazyAsyncSingleton`, and its factory awaits
+`getAsync` for every dependency that is lazy too. Three things are build errors, because each would
+fail on the device instead:
+
+- a synchronous or eager async class that injects a lazy one — there is nothing to hand it until
+  someone awaits; make the dependent lazy as well, or resolve it with `getAsync` where it is needed;
+- an `@injected` field of a lazy type on any class — fields are filled synchronously;
+- `dependsOn` pointing at a lazy registration, or declared on one — `dependsOn` orders `init()`,
+  and a lazy registration is not built by `init()`.
+
+At run time it behaves as described in the manual guide: concurrent calls share one build, a failed
+build is retried by the next call, `get` before the first `getAsync` throws `CobaltLazyAsyncError`,
+and teardown waits for a build in flight. In a widget, `CobaltAsyncBuilder<SearchEngine>` shows
+`loading` while the first screen builds it and renders straight away on every screen after.
+
 ---
 
 ## 12. Values that come from the call site

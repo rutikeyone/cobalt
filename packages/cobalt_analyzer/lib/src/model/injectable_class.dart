@@ -13,6 +13,7 @@ class CobaltInjectableClass {
     this.name,
     this.exposeAs,
     this.isAsyncInit = false,
+    this.isLazyAsync = false,
     this.dependsOn = const [],
     this.environments = const {},
     this.provider,
@@ -37,6 +38,7 @@ class CobaltInjectableClass {
         ? null
         : CobaltTypeRef.fromJson(json['exposeAs'] as Map<String, dynamic>),
     isAsyncInit: json['isAsyncInit'] as bool? ?? false,
+    isLazyAsync: json['isLazyAsync'] as bool? ?? false,
     dependsOn: [
       for (final d in json['dependsOn'] as List<dynamic>? ?? const [])
         CobaltTypeRef.fromJson(d as Map<String, dynamic>),
@@ -60,6 +62,10 @@ class CobaltInjectableClass {
   final String? name;
   final CobaltTypeRef? exposeAs;
   final bool isAsyncInit;
+
+  /// Whether this async registration is built by the first `getAsync` rather
+  /// than during `init()`. Only ever true together with [isAsyncInit].
+  final bool isLazyAsync;
   final List<CobaltTypeRef> dependsOn;
 
   /// Environment names this registration is restricted to, empty when it
@@ -89,6 +95,7 @@ class CobaltInjectableClass {
         name: name,
         exposeAs: exposeAs,
         isAsyncInit: isAsyncInit,
+        isLazyAsync: isLazyAsync,
         dependsOn: dependsOn,
         environments: environments,
         provider: provider,
@@ -132,6 +139,7 @@ class CobaltInjectableClass {
     'name': name,
     'exposeAs': exposeAs?.toJson(),
     'isAsyncInit': isAsyncInit,
+    'isLazyAsync': isLazyAsync,
     'dependsOn': [for (final d in dependsOn) d.toJson()],
     'environments': [...environments],
     'provider': provider?.toJson(),

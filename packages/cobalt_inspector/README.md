@@ -101,7 +101,7 @@ are the same division `cobalt_talker` files its logs under, which is what lets
 same palette.
 
 Three things are drawn from a base colour rather than named directly, and each has an override map
-beside it. A lifetime badge takes the colour of what retains it, so five lifetimes share three
+beside it. A lifetime badge takes the colour of what retains it, so six lifetimes share three
 colours; a severity takes `failure`, `warning` or `muted`; a family takes an icon. Where that
 reading is not yours, name the entries you care about — the map is read per entry, so the rest keep
 deriving:

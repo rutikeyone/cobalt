@@ -173,13 +173,14 @@ cd examples/manual_mode && dart run
 
 ## 3. Registering and reading
 
-### Five ways to register
+### Six ways to register
 
 | Call | Built | Held by the scope |
 |---|---|---|
 | `registerSingleton<T>(value)` | already, by you | yes |
 | `registerLazySingleton<T>(factory)` | on first resolve | yes |
 | `registerAsyncSingleton<T>(factory)` | during `init()`, in dependency order | yes |
+| `registerLazyAsyncSingleton<T>(factory)` | on the first `getAsync` | yes |
 | `registerFactory<T>(factory)` | on every resolve | no |
 | `registerParamFactory<T, P>(factory)` | on every resolve, from an argument | no |
 
@@ -198,7 +199,7 @@ scope
 Registering the same key twice in one scope throws. Shadowing it from a child scope does not — that
 is the supported way to replace something, in tests as in production.
 
-### Five ways to read
+### Six ways to read
 
 ```dart
 scope.get<Repository>();                       // throws when nothing is registered
@@ -206,6 +207,7 @@ scope.getOrNull<Telemetry>();                  // null instead — see §10
 scope.get<Logger>(name: 'audit');              // a named registration
 scope.getAll<NoteFormatter>();                 // every registration of the type, nearest scope first
 scope.getWithParam<Counter, String>('alice');  // a parameterized one
+await scope.getAsync<SearchEngine>();          // builds a lazy async one first — see §8
 ```
 
 `isRegistered<T>()` answers without building anything.
@@ -546,6 +548,43 @@ its own phase 1 before this scope existed.
 Async registrations have to exist before `init()` runs. It takes the ones it finds when it starts and
 runs once, so registering another into a scope that is already active is an error rather than
 something that quietly never gets built. Push a child scope and initialize that instead.
+
+### Built when first asked for
+
+Phase 1 builds everything at startup. For something expensive that lives as long as the app but is
+wanted by few screens, that is the wrong trade — register it lazily instead, and nothing is built
+until the first `getAsync`:
+
+```dart
+scope.registerLazyAsyncSingleton<SearchEngine>(const SearchEngineFactory());
+
+final engine = await scope.getAsync<SearchEngine>();
+```
+
+It is held and released with the scope like any other singleton, in the order it was *created*.
+Concurrent calls share one build. A build that fails is not remembered: everyone waiting gets the
+error, and the next call tries again. It may be registered after `init()`, because it has no phase
+to miss.
+
+Reading it synchronously works once it is built. Before that, `get` throws `CobaltLazyAsyncError`
+naming `getAsync` — and so does `getAll`, which has `getAllAsync` beside it. A lazy factory can
+await another lazy registration through its resolver; a chain that comes back to its own key is a
+`CobaltCycleError` with the path, not a hang. An async singleton cannot name a lazy one in its
+`dependsOn` — `init()` has nothing to wait for.
+
+`dispose` waits for a build in flight and releases what it made. A build still running past the
+deadline is abandoned like any other overrun, and when it does finish its result is closed at once.
+
+In a widget, `CobaltAsyncBuilder` shows `loading` while the first screen builds it, and renders
+straight away on every screen after:
+
+```dart
+CobaltAsyncBuilder<SearchEngine>(
+  loading: const Center(child: CircularProgressIndicator()),
+  errorBuilder: (context, error, retry) => RetryView(onRetry: retry),
+  builder: (context, engine) => SearchScreen(engine: engine),
+)
+```
 
 ---
 

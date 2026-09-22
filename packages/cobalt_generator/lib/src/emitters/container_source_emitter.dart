@@ -36,6 +36,12 @@ class ContainerSourceEmitter {
 
     _assertDependsOnIsAsync(injectables);
 
+    final lazyKeys = {
+      for (final declaration in injectables)
+        if (declaration.isLazyAsync) _keyOf(declaration),
+    };
+    _assertLazyIsAwaited(injectables, lazyKeys);
+
     final ordered = _withDerivedDependsOn(injectables);
     final names = CobaltFactoryNames(ordered);
 
@@ -54,7 +60,7 @@ class ContainerSourceEmitter {
             if (declaration.takesCallSiteValues)
               _argsTypedef(declaration, names),
           for (final declaration in ordered)
-            _factories.emit(declaration, names),
+            _factories.emit(declaration, names, awaited: lazyKeys),
           if (ordered.isNotEmpty)
             _rootScope.emit(
               _ordered(ordered),
@@ -204,16 +210,36 @@ class ContainerSourceEmitter {
     };
     final asyncKeys = {
       for (final declaration in injectables)
-        if (declaration.isAsyncInit) _keyOf(declaration),
+        if (declaration.isAsyncInit && !declaration.isLazyAsync)
+          _keyOf(declaration),
+    };
+    final lazyKeys = {
+      for (final declaration in injectables)
+        if (declaration.isLazyAsync) _keyOf(declaration),
     };
 
+    final lazy = <String>[];
     final wrong = <String>[];
     for (final declaration in injectables) {
       for (final dependency in declaration.dependsOn) {
         final key = _refKey(dependency, null);
-        if (!registered.contains(key) || asyncKeys.contains(key)) continue;
-        wrong.add('${declaration.label} waits for ${dependency.name}');
+        if (asyncKeys.contains(key)) continue;
+        if (lazyKeys.contains(key)) {
+          lazy.add('${declaration.label} waits for ${dependency.name}');
+        } else if (registered.contains(key)) {
+          wrong.add('${declaration.label} waits for ${dependency.name}');
+        }
       }
+    }
+
+    if (lazy.isNotEmpty) {
+      throw CobaltGenerationError(
+        'dependsOn cannot wait for a lazy async registration.\n'
+        '${lazy.map((line) => '  $line').join('\n')}\n'
+        'A lazy registration is built by the first getAsync, not by init(), '
+        'so init() has nothing to wait for. Make the waiting class lazy too, '
+        'or drop lazy from what it waits for.',
+      );
     }
     if (wrong.isEmpty) return;
 
@@ -223,6 +249,52 @@ class ContainerSourceEmitter {
       'Annotate what it waits for with @CobaltInit, or drop the dependsOn: a '
       'registration without an async build has nothing to finish, and the '
       'container would ignore the edge.',
+    );
+  }
+
+  /// Rejects anything that would have to hold a lazy registration without
+  /// awaiting it.
+  ///
+  /// A lazy async registration exists only once someone awaits `getAsync`, so
+  /// the only thing that can take one as a dependency is another lazy
+  /// registration, whose factory is itself awaited. A synchronous or eager
+  /// dependent would be handed nothing — at runtime that is a
+  /// `CobaltLazyAsyncError` on the first resolve, which this makes a build
+  /// failure instead. `@injected` fields are filled synchronously, so they
+  /// are refused on every class.
+  void _assertLazyIsAwaited(
+    List<CobaltInjectableClass> injectables,
+    Set<String> lazyKeys,
+  ) {
+    if (lazyKeys.isEmpty) return;
+
+    final wrong = <String>[];
+    for (final declaration in injectables) {
+      for (final parameter in declaration.constructorParameters) {
+        if (parameter.isParam || declaration.isLazyAsync) continue;
+        if (!lazyKeys.contains(_refKey(parameter.type, parameter.name))) {
+          continue;
+        }
+        wrong.add('${declaration.label} injects ${_display(parameter.type)}');
+      }
+      for (final property in declaration.properties) {
+        if (!lazyKeys.contains(_refKey(property.type, property.name))) {
+          continue;
+        }
+        wrong.add(
+          '${declaration.label}.${property.field} injects '
+          '${_display(property.type)}',
+        );
+      }
+    }
+    if (wrong.isEmpty) return;
+
+    throw CobaltGenerationError(
+      'A lazy async registration can only be injected into another lazy one.\n'
+      '${wrong.map((line) => '  $line').join('\n')}\n'
+      'It is built by the first getAsync, so there is nothing to hand over '
+      'synchronously. Make the dependent @CobaltInit(lazy: true) — its factory '
+      'then awaits it — or resolve it with getAsync where it is needed.',
     );
   }
 
@@ -241,13 +313,15 @@ class ContainerSourceEmitter {
   ) {
     final asyncKeys = {
       for (final declaration in injectables)
-        if (declaration.isAsyncInit) _keyOf(declaration),
+        if (declaration.isAsyncInit && !declaration.isLazyAsync)
+          _keyOf(declaration),
     };
 
     return [
       for (final declaration in injectables)
         if (declaration.provider == null ||
             !declaration.isAsyncInit ||
+            declaration.isLazyAsync ||
             declaration.dependsOn.isNotEmpty)
           declaration
         else
@@ -399,7 +473,7 @@ class ContainerSourceEmitter {
       _refKey(declaration.exposedType, declaration.name);
 
   static String _refKey(CobaltTypeRef type, String? name) =>
-      '${type.signature}#${name ?? ''}';
+      registrationKey(type, name);
 }
 
 typedef _Dependency = ({String key, String label, bool isOptional});

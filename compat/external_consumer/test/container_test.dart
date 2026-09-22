@@ -219,6 +219,25 @@ void main() {
     });
   });
 
+  group('a lazy async registration, generated outside the workspace', () {
+    test('is not built by startup', () {
+      expect(
+        scope.debugKindOf(const CobaltKey(Archive)),
+        CobaltRegistrationKind.lazyAsyncSingleton,
+      );
+      expect(() => scope.get<Archive>(), throwsA(isA<CobaltLazyAsyncError>()));
+    });
+
+    test('is built by getAsync, with its lazy dependency awaited', () async {
+      final index = await scope.getAsync<ArchiveIndex>();
+
+      expect(index.isBuilt, isTrue);
+      expect(index.archive, same(await scope.getAsync<Archive>()));
+      expect(index.archive.database, same(scope.get<Database>()));
+      expect(scope.get<ArchiveIndex>(), same(index));
+    });
+  });
+
   group('the two modes in one graph', () {
     /// The direction the stand already had is generated-takes-hand-written:
     /// `Diagnostics` receives the `DeviceInfo` that `ConsumerScope`

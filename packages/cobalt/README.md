@@ -268,12 +268,12 @@ What they deliberately do not tell you:
 
 ## Deferring expensive async construction
 
-There is no per-registration lazy async build. `registerAsyncSingleton` participates in phase 1, so
-when `CobaltApplication.start` returns the whole async graph is up — that is the guarantee the
-two-phase start exists to give.
+`registerAsyncSingleton` participates in phase 1, so when `CobaltApplication.start` returns the
+whole async graph is up — that is the guarantee the two-phase start exists to give. There are two
+ways to keep something expensive out of it, and they answer different questions.
 
-What defers work is **lifetime**, not laziness. Put the expensive thing in a child scope and push
-that scope when the feature is entered:
+**When it belongs to a feature, defer by lifetime.** Put it in a child scope and push that scope when
+the feature is entered:
 
 ```dart
 final session = root.push('session')
@@ -283,12 +283,23 @@ await session.init();
 
 Startup never sees it, `init()` builds it when it is actually wanted, and closing the feature
 disposes it. In Flutter `CobaltScopeWidget` does all of that declaratively and shows `loading` while
-`init()` runs, so the wait already has a place to live. `examples/graph_events` does it by hand,
-`examples/flow_scopes` through the widget.
+`init()` runs. `examples/graph_events` does it by hand, `examples/flow_scopes` through the widget.
 
-What this does not cover: something expensive that must live as long as the app and is wanted by
-only a few screens. Expressing that today means a long-lived child scope, which blurs who owns it.
-That is the case a lazy async registration would be for, and it has not come up.
+**When it lives as long as the app but few screens want it, defer by laziness.** A child scope would
+blur who owns it; register it lazily instead, and the first `getAsync` builds it:
+
+```dart
+root.registerLazyAsyncSingleton<SearchEngine>(const SearchEngineFactory());
+
+final engine = await root.getAsync<SearchEngine>();
+```
+
+It is retained and released like any singleton, in creation order. Concurrent calls share one build;
+a failed build is not remembered, so the next call retries. `get` before it is built throws
+`CobaltLazyAsyncError`, a lazy build that comes back to its own key throws `CobaltCycleError` with
+the path instead of hanging, and `dispose` waits for a build in flight — one that finishes after
+the deadline is closed as soon as it arrives. An async singleton cannot name a lazy one in its
+`dependsOn`. In Flutter, `CobaltAsyncBuilder` is the widget side of this.
 
 ## One graph per isolate
 

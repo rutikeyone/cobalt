@@ -23,4 +23,12 @@ class CodegenBasicsL10nEn extends CodegenBasicsL10n {
 
   @override
   String get increment => 'increment';
+
+  @override
+  String get leaderboardLoading => 'loading the leaderboard…';
+
+  @override
+  String leaderboardReady(int entries) {
+    return 'leaderboard ready: $entries entries';
+  }
 }

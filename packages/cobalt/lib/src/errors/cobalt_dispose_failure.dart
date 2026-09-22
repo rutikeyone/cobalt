@@ -41,10 +41,20 @@ final class CobaltDisposeFailure {
   /// like any other overrun.
   bool get isInitFailure => stage == CobaltDisposeStage.awaitingInit;
 
+  /// Whether this is a build failure rather than a teardown failure.
+  ///
+  /// [isInitFailure], plus a lazy async build that threw while teardown was
+  /// waiting for it. The same reasoning holds for both: the error already
+  /// reached whoever was waiting for the build.
+  bool get isBuildFailure =>
+      isInitFailure || stage == CobaltDisposeStage.awaitingLazyBuild;
+
   @override
   String toString() => switch (stage) {
     CobaltDisposeStage.awaitingInit when !isTimeout =>
       '$label — initialization failed before teardown started: $error',
+    CobaltDisposeStage.awaitingLazyBuild when !isTimeout =>
+      '$label — the lazy build failed before teardown started: $error',
     _ => '$label — $error',
   };
 }

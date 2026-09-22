@@ -8,6 +8,7 @@ import 'dart:math' as _i407;
 import 'package:cobalt/cobalt.dart' as _i573;
 import 'package:codegen_basics/counter_bloc.dart' as _i1015;
 import 'package:codegen_basics/greeting.dart' as _i767;
+import 'package:codegen_basics/leaderboard.dart' as _i761;
 import 'package:codegen_basics/platform_module.dart' as _i122;
 import 'package:codegen_basics/services.dart' as _i700;
 
@@ -53,6 +54,18 @@ final class _GreetingFactory
       );
 }
 
+final class _LeaderboardFactory
+    implements _i573.CobaltAsyncFactory<_i761.Leaderboard> {
+  const _LeaderboardFactory();
+
+  @override
+  _i687.Future<_i761.Leaderboard> create(_i573.CobaltResolver resolver) async {
+    final instance = _i761.Leaderboard(resolver.get<_i700.Repository>());
+    await instance.init();
+    return instance;
+  }
+}
+
 final class _ConfigFactory implements _i573.CobaltFactory<_i700.Config> {
   const _ConfigFactory();
 
@@ -95,6 +108,9 @@ final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
     );
     scope.registerLazySingleton<_i700.Repository>(const _RepositoryFactory());
     scope.registerFactory<_i1015.CounterBloc>(const _CounterBlocFactory());
+    scope.registerLazyAsyncSingleton<_i761.Leaderboard>(
+      const _LeaderboardFactory(),
+    );
   }
 }
 

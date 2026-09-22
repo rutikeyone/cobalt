@@ -70,6 +70,35 @@ Expression resolveCall(CobaltInjectedProperty dependency) {
       );
 }
 
+/// Emits the resolve for a dependency on a lazy async registration.
+///
+/// Awaited through `getAsync`, which builds it on first use. A nullable one
+/// is checked with `isRegistered` first, so a graph without it still injects
+/// null rather than failing.
+Expression awaitedResolveCall(CobaltInjectedProperty dependency) {
+  final name = dependency.name;
+  final named = {if (name != null) 'name': literalString(name)};
+  final types = [typeReferenceOf(dependency.type)];
+  final awaited = refer(
+    'resolver',
+  ).property('getAsync').call(const [], named, types).awaited;
+  if (!dependency.type.isNullable) return awaited;
+  return refer('resolver')
+      .property('isRegistered')
+      .call(const [], named, types)
+      .conditional(awaited, literalNull);
+}
+
+/// The key a registration is found under: the type's signature and the name.
+///
+/// Nullability is not part of it — a `Foo?` dependency reads the `Foo` key.
+String registrationKey(CobaltTypeRef type, String? name) =>
+    '${type.signature}#${name ?? ''}';
+
+/// [registrationKey] for what [dependency] asks for.
+String keyOfDependency(CobaltInjectedProperty dependency) =>
+    registrationKey(dependency.type, dependency.name);
+
 Expression get defaultEnvironment =>
     cobaltRef('CobaltEnvironment').property('defaultEnvironment');
 

@@ -92,13 +92,35 @@ class CobaltInjectableParser {
       );
     }
 
+    if (injectMatcher.firstOf(clazz)?.readBool('lazyInit') ?? false) {
+      throw CobaltParseError(
+        '${clazz.displayName} is @CobaltInject(lazyInit: true). lazyInit is '
+        'the module-member form; on a class, say @CobaltInit(lazy: true) — the '
+        'class needs an init() to be async at all.',
+        clazz,
+      );
+    }
+
+    final isLazyAsync = initAnnotation?.readBool('lazy') ?? false;
+    final dependsOn = _dependsOnOf(initAnnotation);
+    if (isLazyAsync && dependsOn.isNotEmpty) {
+      throw CobaltParseError(
+        '${clazz.displayName} is @CobaltInit(lazy: true) and declares '
+        'dependsOn. dependsOn orders init(), and a lazy class is not built by '
+        'init(): it is built by the first getAsync, which awaits whatever it '
+        'asks for. Drop the dependsOn.',
+        clazz,
+      );
+    }
+
     return CobaltInjectableClass(
       type: typeRefOfElement(clazz),
       lifetime: lifetime,
       name: annotation.readString('name'),
       exposeAs: _exposeAsOf(annotation),
       isAsyncInit: isAsyncInit,
-      dependsOn: _dependsOnOf(initAnnotation),
+      isLazyAsync: isLazyAsync,
+      dependsOn: dependsOn,
       environments: environmentsOf(clazz),
       dispose: dispose,
       constructorParameters: [

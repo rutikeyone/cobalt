@@ -6,6 +6,7 @@ import 'package:cobalt/src/factory/cobalt_param_factory.dart';
 import 'package:cobalt/src/key/cobalt_key.dart';
 
 part 'async_singleton_registration.dart';
+part 'lazy_async_singleton_registration.dart';
 part 'lazy_singleton_registration.dart';
 part 'param_registration.dart';
 part 'singleton_registration.dart';
