@@ -29,6 +29,7 @@ class CobaltRegistrationIndex {
     this.edges,
     this.ambiguous,
     this.cycle,
+    this.lazy,
   );
 
   /// Every type name something in the package registers.
@@ -66,6 +67,14 @@ class CobaltRegistrationIndex {
   /// they answer identically.
   final List<String>? cycle;
 
+  /// Names registered lazily, built by the first `getAsync` rather than by
+  /// `init()`.
+  ///
+  /// A name in [ambiguous] is left out: from syntax alone it could be the
+  /// other declaration, and a rule built on this set must not report a class
+  /// for injecting something that may not be lazy at all.
+  final Set<String> lazy;
+
   bool contains(String typeName) => names.contains(typeName);
 
   /// Reads [files], or returns null when any of them will not parse.
@@ -95,6 +104,7 @@ class _IndexBuilder {
   final names = <String>{};
   final edges = <String, Set<String>>{};
   final ambiguous = <String>{};
+  final lazy = <String>{};
 
   /// How many declarations in the package claim each bare name.
   ///
@@ -126,7 +136,13 @@ class _IndexBuilder {
       cycle = error.cycle;
     }
 
-    return CobaltRegistrationIndex(names, edges, ambiguous, cycle);
+    return CobaltRegistrationIndex(
+      names,
+      edges,
+      ambiguous,
+      cycle,
+      lazy.difference(ambiguous),
+    );
   }
 
   void collect(CompilationUnit unit) {
@@ -138,6 +154,7 @@ class _IndexBuilder {
 
       var registers = false;
       var isModule = false;
+      var isLazy = false;
       String? exposed;
       final wanted = <String>{};
 
@@ -149,7 +166,12 @@ class _IndexBuilder {
           case 'cobaltTransient':
           case 'CobaltInit':
           case 'cobaltInit':
+          case 'cobaltLazyInit':
             registers = true;
+            isLazy =
+                isLazy ||
+                annotation.name.name.endsWith('cobaltLazyInit') ||
+                _isTrue(_namedArgument(annotation, 'lazy'));
             names.add(declaration.namePart.typeName.lexeme);
             _addArgument(annotation, 'exposeAs', names);
             exposed ??= _firstName(_namedArgument(annotation, 'exposeAs'));
@@ -163,9 +185,11 @@ class _IndexBuilder {
       }
 
       if (registers) {
+        final node = exposed ?? declaration.namePart.typeName.lexeme;
         _addConstructorParameters(declaration, wanted);
         _addInjectedFields(declaration, wanted);
-        _link(exposed ?? declaration.namePart.typeName.lexeme, wanted);
+        _link(node, wanted);
+        if (isLazy) lazy.add(node);
       }
       if (isModule) _collectMembers(declaration);
     }
@@ -198,6 +222,7 @@ class _IndexBuilder {
             // module registering `Channel` and an unrelated `Channel` class
             // elsewhere in the package read as one node.
             _claims[node] = (_claims[node] ?? 0) + 1;
+            if (_isTrue(_namedArgument(annotation, 'lazyInit'))) lazy.add(node);
 
             final wanted = <String>{};
             for (final parameter
@@ -371,6 +396,11 @@ class _IndexBuilder {
     }
     return null;
   }
+
+  /// Whether [expression] is the literal `true` — the only spelling of
+  /// `lazy: true` a syntactic index can read without guessing.
+  static bool _isTrue(Expression? expression) =>
+      expression is BooleanLiteral && expression.value;
 
   /// The value an argument carries, past its label if it has one.
   static Expression _valueOf(Expression argument) =>

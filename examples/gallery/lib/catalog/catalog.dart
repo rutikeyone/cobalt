@@ -9,6 +9,8 @@ import 'package:gallery/catalog/example_section.dart';
 import 'package:gallery/catalog/flow_scopes_host.dart';
 import 'package:gallery/catalog/glyphs.dart';
 import 'package:gallery/catalog/inspector_graph.dart';
+import 'package:gallery/catalog/lazy_async_graph.dart';
+import 'package:gallery/catalog/lazy_async_screen.dart';
 import 'package:gallery/design/gallery_theme.dart';
 import 'package:gallery/l10n/gallery_l10n.dart';
 import 'package:gallery/catalog/notes_graph.dart';
@@ -68,6 +70,27 @@ List<ExampleEntry> buildCatalog(GalleryL10n l10n) => [
     transcript:
         'examples/notes_app/lib/features/environments/ui/environments_screen.dart',
     open: (_) => notesGraph(const EnvironmentsScreen()),
+  ),
+  ExampleEntry(
+    id: 'lazy-async',
+    title: l10n.lazyAsyncTitle,
+    kind: ExampleKind.screen,
+    section: ExampleSection.startup,
+    teaches: l10n.lazyAsyncTeaches,
+    glyph: Glyphs.flow,
+    points: [
+      l10n.lazyAsyncPoint1,
+      l10n.lazyAsyncPoint2,
+      l10n.lazyAsyncPoint3,
+      l10n.lazyAsyncPoint4,
+    ],
+    transcriptLabel: l10n.whereItLives,
+    transcript: 'examples/gallery/lib/catalog/lazy_async_graph.dart',
+    open: (_) => const ExampleHost(
+      root: LazyAsyncScope(),
+      rootName: 'lazy-async',
+      child: LazyAsyncScreen(),
+    ),
   ),
 
   // ── Injection ─────────────────────────────────────────────────────────

@@ -13,6 +13,7 @@ import 'package:cobalt_lint/src/rules/init_requires_init_method.dart';
 import 'package:cobalt_lint/src/rules/injected_field_needs_an_injectable.dart';
 import 'package:cobalt_lint/src/rules/injectable_must_be_constructible.dart';
 import 'package:cobalt_lint/src/rules/injected_field_must_be_late_final.dart';
+import 'package:cobalt_lint/src/rules/lazy_registration_injected_synchronously.dart';
 import 'package:cobalt_lint/src/rules/missing_injection_mixin.dart';
 import 'package:cobalt_lint/src/rules/param_needs_an_injectable.dart';
 import 'package:cobalt_lint/src/rules/registration_is_never_released.dart';
@@ -42,6 +43,7 @@ class _CobaltPlugin extends Plugin {
     registry.registerWarningRule(InjectableMustBeConstructible());
     registry.registerWarningRule(InjectedFieldMustBeLateFinal());
     registry.registerWarningRule(InjectedFieldNeedsAnInjectable());
+    registry.registerWarningRule(LazyRegistrationInjectedSynchronously());
     registry.registerWarningRule(MissingInjectionMixin());
     registry.registerWarningRule(ParamNeedsAnInjectable());
     registry.registerWarningRule(RegistrationIsNeverReleased());

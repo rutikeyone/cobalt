@@ -19,6 +19,12 @@ enum FlowEventKind {
 
   /// A flow's draft went with it.
   draftDisposed,
+
+  /// The cart flow built its draft.
+  cartCreated,
+
+  /// The cart flow's draft went with it.
+  cartDisposed,
 }
 
 @immutable

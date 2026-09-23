@@ -12,6 +12,7 @@ import 'package:cobalt/src/errors/cobalt_not_ready_error.dart';
 import 'package:cobalt/src/errors/cobalt_param_required_error.dart';
 import 'package:cobalt/src/errors/cobalt_param_type_error.dart';
 import 'package:cobalt/src/errors/cobalt_not_registered_error.dart';
+import 'package:cobalt/src/errors/cobalt_override_error.dart';
 import 'package:cobalt/src/errors/cobalt_scope_state_error.dart';
 import 'package:cobalt/src/factory/cobalt_async_factory.dart';
 import 'package:cobalt/src/factory/cobalt_factory.dart';
@@ -24,6 +25,7 @@ import 'package:cobalt/src/lifecycle/async_disposable.dart';
 import 'package:cobalt/src/lifecycle/disposable.dart';
 import 'package:cobalt/src/observer/cobalt_observer.dart';
 import 'package:cobalt/src/observer/cobalt_scope_ref.dart';
+import 'package:cobalt/src/overrides/cobalt_override.dart';
 import 'package:cobalt/src/registration/cobalt_registration.dart';
 import 'package:cobalt/src/scope/cobalt_registration_kind.dart';
 import 'package:cobalt/src/scope/cobalt_scope_state.dart';
@@ -60,15 +62,20 @@ final class CobaltScope implements CobaltResolver {
   /// caller owns the result and must [dispose] it.
   ///
   /// [observers] watch this scope and every scope pushed from it.
+  ///
+  /// [overrides] are registered first, and the real registration of each of
+  /// their keys is then skipped rather than rejected as a duplicate. See
+  /// [CobaltOverride].
   factory CobaltScope.root({
     String name = 'root',
     List<CobaltObserver> observers = const [],
+    List<CobaltOverride<Object>> overrides = const [],
   }) => CobaltScope._(
     name,
     null,
     CobaltResolutionTracker(),
     List.unmodifiable(observers),
-  );
+  ).._applyOverrides(overrides);
 
   /// This scope's name, used in diagnostics.
   final String name;
@@ -91,6 +98,10 @@ final class CobaltScope implements CobaltResolver {
 
   final _lazyBuilding = <LazyAsyncSingletonRegistration>{};
   var _closing = false;
+
+  final _overriddenKeys = <CobaltKey>{};
+  final _claimed = <CobaltKey>{};
+  var _applyingOverrides = false;
 
   /// Where this scope is in its lifecycle.
   CobaltScopeState get state => _state;
@@ -121,6 +132,13 @@ final class CobaltScope implements CobaltResolver {
   /// Empty after [dispose], which clears the registrations rather than keeping
   /// a tombstone.
   Set<CobaltKey> get keys => Set.unmodifiable(_registrations.keys);
+
+  /// The keys this scope registers from an override rather than from its own
+  /// registrations.
+  ///
+  /// Whether the real registration has been skipped yet is not part of the
+  /// answer: an override is in force from the moment the scope exists.
+  Set<CobaltKey> get overriddenKeys => Set.unmodifiable(_overriddenKeys);
 
   /// Every key resolvable from here, mapped to the scope that owns it.
   ///
@@ -253,9 +271,14 @@ final class CobaltScope implements CobaltResolver {
   /// disposing this scope. Use it for anything with a shorter life than the
   /// parent — a session, a screen, a request — and to override a dependency
   /// without touching the parent.
+  ///
+  /// [overrides] replace registrations the child makes itself, as they do for
+  /// [CobaltScope.root]. They cannot reach a key an ancestor owns: its
+  /// factories keep resolving from where they are registered.
   CobaltScope push(
     String childName, {
     List<CobaltObserver> observers = const [],
+    List<CobaltOverride<Object>> overrides = const [],
   }) {
     _assertUsable();
     final child = CobaltScope._(childName, this, _tracker, [
@@ -264,7 +287,23 @@ final class CobaltScope implements CobaltResolver {
     ]);
     _children.add(child);
     child._notify((observer) => observer.onScopePushed(child.ref));
+    child._applyOverrides(overrides);
     return child;
+  }
+
+  void _applyOverrides(List<CobaltOverride<Object>> overrides) {
+    if (overrides.isEmpty) return;
+    _applyingOverrides = true;
+    try {
+      for (final override in overrides) {
+        if (override.key.type == Object) {
+          throw CobaltOverrideError(override.key, name);
+        }
+        override.applyTo(this);
+      }
+    } finally {
+      _applyingOverrides = false;
+    }
   }
 
   /// Registers [T] so every resolution builds a new instance.
@@ -294,6 +333,11 @@ final class CobaltScope implements CobaltResolver {
   /// [AsyncDisposable] — a client from another package, say. Without it such a
   /// value is registered but never closed, because the scope has no way to
   /// know how.
+  ///
+  /// When an override replaces [T], [value] is not registered but is still
+  /// owned and closed with the scope: it was built before the scope could say
+  /// no, and dropping it would leak whatever it holds. Prefer
+  /// [registerEagerSingleton] where the value is expensive to build.
   void registerSingleton<T extends Object>(
     T value, {
     String? name,
@@ -307,6 +351,44 @@ final class CobaltScope implements CobaltResolver {
       ),
     );
     _own(value, teardown: _teardownOf(dispose));
+  }
+
+  /// Builds [T] with [factory] now and registers it as the single instance.
+  ///
+  /// The eager counterpart of [registerLazySingleton]. It differs from
+  /// [registerSingleton] in who builds: here the scope does, so the instance
+  /// is reported to observers like any other, a failed resolution inside
+  /// [factory] names the chain, and an override of [T] means [factory] is
+  /// never called at all — where a value handed to [registerSingleton] already
+  /// exists before the scope can decide.
+  ///
+  /// [dispose] closes an instance whose type implements neither [Disposable]
+  /// nor [AsyncDisposable].
+  void registerEagerSingleton<T extends Object>(
+    CobaltFactory<T> factory, {
+    String? name,
+    FutureOr<void> Function(T instance)? dispose,
+  }) {
+    final key = CobaltKey(T, name: name);
+    if (!_admit(key)) return;
+    final order = _order++;
+    final teardown = _teardownOf(dispose);
+    final instance = _tracker.guard(key, () {
+      final built = factory.create(this);
+      _afterCreate(
+        built,
+        key,
+        kind: CobaltRegistrationKind.singleton,
+        retain: true,
+        teardown: teardown,
+      );
+      return built;
+    });
+    _registrations[key] = SingletonRegistration(
+      key: key,
+      order: order,
+      value: instance,
+    );
   }
 
   /// Registers [T] so the first resolution builds it and later ones reuse it.
@@ -581,6 +663,9 @@ final class CobaltScope implements CobaltResolver {
       for (final dependency in registration.dependsOn) {
         if (byKey.containsKey(dependency)) continue;
         final found = _lookup(dependency);
+        if (found != null && found.scope._overriddenKeys.contains(dependency)) {
+          continue;
+        }
         if (found == null) {
           throw CobaltDependsOnError(
             registration.key,
@@ -859,11 +944,30 @@ final class CobaltScope implements CobaltResolver {
   }
 
   void _put(CobaltRegistration registration) {
-    _assertUsable();
-    if (_registrations.containsKey(registration.key)) {
-      throw CobaltDuplicateRegistrationError(registration.key, name);
+    if (_admit(registration.key)) {
+      _registrations[registration.key] = registration;
     }
-    _registrations[registration.key] = registration;
+  }
+
+  /// Whether a registration of [key] should go in, or be skipped because an
+  /// override already holds it.
+  ///
+  /// A key claimed once is a key registered once: registering it a second time
+  /// is the duplicate it would have been without the override.
+  bool _admit(CobaltKey key) {
+    _assertUsable();
+    if (!_applyingOverrides && _overriddenKeys.contains(key)) {
+      if (!_claimed.add(key)) {
+        throw CobaltDuplicateRegistrationError(key, name);
+      }
+      _notify((observer) => observer.onRegistrationOverridden(ref, key));
+      return false;
+    }
+    if (_registrations.containsKey(key)) {
+      throw CobaltDuplicateRegistrationError(key, name);
+    }
+    if (_applyingOverrides) _overriddenKeys.add(key);
+    return true;
   }
 
   ({CobaltScope scope, CobaltRegistration registration})? _lookup(
@@ -1120,12 +1224,28 @@ final class CobaltScope implements CobaltResolver {
   /// Prefer this to calling `builder.build(scope)` yourself: what it adds is
   /// the window above, and with it the diagnostic that tells a reader their
   /// eager registration ran before the one it needed.
+  ///
+  /// It also checks, once [builder] returns, that every override handed to
+  /// this scope replaced something, and throws [CobaltOverrideError] naming
+  /// the first that did not.
   void runBuilder(CobaltScopeBuilder builder) {
     _building = true;
     try {
       builder.build(this);
     } finally {
       _building = false;
+    }
+    _assertOverridesClaimed();
+  }
+
+  void _assertOverridesClaimed() {
+    for (final key in _overriddenKeys) {
+      if (_claimed.contains(key)) continue;
+      throw CobaltOverrideError(
+        key,
+        name,
+        owner: parent?._lookup(key)?.scope.name,
+      );
     }
   }
 

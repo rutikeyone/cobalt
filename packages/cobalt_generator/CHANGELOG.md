@@ -7,7 +7,11 @@
   eager async class injecting a lazy one, an `@injected` field of a lazy type
   on any class, and `dependsOn` naming a lazy registration. A lazy module
   member is not given a derived `dependsOn`.
-- A graph without lazy registrations generates exactly what it did before.
+- An eager singleton is emitted as `registerEagerSingleton`, so the scope
+  builds it and an override can skip it; before, the instance existed before
+  the registration was made.
+- `$startCobalt` takes `overrides:` and hands them to
+  `CobaltApplication.start`.
 
 ## 0.1.2
 

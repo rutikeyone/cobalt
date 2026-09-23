@@ -63,9 +63,10 @@ starts existing, the scope takes ownership, and a creation event appears. An ins
 rows in order to display them would change the graph it is there to observe. Tapping a row shows
 facts; building is a separate action that says what it costs.
 
-**An eager singleton never appears under Built.** It is constructed by whoever called
-`registerSingleton` and handed over already made, so the scope has nothing to report constructing.
-It appears in the tree, with its lifetime, and never in the built list.
+**A value handed to `registerSingleton` never appears under Built.** It is constructed by whoever
+called it and handed over already made, so the scope has nothing to report constructing. It appears
+in the tree, with its lifetime, and never in the built list. `registerEagerSingleton` — and every
+eager singleton the generator emits — is built by the scope, and appears in both.
 
 ## The notification is deferred, on purpose
 

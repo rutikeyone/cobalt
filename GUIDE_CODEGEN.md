@@ -974,18 +974,36 @@ out leaks into the next test rather than failing.
 
 ### Overriding
 
-Push a child scope and register again. Shadowing is how production overrides work too, so a test uses
-the same mechanism the app does, and it is also how you replace a generated registration without the
-generator knowing:
+Hand the replacement to the generated start function, or to the test helper that calls it. It lands
+in the root, where everything generated is registered, and the generated registration of the same
+key is skipped rather than rejected as a duplicate:
+
+```dart
+final scope = await cobaltTestScope(
+  root: const $CobaltRootScope(),
+  overrides: [CobaltOverride<ApiClient>.value(FakeApiClient())],
+);
+```
+
+`$startCobalt(overrides: [...])` and `CobaltAppScope(overrides: [...])` take the same list — a
+flavour or a debug menu is the case in an app. `.value` takes a built object, `.lazy` and
+`.transient` a factory, and `CobaltParamOverride<T, P>` a parameterized one. An eager singleton is
+emitted as `registerEagerSingleton`, so an overridden one is never built at all.
+
+An override is never silent: observers receive `onRegistrationOverridden`, and `overriddenKeys`
+lists what is replaced. Name the type argument — inside the list Dart infers it as `Object`, which
+the scope refuses as soon as it is created.
+
+Shadowing from a child scope still works, and reaches only what is resolved from the child:
 
 ```dart
 final overrides = scope.pushForTest()
   ..registerSingleton<ApiClient>(FakeApiClient());
 ```
 
-One rule decides whether this works, and everyone meets it once: **a factory runs on the scope that
-owns its own registration.** Override below the consumer and it is invisible to it. `ownerOf<T>()`
-answers before the test does:
+**A factory runs on the scope that owns its own registration**, and everything generated lives in
+the root, so every generated consumer keeps the real `ApiClient`. `ownerOf<T>()` says so before the
+test does:
 
 ```dart
 expect(scope.ownerOf<Repository>(), same(scope.root));

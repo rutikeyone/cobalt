@@ -108,5 +108,37 @@
   "tabFeed": "Feed",
   "@tabFeed": { "description": "First tab." },
   "tabProfile": "Profile",
-  "@tabProfile": { "description": "Second tab." }
+  "@tabProfile": { "description": "Second tab." },
+
+  "openCart": "Cart → checkout → payment",
+  "@openCart": { "description": "The flow of three top-level routes." },
+
+  "openCartDetail": "three top-level routes, one scope",
+  "@openCartDetail": { "description": "How the cart flow is built." },
+
+  "cartCreated": "cart draft created",
+  "@cartCreated": { "description": "The cart flow built its draft." },
+
+  "cartDisposed": "cart draft disposed",
+  "@cartDisposed": { "description": "The cart flow's draft went with it." },
+
+  "stepCart": "Cart",
+  "@stepCart": { "description": "First screen of the cart flow." },
+
+  "stepCheckout": "Checkout",
+  "@stepCheckout": { "description": "Second screen of the cart flow." },
+
+  "stepPayment": "Payment",
+  "@stepPayment": { "description": "Last screen of the cart flow." },
+
+  "continueToCheckout": "Continue to checkout",
+  "@continueToCheckout": { "description": "Moves to the checkout screen of the cart flow." },
+
+  "cartNextDetail": "another top-level route — the draft must survive",
+  "@cartNextDetail": { "description": "What moving to the next step proves." },
+  "cartLine": "cart draft · instance {instance}",
+  "@cartLine": {
+    "description": "Which cart draft was resolved, so a rebuild is visible.",
+    "placeholders": { "instance": { "type": "String", "example": "268479144" } }
+  }
 }

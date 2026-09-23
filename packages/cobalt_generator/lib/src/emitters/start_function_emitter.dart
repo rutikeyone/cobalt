@@ -50,6 +50,25 @@ class StartFunctionEmitter {
                 ..type = cobaltRef('CobaltEnvironment')
                 ..defaultTo = defaultEnvironment.code,
             ),
+          Parameter(
+            (p) => p
+              ..name = 'overrides'
+              ..named = true
+              ..type = TypeReference(
+                (b) => b
+                  ..symbol = 'List'
+                  ..url = 'dart:core'
+                  ..types.add(
+                    TypeReference(
+                      (o) => o
+                        ..symbol = 'CobaltOverride'
+                        ..url = cobaltUrl
+                        ..types.add(refer('Object', 'dart:core')),
+                    ),
+                  ),
+              )
+              ..defaultTo = literalConstList(const []).code,
+          ),
         ])
         ..returns = TypeReference(
           (b) => b
@@ -71,6 +90,7 @@ class StartFunctionEmitter {
                   ? refer(r'$cobaltBootstrap').call([environment])
                   : refer(r'$cobaltBootstrap'),
             'rootName': refer(r'$cobaltRootScopeName'),
+            'overrides': refer('overrides'),
           },
         ).code,
     );

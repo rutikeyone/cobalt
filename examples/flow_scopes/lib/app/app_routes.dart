@@ -9,6 +9,11 @@ class AppRoutes {
   static const workspaceFeed = '/workspace/feed';
   static const workspaceProfile = '/workspace/profile';
 
+  /// The cart flow — three top-level routes under one shell.
+  static const cart = '/cart';
+  static const checkout = '/checkout';
+  static const cartPayment = '/payment';
+
   /// The flow itself — `/orders/:orderId/summary` and `.../payment`.
   static String summary(String orderId) => '/orders/$orderId/summary';
 

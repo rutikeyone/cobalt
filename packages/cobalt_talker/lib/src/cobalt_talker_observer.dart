@@ -35,6 +35,14 @@ final class CobaltTalkerObserver extends CobaltObserver {
       talker.logCustom(CobaltScopeLog('scope "$scope" pushed'));
 
   @override
+  void onRegistrationOverridden(CobaltScopeRef scope, CobaltKey key) =>
+      talker.logCustom(
+        CobaltScopeLog(
+          'registration of $key in "$scope" replaced by an override',
+        ),
+      );
+
+  @override
   void onScopeInitStarted(CobaltScopeRef scope, int levels) => talker.logCustom(
     CobaltStartupLog(
       'scope "$scope" initializing, $levels level(s)',

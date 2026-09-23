@@ -238,6 +238,54 @@ void main() {
     });
   });
 
+  group('overrides handed to the generated start function', () {
+    test('an eager singleton is built by the scope at startup', () {
+      expect(scope.get<LicenseCheck>(), isNot(isA<_ValidLicense>()));
+    });
+
+    test('an overridden eager singleton is never built at all', () async {
+      LicenseCheck.built = 0;
+      final overridden = await $startCobalt(
+        overrides: [CobaltOverride<LicenseCheck>.value(_ValidLicense())],
+      );
+      addTearDown(overridden.dispose);
+
+      expect(overridden.get<LicenseCheck>(), isA<_ValidLicense>());
+      expect(LicenseCheck.built, 0);
+    });
+
+    test('a replaced exposed type reaches the generated consumer', () async {
+      final overridden = await $startCobalt(
+        overrides: [CobaltOverride<Clock>.value(_FrozenClock())],
+      );
+      addTearDown(overridden.dispose);
+
+      expect(overridden.get<Reporter>().clock, isA<_FrozenClock>());
+    });
+
+    test(
+      'a replaced async singleton reaches a lazy build that needs it',
+      () async {
+        final database = Database()..isOpen = true;
+        final overridden = await $startCobalt(
+          overrides: [CobaltOverride<Database>.value(database)],
+        );
+        addTearDown(overridden.dispose);
+
+        final archive = await overridden.getAsync<Archive>();
+
+        expect(archive.database, same(database));
+        expect(
+          overridden.get<SearchIndex>(),
+          isA<SearchIndex>(),
+          reason:
+              'SearchIndex refuses a closed database; the double is handed '
+              'over as it is, and init() is never called on it',
+        );
+      },
+    );
+  });
+
   group('the two modes in one graph', () {
     /// The direction the stand already had is generated-takes-hand-written:
     /// `Diagnostics` receives the `DeviceInfo` that `ConsumerScope`
@@ -289,4 +337,14 @@ class _EagerFirst implements CobaltScopeBuilder {
       ..registerSingleton<DeviceInfo>(const DeviceInfo('late'));
     const $CobaltRootScope().build(scope);
   }
+}
+
+final class _ValidLicense implements LicenseCheck {
+  @override
+  bool get isValid => true;
+}
+
+final class _FrozenClock implements Clock {
+  @override
+  DateTime now() => DateTime.utc(2000);
 }

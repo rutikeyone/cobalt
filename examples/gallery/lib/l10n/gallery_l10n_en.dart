@@ -138,6 +138,62 @@ class GalleryL10nEn extends GalleryL10n {
       'Manual Mode writes the same `if` the generator emits';
 
   @override
+  String get lazyAsyncTitle => 'Lazy async';
+
+  @override
+  String get lazyAsyncTeaches =>
+      'Something expensive, built by the first screen that asks rather than at startup.';
+
+  @override
+  String get lazyAsyncPoint1 =>
+      'registerLazyAsyncSingleton, or @CobaltInit(lazy: true), keeps it out of init(), so startup never waits for it';
+
+  @override
+  String get lazyAsyncPoint2 =>
+      'The first getAsync builds it; every caller at the same time waits for that one build';
+
+  @override
+  String get lazyAsyncPoint3 =>
+      'CobaltAsyncBuilder shows loading once — a screen opened later renders it at once';
+
+  @override
+  String get lazyAsyncPoint4 =>
+      'A failed build is not remembered, so retry builds again';
+
+  @override
+  String get lazyAsyncStarted => 'startup finished';
+
+  @override
+  String get lazyAsyncOpen => 'Open search';
+
+  @override
+  String get lazyAsyncOpenDetail =>
+      'the first visit builds the engine; later ones find it built';
+
+  @override
+  String get lazyAsyncSearchTitle => 'Search';
+
+  @override
+  String get lazyAsyncBuilding => 'building the engine…';
+
+  @override
+  String lazyAsyncBuilds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'engine built $count times',
+      one: 'engine built once',
+      zero: 'engine not built yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String lazyAsyncReady(String instance) {
+    return 'engine ready · instance $instance';
+  }
+
+  @override
   String get propertyTitle => 'Property injection';
 
   @override

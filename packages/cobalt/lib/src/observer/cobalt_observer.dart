@@ -28,6 +28,13 @@ abstract base class CobaltObserver {
   /// A child scope was pushed.
   void onScopePushed(CobaltScopeRef scope) {}
 
+  /// The registration of [key] was skipped, because an override handed to
+  /// [scope] already holds it.
+  ///
+  /// Reported at the moment the real registration is attempted, so a graph
+  /// running with a replacement never does so silently.
+  void onRegistrationOverridden(CobaltScopeRef scope, CobaltKey key) {}
+
   /// `init()` started, with [levels] levels of async singletons to build.
   ///
   /// Not called when the scope has no async registrations.
@@ -50,9 +57,10 @@ abstract base class CobaltObserver {
   /// caller owns them. Both are reported because they answer different
   /// questions: one is how long the thing lives, the other is who closes it.
   ///
-  /// An eager singleton never reaches here. It is built by whoever called
-  /// `registerSingleton` and handed over already made, so the scope has
-  /// nothing to report constructing.
+  /// A value handed to `registerSingleton` never reaches here: it was built by
+  /// whoever called it and handed over already made, so the scope has nothing
+  /// to report constructing. `registerEagerSingleton` does reach here, because
+  /// the scope builds it.
   void onInstanceCreated(
     CobaltScopeRef scope,
     CobaltKey key, {

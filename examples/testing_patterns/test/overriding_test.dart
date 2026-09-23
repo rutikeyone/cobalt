@@ -3,11 +3,14 @@ import 'package:cobalt_test/cobalt_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:testing_patterns/testing_patterns.dart';
 
-/// Overriding a dependency: push a child scope and register it again.
+/// Two ways to replace a dependency, and the one difference that matters.
 ///
-/// Registering twice in *one* scope is an error — that catches a real mistake.
-/// Shadowing from a child is the supported way, and it is the same mechanism
-/// production code uses for session and flow scopes. Tests get no special path.
+/// An override handed to the scope that owns the key replaces it for every
+/// factory in that scope — that is the one to reach for. Shadowing from a
+/// child scope is the other: it is the same mechanism production code uses for
+/// session and flow scopes, and it reaches only what is resolved from the
+/// child. Registering twice in *one* scope stays an error either way; it
+/// catches a real mistake.
 void main() {
   late CobaltScope app;
 
@@ -16,6 +19,47 @@ void main() {
   });
 
   CobaltScope underTest() => app.pushForTest();
+
+  group('an override where the key is owned', () {
+    test('reaches the consumer registered next to it', () async {
+      final scope = await cobaltTestScope(
+        root: const AppScope(),
+        overrides: [
+          const CobaltOverride<GreetingStore>.value(
+            InMemoryGreetingStore('Hello'),
+          ),
+          CobaltOverride<Clock>.value(FixedClock(DateTime.utc(2026, 8, 23, 9))),
+        ],
+      );
+
+      expect(
+        await scope.get<Greeter>().greet('Ada'),
+        'Hello, Ada — it is 9:00',
+        reason:
+            'Greeter is registered in the root and resolves from the root, '
+            'which is where the override lives',
+      );
+    });
+
+    test('says so, instead of replacing in silence', () async {
+      final observer = CapturingObserver();
+      final scope = await cobaltTestScope(
+        root: const AppScope(),
+        observers: [observer],
+        overrides: [
+          const CobaltOverride<GreetingStore>.value(
+            InMemoryGreetingStore('Hello'),
+          ),
+        ],
+      );
+
+      expect(scope.overriddenKeys, {const CobaltKey(GreetingStore)});
+      expect(
+        observer.ofKind(CobaltEventKind.registrationOverridden).single.key,
+        const CobaltKey(GreetingStore),
+      );
+    });
+  });
 
   group('what shadowing does and does not reach', () {
     test('a child registration wins for whoever asks the child', () {

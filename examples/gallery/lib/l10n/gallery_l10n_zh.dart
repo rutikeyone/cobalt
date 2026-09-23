@@ -124,6 +124,56 @@ class GalleryL10nZh extends GalleryL10n {
   String get environmentsPoint4 => '手写模式写出的正是生成器所产生的那个 `if`';
 
   @override
+  String get lazyAsyncTitle => '惰性异步';
+
+  @override
+  String get lazyAsyncTeaches => '一个代价高的对象，由第一个请求它的页面构建，而不是在启动时构建。';
+
+  @override
+  String get lazyAsyncPoint1 =>
+      'registerLazyAsyncSingleton 或 @CobaltInit(lazy: true) 让它不进入 init()，启动从不等它';
+
+  @override
+  String get lazyAsyncPoint2 => '第一次 getAsync 构建它；同时请求的调用方都等待同一次构建';
+
+  @override
+  String get lazyAsyncPoint3 => 'CobaltAsyncBuilder 只显示一次加载——之后打开的页面立刻渲染';
+
+  @override
+  String get lazyAsyncPoint4 => '失败的构建不会被记住，所以重试会重新构建';
+
+  @override
+  String get lazyAsyncStarted => '启动已完成';
+
+  @override
+  String get lazyAsyncOpen => '打开搜索';
+
+  @override
+  String get lazyAsyncOpenDetail => '第一次进入构建引擎，之后的进入发现它已就绪';
+
+  @override
+  String get lazyAsyncSearchTitle => '搜索';
+
+  @override
+  String get lazyAsyncBuilding => '正在构建引擎…';
+
+  @override
+  String lazyAsyncBuilds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '引擎已构建 $count 次',
+      zero: '引擎尚未构建',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String lazyAsyncReady(String instance) {
+    return '引擎已就绪 · 实例 $instance';
+  }
+
+  @override
   String get propertyTitle => '属性注入';
 
   @override

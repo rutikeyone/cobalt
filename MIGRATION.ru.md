@@ -50,6 +50,7 @@ GetIt.I.registerSingleton<Database>(app.get<Database>());
 | `pushNewScope(...)` | `scope.push('name')` |
 | `popScope()` | `await child.dispose()` |
 | `reset()` | `await root.dispose()` |
+| `allowReassignment = true` или `unregister<T>()`, затем регистрация фейка | `overrides: [CobaltOverride<T>.value(fake)]` у `start`, `CobaltScope.root` или тестовых хелперов |
 
 Видимое отличие — **объект-фабрика вместо замыкания**. Это покупает две вещи: регистрация может быть
 `const`, а граф становится инспектируемым значением вместо захваченного состояния — именно это

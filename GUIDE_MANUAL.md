@@ -173,11 +173,12 @@ cd examples/manual_mode && dart run
 
 ## 3. Registering and reading
 
-### Six ways to register
+### Seven ways to register
 
 | Call | Built | Held by the scope |
 |---|---|---|
 | `registerSingleton<T>(value)` | already, by you | yes |
+| `registerEagerSingleton<T>(factory)` | now, by the scope | yes |
 | `registerLazySingleton<T>(factory)` | on first resolve | yes |
 | `registerAsyncSingleton<T>(factory)` | during `init()`, in dependency order | yes |
 | `registerLazyAsyncSingleton<T>(factory)` | on the first `getAsync` | yes |
@@ -196,8 +197,9 @@ scope
   ..registerLazySingleton<Logger>(const AuditLoggerFactory(), name: 'audit');
 ```
 
-Registering the same key twice in one scope throws. Shadowing it from a child scope does not — that
-is the supported way to replace something, in tests as in production.
+Registering the same key twice in one scope throws. Two things replace a registration without that:
+an override handed to the scope that owns the key, and a registration in a child scope that shadows
+it for what resolves below — see [§13](#13-tests).
 
 ### Six ways to read
 
@@ -806,20 +808,44 @@ gets from the compiler.
 
 ### Overriding
 
-Push a child scope and register again. Shadowing is how production overrides work too, so a test uses
-the same mechanism the app does:
+Hand the replacement to the scope that owns the key. An override is registered first, when the scope
+is created, and the real registration of the same key is then skipped rather than rejected as a
+duplicate — so every factory in that scope resolves the replacement:
 
 ```dart
-final overrides = scope.pushForTest()
+final scope = cobaltTestRoot(
+  overrides: [CobaltOverride<Clock>.value(FixedClock(DateTime(2026)))],
+)..runBuilder(const AppScope());
+```
+
+`.value` takes a built object, `.lazy` and `.transient` a factory, and `CobaltParamOverride<T, P>`
+a parameterized one. `cobaltTestScope(overrides:)`, `CobaltApplication.start(overrides:)` and
+`CobaltAppScope(overrides:)` take the same list — a flavour or a debug menu is the case in an app.
+An override is never silent: observers receive `onRegistrationOverridden`, and `overriddenKeys`
+lists what is replaced.
+
+Register an eager singleton with `registerEagerSingleton` when it is expensive to build. A value
+handed to `registerSingleton` already exists before the scope can say no, so under an override it is
+kept and closed with the scope but never resolved; `registerEagerSingleton` lets the scope build it,
+and skip it.
+
+Name the type argument. Inside the list Dart infers it as `Object`, which the scope refuses as soon
+as it is created. Written on its own it infers the replacement's type — `FixedClock`, not `Clock` —
+and `runBuilder` reports the override that replaced nothing.
+
+Shadowing from a child scope is the other way, and the one production uses for sessions and flows:
+
+```dart
+final child = scope.pushForTest()
   ..registerSingleton<Clock>(FixedClock(DateTime(2026)));
 ```
 
-One rule decides whether this works, and everyone meets it once: **a factory runs on the scope that
-owns its own registration.** Override below the consumer and it is invisible to it. `ownerOf<T>()`
-answers before the test does:
+It reaches only what is resolved from the child: **a factory runs on the scope that owns its own
+registration**, so a consumer registered above keeps the real dependency. `ownerOf<T>()` answers
+before the test does:
 
 ```dart
-expect(scope.ownerOf<Greeter>(), same(scope.root));   // registered in the root, so override there
+expect(scope.ownerOf<Greeter>(), same(scope.root));   // owned by the root, so override there
 ```
 
 ### Fixtures

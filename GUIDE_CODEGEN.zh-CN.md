@@ -933,17 +933,33 @@ setUp(() async {
 
 ### 覆盖依赖
 
-压入一个子作用域并重新注册。遮蔽也正是生产环境里覆盖依赖的方式，
-所以测试用的是应用同一套机制；这同时也是在生成器不知情的情况下替换一条生成注册的办法：
+把替换交给生成的启动函数，或者交给调用它的测试辅助函数。它会落在根作用域里——
+所有生成的注册都在那里——同一个键的生成注册会被跳过，而不是当作重复注册报错：
+
+```dart
+final scope = await cobaltTestScope(
+  root: const $CobaltRootScope(),
+  overrides: [CobaltOverride<ApiClient>.value(FakeApiClient())],
+);
+```
+
+`$startCobalt(overrides: [...])` 和 `CobaltAppScope(overrides: [...])` 接收同一个列表——
+在应用里，这就是风味构建或调试菜单。`.value` 接收一个已经构建好的对象，
+`.lazy` 和 `.transient` 接收工厂，`CobaltParamOverride<T, P>` 接收参数化工厂。
+eager 单例会被生成为 `registerEagerSingleton`，所以被覆盖的那个根本不会被构建。
+
+覆盖从不静默：观察者会收到 `onRegistrationOverridden`，`overriddenKeys` 会列出被替换的键。
+写明类型参数——在列表里 Dart 会把它推断为 `Object`，作用域一创建就会拒绝这样的覆盖。
+
+从子作用域遮蔽仍然可用，但只能影响从子作用域解析的东西：
 
 ```dart
 final overrides = scope.pushForTest()
   ..registerSingleton<ApiClient>(FakeApiClient());
 ```
 
-这能不能生效由一条规则决定，每个人都会撞上一次：
-**工厂运行在拥有它自身那条注册的作用域上。** 在消费者之下做的覆盖，对消费者是不可见的。
-`ownerOf<T>()` 会比断言更早告诉你答案：
+**工厂运行在拥有它自身那条注册的作用域上**，而所有生成的东西都在根上，
+所以每个生成的消费者拿到的仍然是真实的 `ApiClient`。`ownerOf<T>()` 会比断言更早告诉你：
 
 ```dart
 expect(scope.ownerOf<Repository>(), same(scope.root));

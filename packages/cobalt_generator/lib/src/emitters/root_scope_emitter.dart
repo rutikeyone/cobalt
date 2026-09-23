@@ -93,17 +93,11 @@ class RootScopeEmitter {
         : switch (declaration.lifetime) {
             CobaltLifetime.transient => 'registerFactory',
             CobaltLifetime.lazySingleton => 'registerLazySingleton',
-            CobaltLifetime.singleton => 'registerSingleton',
+            CobaltLifetime.singleton => 'registerEagerSingleton',
           };
-
-    final argument =
-        !declaration.isAsyncInit &&
-            declaration.lifetime == CobaltLifetime.singleton
-        ? factory.property('create').call([refer('scope')])
-        : factory;
 
     return refer(
       'scope',
-    ).property(method).call([argument], named, [exposed]).statement;
+    ).property(method).call([factory], named, [exposed]).statement;
   }
 }

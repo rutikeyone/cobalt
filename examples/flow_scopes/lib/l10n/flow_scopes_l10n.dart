@@ -279,6 +279,66 @@ abstract class FlowScopesL10n {
   /// In en, this message translates to:
   /// **'Profile'**
   String get tabProfile;
+
+  /// The flow of three top-level routes.
+  ///
+  /// In en, this message translates to:
+  /// **'Cart → checkout → payment'**
+  String get openCart;
+
+  /// How the cart flow is built.
+  ///
+  /// In en, this message translates to:
+  /// **'three top-level routes, one scope'**
+  String get openCartDetail;
+
+  /// The cart flow built its draft.
+  ///
+  /// In en, this message translates to:
+  /// **'cart draft created'**
+  String get cartCreated;
+
+  /// The cart flow's draft went with it.
+  ///
+  /// In en, this message translates to:
+  /// **'cart draft disposed'**
+  String get cartDisposed;
+
+  /// First screen of the cart flow.
+  ///
+  /// In en, this message translates to:
+  /// **'Cart'**
+  String get stepCart;
+
+  /// Second screen of the cart flow.
+  ///
+  /// In en, this message translates to:
+  /// **'Checkout'**
+  String get stepCheckout;
+
+  /// Last screen of the cart flow.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment'**
+  String get stepPayment;
+
+  /// Moves to the checkout screen of the cart flow.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue to checkout'**
+  String get continueToCheckout;
+
+  /// What moving to the next step proves.
+  ///
+  /// In en, this message translates to:
+  /// **'another top-level route — the draft must survive'**
+  String get cartNextDetail;
+
+  /// Which cart draft was resolved, so a rebuild is visible.
+  ///
+  /// In en, this message translates to:
+  /// **'cart draft · instance {instance}'**
+  String cartLine(String instance);
 }
 
 class _FlowScopesL10nDelegate extends LocalizationsDelegate<FlowScopesL10n> {

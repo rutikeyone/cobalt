@@ -168,9 +168,7 @@ final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
 
   @override
   void build(_i573.CobaltScope scope) {
-    scope.registerSingleton<_i189.AppConfig>(
-      const _AppConfigFactory().create(scope),
-    );
+    scope.registerEagerSingleton<_i189.AppConfig>(const _AppConfigFactory());
     scope.registerLazySingleton<_i510.Clock>(const _ClockFactory());
     scope.registerLazySingleton<_i153.EventLog>(const _EventLogFactory());
     if (environment.matches(const <String>{'dev', 'test'})) {
@@ -225,8 +223,10 @@ const String $cobaltRootScopeName = 'app';
 _i687.Future<_i573.CobaltScope> $startCobalt({
   _i573.CobaltEnvironment environment =
       _i573.CobaltEnvironment.defaultEnvironment,
+  List<_i573.CobaltOverride<Object>> overrides = const [],
 }) => _i573.CobaltApplication.start(
   root: $CobaltRootScope(environment: environment),
   bootstrap: $cobaltBootstrap(environment),
   rootName: $cobaltRootScopeName,
+  overrides: overrides,
 );

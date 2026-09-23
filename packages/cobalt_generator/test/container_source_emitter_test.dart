@@ -54,16 +54,26 @@ void main() {
       expect(registrationsOf(source).map((l) => l.split('<').first).toSet(), {
         'scope.registerFactory',
         'scope.registerLazySingleton',
-        'scope.registerSingleton',
+        'scope.registerEagerSingleton',
       });
     });
 
-    test('an eager singleton is constructed at registration time', () {
+    test('an eager singleton is built by the scope, not before it', () {
       final source = generate([
         declare('Config', lifetime: CobaltLifetime.singleton),
       ]);
 
-      expect(source, contains('const _ConfigFactory().create(scope)'));
+      expect(
+        source,
+        contains(
+          'registerEagerSingleton<_i137.Config>(const _ConfigFactory())',
+        ),
+      );
+      expect(
+        source,
+        isNot(contains('.create(scope)')),
+        reason: 'built before the call, it could not be skipped by an override',
+      );
     });
   });
 

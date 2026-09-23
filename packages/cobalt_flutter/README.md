@@ -143,6 +143,21 @@ call that retries a failed start. The published provider is keyed by the scope, 
 rebuilds the subtree — a child scope cannot be reparented, and would otherwise be left pointing at
 a root that is gone.
 
+### Replacing part of the graph
+
+`overrides` swap a registration where it is owned — a flavour, a debug menu, a widget test — and are
+applied again on every start and restart:
+
+```dart
+builder: CobaltAppScope.builder(
+  root: const AppScope(),
+  overrides: [CobaltOverride<ApiClient>.value(FakeApiClient())],
+),
+```
+
+Observers are told each time a registration is skipped for one, so a build running with a
+replacement never does so silently.
+
 ### Changing the graph needs a key, or `restart()`
 
 `CobaltAppScope` reads `root` and `bootstrap` once, when it mounts. It has no

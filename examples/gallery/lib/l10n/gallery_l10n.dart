@@ -328,6 +328,84 @@ abstract class GalleryL10n {
   /// **'Manual Mode writes the same `if` the generator emits'**
   String get environmentsPoint4;
 
+  /// Name of the "Lazy async" example.
+  ///
+  /// In en, this message translates to:
+  /// **'Lazy async'**
+  String get lazyAsyncTitle;
+
+  /// One line: what "Lazy async" exists to show.
+  ///
+  /// In en, this message translates to:
+  /// **'Something expensive, built by the first screen that asks rather than at startup.'**
+  String get lazyAsyncTeaches;
+
+  /// No description provided for @lazyAsyncPoint1.
+  ///
+  /// In en, this message translates to:
+  /// **'registerLazyAsyncSingleton, or @CobaltInit(lazy: true), keeps it out of init(), so startup never waits for it'**
+  String get lazyAsyncPoint1;
+
+  /// No description provided for @lazyAsyncPoint2.
+  ///
+  /// In en, this message translates to:
+  /// **'The first getAsync builds it; every caller at the same time waits for that one build'**
+  String get lazyAsyncPoint2;
+
+  /// No description provided for @lazyAsyncPoint3.
+  ///
+  /// In en, this message translates to:
+  /// **'CobaltAsyncBuilder shows loading once — a screen opened later renders it at once'**
+  String get lazyAsyncPoint3;
+
+  /// No description provided for @lazyAsyncPoint4.
+  ///
+  /// In en, this message translates to:
+  /// **'A failed build is not remembered, so retry builds again'**
+  String get lazyAsyncPoint4;
+
+  /// Shown on the lazy async screen once the graph is up.
+  ///
+  /// In en, this message translates to:
+  /// **'startup finished'**
+  String get lazyAsyncStarted;
+
+  /// Opens the screen that needs the lazy engine.
+  ///
+  /// In en, this message translates to:
+  /// **'Open search'**
+  String get lazyAsyncOpen;
+
+  /// What opening the search screen does.
+  ///
+  /// In en, this message translates to:
+  /// **'the first visit builds the engine; later ones find it built'**
+  String get lazyAsyncOpenDetail;
+
+  /// Title of the screen that waits for the lazy engine.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get lazyAsyncSearchTitle;
+
+  /// Shown while the lazy engine is being built.
+  ///
+  /// In en, this message translates to:
+  /// **'building the engine…'**
+  String get lazyAsyncBuilding;
+
+  /// How many times the lazy engine has been built this visit.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{engine not built yet} =1{engine built once} other{engine built {count} times}}'**
+  String lazyAsyncBuilds(int count);
+
+  /// The engine was resolved; the instance shows a second visit gets the same one.
+  ///
+  /// In en, this message translates to:
+  /// **'engine ready · instance {instance}'**
+  String lazyAsyncReady(String instance);
+
   /// Name of the "Property injection" example.
   ///
   /// In en, this message translates to:

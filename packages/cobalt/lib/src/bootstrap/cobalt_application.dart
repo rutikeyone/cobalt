@@ -4,6 +4,7 @@ import 'package:cobalt/src/errors/cobalt_bootstrap_error.dart';
 import 'package:cobalt/src/lifecycle/async_disposable.dart';
 import 'package:cobalt/src/lifecycle/disposable.dart';
 import 'package:cobalt/src/observer/cobalt_observer.dart';
+import 'package:cobalt/src/overrides/cobalt_override.dart';
 import 'package:cobalt/src/scope/cobalt_scope.dart';
 
 /// Runs the two-phase startup and hands back the root scope.
@@ -28,6 +29,9 @@ final class CobaltApplication {
   /// released first, in reverse order, since there is no scope to hand them
   /// to.
   ///
+  /// [overrides] replace registrations [root] makes; each is checked to have
+  /// replaced something once [root] has run. See [CobaltOverride].
+  ///
   /// The caller owns the returned scope and must dispose it. In Code-Gen Mode
   /// the generated `$startCobalt()` is this call with the generated container,
   /// bootstrap list and root name already filled in.
@@ -36,6 +40,7 @@ final class CobaltApplication {
     List<CobaltBootstrapStep> bootstrap = const [],
     String rootName = 'root',
     List<CobaltObserver> observers = const [],
+    List<CobaltOverride<Object>> overrides = const [],
   }) async {
     final completed = <CobaltBootstrapStep>[];
 
@@ -64,7 +69,11 @@ final class CobaltApplication {
       completed.add(step);
     }
 
-    final scope = CobaltScope.root(name: rootName, observers: observers);
+    final scope = CobaltScope.root(
+      name: rootName,
+      observers: observers,
+      overrides: overrides,
+    );
     for (final step in completed) {
       scope.adopt(step);
     }

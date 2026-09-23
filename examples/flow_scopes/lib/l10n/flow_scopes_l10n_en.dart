@@ -128,4 +128,37 @@ class FlowScopesL10nEn extends FlowScopesL10n {
 
   @override
   String get tabProfile => 'Profile';
+
+  @override
+  String get openCart => 'Cart → checkout → payment';
+
+  @override
+  String get openCartDetail => 'three top-level routes, one scope';
+
+  @override
+  String get cartCreated => 'cart draft created';
+
+  @override
+  String get cartDisposed => 'cart draft disposed';
+
+  @override
+  String get stepCart => 'Cart';
+
+  @override
+  String get stepCheckout => 'Checkout';
+
+  @override
+  String get stepPayment => 'Payment';
+
+  @override
+  String get continueToCheckout => 'Continue to checkout';
+
+  @override
+  String get cartNextDetail =>
+      'another top-level route — the draft must survive';
+
+  @override
+  String cartLine(String instance) {
+    return 'cart draft · instance $instance';
+  }
 }

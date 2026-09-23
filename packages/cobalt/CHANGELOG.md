@@ -24,9 +24,28 @@
   `CobaltDependsOnError`.
 - `debugResolveAsync(CobaltKey)`, and `CobaltRegistrationKind.lazyAsyncSingleton`
   from `debugKindOf`.
-- **Breaking:** `CobaltRegistrationKind` and `CobaltDisposeStage` each gained a
-  value, so an exhaustive `switch` over either needs a new case, and
-  `CobaltResolver` gained two methods for anything implementing it.
+- Overrides. `CobaltOverride<T>.value`, `.lazy` and `.transient`, and
+  `CobaltParamOverride<T, P>`, handed to `CobaltScope.root`, `push` or
+  `CobaltApplication.start` as `overrides:`. Each is registered first, in the
+  scope it is given to, and the real registration of its key is then skipped
+  rather than rejected as a duplicate — so every factory in the scope that
+  owns the key resolves the replacement, which a registration shadowed from a
+  child scope cannot do. A value handed to `registerSingleton` under an
+  override is still owned and closed; a `dependsOn` naming an overridden key is
+  satisfied.
+- `CobaltOverrideError`: an override without a type argument inside the list,
+  where Dart infers `Object`, is refused on creation; one that no registration
+  claims fails `runBuilder`, naming the ancestor that owns the key when there
+  is one.
+- `onRegistrationOverridden` on `CobaltObserver`, a record at `info` from
+  `CobaltRecordingObserver`, and `overriddenKeys` on the scope.
+- `registerEagerSingleton(factory)`: builds now, inside the scope, so the
+  instance is reported to observers, a failed resolution names its chain, and
+  an override means the factory never runs.
+- **Breaking:** `CobaltRegistrationKind`, `CobaltDisposeStage` and
+  `CobaltEventKind` each gained a value, so an exhaustive `switch` over any of
+  them needs a new case, and `CobaltResolver` gained two methods for anything
+  implementing it.
 
 ## 0.1.2
 

@@ -67,7 +67,7 @@ void main() {
       expect(registrationsOf(source).map((l) => l.split('<').first).toSet(), {
         'scope.registerFactory',
         'scope.registerLazySingleton',
-        'scope.registerSingleton',
+        'scope.registerEagerSingleton',
       });
     });
 

@@ -26,17 +26,28 @@ register a few things directly and never need two-phase startup.
 
 ## Overriding
 
+Hand the replacement to the scope that owns the key, and every consumer registered there sees it:
+
+```dart
+final scope = await cobaltTestScope(
+  root: const AppScope(),
+  overrides: [CobaltOverride<Clock>.value(FixedClock(DateTime.utc(2026)))],
+);
+```
+
+`cobaltTestRoot` and `pushForTest` take `overrides` too. It is the same mechanism an app uses for a
+flavour, not a back door for tests.
+
+Shadowing from a child still works, for what is resolved from the child:
+
 ```dart
 final scope = app.pushForTest()
   ..registerSingleton<Clock>(FixedClock(DateTime.utc(2026)));
 ```
 
-Shadowing from a child is how production overrides work too, so a test uses the same mechanism the
-app does rather than a back door.
-
 `ownerOf<T>()` answers the question that trips everyone once: a factory runs on the scope that owns
-**its** registration, not the scope you asked from, so an override below the consumer is invisible
-to it.
+**its** registration, not the scope you asked from, so a shadow below the consumer is invisible to
+it — that consumer wants an override where it is owned.
 
 ```dart
 expect(scope.ownerOf<Greeter>(), same(scope)); // fails if Greeter is owned above

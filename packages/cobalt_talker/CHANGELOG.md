@@ -1,8 +1,6 @@
 ## 0.2.0
 
-- No code changes in this package. Republished in lockstep with lazy async
-  singletons in `cobalt` 0.2.0 — see its changelog. A minor version in `0.x`
-  is a breaking one, so every internal constraint moves to `^0.2.0` together.
+- A registration skipped for an override is logged under `cobalt-scope`.
 
 ## 0.1.2
 

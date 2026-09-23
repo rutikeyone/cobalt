@@ -230,6 +230,37 @@ For a class you own, implement `Disposable` instead. Keeping the knowledge on
 the object rather than at each registration means it cannot be forgotten at one
 of them.
 
+## Replacing a registration
+
+An override is handed to the scope that owns a key, registered before anything else, and the real
+registration of that key is then skipped rather than rejected as a duplicate:
+
+```dart
+final scope = await CobaltApplication.start(
+  root: const AppScope(),
+  overrides: [
+    CobaltOverride<GreetingStore>.value(const InMemoryGreetingStore()),
+    CobaltOverride<Clock>.lazy(const FixedClockFactory()),
+  ],
+);
+```
+
+Because it lives where the key is owned, every factory there resolves the replacement — which a
+registration shadowed from a child scope cannot do, since a factory runs on the scope that owns its
+own registration. `CobaltScope.root`, `push` and `CobaltApplication.start` all take `overrides:`;
+`CobaltParamOverride<T, P>` replaces a parameterized registration.
+
+Three things keep it honest:
+
+- **It is never silent.** Each skipped registration reaches observers as
+  `onRegistrationOverridden`, and `overriddenKeys` lists what a scope replaces.
+- **An override that replaces nothing fails.** Left without a type argument inside the list, Dart
+  infers `Object`, and the scope refuses it on creation; one that no registration claims makes
+  `runBuilder` throw `CobaltOverrideError`, naming the ancestor that owns the key when there is one.
+- **An overridden eager singleton is never built** — if the scope builds it.
+  `registerEagerSingleton(factory)` gives it that chance; a value handed to `registerSingleton`
+  already exists, so under an override it is closed with the scope but never resolved.
+
 ## Optional dependencies
 
 `scope.getOrNull<T>()` returns null when nothing is registered for `T`, instead of throwing. It is

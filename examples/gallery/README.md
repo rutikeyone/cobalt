@@ -6,7 +6,7 @@ Every Cobalt example in one app, organised by capability rather than by project.
 flutter run
 ```
 
-Fourteen entries in six sections. Each one that has a UI opens with a graph **of its own** — built
+Fifteen entries in six sections. Each one that has a UI opens with a graph **of its own** — built
 when you open it, disposed when you leave — so opening two gives you two unrelated scope trees.
 That is the thing the gallery is really demonstrating, which is why there is no container above the
 entries.

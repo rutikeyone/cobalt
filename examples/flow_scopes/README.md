@@ -25,6 +25,7 @@ generator. See `examples/codegen_basics` and `examples/notes_app` for that.
 | Continue to payment | same flow, so the draft instance is unchanged |
 | Switch to order 2 | the identity changed, so order 1's draft is disposed and a new one built |
 | Leave the flow | the scope and everything in it are gone |
+| Cart → checkout → payment | three top-level routes, `/cart`, `/checkout`, `/payment`, share one draft |
 | Workspace (tabs) | a shell scope plus a scope per tab — three levels |
 | Switch tabs | a scope appears for the new tab and **nothing is disposed** |
 | Leave the workspace | all three go at once |
@@ -54,6 +55,24 @@ so the route table just names it:
 
 ```dart
 GoRouter(routes: [homeRoute, scopeTreeRoute, OrderFlowRoute()]);
+```
+
+A flow does not need a path of its own. `lib/features/cart/checkout_flow_route.dart` puts three
+top-level routes under one shell — a `ShellRoute` has no `path`, so `/cart`, `/checkout` and
+`/payment` keep their URLs and still share one `CartDraft`:
+
+```dart
+class CheckoutFlowRoute extends CobaltShellRoute {
+  CheckoutFlowRoute()
+    : super(
+        name: 'cart',
+        scope: (_) => const CartFlowScope(),
+        routes: [
+          for (final step in CartStep.values)
+            GoRoute(path: step.path, builder: (_, _) => CartStepScreen(step: step)),
+        ],
+      );
+}
 ```
 
 Nothing inside the flow knows it is scoped. `OrderSummaryScreen` calls `context.cobalt<OrderDraft>()`

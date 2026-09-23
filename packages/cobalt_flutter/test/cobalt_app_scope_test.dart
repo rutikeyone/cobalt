@@ -122,6 +122,49 @@ void main() {
     });
   });
 
+  group('overrides', () {
+    testWidgets('replace what the root registers, on every start', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        CobaltAppScope(
+          root: RootBuilder('root', disposeLog),
+          overrides: [
+            CobaltOverride<Marker>.lazy(MarkerFactory('fake', disposeLog)),
+          ],
+          child: const Probe(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(rendered(), startsWith('fake:'));
+
+      final context = tester.element(find.byType(Probe));
+      await CobaltAppScope.of(context).restart();
+      await tester.pumpAndSettle();
+
+      expect(rendered(), startsWith('fake:'));
+    });
+
+    testWidgets('reach the graph through CobaltAppScope.builder too', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          builder: CobaltAppScope.builder(
+            root: RootBuilder('root', disposeLog),
+            overrides: [
+              CobaltOverride<Marker>.lazy(MarkerFactory('fake', disposeLog)),
+            ],
+          ),
+          home: const Probe(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('fake:'), findsOneWidget);
+    });
+  });
+
   group('a failed start', () {
     testWidgets('reaches errorBuilder instead of killing the app', (
       tester,

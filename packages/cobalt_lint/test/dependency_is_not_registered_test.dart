@@ -470,4 +470,29 @@ class Repo {}
       [lint(82, 10)],
     );
   }
+
+  void test_aClassRegisteredWithCobaltLazyInit_isRegistered() async {
+    newFile('$testPackageLibPath/engine.dart', '''
+$cobaltImport
+
+@cobaltLazyInit
+class Engine {
+  Engine();
+  Future<void> init() async {}
+}
+''');
+
+    await assertNoDiagnostics('''
+$cobaltImport
+
+import 'engine.dart';
+
+@cobaltLazyInit
+class Search {
+  Search(this.engine);
+  final Engine engine;
+  Future<void> init() async {}
+}
+''');
+  }
 }

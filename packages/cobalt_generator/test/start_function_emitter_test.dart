@@ -26,7 +26,8 @@ void main() {
     test('emits a start function wired to the generated container', () {
       final source = generate([declare('Logger')]);
 
-      expect(source, contains(r'$startCobalt()'));
+      expect(source, contains(r'$startCobalt({'));
+      expect(source, contains('overrides: overrides'));
       expect(source, contains(r'root: const $CobaltRootScope()'));
       expect(source, contains(r'rootName: $cobaltRootScopeName'));
     });

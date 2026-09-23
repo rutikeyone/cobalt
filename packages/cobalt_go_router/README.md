@@ -161,14 +161,41 @@ identity appended (`checkout:42`), so a scope tree stays readable.
   rather than left pointing at the old root. `CobaltAppScope` handles this — it keys the provider it
   publishes by the scope — so this only needs doing by hand if you own the root without it.
 
-## Known limitation
+## A flow whose screens share no path
 
-A flow whose routes are not one subtree — `/cart`, `/checkout` and `/payment` declared at the top
-level — cannot be expressed as a `ShellRoute`, so this package cannot scope it. Covering that would
-mean owning the scope outside the widget tree, driven by `routerDelegate.currentConfiguration`, and
-reconciling two sources of truth about one lifetime. That is the bug class `get_it` ships
-`dropScope` for. Restructure the routes into a shell, or own the scope by hand the way
-`examples/notes_app` owns its session scope.
+A `ShellRoute` has no `path` of its own, so its children keep the absolute URLs they declare. A
+flow of top-level routes — `/cart`, `/checkout`, `/payment` — is one `CobaltShellRoute` with those
+three as children, and no URL changes:
+
+```dart
+CobaltShellRoute(
+  name: 'checkout',
+  scope: (_) => const CheckoutScope(),
+  routes: [
+    GoRoute(path: '/cart', builder: (_, _) => const CartScreen()),
+    GoRoute(path: '/checkout', builder: (_, _) => const CheckoutScreen()),
+    GoRoute(path: '/payment', builder: (_, _) => const PaymentScreen()),
+  ],
+)
+```
+
+Moving between the three keeps the scope, leaving for any other route disposes it, and a deep link
+straight to `/payment` raises it — `test/top_level_flow_test.dart` pins all three.
+
+What is still not covered, and why:
+
+- **A route shared by two flows.** A route lives in exactly one shell, so it belongs to one flow. A
+  screen reachable from both checkout and returns has to live outside both and read what it needs
+  from the root.
+- **A flow whose boundary is decided at run time** — "the user is in the flow until they confirm",
+  whatever the URL says. The route table cannot express that. Own the scope by hand the way
+  `examples/notes_app` owns its session scope.
+- **The shell's own navigator.** A shell pushes its children onto a nested `Navigator`. A screen
+  that must cover the whole app, or be popped past the shell, sets `parentNavigatorKey` to the root
+  navigator's key — and then it is outside the flow's scope.
+
+A router listener that owns the scope outside the widget tree is still ruled out: it reconciles two
+sources of truth about one lifetime, which is the bug class `get_it` ships `dropScope` for.
 
 ## `onExit` is not used
 

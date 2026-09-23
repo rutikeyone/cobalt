@@ -22,6 +22,7 @@ enum CobaltInspectorFamily {
   /// Which family [kind] belongs to.
   static CobaltInspectorFamily of(CobaltEventKind kind) => switch (kind) {
     CobaltEventKind.scopePushed ||
+    CobaltEventKind.registrationOverridden ||
     CobaltEventKind.scopeDisposeStarted ||
     CobaltEventKind.scopeDisposed => CobaltInspectorFamily.scope,
     CobaltEventKind.scopeInitStarted ||

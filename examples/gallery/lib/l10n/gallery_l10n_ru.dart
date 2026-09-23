@@ -138,6 +138,64 @@ class GalleryL10nRu extends GalleryL10n {
       'В Manual Mode пишется тот же `if`, что эмитит генератор';
 
   @override
+  String get lazyAsyncTitle => 'Ленивый async';
+
+  @override
+  String get lazyAsyncTeaches =>
+      'Дорогой объект, который строит первый попросивший экран, а не старт.';
+
+  @override
+  String get lazyAsyncPoint1 =>
+      'registerLazyAsyncSingleton или @CobaltInit(lazy: true) выводит его из init(), и старт его не ждёт';
+
+  @override
+  String get lazyAsyncPoint2 =>
+      'Первый getAsync строит его; все, кто спросил одновременно, ждут одну и ту же сборку';
+
+  @override
+  String get lazyAsyncPoint3 =>
+      'CobaltAsyncBuilder показывает загрузку один раз — экран, открытый позже, рисует сразу';
+
+  @override
+  String get lazyAsyncPoint4 =>
+      'Упавшая сборка не запоминается, поэтому повтор строит заново';
+
+  @override
+  String get lazyAsyncStarted => 'старт закончен';
+
+  @override
+  String get lazyAsyncOpen => 'Открыть поиск';
+
+  @override
+  String get lazyAsyncOpenDetail =>
+      'первый заход строит движок, следующие находят его готовым';
+
+  @override
+  String get lazyAsyncSearchTitle => 'Поиск';
+
+  @override
+  String get lazyAsyncBuilding => 'движок строится…';
+
+  @override
+  String lazyAsyncBuilds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'движок построен $count раза',
+      many: 'движок построен $count раз',
+      few: 'движок построен $count раза',
+      one: 'движок построен один раз',
+      zero: 'движок ещё не построен',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String lazyAsyncReady(String instance) {
+    return 'движок готов · инстанс $instance';
+  }
+
+  @override
   String get propertyTitle => 'Инъекция в поля';
 
   @override

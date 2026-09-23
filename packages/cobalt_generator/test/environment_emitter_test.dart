@@ -12,7 +12,15 @@ void main() {
       );
 
       expect(source, contains(r'const $CobaltRootScope();'));
-      expect(source, contains(r'$startCobalt() =>'));
+      expect(
+        source,
+        matches(
+          RegExp(
+            r'\$startCobalt\(\{\s*List<_i\d+\.CobaltOverride<Object>> '
+            r'overrides = const \[\],?\s*\}\) =>',
+          ),
+        ),
+      );
       expect(source, isNot(contains('environment')));
     });
   });
@@ -49,7 +57,8 @@ void main() {
         matches(
           RegExp(
             r'\$startCobalt\(\{\s*_i\d+\.CobaltEnvironment environment\s*=\s*'
-            r'_i\d+\.CobaltEnvironment\.defaultEnvironment,?\s*\}\)',
+            r'_i\d+\.CobaltEnvironment\.defaultEnvironment,\s*'
+            r'List<_i\d+\.CobaltOverride<Object>> overrides = const \[\],?\s*\}\)',
           ),
         ),
         reason: 'environments are opt-in, so startup still works without one',

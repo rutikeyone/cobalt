@@ -126,4 +126,36 @@ class FlowScopesL10nZh extends FlowScopesL10n {
 
   @override
   String get tabProfile => '个人资料';
+
+  @override
+  String get openCart => '购物车 → 结算 → 付款';
+
+  @override
+  String get openCartDetail => '三条顶层路由，一个作用域';
+
+  @override
+  String get cartCreated => '购物车草稿已创建';
+
+  @override
+  String get cartDisposed => '购物车草稿已释放';
+
+  @override
+  String get stepCart => '购物车';
+
+  @override
+  String get stepCheckout => '结算';
+
+  @override
+  String get stepPayment => '付款';
+
+  @override
+  String get continueToCheckout => '继续去结算';
+
+  @override
+  String get cartNextDetail => '另一条顶层路由 —— 草稿必须活下来';
+
+  @override
+  String cartLine(String instance) {
+    return '购物车草稿 · 实例 $instance';
+  }
 }

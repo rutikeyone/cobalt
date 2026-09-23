@@ -1,8 +1,11 @@
 ## 0.2.0
 
-- No code changes in this package. Republished in lockstep with lazy async
-  singletons in `cobalt` 0.2.0 — see its changelog. A minor version in `0.x`
-  is a breaking one, so every internal constraint moves to `^0.2.0` together.
+- No code changes. The README no longer says a flow of top-level routes
+  cannot be scoped: a `ShellRoute` has no path, so `/cart`, `/checkout` and
+  `/payment` under one `CobaltShellRoute` keep their URLs and share one scope.
+  Pinned by a test; what is still out of reach is written down instead.
+- Republished in lockstep with lazy async singletons and overrides in `cobalt`
+  0.2.0 — see its changelog.
 
 ## 0.1.2
 

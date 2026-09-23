@@ -73,6 +73,7 @@ The overrides above are gone from this repository's own copy now that `cobalt_li
 | `cobalt_dependency_cycle` | an injectable class that depends, eventually, on itself |
 | `cobalt_registration_is_never_released` | a registered class with a `dispose()` or `close()` the scope cannot see |
 | `cobalt_resource_is_never_closed` | A registration holds something closeable and offers no way to close it. |
+| `cobalt_lazy_registration_injected_synchronously` | a lazy async registration injected where nothing can wait for it — a synchronous or eager constructor, or an `@injected` field |
 
 All rules are warnings, so they are on by default. Every rule reads annotations through
 `cobalt_analyzer`, the same layer the generator uses.
@@ -91,16 +92,18 @@ registration are not retained. It also stays quiet when a `Disposable` from some
 the supertypes, because it matches by name rather than by library — a rule that cannot see the
 whole graph should fail towards silence.
 
-Eleven of the thirteen rules answer a question about one declaration. The other two —
-`cobalt_dependency_is_not_registered` and `cobalt_dependency_cycle` — answer one about the whole
-package, and the analysis server does not offer that view: it hands a rule one library at a time,
+Eleven of the fourteen rules answer a question about one declaration. The other three —
+`cobalt_dependency_is_not_registered`, `cobalt_dependency_cycle` and
+`cobalt_lazy_registration_injected_synchronously` — answer one about the whole package, and the
+analysis server does not offer that view: it hands a rule one library at a time,
 and the only synchronous window onto the others is their **parsed**, unresolved source.
 
-So they share an index of what the package registers, read from syntax — `@CobaltInject` classes,
-their `exposeAs` targets, `@CobaltModule` members (indexed by return type, with one `Future` layer
-removed) and `@CobaltScopeRoot(provides: [...])` entries — together with what each registration
-asks for. It holds bare names: no library, no type arguments, no `@Named` qualifier. Each of those
-omissions makes the index match **more**, so the rule stays quiet where the build still objects:
+So they share an index of what the package registers, read from syntax — `@CobaltInject` and
+`@CobaltInit` classes, their `exposeAs` targets, `@CobaltModule` members (indexed by return type,
+with one `Future` layer removed) and `@CobaltScopeRoot(provides: [...])` entries — together with
+what each registration asks for. It holds bare names: no library, no type arguments, no `@Named`
+qualifier. Each of those omissions makes the index match **more**, so the rule stays quiet where the
+build still objects:
 
 | Case | Build | Rule |
 |---|---|---|
@@ -118,6 +121,12 @@ makes the graph *denser*, and a dense graph can grow a loop no real one has. So 
 declarations in the package both claim is dropped from the graph rather than fused, and every
 registration on the loop is reported — each is a place the loop could be broken. Only one loop is
 reported at a time, which is what the build does with the same graph.
+
+`cobalt_lazy_registration_injected_synchronously` reads laziness from the same index: a class marked
+`@cobaltLazyInit` or `@CobaltInit(lazy: true)`, and a module member marked
+`@CobaltInject(lazyInit: true)` — only as the literal `true`, the one spelling syntax can read without
+guessing. A name two declarations claim is left out, so the rule cannot report a class for injecting
+something that may not be lazy at all.
 
 The index is rebuilt when a file in `lib` changes, and checked by modification stamp otherwise —
 listing costs a stat per file, building costs a parse per file. If any file will not parse, the

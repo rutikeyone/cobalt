@@ -115,7 +115,10 @@ final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
 }
 
 const String $cobaltRootScopeName = 'root';
-_i687.Future<_i573.CobaltScope> $startCobalt() => _i573.CobaltApplication.start(
+_i687.Future<_i573.CobaltScope> $startCobalt({
+  List<_i573.CobaltOverride<Object>> overrides = const [],
+}) => _i573.CobaltApplication.start(
   root: const $CobaltRootScope(),
   rootName: $cobaltRootScopeName,
+  overrides: overrides,
 );

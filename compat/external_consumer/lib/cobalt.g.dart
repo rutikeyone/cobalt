@@ -11,6 +11,7 @@ import 'package:cobalt_external_consumer/src/clock.dart' as _i612;
 import 'package:cobalt_external_consumer/src/database.dart' as _i530;
 import 'package:cobalt_external_consumer/src/device_info.dart' as _i829;
 import 'package:cobalt_external_consumer/src/diagnostics.dart' as _i862;
+import 'package:cobalt_external_consumer/src/license_check.dart' as _i1023;
 import 'package:cobalt_external_consumer/src/note_editor.dart' as _i59;
 import 'package:cobalt_external_consumer/src/platform_module.dart' as _i455;
 import 'package:cobalt_external_consumer/src/report.dart' as _i1031;
@@ -76,6 +77,15 @@ final class _DiagnosticsFactory
     resolver.get<_i829.DeviceInfo>(),
     resolver.get<_i612.Clock>(),
   );
+}
+
+final class _LicenseCheckFactory
+    implements _i573.CobaltFactory<_i1023.LicenseCheck> {
+  const _LicenseCheckFactory();
+
+  @override
+  _i1023.LicenseCheck create(_i573.CobaltResolver resolver) =>
+      _i1023.LicenseCheck();
 }
 
 final class _NoteEditorFactory
@@ -185,6 +195,9 @@ final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
   void build(_i573.CobaltScope scope) {
     scope.registerLazySingleton<_i612.Clock>(const _SystemClockFactory());
     scope.registerAsyncSingleton<_i530.Database>(const _DatabaseFactory());
+    scope.registerEagerSingleton<_i1023.LicenseCheck>(
+      const _LicenseCheckFactory(),
+    );
     scope.registerLazySingleton<_i455.Channel>(
       const _PlatformModuleChannelFactory(),
       dispose: _i455.closeChannel,
@@ -222,8 +235,11 @@ final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
 
 List<_i573.CobaltBootstrapStep> get $cobaltBootstrap => [_i366.BindPlatform()];
 const String $cobaltRootScopeName = 'consumer';
-_i687.Future<_i573.CobaltScope> $startCobalt() => _i573.CobaltApplication.start(
+_i687.Future<_i573.CobaltScope> $startCobalt({
+  List<_i573.CobaltOverride<Object>> overrides = const [],
+}) => _i573.CobaltApplication.start(
   root: const $CobaltRootScope(),
   bootstrap: $cobaltBootstrap,
   rootName: $cobaltRootScopeName,
+  overrides: overrides,
 );

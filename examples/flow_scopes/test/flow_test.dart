@@ -77,6 +77,55 @@ void main() {
     });
   });
 
+  group('a flow of top-level routes', () {
+    testWidgets('cart, checkout and payment share one draft', (tester) async {
+      await start(tester);
+      await tester.tap(find.byKey(const Key('open-cart')));
+      await settle(tester);
+      expect(find.text('scope: cart'), findsOneWidget);
+      final first = _draftLine(tester, 'cart');
+
+      await tester.tap(find.byKey(const Key('cart-next')));
+      await settle(tester);
+      expect(_draftLine(tester, 'checkout'), first);
+
+      await tester.tap(find.byKey(const Key('cart-next')));
+      await settle(tester);
+      expect(_draftLine(tester, 'payment'), first);
+
+      expect(app.get<EventLog>().entries, [
+        const FlowEvent(FlowEventKind.cartCreated, 'cart'),
+      ]);
+      expect(app.children.single.name, 'cart');
+    });
+
+    testWidgets('the URLs stay top-level', (tester) async {
+      await start(tester);
+      await go(tester, '/checkout');
+
+      expect(router.routerDelegate.currentConfiguration.uri.path, '/checkout');
+      expect(find.text('/checkout'), findsOneWidget);
+    });
+
+    testWidgets('leaving from the last screen disposes the draft', (
+      tester,
+    ) async {
+      await start(tester);
+      await go(tester, '/payment');
+      await tester.tap(find.byKey(const Key('cart-leave')));
+      await settle(tester);
+
+      expect(app.get<EventLog>().entries, [
+        const FlowEvent(FlowEventKind.cartCreated, 'cart'),
+        const FlowEvent(FlowEventKind.cartDisposed, 'cart'),
+      ]);
+      expect(app.children, isEmpty);
+
+      await settle(tester);
+      expect(find.text('cart draft disposed'), findsOneWidget);
+    });
+  });
+
   group('the tabbed workspace', () {
     testWidgets('the shell and the first tab each build a scope', (
       tester,
@@ -146,4 +195,9 @@ void main() {
       expect(find.byKey(const Key('scope-order:1')), findsNothing);
     });
   });
+}
+
+String _draftLine(WidgetTester tester, String step) {
+  final tile = tester.widget<ListTile>(find.byKey(Key('cart-draft-$step')));
+  return (tile.subtitle! as Text).data!;
 }

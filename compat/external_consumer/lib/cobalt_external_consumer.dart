@@ -8,6 +8,7 @@ export 'package:cobalt_external_consumer/src/consumer_scope.dart';
 export 'package:cobalt_external_consumer/src/database.dart';
 export 'package:cobalt_external_consumer/src/device_info.dart';
 export 'package:cobalt_external_consumer/src/diagnostics.dart';
+export 'package:cobalt_external_consumer/src/license_check.dart';
 export 'package:cobalt_external_consumer/src/note_editor.dart';
 export 'package:cobalt_external_consumer/src/platform_module.dart';
 export 'package:cobalt_external_consumer/src/report.dart';

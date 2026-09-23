@@ -56,6 +56,15 @@ abstract base class CobaltRecordingObserver extends CobaltObserver {
   );
 
   @override
+  void onRegistrationOverridden(CobaltScopeRef scope, CobaltKey key) => _emit(
+    CobaltEventKind.registrationOverridden,
+    CobaltLogLevel.info,
+    'registration of $key in "$scope" replaced by an override',
+    scope: scope,
+    key: key,
+  );
+
+  @override
   void onScopeInitStarted(CobaltScopeRef scope, int levels) => _emit(
     CobaltEventKind.scopeInitStarted,
     CobaltLogLevel.debug,

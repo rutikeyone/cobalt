@@ -2,6 +2,7 @@
 
 - Lazy async registrations get the `startup` colour, count as retained in the
   detail sheet, and "build it" builds them through `getAsync`.
+- A registration skipped for an override is logged in the `scope` family.
 
 ## 0.1.2
 

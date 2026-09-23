@@ -12,11 +12,13 @@ class CobaltInject {
     this.exposeAs,
     this.dispose,
     this.lifetime = CobaltLifetime.lazySingleton,
+    this.lazyInit = false,
   });
   final String? name;
   final Type? exposeAs;
   final Function? dispose;
   final CobaltLifetime lifetime;
+  final bool lazyInit;
 }
 
 const cobaltInject = CobaltInject();
@@ -61,11 +63,14 @@ class CobaltBootstrap {
 const cobaltBootstrap = CobaltBootstrap();
 
 class CobaltInit {
-  const CobaltInit({this.dependsOn = const <Type>[]});
+  const CobaltInit({this.dependsOn = const <Type>[], this.lazy = false});
   final List<Type> dependsOn;
+  final bool lazy;
 }
 
 const cobaltInit = CobaltInit();
+
+const cobaltLazyInit = CobaltInit(lazy: true);
 
 class CobaltModule {
   const CobaltModule();

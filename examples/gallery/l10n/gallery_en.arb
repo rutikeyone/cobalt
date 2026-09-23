@@ -92,6 +92,48 @@
   "environmentsPoint2": "Two registrations whose environments overlap fail the build, not the app",
   "environmentsPoint3": "Choosing nothing leaves the split types unregistered, so the miss is loud",
   "environmentsPoint4": "Manual Mode writes the same `if` the generator emits",
+  "lazyAsyncTitle": "Lazy async",
+  "@lazyAsyncTitle": {
+    "description": "Name of the \"Lazy async\" example."
+  },
+  "lazyAsyncTeaches": "Something expensive, built by the first screen that asks rather than at startup.",
+  "@lazyAsyncTeaches": {
+    "description": "One line: what \"Lazy async\" exists to show."
+  },
+  "lazyAsyncPoint1": "registerLazyAsyncSingleton, or @CobaltInit(lazy: true), keeps it out of init(), so startup never waits for it",
+  "lazyAsyncPoint2": "The first getAsync builds it; every caller at the same time waits for that one build",
+  "lazyAsyncPoint3": "CobaltAsyncBuilder shows loading once — a screen opened later renders it at once",
+  "lazyAsyncPoint4": "A failed build is not remembered, so retry builds again",
+  "lazyAsyncStarted": "startup finished",
+  "@lazyAsyncStarted": {
+    "description": "Shown on the lazy async screen once the graph is up."
+  },
+  "lazyAsyncOpen": "Open search",
+  "@lazyAsyncOpen": {
+    "description": "Opens the screen that needs the lazy engine."
+  },
+  "lazyAsyncOpenDetail": "the first visit builds the engine; later ones find it built",
+  "@lazyAsyncOpenDetail": {
+    "description": "What opening the search screen does."
+  },
+  "lazyAsyncSearchTitle": "Search",
+  "@lazyAsyncSearchTitle": {
+    "description": "Title of the screen that waits for the lazy engine."
+  },
+  "lazyAsyncBuilding": "building the engine…",
+  "@lazyAsyncBuilding": {
+    "description": "Shown while the lazy engine is being built."
+  },
+  "lazyAsyncBuilds": "{count, plural, =0{engine not built yet} =1{engine built once} other{engine built {count} times}}",
+  "@lazyAsyncBuilds": {
+    "description": "How many times the lazy engine has been built this visit.",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "lazyAsyncReady": "engine ready \u00b7 instance {instance}",
+  "@lazyAsyncReady": {
+    "description": "The engine was resolved; the instance shows a second visit gets the same one.",
+    "placeholders": { "instance": { "type": "String", "example": "268479144" } }
+  },
   "propertyTitle": "Property injection",
   "@propertyTitle": {
     "description": "Name of the \"Property injection\" example."

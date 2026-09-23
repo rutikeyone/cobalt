@@ -1,8 +1,13 @@
 ## 0.2.0
 
-- No code changes in this package. Republished in lockstep with lazy async
-  singletons in `cobalt` 0.2.0 — see its changelog. A minor version in `0.x`
-  is a breaking one, so every internal constraint moves to `^0.2.0` together.
+- `cobalt_lazy_registration_injected_synchronously`: a lazy async
+  registration taken by a synchronous or eager async constructor, or held in
+  an `@injected` field on any class — what the build refuses since 0.2.0,
+  reported in the editor. A lazy module member counts; a name two
+  declarations claim does not.
+- The registration index read `@cobaltLazyInit` as no registration at all, so
+  a class depending on one was reported by
+  `cobalt_dependency_is_not_registered`. It is read like `@CobaltInit`.
 
 ## 0.1.2
 

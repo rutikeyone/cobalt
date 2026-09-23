@@ -51,6 +51,7 @@ the most edges, and until its dependencies are Cobalt's you gain nothing.
 | `pushNewScope(...)` | `scope.push('name')` |
 | `popScope()` | `await child.dispose()` |
 | `reset()` | `await root.dispose()` |
+| `allowReassignment = true` or `unregister<T>()`, then register the fake | `overrides: [CobaltOverride<T>.value(fake)]` on `start`, `CobaltScope.root` or the test helpers |
 
 The visible difference is **a factory object instead of a closure**. It buys
 two things: the registration can be `const`, and the graph becomes an

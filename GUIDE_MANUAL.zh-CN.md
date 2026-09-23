@@ -174,11 +174,12 @@ cd examples/manual_mode && dart run
 
 ## 3. 注册与读取
 
-### 六种注册方式
+### 七种注册方式
 
 | 调用 | 何时构建 | 作用域是否持有 |
 |---|---|---|
 | `registerSingleton<T>(value)` | 已由你构建 | 是 |
+| `registerEagerSingleton<T>(factory)` | 立即，由作用域构建 | 是 |
 | `registerLazySingleton<T>(factory)` | 首次解析时 | 是 |
 | `registerAsyncSingleton<T>(factory)` | 在 `init()` 中，按依赖顺序 | 是 |
 | `registerLazyAsyncSingleton<T>(factory)` | 首次 `getAsync` 时 | 是 |
@@ -196,8 +197,9 @@ scope
   ..registerLazySingleton<Logger>(const AuditLoggerFactory(), name: 'audit');
 ```
 
-在同一个作用域里注册同一个键两次会抛异常；从子作用域遮蔽它则不会——
-那是替换某样东西的正规方式，测试里和生产里都一样。
+在同一个作用域里注册同一个键两次会抛异常。不触发它而替换一条注册有两种方式：
+把覆盖交给拥有这个键的作用域，或者在子作用域里注册，为在它之下解析的东西遮蔽它——
+见 [§13](#13-测试)。
 
 ### 六种读取方式
 
@@ -782,20 +784,42 @@ await expectGraphResolves(scope, params: {CobaltKey(Counter): 'alice'});
 
 ### 覆盖依赖
 
-压入一个子作用域并重新注册。遮蔽也正是生产环境里覆盖依赖的方式，
-所以测试用的是应用同一套机制：
+把替换交给拥有这个键的作用域。覆盖在作用域创建时最先注册，
+之后同一个键的真实注册会被跳过，而不是当作重复注册报错——
+所以这个作用域里的每个工厂拿到的都是替换品：
 
 ```dart
-final overrides = scope.pushForTest()
+final scope = cobaltTestRoot(
+  overrides: [CobaltOverride<Clock>.value(FixedClock(DateTime(2026)))],
+)..runBuilder(const AppScope());
+```
+
+`.value` 接收一个已经构建好的对象，`.lazy` 和 `.transient` 接收工厂，
+`CobaltParamOverride<T, P>` 接收参数化工厂。`cobaltTestScope(overrides:)`、
+`CobaltApplication.start(overrides:)` 和 `CobaltAppScope(overrides:)` 接收同一个列表——
+在应用里，这就是风味构建或调试菜单。覆盖从不静默：观察者会收到 `onRegistrationOverridden`，
+`overriddenKeys` 会列出被替换的键。
+
+构建代价高的 eager 单例请用 `registerEagerSingleton` 注册。交给 `registerSingleton` 的值
+在作用域来得及拒绝之前就已经存在，所以在覆盖之下它会被保留、随作用域关闭，但永远不会被解析；
+`registerEagerSingleton` 让作用域自己去构建它——也就可以不构建。
+
+写明类型参数。在列表里 Dart 会把它推断为 `Object`，作用域一创建就会拒绝这样的覆盖。
+单独写出来时，它会推断成替换品的类型——`FixedClock` 而不是 `Clock`——
+`runBuilder` 会报告这个什么都没替换的覆盖。
+
+从子作用域遮蔽是另一种方式，也是生产环境里会话和流程所用的方式：
+
+```dart
+final child = scope.pushForTest()
   ..registerSingleton<Clock>(FixedClock(DateTime(2026)));
 ```
 
-这能不能生效由一条规则决定，每个人都会撞上一次：
-**工厂运行在拥有它自身那条注册的作用域上。** 在消费者之下做的覆盖，对消费者是不可见的。
-`ownerOf<T>()` 会比断言更早告诉你答案：
+它只能影响从子作用域解析的东西：**工厂运行在拥有它自身那条注册的作用域上**，
+注册在更上层的消费者拿到的仍然是真实依赖。`ownerOf<T>()` 会比断言更早告诉你答案：
 
 ```dart
-expect(scope.ownerOf<Greeter>(), same(scope.root));   // 注册在根上，就得在根上覆盖
+expect(scope.ownerOf<Greeter>(), same(scope.root));   // 属于根，就在根上覆盖
 ```
 
 ### 测试替身

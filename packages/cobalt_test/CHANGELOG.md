@@ -2,6 +2,7 @@
 
 - `checkGraph` builds lazy async registrations through `getAsync`, so they are
   checked like the lazy singletons beside them.
+- `cobaltTestScope`, `cobaltTestRoot` and `pushForTest` take `overrides:`.
 
 ## 0.1.2
 

@@ -6,6 +6,8 @@
   resolution is held in state, so a parent rebuild neither restarts it nor
   retries a failed one by itself.
 - `context.cobaltAsync<T>()`.
+- `CobaltAppScope` and `CobaltAppScope.builder` take `overrides:`, applied on
+  every start and restart.
 
 ## 0.1.2
 

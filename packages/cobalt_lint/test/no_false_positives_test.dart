@@ -14,6 +14,7 @@ import 'package:cobalt_lint/src/rules/init_requires_init_method.dart';
 import 'package:cobalt_lint/src/rules/injectable_must_be_constructible.dart';
 import 'package:cobalt_lint/src/rules/injected_field_must_be_late_final.dart';
 import 'package:cobalt_lint/src/rules/injected_field_needs_an_injectable.dart';
+import 'package:cobalt_lint/src/rules/lazy_registration_injected_synchronously.dart';
 import 'package:cobalt_lint/src/rules/missing_injection_mixin.dart';
 import 'package:cobalt_lint/src/rules/param_needs_an_injectable.dart';
 import 'package:cobalt_lint/src/rules/registration_is_never_released.dart';
@@ -35,6 +36,7 @@ void main() {
     defineReflectiveTests(InjectableMustBeConstructibleIsQuiet);
     defineReflectiveTests(InjectedFieldMustBeLateFinalIsQuiet);
     defineReflectiveTests(InjectedFieldNeedsAnInjectableIsQuiet);
+    defineReflectiveTests(LazyRegistrationInjectedSynchronouslyIsQuiet);
     defineReflectiveTests(MissingInjectionMixinIsQuiet);
     defineReflectiveTests(ParamNeedsAnInjectableIsQuiet);
     defineReflectiveTests(RegistrationIsNeverReleasedIsQuiet);
@@ -52,7 +54,7 @@ void main() {
 ///
 /// It answers the half of "does a clean lint mean the build will pass" that
 /// can be answered. It cannot mean that — thirty build-time refusals against
-/// thirteen rules, deliberately — but the reverse has to hold: nothing here
+/// fourteen rules, deliberately — but the reverse has to hold: nothing here
 /// may report code the generator is happy with.
 abstract class _QuietTest extends AnalysisRuleTest {
   AnalysisRule makeRule();
@@ -147,6 +149,24 @@ class PlatformModule {
   Config config() => const Config();
 }
 
+@cobaltLazyInit
+class Archive {
+  Archive(this.config);
+
+  final Config config;
+
+  Future<void> init() async {}
+}
+
+@cobaltLazyInit
+class ArchiveIndex {
+  ArchiveIndex(this.archive);
+
+  final Archive archive;
+
+  Future<void> init() async {}
+}
+
 @CobaltScopeRoot(name: 'app')
 class AppScope {
   const AppScope();
@@ -218,6 +238,12 @@ class InjectedFieldMustBeLateFinalIsQuiet extends _QuietTest {
 class InjectedFieldNeedsAnInjectableIsQuiet extends _QuietTest {
   @override
   AnalysisRule makeRule() => InjectedFieldNeedsAnInjectable();
+}
+
+@reflectiveTest
+class LazyRegistrationInjectedSynchronouslyIsQuiet extends _QuietTest {
+  @override
+  AnalysisRule makeRule() => LazyRegistrationInjectedSynchronously();
 }
 
 @reflectiveTest

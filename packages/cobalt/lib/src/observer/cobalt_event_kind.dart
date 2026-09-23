@@ -9,6 +9,7 @@
 /// set and the compiler will say when a new event arrives.
 enum CobaltEventKind {
   scopePushed,
+  registrationOverridden,
   scopeInitStarted,
   scopeInitCompleted,
   scopeInitFailed,

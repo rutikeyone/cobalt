@@ -130,4 +130,37 @@ class FlowScopesL10nRu extends FlowScopesL10n {
 
   @override
   String get tabProfile => 'Профиль';
+
+  @override
+  String get openCart => 'Корзина → оформление → оплата';
+
+  @override
+  String get openCartDetail => 'три маршрута верхнего уровня, один скоуп';
+
+  @override
+  String get cartCreated => 'черновик корзины создан';
+
+  @override
+  String get cartDisposed => 'черновик корзины разобран';
+
+  @override
+  String get stepCart => 'Корзина';
+
+  @override
+  String get stepCheckout => 'Оформление';
+
+  @override
+  String get stepPayment => 'Оплата';
+
+  @override
+  String get continueToCheckout => 'Перейти к оформлению';
+
+  @override
+  String get cartNextDetail =>
+      'другой маршрут верхнего уровня — черновик обязан выжить';
+
+  @override
+  String cartLine(String instance) {
+    return 'черновик корзины · инстанс $instance';
+  }
 }

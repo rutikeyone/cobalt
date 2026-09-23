@@ -33,6 +33,17 @@ void main() {
       );
     });
 
+    test('an override replacing a registration is filed as a scope event', () {
+      cobaltTestRoot(
+        name: 'app',
+        observers: [CobaltTalkerObserver(talker)],
+        overrides: [CobaltOverride<Marker>.value(Marker())],
+      ).registerLazySingleton<Marker>(FnFactory((_) => Marker()));
+
+      expect(titles(), ['cobalt-scope']);
+      expect(messages().single, contains('replaced by an override'));
+    });
+
     test('stays quiet about instances unless asked', () {
       final root = cobaltTestRoot(
         name: 'app',

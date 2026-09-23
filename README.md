@@ -76,7 +76,8 @@ graph.
 | **Observability** | typed events, not strings — logging, structured intake and crash reports with a trail |
 | **In-app inspector** | the live scope tree, what was built and with what lifetime, and everything reported |
 | **Navigation flows** | a scope whose lifetime is a go_router flow, without anything mirroring the router |
-| **Lint plugin** | thirteen rules on the same parsing layer the generator uses |
+| **Lint plugin** | fourteen rules on the same parsing layer the generator uses |
+| **Overrides** | replace a registration where it is owned, so every consumer sees the double — in a test, a flavour or a debug menu |
 | **Test helpers** | scopes that dispose with the test, overrides that work the way production ones do |
 | **No global container** | nothing is ambient, so tests run in parallel and two graphs in one process are unrelated |
 
@@ -146,9 +147,10 @@ rots.
 ### Scopes own what they build
 
 A scope is a node with a parent, children and its own registrations. Resolution walks up, so a
-registration in a child shadows one above it — which is how an override works in a test and how a
-session's repository replaces the anonymous one in production, through the same mechanism rather
-than a back door.
+registration in a child shadows one above it — which is how a session's repository replaces the
+anonymous one in production. A factory runs on the scope that owns its registration, so a shadow
+reaches only what is resolved below it; to replace a dependency for everything, an override is handed
+to the scope that owns the key, and the real registration there is skipped.
 
 Teardown is LIFO by **creation** order, not declaration order. That distinction is the bug in most
 hand-written containers: a component declared first but created last is destroyed first, while
@@ -216,12 +218,14 @@ when it closes. It is an ordinary `ShellRoute` subclass, and the scope is owned 
 it — nothing watches the router and mirrors it, because mirroring is where hand-rolled versions break
 on the back button, on deep links and on tab switches.
 
-A flow whose routes are not one subtree cannot be expressed this way, and that limitation is
-deliberate; see the package README.
+A flow of top-level routes with no shared path — `/cart`, `/checkout`, `/payment` — is one shell
+too: a `ShellRoute` has no path of its own, so the URLs stay as declared. What stays out of reach is a
+route shared by two flows and a boundary decided at run time rather than by the route table; see the
+package README.
 
 ## Lint rules
 
-`cobalt_lint` is an `analysis_server_plugin`, not a `custom_lint` plugin. It ships twelve warning
+`cobalt_lint` is an `analysis_server_plugin`, not a `custom_lint` plugin. It ships fourteen warning
 rules, all built on the same `cobalt_analyzer` parsing layer the generator uses, so a mistake surfaces
 in the IDE instead of only when `build_runner` runs:
 
@@ -240,6 +244,7 @@ in the IDE instead of only when `build_runner` runs:
 | `cobalt_dependency_cycle` | an injectable class that depends, eventually, on itself |
 | `cobalt_registration_is_never_released` | a registered class with a `dispose()` or `close()` the scope cannot see |
 | `cobalt_resource_is_never_closed` | A registration holds something closeable and offers no way to close it |
+| `cobalt_lazy_registration_injected_synchronously` | a lazy async registration injected where nothing can wait for it — a synchronous or eager constructor, or an `@injected` field |
 
 `custom_lint` is not used: its latest release (0.8.1) is pinned to `analyzer ^8.0.0` and cannot
 coexist with a modern analyzer. `riverpod_lint` migrated off it to the first-party
@@ -257,11 +262,11 @@ cd examples/gallery && flutter run
 ```
 
 The gallery is organised by **capability**, not by project — a reader arrives wanting to know how
-scopes end, not wanting to see `notes_app`. Fourteen entries in six sections:
+scopes end, not wanting to see `notes_app`. Fifteen entries in six sections:
 
 | Section | Entries |
 |---|---|
-| Startup | Two-phase startup · Environments |
+| Startup | Two-phase startup · Environments · Lazy async |
 | Injection | Property injection · Named and multi-injection |
 | Scopes & lifetime | Widget-owned scope · Session scope · Scope tree · Navigation flows · Teardown |
 | Code generation | Generated container · Manual mode |

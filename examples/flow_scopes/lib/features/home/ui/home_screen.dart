@@ -42,6 +42,13 @@ class HomeScreen extends StatelessWidget {
                 onTap: () => context.go(AppRoutes.summary(orderId)),
               ),
             ListTile(
+              key: const Key('open-cart'),
+              title: Text(l10n.openCart),
+              subtitle: Text(l10n.openCartDetail),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.go(AppRoutes.cart),
+            ),
+            ListTile(
               key: const Key('open-workspace'),
               title: Text(l10n.workspaceTabs),
               subtitle: Text(l10n.workspaceTabsDetail),
@@ -75,5 +82,7 @@ class HomeScreen extends StatelessWidget {
     FlowEventKind.scopeDisposed => l10n.scopeDisposed(event.subject),
     FlowEventKind.draftCreated => l10n.draftCreated(event.subject),
     FlowEventKind.draftDisposed => l10n.draftDisposed(event.subject),
+    FlowEventKind.cartCreated => l10n.cartCreated,
+    FlowEventKind.cartDisposed => l10n.cartDisposed,
   };
 }

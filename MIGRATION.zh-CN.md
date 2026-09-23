@@ -48,6 +48,7 @@ GetIt.I.registerSingleton<Database>(app.get<Database>());
 | `pushNewScope(...)` | `scope.push('name')` |
 | `popScope()` | `await child.dispose()` |
 | `reset()` | `await root.dispose()` |
+| `allowReassignment = true` 或 `unregister<T>()`，再注册替身 | 在 `start`、`CobaltScope.root` 或测试辅助函数上传 `overrides: [CobaltOverride<T>.value(fake)]` |
 
 看得见的差别是**用工厂对象代替闭包**。它换来两样东西：注册可以是 `const`，而且这张图变成了可检视的
 值，而不是被捕获的状态——正是这一点让生成器能产出它、让 linter 能读懂它。

@@ -50,6 +50,7 @@ class CobaltAppScope extends StatefulWidget {
     this.bootstrap,
     this.rootName = 'root',
     this.observers = const [],
+    this.overrides = const [],
     this.loading,
     this.errorBuilder,
     this.disposeOnExitRequest = false,
@@ -72,7 +73,8 @@ class CobaltAppScope extends StatefulWidget {
   }) : root = null,
        bootstrap = null,
        rootName = 'root',
-       observers = const [];
+       observers = const [],
+       overrides = const [];
 
   /// Declares what the root scope contains. Null only for [CobaltAppScope.start].
   final CobaltScopeBuilder? root;
@@ -94,6 +96,14 @@ class CobaltAppScope extends StatefulWidget {
 
   /// Observers for the whole tree; child scopes inherit them.
   final List<CobaltObserver> observers;
+
+  /// Replacements for registrations [root] makes, applied on every start.
+  ///
+  /// A flavour or a debug menu is the case this serves in an app, a widget
+  /// test the case it serves everywhere else. An override is never silent:
+  /// observers are told each time a registration is skipped for one. See
+  /// [CobaltOverride].
+  final List<CobaltOverride<Object>> overrides;
 
   /// Builds the root scope. Null unless built with [CobaltAppScope.start].
   ///
@@ -167,6 +177,7 @@ class CobaltAppScope extends StatefulWidget {
     List<CobaltBootstrapStep> Function()? bootstrap,
     String rootName = 'root',
     List<CobaltObserver> observers = const [],
+    List<CobaltOverride<Object>> overrides = const [],
     Widget? loading,
     Widget Function(BuildContext context, Object error, VoidCallback retry)?
     errorBuilder,
@@ -183,6 +194,7 @@ class CobaltAppScope extends StatefulWidget {
       bootstrap: bootstrap,
       rootName: rootName,
       observers: observers,
+      overrides: overrides,
       loading: loading,
       errorBuilder: errorBuilder,
       disposeOnExitRequest: disposeOnExitRequest,
@@ -210,6 +222,7 @@ class CobaltAppScope extends StatefulWidget {
       bootstrap: bootstrap?.call() ?? const [],
       rootName: rootName,
       observers: observers,
+      overrides: overrides,
     );
   }
 
