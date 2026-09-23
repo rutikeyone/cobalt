@@ -4,7 +4,7 @@ Widget-test helpers for [Cobalt](https://github.com/rutikeyone/cobalt). Add it a
 
 ```yaml
 dev_dependencies:
-  cobalt_test_flutter: ^0.1.0
+  cobalt_test_flutter: ^0.2.0
 ```
 
 Two functions, both written because reaching for the obvious call is wrong in a way that costs an

@@ -10,7 +10,7 @@ everything the graph reported — on a screen inside your app, with nothing atta
 
 ```yaml
 dev_dependencies:
-  cobalt_inspector: ^0.1.0
+  cobalt_inspector: ^0.2.0
 ```
 
 ## Wiring
@@ -95,7 +95,7 @@ Put it once above wherever a debug menu opens from and pushed routes and sheets 
 `theme:` to a screen to override it there. Nothing is required: with neither, the ambient theme
 decides.
 
-Colour is by **family**, not by event: thirteen kinds is more than anyone can hold, and level says
+Colour is by **family**, not by event: fourteen kinds is more than anyone can hold, and level says
 how loud an event is rather than what it concerns. The four — scope, startup, instance, failure —
 are the same division `cobalt_talker` files its logs under, which is what lets
 [`cobalt_talker_flutter`](https://pub.dev/packages/cobalt_talker_flutter) dress talker's screen in the

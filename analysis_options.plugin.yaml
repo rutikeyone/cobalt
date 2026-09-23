@@ -27,4 +27,4 @@ include: analysis_options.yaml
 # The rules themselves do not depend on any of this: they are covered by
 # tests that go through `analyzer_testing` and never start a server.
 plugins:
-  cobalt_lint: ^0.1.0
+  cobalt_lint: ^0.2.0

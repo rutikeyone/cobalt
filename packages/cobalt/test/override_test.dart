@@ -54,6 +54,21 @@ final class Editor {
   final int id;
 }
 
+final class _Step implements CobaltBootstrapStep, Disposable {
+  _Step(this.recorder);
+
+  final DisposeRecorder recorder;
+
+  @override
+  String get name => 'step';
+
+  @override
+  void run() {}
+
+  @override
+  void dispose() => recorder.record('step');
+}
+
 final class _Graph implements CobaltScopeBuilder {
   const _Graph(this.build_);
 
@@ -333,6 +348,62 @@ void main() {
               .having((e) => e.message, 'message', contains('Move the')),
         ),
       );
+    });
+
+    test('a push refused for its overrides leaves no child behind', () {
+      final root = cobaltTestRoot();
+
+      expect(
+        () => root.push(
+          'screen',
+          overrides: [
+            CobaltOverride<Closeable>.value(Closeable('kept', recorder)),
+            CobaltOverride.value(Database('untyped')),
+          ],
+        ),
+        throwsA(isA<CobaltOverrideError>()),
+      );
+      expect(root.children, isEmpty);
+    });
+
+    test(
+      'startup that fails on an override releases what it adopted',
+      () async {
+        await expectLater(
+          CobaltApplication.start(
+            root: _Graph((_) {}),
+            bootstrap: [_Step(recorder)],
+            overrides: [
+              CobaltOverride<Closeable>.value(Closeable('override', recorder)),
+            ],
+          ),
+          throwsA(isA<CobaltOverrideError>()),
+        );
+
+        expect(
+          recorder.entries,
+          ['step', 'override'],
+          reason:
+              'a value override was built by the caller before startup began, '
+              'so it is owned before the step is adopted and closed after it',
+        );
+      },
+    );
+
+    test('startup that fails in init releases what it adopted', () async {
+      await expectLater(
+        CobaltApplication.start(
+          root: _Graph(
+            (scope) => scope.registerAsyncSingleton<Database>(
+              AsyncFnFactory((_) async => throw StateError('no database')),
+            ),
+          ),
+          bootstrap: [_Step(recorder)],
+        ),
+        throwsA(isA<StateError>()),
+      );
+
+      expect(recorder.entries, ['step']);
     });
 
     test('startup fails when an override replaces nothing', () {

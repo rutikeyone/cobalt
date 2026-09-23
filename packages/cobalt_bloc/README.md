@@ -4,7 +4,7 @@ Lets an [Cobalt](https://github.com/rutikeyone/cobalt) scope close the blocs it 
 
 ```yaml
 dependencies:
-  cobalt_bloc: ^0.1.0
+  cobalt_bloc: ^0.2.0
 ```
 
 ```dart

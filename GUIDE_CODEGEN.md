@@ -18,7 +18,7 @@ What the build step buys you, and what this document is mostly about:
   gap at once, instead of failing on whichever screen resolves it first;
 - **property injection** — `late final` fields filled by a generated mixin, so a class with five
   collaborators has an empty constructor;
-- **twelve lint rules** that catch the rest in the editor.
+- **fourteen lint rules** that catch the rest in the editor.
 
 If you want none of that, or you are migrating an existing container gradually, everything works
 without the generator: [GUIDE_MANUAL.md](GUIDE_MANUAL.md).
@@ -59,15 +59,15 @@ environment:
   flutter: ">=3.38.0"
 
 dependencies:
-  cobalt: ^0.1.0
-  cobalt_flutter: ^0.1.0
+  cobalt: ^0.2.0
+  cobalt_flutter: ^0.2.0
 
 dev_dependencies:
-  cobalt_generator: ^0.1.0
+  cobalt_generator: ^0.2.0
   build_runner: ^2.15.0
-  cobalt_lint: ^0.1.0
-  cobalt_test: ^0.1.0
-  cobalt_test_flutter: ^0.1.0
+  cobalt_lint: ^0.2.0
+  cobalt_test: ^0.2.0
+  cobalt_test_flutter: ^0.2.0
 ```
 
 **The floor is the same as the other mode's**, so an application on Flutter 3.38 can start here
@@ -839,13 +839,13 @@ nothing registers, where it silently does nothing.
 
 ## 16. The lint plugin
 
-Twelve rules, built on the same parsing layer the generator uses, so a mistake surfaces in the editor
+Fourteen rules, built on the same parsing layer the generator uses, so a mistake surfaces in the editor
 rather than only when `build_runner` runs.
 
 ```yaml
 # analysis_options.yaml
 plugins:
-  cobalt_lint: ^0.1.0
+  cobalt_lint: ^0.2.0
 ```
 
 | Rule | Catches |
@@ -862,6 +862,8 @@ plugins:
 | `cobalt_dependency_is_not_registered` | an injected dependency nothing in the package registers |
 | `cobalt_dependency_cycle` | an injectable class that depends, eventually, on itself |
 | `cobalt_registration_is_never_released` | a registered class with a `dispose()` or `close()` the scope cannot see |
+| `cobalt_resource_is_never_closed` | A registration holds something closeable and offers no way to close it |
+| `cobalt_lazy_registration_injected_synchronously` | a lazy async registration injected where nothing can wait for it — a synchronous or eager constructor, or an `@injected` field |
 
 Two things about wiring it up cost real time:
 
@@ -985,8 +987,9 @@ final scope = await cobaltTestScope(
 );
 ```
 
-`$startCobalt(overrides: [...])` and `CobaltAppScope(overrides: [...])` take the same list — a
-flavour or a debug menu is the case in an app. `.value` takes a built object, `.lazy` and
+`$startCobalt(overrides: [...])` takes the same list, and `CobaltAppScope(overrides: () => [...])`
+a function called on every start, so a restart does not get back a value the previous graph already
+closed — a flavour or a debug menu is the case in an app. `.value` takes a built object, `.lazy` and
 `.transient` a factory, and `CobaltParamOverride<T, P>` a parameterized one. An eager singleton is
 emitted as `registerEagerSingleton`, so an overridden one is never built at all.
 

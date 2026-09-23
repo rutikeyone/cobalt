@@ -70,12 +70,15 @@ final class CobaltScope implements CobaltResolver {
     String name = 'root',
     List<CobaltObserver> observers = const [],
     List<CobaltOverride<Object>> overrides = const [],
-  }) => CobaltScope._(
-    name,
-    null,
-    CobaltResolutionTracker(),
-    List.unmodifiable(observers),
-  ).._applyOverrides(overrides);
+  }) {
+    _assertOverridesAreSound(overrides, name);
+    return CobaltScope._(
+      name,
+      null,
+      CobaltResolutionTracker(),
+      List.unmodifiable(observers),
+    ).._applyOverrides(overrides);
+  }
 
   /// This scope's name, used in diagnostics.
   final String name;
@@ -281,6 +284,7 @@ final class CobaltScope implements CobaltResolver {
     List<CobaltOverride<Object>> overrides = const [],
   }) {
     _assertUsable();
+    _assertOverridesAreSound(overrides, childName);
     final child = CobaltScope._(childName, this, _tracker, [
       ..._observers,
       ...observers,
@@ -291,14 +295,31 @@ final class CobaltScope implements CobaltResolver {
     return child;
   }
 
+  /// Refuses a list of overrides before any scope exists to hold it.
+  ///
+  /// Checked up front rather than while applying, because a failure halfway
+  /// would leave a pushed child in the tree with half its overrides registered
+  /// — and a root nobody holds, owning values nobody will close.
+  static void _assertOverridesAreSound(
+    List<CobaltOverride<Object>> overrides,
+    String scopeName,
+  ) {
+    final seen = <CobaltKey>{};
+    for (final override in overrides) {
+      if (override.key.type == Object) {
+        throw CobaltOverrideError(override.key, scopeName);
+      }
+      if (!seen.add(override.key)) {
+        throw CobaltDuplicateRegistrationError(override.key, scopeName);
+      }
+    }
+  }
+
   void _applyOverrides(List<CobaltOverride<Object>> overrides) {
     if (overrides.isEmpty) return;
     _applyingOverrides = true;
     try {
       for (final override in overrides) {
-        if (override.key.type == Object) {
-          throw CobaltOverrideError(override.key, name);
-        }
         override.applyTo(this);
       }
     } finally {

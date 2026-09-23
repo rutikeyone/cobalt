@@ -11,6 +11,9 @@ import 'package:test/test.dart';
 /// READMEs still said nine rules and listed nine, and this package's own
 /// `example/example.md` still said seven.
 ///
+/// The Code-Gen guides are here for the same reason: their tables stayed at
+/// twelve rules through two releases that added one each.
+///
 /// Prose cannot be checked for meaning. A table can be checked for rows, and
 /// the rows are the half that goes stale.
 void main() {
@@ -26,6 +29,9 @@ void main() {
     '../../README.md': 'the root README',
     '../../README.ru.md': 'the Russian README',
     '../../README.zh-CN.md': 'the Chinese README',
+    '../../GUIDE_CODEGEN.md': 'the Code-Gen guide',
+    '../../GUIDE_CODEGEN.ru.md': 'the Russian Code-Gen guide',
+    '../../GUIDE_CODEGEN.zh-CN.md': 'the Chinese Code-Gen guide',
   };
 
   /// The first cell of every row of the rule table.

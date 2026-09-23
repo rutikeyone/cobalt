@@ -145,15 +145,19 @@ a root that is gone.
 
 ### Replacing part of the graph
 
-`overrides` swap a registration where it is owned — a flavour, a debug menu, a widget test — and are
-applied again on every start and restart:
+`overrides` swap a registration where it is owned — a flavour, a debug menu, a widget test. Like
+`bootstrap`, it is a function called on every start and restart:
 
 ```dart
 builder: CobaltAppScope.builder(
   root: const AppScope(),
-  overrides: [CobaltOverride<ApiClient>.value(FakeApiClient())],
+  overrides: () => [CobaltOverride<ApiClient>.value(FakeApiClient())],
 ),
 ```
+
+A function rather than a list for the same reason: the scope owns a value handed over with
+`CobaltOverride.value` and closes it with the graph, so a stored list would give a restart the very
+object the previous graph just closed.
 
 Observers are told each time a registration is skipped for one, so a build running with a
 replacement never does so silently.

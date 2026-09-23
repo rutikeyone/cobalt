@@ -4,7 +4,7 @@ A `dev_dependency` — it never ships in an application.
 
 ```yaml
 dev_dependencies:
-  cobalt_generator: ^0.1.0
+  cobalt_generator: ^0.2.0
   build_runner: ^2.15.0
 ```
 

@@ -49,7 +49,7 @@ environment:
   sdk: ^3.10.0
 
 dependencies:
-  cobalt: ^0.1.0
+  cobalt: ^0.2.0
 ```
 
 Flutter 应用再加上绑定包，它会重新导出整个运行时，所以你永远不需要同时导入两个：
@@ -60,12 +60,12 @@ environment:
   flutter: ">=3.38.0"
 
 dependencies:
-  cobalt: ^0.1.0
-  cobalt_flutter: ^0.1.0
+  cobalt: ^0.2.0
+  cobalt_flutter: ^0.2.0
 
 dev_dependencies:
-  cobalt_test: ^0.1.0
-  cobalt_test_flutter: ^0.1.0
+  cobalt_test: ^0.2.0
+  cobalt_test_flutter: ^0.2.0
 ```
 
 **从这里出发不会走进死胡同。** 下限是 Dart `^3.10.0` / Flutter `>=3.38.0`，
@@ -795,8 +795,9 @@ final scope = cobaltTestRoot(
 ```
 
 `.value` 接收一个已经构建好的对象，`.lazy` 和 `.transient` 接收工厂，
-`CobaltParamOverride<T, P>` 接收参数化工厂。`cobaltTestScope(overrides:)`、
-`CobaltApplication.start(overrides:)` 和 `CobaltAppScope(overrides:)` 接收同一个列表——
+`CobaltParamOverride<T, P>` 接收参数化工厂。`cobaltTestScope(overrides:)` 和
+`CobaltApplication.start(overrides:)` 接收同一个列表；`CobaltAppScope(overrides: () => [...])`
+接收一个函数，每次启动都会调用，这样重启拿到的不会是上一个图已经关闭的值。
 在应用里，这就是风味构建或调试菜单。覆盖从不静默：观察者会收到 `onRegistrationOverridden`，
 `overriddenKeys` 会列出被替换的键。
 
@@ -907,7 +908,7 @@ class AppScope implements CobaltScopeBuilder {
 
 - **完整性在构建期被检查**，而不是靠测试期的 `expectGraphResolves`；
 - **属性注入**，让已经长到五个以上协作对象的构造函数清空；
-- **十二条 lint 规则**，在编辑器里就抓住 §14 里的那些错误。
+- **十四条 lint 规则**，在编辑器里就抓住 §14 里的那些错误。
 
 保持原样不变的部分：作用域、销毁、两个阶段、参数化注册、可观测性、测试。
 [GUIDE_CODEGEN.zh-CN.md](GUIDE_CODEGEN.zh-CN.md) 从这里接着讲，

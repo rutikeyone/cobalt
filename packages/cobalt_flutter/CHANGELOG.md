@@ -6,8 +6,9 @@
   resolution is held in state, so a parent rebuild neither restarts it nor
   retries a failed one by itself.
 - `context.cobaltAsync<T>()`.
-- `CobaltAppScope` and `CobaltAppScope.builder` take `overrides:`, applied on
-  every start and restart.
+- `CobaltAppScope` and `CobaltAppScope.builder` take `overrides:` — a function,
+  like `bootstrap`, called on every start and restart, so a restart does not
+  get back a value the previous graph already closed.
 
 ## 0.1.2
 

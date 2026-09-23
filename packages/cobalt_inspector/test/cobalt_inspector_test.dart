@@ -180,7 +180,7 @@ void main() {
 
       expect(find.byKey(const Key('event-log')), findsOneWidget);
 
-      // Filtering is by family now: thirteen kinds is too many to scan, and
+      // Filtering is by family now: fourteen kinds is too many to scan, and
       // the four families are the division the talker adapter already makes.
       await tester.tap(find.byKey(const Key('filter-failure')));
       await tester.pumpAndSettle();

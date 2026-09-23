@@ -50,7 +50,7 @@ environment:
   sdk: ^3.10.0
 
 dependencies:
-  cobalt: ^0.1.0
+  cobalt: ^0.2.0
 ```
 
 Flutter-приложение добавляет биндинги, которые реэкспортируют весь рантайм, поэтому оба сразу
@@ -62,12 +62,12 @@ environment:
   flutter: ">=3.38.0"
 
 dependencies:
-  cobalt: ^0.1.0
-  cobalt_flutter: ^0.1.0
+  cobalt: ^0.2.0
+  cobalt_flutter: ^0.2.0
 
 dev_dependencies:
-  cobalt_test: ^0.1.0
-  cobalt_test_flutter: ^0.1.0
+  cobalt_test: ^0.2.0
+  cobalt_test_flutter: ^0.2.0
 ```
 
 **Отсюда никуда не упираешься.** Пол — Dart `^3.10.0` / Flutter `>=3.38.0`, тот же самый, что
@@ -825,9 +825,10 @@ final scope = cobaltTestRoot(
 ```
 
 `.value` принимает готовый объект, `.lazy` и `.transient` — фабрику, `CobaltParamOverride<T, P>` —
-параметризованную. Тот же список принимают `cobaltTestScope(overrides:)`,
-`CobaltApplication.start(overrides:)` и `CobaltAppScope(overrides:)` — в приложении это флейвор или
-debug-меню. Подмена никогда не бывает тихой: наблюдатели получают `onRegistrationOverridden`, а
+параметризованную. Тот же список принимают `cobaltTestScope(overrides:)` и
+`CobaltApplication.start(overrides:)`; `CobaltAppScope(overrides: () => [...])` принимает функцию,
+которую вызывает на каждом старте, чтобы рестарт не получил значение, уже закрытое прошлым графом. В
+приложении это флейвор или debug-меню. Подмена никогда не бывает тихой: наблюдатели получают `onRegistrationOverridden`, а
 `overriddenKeys` перечисляет подменённое.
 
 Дорогой eager-синглтон регистрируйте через `registerEagerSingleton`. Значение, отданное в
@@ -943,7 +944,7 @@ class AppScope implements CobaltScopeBuilder {
 
 - **полнота, проверенная на сборке**, а не через `expectGraphResolves` на тестах;
 - **property injection**, опустошающий конструкторы, доросшие до пяти и более зависимостей;
-- **двенадцать правил линтера**, ловящих ошибки из §14 прямо в редакторе.
+- **четырнадцать правил линтера**, ловящих ошибки из §14 прямо в редакторе.
 
 Что остаётся ровно как есть: скоупы, разбор, две фазы, параметризованные регистрации,
 наблюдаемость, тесты. [GUIDE_CODEGEN.ru.md](GUIDE_CODEGEN.ru.md) продолжает отсюда, а

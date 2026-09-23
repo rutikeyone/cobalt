@@ -1,6 +1,7 @@
 import 'package:cobalt/src/bootstrap/cobalt_bootstrap_step.dart';
 import 'package:cobalt/src/bootstrap/cobalt_scope_builder.dart';
 import 'package:cobalt/src/errors/cobalt_bootstrap_error.dart';
+import 'package:cobalt/src/errors/cobalt_dispose_error.dart';
 import 'package:cobalt/src/lifecycle/async_disposable.dart';
 import 'package:cobalt/src/lifecycle/disposable.dart';
 import 'package:cobalt/src/observer/cobalt_observer.dart';
@@ -22,6 +23,11 @@ final class CobaltApplication {
   /// registered, so a step holding a resource is disposed with the scope —
   /// and, being adopted first, disposed last, after everything that was built
   /// on top of the platform it set up.
+  ///
+  /// A root that fails to assemble or initialize — a builder that throws, an
+  /// override that replaced nothing, an async initializer that fails — is
+  /// disposed before the error is rethrown, so the steps it adopted and
+  /// whatever it built are released.
   ///
   /// A failing bootstrap step aborts startup: later steps do not run, the
   /// container is never assembled, and the failure is rethrown as
@@ -78,9 +84,29 @@ final class CobaltApplication {
       scope.adopt(step);
     }
 
-    scope.runBuilder(root);
-    await scope.init();
+    try {
+      scope.runBuilder(root);
+      await scope.init();
+    } catch (_) {
+      await _abandon(scope);
+      rethrow;
+    }
     return scope;
+  }
+
+  /// Tears down a root that failed to assemble or initialize.
+  ///
+  /// Nobody else holds it: the caller gets the error, not the scope. Without
+  /// this the steps it adopted and whatever it built before failing were
+  /// never released. A teardown failure here is reported to observers through
+  /// `onScopeDisposed` and not thrown, because the startup failure is the
+  /// headline and must not be masked.
+  static Future<void> _abandon(CobaltScope scope) async {
+    try {
+      await scope.dispose();
+    } on CobaltDisposeError {
+      return;
+    }
   }
 
   static Future<void> _release(

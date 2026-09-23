@@ -2,7 +2,7 @@ import 'package:cobalt_flutter/cobalt_flutter.dart';
 
 /// The four things an Cobalt event can be about.
 ///
-/// Thirteen kinds is too many to give a colour each, and colouring by level
+/// Fourteen kinds is too many to give a colour each, and colouring by level
 /// says how loud an event is rather than what it concerns. These four are the
 /// division `CobaltTalkerObserver` already makes when it picks a log type, and
 /// keeping them the same is what lets one palette dress both screens.

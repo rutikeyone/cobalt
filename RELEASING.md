@@ -71,7 +71,7 @@ wait for the previous group to appear on pub.dev — the index is not instant.
       something that has nothing to do with the code. This was tried once,
       broke CI on beta the same day, and was reverted. Both
       `analysis_options.plugin.yaml` files now carry the plain
-      `plugins: cobalt_lint: ^0.1.0` a real consumer would write — publication
+      `plugins: cobalt_lint: ^0.2.0` a real consumer would write — publication
       only shortened their content, it did not remove the file.
 - [ ] **Shipped strings** translated too, which is a different job from the
       documents above: `packages/cobalt_inspector/l10n/*.arb` and the examples'

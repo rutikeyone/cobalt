@@ -37,6 +37,12 @@
   where Dart infers `Object`, is refused on creation; one that no registration
   claims fails `runBuilder`, naming the ancestor that owns the key when there
   is one.
+- A list of overrides is checked before the scope exists, so a push refused
+  for one leaves no half-built child in the tree.
+- `CobaltApplication.start` disposes a root that fails to assemble or
+  initialize before rethrowing. Before, the bootstrap steps it had adopted and
+  everything it had built were never released — true of a failing `init()`
+  since 0.1.0, and of an override that replaced nothing now.
 - `onRegistrationOverridden` on `CobaltObserver`, a record at `info` from
   `CobaltRecordingObserver`, and `overriddenKeys` on the scope.
 - `registerEagerSingleton(factory)`: builds now, inside the scope, so the

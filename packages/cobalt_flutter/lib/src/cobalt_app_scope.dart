@@ -50,7 +50,7 @@ class CobaltAppScope extends StatefulWidget {
     this.bootstrap,
     this.rootName = 'root',
     this.observers = const [],
-    this.overrides = const [],
+    this.overrides,
     this.loading,
     this.errorBuilder,
     this.disposeOnExitRequest = false,
@@ -74,7 +74,7 @@ class CobaltAppScope extends StatefulWidget {
        bootstrap = null,
        rootName = 'root',
        observers = const [],
-       overrides = const [];
+       overrides = null;
 
   /// Declares what the root scope contains. Null only for [CobaltAppScope.start].
   final CobaltScopeBuilder? root;
@@ -97,13 +97,19 @@ class CobaltAppScope extends StatefulWidget {
   /// Observers for the whole tree; child scopes inherit them.
   final List<CobaltObserver> observers;
 
-  /// Replacements for registrations [root] makes, applied on every start.
+  /// Produces replacements for registrations [root] makes, called once per
+  /// start.
+  ///
+  /// A function and not a list, for the reason [bootstrap] is one: the scope
+  /// owns a replacement handed over with `CobaltOverride.value` and disposes it
+  /// with the graph, so a stored list would hand a restart the very object the
+  /// previous graph just closed.
   ///
   /// A flavour or a debug menu is the case this serves in an app, a widget
   /// test the case it serves everywhere else. An override is never silent:
   /// observers are told each time a registration is skipped for one. See
   /// [CobaltOverride].
-  final List<CobaltOverride<Object>> overrides;
+  final List<CobaltOverride<Object>> Function()? overrides;
 
   /// Builds the root scope. Null unless built with [CobaltAppScope.start].
   ///
@@ -177,7 +183,7 @@ class CobaltAppScope extends StatefulWidget {
     List<CobaltBootstrapStep> Function()? bootstrap,
     String rootName = 'root',
     List<CobaltObserver> observers = const [],
-    List<CobaltOverride<Object>> overrides = const [],
+    List<CobaltOverride<Object>> Function()? overrides,
     Widget? loading,
     Widget Function(BuildContext context, Object error, VoidCallback retry)?
     errorBuilder,
@@ -222,7 +228,7 @@ class CobaltAppScope extends StatefulWidget {
       bootstrap: bootstrap?.call() ?? const [],
       rootName: rootName,
       observers: observers,
-      overrides: overrides,
+      overrides: overrides?.call() ?? const [],
     );
   }
 

@@ -5,7 +5,7 @@ invalid annotations in the IDE instead of only when `build_runner` runs.
 
 ```yaml
 plugins:
-  cobalt_lint: ^0.1.0
+  cobalt_lint: ^0.2.0
 ```
 
 The `plugins` section only works at the root of a package or workspace — a nested

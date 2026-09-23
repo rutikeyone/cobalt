@@ -129,7 +129,7 @@ void main() {
       await tester.pumpWidget(
         CobaltAppScope(
           root: RootBuilder('root', disposeLog),
-          overrides: [
+          overrides: () => [
             CobaltOverride<Marker>.lazy(MarkerFactory('fake', disposeLog)),
           ],
           child: const Probe(),
@@ -145,6 +145,34 @@ void main() {
       expect(rendered(), startsWith('fake:'));
     });
 
+    testWidgets('a restart gets a fresh value, not the one just closed', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        CobaltAppScope(
+          root: RootBuilder('root', disposeLog),
+          overrides: () => [
+            CobaltOverride<Marker>.value(Marker('fake', disposeLog)),
+          ],
+          child: const Probe(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final first = rendered();
+
+      await CobaltAppScope.of(tester.element(find.byType(Probe))).restart();
+      await tester.pumpAndSettle();
+
+      expect(rendered(), startsWith('fake:'));
+      expect(
+        rendered(),
+        isNot(first),
+        reason:
+            'the first graph disposed its value; a stored list would hand the '
+            'restart that same closed object',
+      );
+    });
+
     testWidgets('reach the graph through CobaltAppScope.builder too', (
       tester,
     ) async {
@@ -152,7 +180,7 @@ void main() {
         MaterialApp(
           builder: CobaltAppScope.builder(
             root: RootBuilder('root', disposeLog),
-            overrides: [
+            overrides: () => [
               CobaltOverride<Marker>.lazy(MarkerFactory('fake', disposeLog)),
             ],
           ),

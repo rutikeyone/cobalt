@@ -11,7 +11,7 @@ import 'package:cobalt/src/scope/cobalt_registration_kind.dart';
 ///
 /// The wording of every event lives here and only here. Two lenses read the
 /// same stream — one writes lines, one collects failures with the events that
-/// led to them — and if each carried its own copy of these twelve mappings the
+/// led to them — and if each carried its own copy of these fourteen mappings the
 /// two would drift apart on the first reworded sentence.
 ///
 /// Deliberately stateless, so a subclass that needs no state of its own can
