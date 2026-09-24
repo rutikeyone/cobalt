@@ -9,7 +9,6 @@ environment:
   sdk: ^3.10.0
   flutter: ">=3.38.0"
 
-resolution: workspace
 
 dependencies:
   cobalt: ^0.2.0
@@ -25,7 +24,7 @@ dependencies:
   intl: ^0.20.2
   google_fonts: ^6.2.1
 
-  # The examples themselves. Each stays an ordinary package in this workspace,
+  # The examples themselves. Each stays an ordinary package in this repository,
   # so the gallery mounts their screens instead of copying them — and each
   # keeps its own generated container, which two of them could not share.
   codegen_basics: ^0.1.0
@@ -35,6 +34,7 @@ dependencies:
   talker: ^5.1.0
 
 dev_dependencies:
+  lints: ^6.0.0
   flutter_test:
     sdk: flutter
 

@@ -288,9 +288,11 @@ void main() {
       gate.complete();
       await tester.pumpAndSettle();
 
-      expect(disposeLog, [
-        'root',
-      ], reason: 'a scope nobody is waiting for still has to be released');
+      expect(
+        disposeLog,
+        ['root'],
+        reason: 'a scope nobody is waiting for still has to be released',
+      );
     });
   });
 

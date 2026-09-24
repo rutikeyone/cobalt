@@ -8,30 +8,18 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    # Two channels, not a matrix of past releases: beta is the axis that finds
-    # breakage before it lands. The floor is a separate job below, because it
-    # needs a different SDK and a different way of resolving.
-    strategy:
-      fail-fast: false
-      matrix:
-        channel: [stable, beta]
-    continue-on-error: ${{ matrix.channel == 'beta' }}
     steps:
       - uses: actions/checkout@v4
 
       - uses: subosito/flutter-action@v2
         with:
-          channel: ${{ matrix.channel }}
+          flutter-version: 3.38.9
 
-      - name: Resolve workspace
-        run: flutter pub get
+      - name: Resolve every member
+        run: ./tool/get.sh
 
-      # Not a workspace member on purpose — it resolves standalone, the way a
-      # third-party project does. Must run before `dart analyze .`, which would
-      # otherwise hit an unresolved analysis context.
-      - name: Resolve external consumer
-        run: dart pub get
-        working-directory: compat/external_consumer
+      - name: Overrides are current
+        run: python3 tool/overrides.py --check
 
       # Existence only. Whether a translation still says what the English says
       # is not checkable by machine — that is a line in the RELEASING checklist.
@@ -63,32 +51,10 @@ jobs:
           done
           git diff --exit-code
 
-      - name: Test pure Dart packages
-        run: |
-          for package in packages/cobalt packages/cobalt_analyzer \
-                         packages/cobalt_generator packages/cobalt_lint \
-                         packages/cobalt_talker packages/cobalt_logging \
-                         packages/cobalt_logger packages/cobalt_test \
-                         packages/cobalt_bloc \
-                         examples/manual_mode examples/teardown \
-                         compat/external_consumer; do
-            (cd "$package" && dart test)
-          done
-
-      - name: Test Flutter packages
-        run: |
-          for package in packages/cobalt_flutter packages/cobalt_go_router \
-                         packages/cobalt_inspector \
-                         packages/cobalt_talker_flutter \
-                         packages/cobalt_test_flutter \
-                         examples/codegen_basics examples/notes_app \
-                         examples/flow_scopes examples/graph_events \
-                         examples/testing_patterns examples/gallery; do
-            (cd "$package" && flutter test)
-          done
+      - name: Test every member
+        run: ./tool/test.sh
 
       - name: Coverage
-        if: matrix.channel == 'stable'
         run: |
           dart pub global activate coverage
           ./tool/coverage.sh
@@ -117,32 +83,33 @@ jobs:
           dart pub publish --dry-run 2>&1 | tee /tmp/lint-dry-run.txt || true
           grep -q 'Package has 1 warning' /tmp/lint-dry-run.txt
 
-  # Every package claims Dart ^3.10.0 / Flutter >=3.38.0, and so do the
-  # compatibility stand and the examples. A floor nothing exercises is a claim
-  # that rots, and this one matters: it is what lets an application still on
-  # 3.38 take both modes rather than only Manual Mode.
-  #
-  # Its own job rather than a third matrix entry, because it cannot run the
-  # workspace. One workspace is one resolution, and on 3.38 `flutter_test` pins
-  # `test_api 0.7.7`, capping the `test` runner at 1.26.3 and `analyzer` below
-  # 9 — while `cobalt_analyzer` needs 10.0.1 or better. Consumers never meet
-  # that; we do, because our analyzer packages and the test runner share a
-  # resolution. So the script resolves each member on its own, and it
-  # regenerates the stand, which is the one place the whole pipeline is proved
-  # outside the workspace.
-  #
-  # The members do not land on one analyzer, and that is deliberate: Flutter
-  # 3.38 pins `meta 1.17.0`, analyzer 10.0.2 wants `^1.18.0`, so a Flutter
-  # package carrying the generator resolves 10.0.1 while a pure-Dart one takes
-  # 12.1.0. `codegen_basics` covers the first, everything else the second.
-  floor:
+  forward:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        channel: [stable, beta]
+    continue-on-error: ${{ matrix.channel == 'beta' }}
     steps:
       - uses: actions/checkout@v4
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: 3.38.9
+          channel: ${{ matrix.channel }}
 
-      - name: Every package, the stand and the examples meet the floor
-        run: ./tool/floor_check.sh
+      - name: Resolve every member
+        run: ./tool/get.sh
+
+      - name: Analyze
+        run: dart analyze --fatal-infos .
+
+      - name: Generated code does not depend on the SDK
+        run: |
+          for package in examples/codegen_basics examples/notes_app \
+                         compat/external_consumer; do
+            (cd "$package" && dart run build_runner build)
+          done
+          git diff --exit-code -- '*.g.dart'
+
+      - name: Test every member
+        run: ./tool/test.sh

@@ -66,9 +66,8 @@ void main() {
       '$what lists exactly the rules that ship',
       tags: [
         // The three root documents live above this package, so this check
-        // cannot run from a copy of it taken out of the tree — which is what
-        // tool/floor_check.sh does. The package's own README is beside it and
-        // needs no tag. See dart_test.yaml.
+        // cannot run from a copy of it taken out of the tree. The package's own
+        // README is beside it and needs no tag. See dart_test.yaml.
         if (path.startsWith('../')) 'repo',
       ],
       () {

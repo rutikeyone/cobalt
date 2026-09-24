@@ -1,6 +1,6 @@
 # The three root READMEs sit above this package, so the checks that read them
-# cannot run from a copy taken out of the tree — which is exactly what
-# tool/floor_check.sh does. The check itself belongs here, beside the rules it
-# counts; only its reach is wider than the package.
+# cannot run from a copy taken out of the tree; `dart test -x repo` leaves them
+# out of one. The check itself belongs here, beside the rules it counts; only its
+# reach is wider than the package.
 tags:
   repo:

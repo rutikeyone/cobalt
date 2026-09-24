@@ -1,8 +1,7 @@
 // `test_reflective_loader` finds tests by a `test_` prefix, which is not a
 // Dart identifier name. The rule is off per file rather than through a
 // `test/analysis_options.yaml`: that file had to `include` the repository
-// root, and a copy of this package taken out of the tree — which
-// tool/floor_check.sh does — cannot reach it.
+// root, and a copy of this package taken out of the tree cannot reach it.
 // ignore_for_file: non_constant_identifier_names
 
 import 'package:cobalt_lint/src/rules/injected_field_must_be_late_final.dart';

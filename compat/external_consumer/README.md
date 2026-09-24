@@ -1,13 +1,15 @@
 # cobalt_external_consumer
 
 A compatibility stand, not an example. It exists to answer one question the five
-packages in `examples/` cannot: **does Cobalt work for a project that is not a
-member of this pub workspace?**
+packages in `examples/` cannot: **does Cobalt work for a project that consumes it
+the way a third party does?**
 
-Every example declares `resolution: workspace` and is listed in the root
-`pubspec.yaml`. This package is deliberately neither, so pub resolves it on its
-own, with its own `pubspec.lock` and its own `.dart_tool/package_config.json` —
-the same conditions a third-party project gets.
+Every other member takes its siblings from a `pubspec_overrides.yaml` that
+`tool/overrides.py` generates. This package deliberately does not: it names the
+packages it uses in its own `dependency_overrides`, the way a project trying out
+a local checkout would, and resolves with its own `pubspec.lock` and its own
+`.dart_tool/package_config.json` — the same conditions a third-party project
+gets.
 
 ## What it covers
 
@@ -28,10 +30,10 @@ the same way `examples/codegen_basics` is.
 
 ## What it does not prove
 
-The source of the packages is substituted by `dependency_overrides`, because
-nothing is published yet. So this stand proves that the builders apply and the
-generated container works **outside the workspace** — it does not prove
-resolution from pub.dev. Only a real publish does that.
+The source of the packages is substituted by `dependency_overrides`, so that the
+stand tests this repository rather than the last release. So it proves that the
+builders apply and the generated container works **from outside the packages**
+— it does not prove resolution from pub.dev. Only a real publish does that.
 
 ## Two findings from building it
 

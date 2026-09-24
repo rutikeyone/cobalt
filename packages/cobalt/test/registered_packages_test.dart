@@ -5,15 +5,16 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 
-/// Adding a package means naming it in six places, and nothing checked five.
+/// Adding a package means naming it in five places, and nothing checked four.
 ///
 /// This is the sibling of `cobalt_lint`'s `documented_rules_test`, which earned
 /// itself on the very next rule anyone added. The ritual here is longer: the
-/// workspace, two CI loops, three package tables and the release order — and
-/// the failure modes differ. A package missing from a README is a package
-/// nobody finds; missing from a CI loop is a package nobody tests or checks;
-/// missing from the release order is a release that fails version solving
-/// halfway through, having already published half of it.
+/// CI dry run, three package tables and the release order — and the failure
+/// modes differ. A package missing from a README is a package nobody finds;
+/// missing from the dry run is a package whose archive nobody checks; missing
+/// from the release order is a release that fails version solving halfway
+/// through, having already published half of it. Resolving and testing need
+/// no list: `tool/members.sh` finds every member by its pubspec.
 ///
 /// It reads files above its own package, which is unusual for a test that
 /// ships. The same trade as the rules guard, for the same reason: the check
@@ -174,7 +175,7 @@ void main() {
       );
     });
 
-    test('both CI loops', () {
+    test('the CI publish dry run', () {
       final ci = read('.github/workflows/ci.yml');
       final named = RegExp(
         r'packages/(cobalt[a-z_]*)',
@@ -184,8 +185,8 @@ void main() {
         shipped.difference(named),
         isEmpty,
         reason:
-            'a package no CI loop names is one nobody tests and nobody '
-            'checks the archive of',
+            'a package the dry run does not name is one whose archive nobody '
+            'checks before it is published',
       );
     });
   });

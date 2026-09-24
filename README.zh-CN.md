@@ -112,7 +112,7 @@
 **每个包都要求 Dart `^3.10.0`，需要 Flutter 的那些则写 `>=3.38.0`。** 全部十五个，
 包括生成器和 lint 插件——仍停留在 Flutter 3.38 的应用拿到的是两种模式，而不只是 Manual Mode。
 
-也在 Flutter 3.47.1 / Dart 3.13.1 上构建并测试过。
+在 Flutter 3.38.9——也就是下限本身——上开发，并在当前的 `stable` 和 `beta` 上检查。
 
 这个下限背后的机制值得了解，因为真正卡住的并不是 Dart 版本。
 **Flutter 3.38 把 `meta` 钉在 1.17.0，而 analyzer 10.0.2 需要 `^1.18.0`**——
@@ -132,12 +132,16 @@
 
 生成器以固定的语言版本 3.10 进行格式化，而不是用解析到的 `dart_style` 认为的最新版本——
 因此每一行产出的字节都相同，为更新语言版本新增样式规则的格式化器版本也改变不了已提交的内容。
-这一点是检查出来的，而不是假设的：下限 job 在 3.38.9 上于 10.0.1 和 12.1.0 两行重新生成并与已提交结果做 diff，
-解析到最新一行的 `beta` job 也会对同样的文件做 diff。
+这一点是检查出来的，而不是假设的：CI 的 `verify` job 在 Flutter 3.38.9 上重新生成——
+`codegen_basics` 落在 10.0.1 这一行，兼容性试验台落在 12.1.0——并与已提交结果做 diff；
+`beta` 上的 `forward` job 解析到最新一行，也会对同样的文件做 diff。
 
-CI 跑 `stable` 和 `beta`，而不是历史版本矩阵，另外还有一个固定在 Flutter 3.38.9 的 job，
-它按每个包、兼容性试验台和每个示例自己声明的下限去解析、分析并测试它们（`tool/floor_check.sh`）。
-没有任何东西去验证的下限，就是一个会过期的说法。
+本仓库就在这个下限上开发，这也是它不是 pub workspace 的原因。workspace 是一次解析，
+而在 Flutter 3.38 上 `flutter_test` 把 `test_api` 钉在 0.7.7，这把 `test` 运行器限制在 1.26.3、
+analyzer 限制在 9 以下，而 `cobalt_analyzer` 需要 10.0.1。所以每个包各自解析，
+并从 `tool/overrides.py` 写出的 `pubspec_overrides.yaml` 中取用同仓库的包。
+CI 的 `verify` job 在 Flutter 3.38.9 上运行全部检查，`forward` 则在 `stable` 和 `beta` 上运行，
+提前发现即将到来的问题，而不是跑历史版本矩阵。
 
 ## 它如何工作
 
@@ -276,21 +280,19 @@ cd examples/gallery && flutter run
 ## 在本仓库上工作
 
 ```
+./tool/get.sh
 dart analyze --fatal-infos .
 dart format --output=none --set-exit-if-changed .
-(cd packages/cobalt && dart test)
-(cd packages/cobalt_flutter && flutter test)
-(cd examples/manual_mode && dart test)
-(cd examples/codegen_basics && dart run build_runner build && flutter test)
-(cd examples/notes_app && dart run build_runner build && flutter test)
-(cd packages/cobalt_lint && dart test)
-(cd packages/cobalt_test && dart test)
-(cd packages/cobalt_inspector && flutter test)
-(cd packages/cobalt_talker_flutter && flutter test)
-(cd examples/gallery && flutter test)
-(cd compat/external_consumer && dart pub get && dart run build_runner build && dart test)
+./tool/test.sh
+(cd examples/codegen_basics && dart run build_runner build)
+(cd examples/notes_app && dart run build_runner build)
+(cd compat/external_consumer && dart run build_runner build)
 ./tool/coverage.sh
 ```
+
+以上全部在 Flutter 3.38.9 上运行。`tool/get.sh` 解析根目录以及 `tool/members.sh` 按 pubspec
+找到的每个成员；新增包或新增对同仓库包的依赖后，运行 `python3 tool/overrides.py` 重写 overrides，
+overrides 过期时 CI 会失败。
 
 `tool/coverage.sh` 统计有测试的可发布包的行覆盖率，从最低往高打印，并在**总和**低于下限时失败——85%。
 当前数字以脚本打印的为准，这里不再重复：一个每次提交都会变的数字写进散文里就会过时，
@@ -299,15 +301,16 @@ dart format --output=none --set-exit-if-changed .
 `cobalt_generator` 的测试和 `compat/external_consumer` 驱动的，而不是被它自己的测试集。
 逐包下限会逼人把测试写在不该写的地方。用 `COVERAGE_FLOOR=90 ./tool/coverage.sh` 覆盖它。
 
-CI（`.github/workflows/ci.yml`）在 `stable` 和 `beta` 上跑上述全部内容，
+CI 的 `verify` job（`.github/workflows/ci.yml`）在 Flutter 3.38.9 上跑上述全部内容，
 并在重新生成两个示例**以及 `compat/external_consumer`** 之后执行 `git diff --exit-code`，
-因此过时的生成代码会让构建失败。生成器用与格式检查相同的 `dart_style` 版本格式化自己的产物，
-所以两者不会有分歧。
+因此过时的生成代码会让构建失败。`forward` job 在 `stable` 和 `beta` 上重复解析、分析、测试和生成代码的 diff。
+生成器以固定的语言版本格式化自己的产物，所以这个 diff 不取决于是哪个 SDK 运行的。
 
 **目录约定。** 一个文件一个公开类型。sealed 的 `CobaltRegistration` 层次是有意的例外：
 sealed 层次必须位于同一个库中，所以它的子类是 `part` 文件而不是独立的库。
-`compat/external_consumer` 则完全在这条经验法则之外——它是一个刻意**不**作为 workspace 成员、
-也不声明 `resolution: workspace` 的包，因此 pub 会像对待第三方项目那样独立解析它。
+`compat/external_consumer` 则完全在这条经验法则之外——它通过自己 pubspec 里的
+`dependency_overrides` 取用同仓库的包，也不在 `tool/overrides.py` 的范围内，
+因此它的解析方式和第三方项目一样。
 它的存在是为了从仓库之外保持代码生成流水线的诚实。
 
 **已知的发布警告。** `cobalt_lint` 会报「the name of lib/main.dart should match the name of the

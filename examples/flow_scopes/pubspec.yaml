@@ -7,7 +7,6 @@ environment:
   sdk: ^3.10.0
   flutter: ">=3.38.0"
 
-resolution: workspace
 
 dependencies:
   cobalt_go_router: ^0.2.0
@@ -19,6 +18,7 @@ dependencies:
   go_router: ^17.0.0
 
 dev_dependencies:
+  lints: ^6.0.0
   cobalt_test_flutter: ^0.2.0
   flutter_test:
     sdk: flutter

@@ -1,33 +1,8 @@
-name: cobalt_workspace
+name: cobalt_repository
 publish_to: none
 
 environment:
-  sdk: ^3.13.0
-
-workspace:
-  - packages/cobalt_annotations
-  - packages/cobalt_bloc
-  - packages/cobalt
-  - packages/cobalt_flutter
-  - packages/cobalt_go_router
-  - packages/cobalt_logging
-  - packages/cobalt_logger
-  - packages/cobalt_talker
-  - packages/cobalt_talker_flutter
-  - packages/cobalt_analyzer
-  - packages/cobalt_generator
-  - packages/cobalt_lint
-  - packages/cobalt_inspector
-  - packages/cobalt_test
-  - packages/cobalt_test_flutter
-  - examples/manual_mode
-  - examples/codegen_basics
-  - examples/notes_app
-  - examples/flow_scopes
-  - examples/graph_events
-  - examples/teardown
-  - examples/testing_patterns
-  - examples/gallery
+  sdk: ^3.10.0
 
 dev_dependencies:
   lints: ^6.0.0

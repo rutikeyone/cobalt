@@ -114,7 +114,7 @@ needs something Manual Mode cannot express, these are two frameworks sharing a n
 fifteen, including the generator and the lint plugin — an application still on Flutter 3.38 gets
 both modes, not just Manual Mode.
 
-Built and tested on Flutter 3.47.1 / Dart 3.13.1 as well.
+Developed on Flutter 3.38.9 — the floor itself — and checked on the current `stable` and `beta`.
 
 The floor has a mechanism behind it worth knowing, because it is not the Dart version that binds.
 **Flutter 3.38 pins `meta 1.17.0`, and analyzer 10.0.2 wants `^1.18.0`** — so a Flutter application
@@ -135,13 +135,16 @@ analyzer pins it exactly, so which row you get is decided by your project rather
 The generator formats at a fixed language version, 3.10, rather than at whatever the resolved
 `dart_style` calls latest — so every row emits identical bytes, and a formatter release that adds
 style rules for a newer language version cannot change what is committed. That is checked rather
-than assumed: the floor job regenerates on 3.38.9 and diffs against what is committed on the 10.0.1
-and 12.1.0 rows, and the `beta` job, which resolves the newest row, diffs the same files.
+than assumed: CI's `verify` job regenerates on Flutter 3.38.9, which puts `codegen_basics` on the
+10.0.1 row and the compatibility stand on 12.1.0, and diffs against what is committed; the `forward`
+job on `beta` resolves the newest row and diffs the same files.
 
-CI runs `stable` and `beta` rather than a matrix of past releases, plus one job pinned to Flutter
-3.38.9 that resolves, analyses and tests every package, the compatibility stand and every example
-against the floor it declares (`tool/floor_check.sh`). A floor nothing exercises is a claim that
-rots.
+The repository is developed on that floor, and that is why it is not a pub workspace. A workspace is
+one resolution, and on Flutter 3.38 `flutter_test` pins `test_api 0.7.7`, which caps the `test`
+runner at 1.26.3 and the analyzer below 9, while `cobalt_analyzer` needs 10.0.1. So every package
+resolves on its own and takes its siblings from a `pubspec_overrides.yaml` that `tool/overrides.py`
+writes. CI's `verify` job runs everything on Flutter 3.38.9, and `forward` runs `stable` and `beta`
+to find what is coming, rather than a matrix of past releases.
 
 ## How it works
 
@@ -293,21 +296,19 @@ and why, and the [gallery's](examples/gallery/README.md) for how the examples ar
 ## Working on this repository
 
 ```
+./tool/get.sh
 dart analyze --fatal-infos .
 dart format --output=none --set-exit-if-changed .
-(cd packages/cobalt && dart test)
-(cd packages/cobalt_flutter && flutter test)
-(cd examples/manual_mode && dart test)
-(cd examples/codegen_basics && dart run build_runner build && flutter test)
-(cd examples/notes_app && dart run build_runner build && flutter test)
-(cd packages/cobalt_lint && dart test)
-(cd packages/cobalt_test && dart test)
-(cd packages/cobalt_inspector && flutter test)
-(cd packages/cobalt_talker_flutter && flutter test)
-(cd examples/gallery && flutter test)
-(cd compat/external_consumer && dart pub get && dart run build_runner build && dart test)
+./tool/test.sh
+(cd examples/codegen_basics && dart run build_runner build)
+(cd examples/notes_app && dart run build_runner build)
+(cd compat/external_consumer && dart run build_runner build)
 ./tool/coverage.sh
 ```
+
+All of it on Flutter 3.38.9. `tool/get.sh` resolves the root and every member that `tool/members.sh`
+finds by its pubspec; after adding a package, or a dependency on a sibling, `python3
+tool/overrides.py` rewrites the overrides, and CI fails while they are stale.
 
 `tool/coverage.sh` measures line coverage of the publishable packages that have tests, prints them
 worst-first, and fails under a floor on the **total** — 85%. The current figure is what the script
@@ -318,16 +319,17 @@ parsers are driven far more from `cobalt_generator`'s tests and from `compat/ext
 from their own suite. A per-package floor would demand tests written where they do not belong.
 Override it with `COVERAGE_FLOOR=90 ./tool/coverage.sh`.
 
-CI (`.github/workflows/ci.yml`) runs all of the above on `stable` and `beta`, plus a `git diff
---exit-code` after regenerating both examples **and `compat/external_consumer`**, so stale generated
-code fails the build. The generator formats its own output with the same `dart_style` version the
-format check uses, so the two never disagree.
+CI's `verify` job (`.github/workflows/ci.yml`) runs all of the above on Flutter 3.38.9, plus a `git
+diff --exit-code` after regenerating both examples **and `compat/external_consumer`**, so stale
+generated code fails the build. The `forward` job repeats resolution, analysis, tests and the
+generated-code diff on `stable` and `beta`. The generator formats its own output at a fixed language
+version, so that diff does not depend on which SDK ran it.
 
 **Layout.** One public type per file. The sealed `CobaltRegistration` hierarchy is the deliberate
 exception: a sealed hierarchy must live in one library, so its subclasses are `part` files rather
 than separate libraries. `compat/external_consumer` is outside that rule of thumb entirely — it is a
-package that is deliberately **not** a workspace member and carries no `resolution: workspace`, so
-pub resolves it standalone the way a third-party project would. It exists to keep the code-generation
+package that takes its siblings through `dependency_overrides` in its own pubspec and stays out of
+`tool/overrides.py`, so it resolves the way a third-party project would. It exists to keep the code-generation
 pipeline honest from outside the repository.
 
 **Known publish warning.** `cobalt_lint` reports "the name of lib/main.dart should match the name of

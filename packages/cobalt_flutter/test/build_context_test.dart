@@ -59,10 +59,11 @@ void main() {
         (context) => context.cobaltAll<Formatter>(),
       );
 
-      expect(all.map((formatter) => formatter.label), [
-        'plain',
-        'shout',
-      ], reason: 'in registration order, like getAll itself');
+      expect(
+        all.map((formatter) => formatter.label),
+        ['plain', 'shout'],
+        reason: 'in registration order, like getAll itself',
+      );
     });
 
     testWidgets('cobaltWithParam passes the argument through', (tester) async {

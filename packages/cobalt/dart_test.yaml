@@ -1,7 +1,7 @@
 # Tests that read the repository around this package rather than the package
 # itself — the root documents, the other pubspecs, the CI workflow. They are
 # right to live here: the check belongs where the thing being checked lives.
-# But they cannot run from a copy of the package taken out of the tree, which
-# is exactly what tool/floor_check.sh does, so it excludes this tag.
+# But they cannot run from a copy of the package taken out of the tree, and
+# `dart test -x repo` is how such a copy leaves them out.
 tags:
   repo:

@@ -125,10 +125,11 @@ void main() {
       throwsA(isA<CobaltDisposeError>()),
     );
 
-    expect(recorder.entries, [
-      'last',
-      'first',
-    ], reason: 'the sync disposables on both sides of the stuck one still ran');
+    expect(
+      recorder.entries,
+      ['last', 'first'],
+      reason: 'the sync disposables on both sides of the stuck one still ran',
+    );
   });
 
   test('the deadline covers the whole tree, not each step', () async {

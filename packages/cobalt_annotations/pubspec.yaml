@@ -12,7 +12,9 @@ topics:
 environment:
   sdk: ^3.10.0
 
-resolution: workspace
 
 dependencies:
   meta: ^1.16.0
+
+dev_dependencies:
+  lints: ^6.0.0

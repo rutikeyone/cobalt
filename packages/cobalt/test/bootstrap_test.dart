@@ -168,10 +168,11 @@ void main() {
 
       await scope.dispose();
 
-      expect(recorder.entries, [
-        'service',
-        'binding',
-      ], reason: 'bootstrap set up the platform, so it is torn down last');
+      expect(
+        recorder.entries,
+        ['service', 'binding'],
+        reason: 'bootstrap set up the platform, so it is torn down last',
+      );
     });
 
     test('an async step is awaited during teardown', () async {

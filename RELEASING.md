@@ -35,6 +35,10 @@ wait for the previous group to appear on pub.dev — the index is not instant.
       everywhere except `cobalt_lint`, which reports one for `lib/main.dart`;
       that name is required by the plugin API and `riverpod_lint` carries the
       same warning.
+      Expect a *hint* as well, "Non-dev dependencies are overridden in
+      pubspec_overrides.yaml", from every package whose siblings come from the
+      repository: the overrides are the development setup, never part of the
+      archive, and a hint does not change the exit code.
 - [ ] Archives are kilobytes, not megabytes. Anything larger means the previous
       two boxes are not really ticked.
 - [ ] `repository:` and `issue_tracker:` point at a repository that actually
@@ -166,26 +170,30 @@ Things that were measured rather than assumed:
   model, and `cobalt_generator` does not import the analyzer at all.
 
 To check a new analyzer before admitting it, copy the three toolchain packages
-out of the workspace, set their `analyzer` constraint to that exact version,
+out of the repository, set their `analyzer` constraint to that exact version,
 and run `dart analyze` and `dart test` in each: the constraint, not
 `dependency_overrides`, has to choose the version, or pub keeps whatever
 `analysis_server_plugin` and `dart_style` the old analyzer had and the result
 says nothing.
 
-`tool/floor_check.sh` proves the floor. It copies each member out of the
-workspace — keeping the repository layout, so a package whose analysis options
-reach the root still find them — and resolves it alone, because a workspace is
-one resolution and this one cannot exist on 3.38: `flutter_test` there pins
-`test_api 0.7.7`, capping the `test` runner at 1.26.3 and `analyzer` below 9.
-Consumers never meet that; we do, because our analyzer packages and the test
-runner share a resolution. Both floor rows of the analyzer range are exercised —
-`codegen_basics` is a Flutter package with the generator, so it lands on
-10.0.1, while the pure-Dart members land on 12.1.0. Members declaring a floor
-above the running SDK are skipped, named, and not counted as passing.
+**The repository is developed on the floor.** It is not a pub workspace, because
+a workspace is one resolution and this one cannot exist on 3.38: `flutter_test`
+there pins `test_api 0.7.7`, capping the `test` runner at 1.26.3 and `analyzer`
+below 9, while `cobalt_analyzer` needs 10.0.1. Consumers never meet that; we
+would, because our analyzer packages and the test runner would share a
+resolution. So every member resolves on its own, and takes its siblings from a
+`pubspec_overrides.yaml` written by `tool/overrides.py` — the transitive closure
+of the local packages it names, dev dependencies included. The root keeps a
+one-line pubspec only so the shared `analysis_options.yaml` can resolve
+`package:lints`.
 
-CI runs it pinned to Flutter 3.38.9 alongside `stable` and `beta`, so an
-upcoming Flutter change is found before release and the old floor cannot rot
-unnoticed.
+Both floor rows of the analyzer range are exercised by development itself —
+`codegen_basics` is a Flutter package with the generator, so it lands on
+10.0.1, while the pure-Dart members land on 12.1.0.
+
+CI's `verify` job runs everything pinned to Flutter 3.38.9; the `forward` job
+repeats resolution, analysis, tests and the generated-code diff on `stable` and
+`beta`, so an upcoming Flutter change is found before release.
 
 Raising a floor later is a breaking change; lowering one is not. That asymmetry
 is why this was settled before the first publish rather than after.
@@ -248,11 +256,12 @@ dartdoc coverage is a matter of taste rather than of score.
 ## Lower bounds
 
 `pana` also checks that a package resolves and analyses at the bottom of its own constraints.
-That one is runnable locally against the whole workspace:
+That one is runnable locally, member by member:
 
 ```bash
-flutter pub downgrade && dart analyze --fatal-infos .
-flutter pub upgrade
+for m in $(./tool/members.sh); do (cd $m && flutter pub downgrade); done
+dart analyze --fatal-infos .
+./tool/get.sh && for m in $(./tool/members.sh); do (cd $m && flutter pub upgrade); done
 ```
 
 Measured 2026-09-01: clean, with 92 packages moved — including `bloc` at its floor of 9.0.0, which
@@ -260,7 +269,7 @@ Measured 2026-09-01: clean, with 92 packages moved — including `bloc` at its f
 
 Restore with `pub upgrade`, never `pub get`: `get` honours the existing lockfile and leaves
 `frontend_server_client` downgraded, and that version invokes a `frontend_server.dart.snapshot` Dart
-3.13 no longer ships. The symptom is not an error — `dart analyze` stays green while every test file
+3.10 does not ship. The symptom is not an error — `dart analyze` stays green while every test file
 silently fails to load.
 
 That same downgraded package is why the test *runner* cannot run at the lower bounds at all. It is a

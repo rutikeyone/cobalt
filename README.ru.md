@@ -117,7 +117,7 @@
 включая генератор и плагин линтера: приложение, оставшееся на Flutter 3.38, получает оба режима, а
 не только Manual Mode.
 
-Собрано и проверено также на Flutter 3.47.1 / Dart 3.13.1.
+Разрабатывается на Flutter 3.38.9 — на самом полу — и проверяется на текущих `stable` и `beta`.
 
 За полом стоит механизм, который стоит знать, потому что связывает не версия Dart.
 **Flutter 3.38 пиннит `meta 1.17.0`, а analyzer 10.0.2 просит `^1.18.0`** — значит Flutter-приложение
@@ -138,13 +138,16 @@
 Генератор форматирует с фиксированной версией языка, 3.10, а не с той, которую резолвнутый
 `dart_style` считает последней. Поэтому каждая строка даёт одинаковые байты, и релиз форматтера с
 новыми правилами стиля для более новой версии языка не меняет закоммиченное. Это проверяется, а не
-предполагается: job пола пересобирает на 3.38.9 и сверяет с закоммиченным на строках 10.0.1 и
-12.1.0, а job `beta`, которая резолвит самую новую строку, сверяет те же файлы.
+предполагается: job `verify` в CI пересобирает на Flutter 3.38.9, где `codegen_basics` попадает на
+строку 10.0.1, а стенд совместимости — на 12.1.0, и сверяет с закоммиченным; job `forward` на
+`beta` резолвит самую новую строку и сверяет те же файлы.
 
-CI гоняет `stable` и `beta`, а не матрицу прошлых релизов, плюс отдельную job на Flutter 3.38.9,
-которая резолвит, анализирует и тестирует каждый пакет, стенд совместимости и каждый пример против
-его собственного пола (`tool/floor_check.sh`). Пол, который никто не проверяет, — утверждение,
-которое протухнет.
+Репозиторий разрабатывается на этом полу, и поэтому он не pub workspace. Workspace — это одна
+резолюция, а на Flutter 3.38 `flutter_test` пиннит `test_api 0.7.7`, что ограничивает раннер `test`
+версией 1.26.3 и анализатор — ниже 9, тогда как `cobalt_analyzer` нужен 10.0.1. Поэтому каждый пакет
+резолвится сам и берёт соседей из `pubspec_overrides.yaml`, который пишет `tool/overrides.py`. Job
+`verify` в CI гоняет всё на Flutter 3.38.9, а `forward` — на `stable` и `beta`, чтобы заранее
+увидеть, что впереди, а не матрицу прошлых релизов.
 
 ## Как это устроено
 
@@ -293,21 +296,19 @@ cd examples/gallery && flutter run
 ## Работа над самим репозиторием
 
 ```
+./tool/get.sh
 dart analyze --fatal-infos .
 dart format --output=none --set-exit-if-changed .
-(cd packages/cobalt && dart test)
-(cd packages/cobalt_flutter && flutter test)
-(cd examples/manual_mode && dart test)
-(cd examples/codegen_basics && dart run build_runner build && flutter test)
-(cd examples/notes_app && dart run build_runner build && flutter test)
-(cd packages/cobalt_lint && dart test)
-(cd packages/cobalt_test && dart test)
-(cd packages/cobalt_inspector && flutter test)
-(cd packages/cobalt_talker_flutter && flutter test)
-(cd examples/gallery && flutter test)
-(cd compat/external_consumer && dart pub get && dart run build_runner build && dart test)
+./tool/test.sh
+(cd examples/codegen_basics && dart run build_runner build)
+(cd examples/notes_app && dart run build_runner build)
+(cd compat/external_consumer && dart run build_runner build)
 ./tool/coverage.sh
 ```
+
+Всё это — на Flutter 3.38.9. `tool/get.sh` резолвит корень и каждый пакет, который `tool/members.sh`
+находит по pubspec; после добавления пакета или зависимости на соседа `python3 tool/overrides.py`
+переписывает overrides, а CI падает, пока они устаревшие.
 
 `tool/coverage.sh` меряет построчное покрытие публикуемых пакетов, у которых есть тесты, печатает их
 худшими вперёд и падает ниже порога по **сумме** — 85%. Текущая цифра — это то, что печатает сам
@@ -318,16 +319,17 @@ dart format --output=none --set-exit-if-changed .
 Порог на пакет требовал бы писать тесты не там, где им место. Переопределяется через
 `COVERAGE_FLOOR=90 ./tool/coverage.sh`.
 
-CI (`.github/workflows/ci.yml`) гоняет всё вышеперечисленное на `stable` и `beta`, плюс
+Job `verify` в CI (`.github/workflows/ci.yml`) гоняет всё вышеперечисленное на Flutter 3.38.9, плюс
 `git diff --exit-code` после перегенерации обоих примеров **и `compat/external_consumer`**, поэтому
-устаревший сгенерированный код валит сборку. Генератор форматирует свой вывод той же версией
-`dart_style`, которой пользуется проверка формата, — расходиться им негде.
+устаревший сгенерированный код валит сборку. Job `forward` повторяет резолюцию, анализ, тесты и
+сверку сгенерированного на `stable` и `beta`. Генератор форматирует свой вывод с фиксированной
+версией языка, поэтому эта сверка не зависит от того, какой SDK её запустил.
 
 **Раскладка.** Один публичный тип на файл. Sealed-иерархия `CobaltRegistration` — сознательное
 исключение: sealed-иерархия обязана жить в одной библиотеке, поэтому её наследники — `part`-файлы, а
 не отдельные библиотеки. `compat/external_consumer` выпадает из этого правила целиком: это пакет,
-который намеренно **не** входит в workspace и не объявляет `resolution: workspace`, поэтому pub
-резолвит его самостоятельно — так, как это сделал бы чужой проект. Он существует, чтобы держать
+который берёт соседей через `dependency_overrides` в собственном pubspec и не входит в
+`tool/overrides.py`, поэтому резолвится так, как это сделал бы чужой проект. Он существует, чтобы держать
 пайплайн кодогенерации честным снаружи репозитория.
 
 **Известное предупреждение при публикации.** `cobalt_lint` сообщает, что «the name of lib/main.dart

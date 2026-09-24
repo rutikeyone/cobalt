@@ -12,7 +12,6 @@ topics:
 environment:
   sdk: ^3.10.0
 
-resolution: workspace
 
 dependencies:
   cobalt_analyzer: ^0.2.0
@@ -28,6 +27,7 @@ dependencies:
   source_gen: ^4.2.0
 
 dev_dependencies:
+  lints: ^6.0.0
   build_runner: ^2.15.0
   build_test: ^3.5.4
   logging: ^1.3.0

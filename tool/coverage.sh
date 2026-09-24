@@ -12,7 +12,6 @@ cd "$(dirname "$0")/.."
 
 FLOOR=${COVERAGE_FLOOR:-85}
 OUT=$(mktemp -d)
-PACKAGES_FILE="$PWD/.dart_tool/package_config.json"
 
 DART_PACKAGES="cobalt cobalt_analyzer cobalt_generator cobalt_lint cobalt_test cobalt_talker cobalt_logging cobalt_logger"
 FLUTTER_PACKAGES="cobalt_flutter cobalt_go_router cobalt_inspector"
@@ -23,7 +22,7 @@ for package in $DART_PACKAGES; do
     dart test --coverage="$OUT/raw_$package" >/dev/null
     dart pub global run coverage:format_coverage \
       --lcov --in="$OUT/raw_$package" --out="$OUT/$package.lcov" \
-      --report-on=lib --packages="$PACKAGES_FILE" >/dev/null
+      --report-on=lib --packages=.dart_tool/package_config.json >/dev/null
   )
 done
 

@@ -251,10 +251,11 @@ class Module {
 }
 ''');
 
-      expect(parsed.single.constructorParameters.map((each) => each.isNamed), [
-        false,
-        true,
-      ], reason: 'the call is rebuilt the way the member declared it');
+      expect(
+        parsed.single.constructorParameters.map((each) => each.isNamed),
+        [false, true],
+        reason: 'the call is rebuilt the way the member declared it',
+      );
     });
 
     test('an optional named parameter is still rejected', () async {

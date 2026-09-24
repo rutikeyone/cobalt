@@ -1,6 +1,6 @@
 name: cobalt_external_consumer
 description: >-
-  Compatibility stand: consumes Cobalt from outside the pub workspace, the way a
+  Compatibility stand: consumes Cobalt from outside its packages, the way a
   third-party project does.
 publish_to: none
 version: 0.1.0

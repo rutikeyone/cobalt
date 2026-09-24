@@ -92,11 +92,11 @@ void main() {
       BootLog.reset();
       await startNotesGraph();
 
-      expect(BootLog.steps, [
-        'bind-platform',
-        'load-remote-config',
-        'warm-fonts',
-      ], reason: 'a stored list would have reused the first run instances');
+      expect(
+        BootLog.steps,
+        ['bind-platform', 'load-remote-config', 'warm-fonts'],
+        reason: 'a stored list would have reused the first run instances',
+      );
     });
   });
 
