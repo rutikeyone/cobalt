@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:cobalt/src/bootstrap/cobalt_scope_builder.dart';
+import 'package:cobalt/src/decorator/cobalt_decorator.dart';
+import 'package:cobalt/src/errors/cobalt_decorator_error.dart';
 import 'package:cobalt/src/errors/cobalt_depends_on_error.dart';
 import 'package:cobalt/src/errors/cobalt_dispose_error.dart';
 import 'package:cobalt/src/errors/cobalt_dispose_failure.dart';
@@ -106,6 +108,10 @@ final class CobaltScope implements CobaltResolver {
   final _claimed = <CobaltKey>{};
   var _applyingOverrides = false;
 
+  final _decorators = <CobaltKey, List<_Decoration>>{};
+  final _decorated = <CobaltKey, Object>{};
+  final _served = <CobaltKey>{};
+
   /// Where this scope is in its lifecycle.
   CobaltScopeState get state => _state;
 
@@ -181,6 +187,17 @@ final class CobaltScope implements CobaltResolver {
         null => null,
       };
 
+  /// The decorators that wrap [key], in the order they apply, innermost
+  /// first; empty when none do.
+  ///
+  /// Answered for the scope that owns [key], the only one whose decorators
+  /// can apply to it.
+  List<Type> debugDecoratorsOf(CobaltKey key) => [
+    for (final decoration
+        in _lookup(key)?.scope._decorators[key] ?? const <_Decoration>[])
+      decoration.type,
+  ];
+
   /// Resolves [key] without naming its type, or null when nothing registers it.
   ///
   /// The typed [get] cannot be called from a loop over [keys]: Dart has no way
@@ -238,7 +255,7 @@ final class CobaltScope implements CobaltResolver {
         kind: CobaltRegistrationKind.parameterized,
         retain: false,
       );
-      return instance;
+      return found.scope._serveFresh(key, instance);
     });
   }
 
@@ -325,6 +342,37 @@ final class CobaltScope implements CobaltResolver {
     } finally {
       _applyingOverrides = false;
     }
+  }
+
+  /// Wraps what the registration of [T] in this scope produces.
+  ///
+  /// Decorators apply in the order they are added, the first innermost, to
+  /// whatever the registration hands out — an override included. A retained
+  /// registration is decorated once, the first time it is resolved, and
+  /// callers share the result; a transient or parameterized one is decorated
+  /// every time it is built. The order of [decorate] and the registration
+  /// inside a builder does not matter.
+  ///
+  /// The scope keeps owning the inner instance and closes it once; the
+  /// decorator is not closed.
+  ///
+  /// A key already resolved from this scope throws [CobaltDecoratorError]:
+  /// whoever holds it would keep the undecorated instance. A decorator for a
+  /// key this scope does not register wraps nothing, and [runBuilder] reports
+  /// that once the builder returns, naming the ancestor that owns it.
+  void decorate<T extends Object>(
+    CobaltDecorator<T> decorator, {
+    String? name,
+  }) {
+    _assertUsable();
+    final key = CobaltKey(T, name: name);
+    if (_served.contains(key)) throw CobaltDecoratorError.late(key, this.name);
+    (_decorators[key] ??= []).add(
+      _Decoration(
+        decorator.runtimeType,
+        (inner, resolver) => decorator.decorate(inner as T, resolver),
+      ),
+    );
   }
 
   /// Registers [T] so every resolution builds a new instance.
@@ -623,7 +671,7 @@ final class CobaltScope implements CobaltResolver {
         kind: CobaltRegistrationKind.parameterized,
         retain: false,
       );
-      return instance as T;
+      return found.scope._serveFresh(key, instance) as T;
     });
   }
 
@@ -942,6 +990,8 @@ final class CobaltScope implements CobaltResolver {
 
     _owned.clear();
     _registrations.clear();
+    _decorators.clear();
+    _decorated.clear();
     _initFuture = null;
     parent?._children.remove(this);
     _state = CobaltScopeState.disposed;
@@ -1006,7 +1056,7 @@ final class CobaltScope implements CobaltResolver {
   Object _materialize(CobaltRegistration registration) {
     switch (registration) {
       case SingletonRegistration():
-        return registration.value;
+        return _serve(registration.key, registration.value);
 
       case TransientRegistration():
         return _tracker.guard(registration.key, () {
@@ -1017,35 +1067,36 @@ final class CobaltScope implements CobaltResolver {
             kind: CobaltRegistrationKind.transient,
             retain: false,
           );
-          return instance;
+          return _serveFresh(registration.key, instance);
         });
 
       case LazySingletonRegistration():
-        final existing = registration.instance;
-        if (existing != null) return existing;
-        return _tracker.guard(registration.key, () {
-          final instance = registration.factory.create(this);
-          registration.instance = instance;
-          _afterCreate(
-            instance,
-            registration.key,
-            kind: CobaltRegistrationKind.lazySingleton,
-            retain: true,
-            teardown: registration.teardown,
-          );
-          return instance;
-        });
+        final existing =
+            registration.instance ??
+            _tracker.guard<Object>(registration.key, () {
+              final instance = registration.factory.create(this);
+              registration.instance = instance;
+              _afterCreate(
+                instance,
+                registration.key,
+                kind: CobaltRegistrationKind.lazySingleton,
+                retain: true,
+                teardown: registration.teardown,
+              );
+              return instance;
+            });
+        return _serve(registration.key, existing);
 
       case AsyncSingletonRegistration():
         final existing = registration.instance;
         if (existing == null || !registration.isReady) {
           throw CobaltNotReadyError(registration.key, resolving: _trail());
         }
-        return existing;
+        return _serve(registration.key, existing);
 
       case LazyAsyncSingletonRegistration():
         final existing = registration.instance;
-        if (existing != null) return existing;
+        if (existing != null) return _serve(registration.key, existing);
         throw CobaltLazyAsyncError(registration.key, resolving: _trail());
 
       case ParamRegistration():
@@ -1058,11 +1109,13 @@ final class CobaltScope implements CobaltResolver {
   Future<Object> _resolveAsync(CobaltRegistration registration) async {
     switch (registration) {
       case LazyAsyncSingletonRegistration():
-        return _buildLazy(registration);
+        return _serve(registration.key, await _buildLazy(registration));
 
       case AsyncSingletonRegistration():
         final existing = registration.instance;
-        if (existing != null && registration.isReady) return existing;
+        if (existing != null && registration.isReady) {
+          return _serve(registration.key, existing);
+        }
         final pending = _initFuture;
         if (pending == null ||
             identical(CobaltResolutionTracker.phaseOneOwner, this)) {
@@ -1070,7 +1123,9 @@ final class CobaltScope implements CobaltResolver {
         }
         await pending;
         final built = registration.instance;
-        if (built != null && registration.isReady) return built;
+        if (built != null && registration.isReady) {
+          return _serve(registration.key, built);
+        }
         throw CobaltNotReadyError(registration.key, resolving: _trail());
 
       case SingletonRegistration() ||
@@ -1199,6 +1254,35 @@ final class CobaltScope implements CobaltResolver {
         );
       });
 
+  /// Hands out a retained instance, decorated once and shared from then on.
+  Object _serve(CobaltKey key, Object inner) {
+    _served.add(key);
+    final decorations = _decorators[key];
+    if (decorations == null) return inner;
+    return _decorated[key] ??= _tracker.guard(
+      key,
+      () => _applyDecorations(decorations, inner),
+    );
+  }
+
+  /// Hands out an instance built for this one call, decorated on its own.
+  ///
+  /// Called inside the build's own guard, which already holds [key].
+  Object _serveFresh(CobaltKey key, Object inner) {
+    _served.add(key);
+    final decorations = _decorators[key];
+    if (decorations == null) return inner;
+    return _applyDecorations(decorations, inner);
+  }
+
+  Object _applyDecorations(List<_Decoration> decorations, Object inner) {
+    var current = inner;
+    for (final decoration in decorations) {
+      current = decoration.apply(current, this);
+    }
+    return current;
+  }
+
   void _afterCreate(
     Object instance,
     CobaltKey key, {
@@ -1257,6 +1341,18 @@ final class CobaltScope implements CobaltResolver {
       _building = false;
     }
     _assertOverridesClaimed();
+    _assertDecoratorsOwned();
+  }
+
+  void _assertDecoratorsOwned() {
+    for (final key in _decorators.keys) {
+      if (_registrations.containsKey(key)) continue;
+      throw CobaltDecoratorError.notOwned(
+        key,
+        name,
+        owner: parent?._lookup(key)?.scope.name,
+      );
+    }
   }
 
   void _assertOverridesClaimed() {
@@ -1300,6 +1396,14 @@ final class CobaltScope implements CobaltResolver {
 
   @override
   String toString() => 'CobaltScope($name, $_state)';
+}
+
+/// A decorator with its type erased to what a scope can store.
+class _Decoration {
+  _Decoration(this.type, this.apply);
+
+  final Type type;
+  final Object Function(Object inner, CobaltResolver resolver) apply;
 }
 
 /// An instance the scope owns, with whatever closes it.

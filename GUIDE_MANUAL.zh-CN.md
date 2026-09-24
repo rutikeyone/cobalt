@@ -233,6 +233,33 @@ scope.debugDescribeTree();   // 以文本形式呈现的树
 
 ---
 
+### 包装一条注册
+
+装饰器在不改动类本身的情况下包装一条注册交出的对象——日志、重试、缓存，
+或者给你不拥有的客户端加一层指标：
+
+```dart
+class LoggingApi implements CobaltDecorator<ApiClient> {
+  const LoggingApi();
+
+  @override
+  ApiClient decorate(ApiClient inner, CobaltResolver resolver) =>
+      LoggedApiClient(inner, resolver.get<Logger>());
+}
+
+scope
+  ..registerLazySingleton<ApiClient>(const ApiClientFactory())
+  ..decorate<ApiClient>(const LoggingApi());
+```
+
+装饰器按添加顺序生效，第一个在最里层，它们看到的是拥有这条注册的作用域的解析器。
+被持有的注册只在第一次解析时装饰一次，所有人共享结果；transient 和参数化注册每次构建都会装饰。
+`build()` 里 `decorate` 与注册的先后顺序无关，覆盖也会像它替换的那条注册一样被装饰。
+
+作用域仍然拥有内层实例并只关闭它一次；装饰器没有需要关闭的东西。三种错误会被拒绝：
+装饰已经被解析过的键（持有者会留着未包装的实例）、装饰作用域没有注册的键——`runBuilder`
+会指出拥有它的祖先——以及解析自身键的装饰器，这是 `CobaltCycleError`。
+
 ## 4. 启动 Flutter 应用
 
 根作用域由 `CobaltAppScope` 持有：构建图、发布到 widget 树、卸载时销毁，

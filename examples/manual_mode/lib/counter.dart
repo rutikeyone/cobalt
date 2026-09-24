@@ -52,6 +52,38 @@ class Counter {
   }
 }
 
+class AuditedCounter implements Counter {
+  AuditedCounter(this._inner, this._log);
+
+  final Counter _inner;
+
+  @override
+  final EventLog _log;
+
+  @override
+  CounterStorage get _storage => _inner._storage;
+
+  @override
+  String get sessionId => _inner.sessionId;
+
+  @override
+  int get value => _inner.value;
+
+  @override
+  void increment() {
+    _inner.increment();
+    _log.add('audited $sessionId');
+  }
+}
+
+class AuditedCounterDecorator implements CobaltDecorator<Counter> {
+  const AuditedCounterDecorator();
+
+  @override
+  Counter decorate(Counter inner, CobaltResolver resolver) =>
+      AuditedCounter(inner, resolver.get<EventLog>());
+}
+
 class ClockFactory implements CobaltFactory<Clock> {
   const ClockFactory();
 
@@ -107,9 +139,9 @@ class AppScope implements CobaltScopeBuilder {
   }
 }
 
-CobaltScope openSession(CobaltScope root, String id) =>
-    root.push('session:$id')
-      ..registerParamFactory<Counter, String>(const CounterFactory());
+CobaltScope openSession(CobaltScope root, String id) => root.push('session:$id')
+  ..registerParamFactory<Counter, String>(const CounterFactory())
+  ..decorate<Counter>(const AuditedCounterDecorator());
 
 Future<CobaltScope> startApp({List<CobaltObserver> observers = const []}) =>
     CobaltApplication.start(

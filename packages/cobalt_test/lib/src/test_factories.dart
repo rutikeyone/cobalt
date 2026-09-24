@@ -59,3 +59,18 @@ class FnParamFactory<T extends Object, P extends Object>
   @override
   T create(CobaltResolver resolver, P param) => build(resolver, param);
 }
+
+/// An [CobaltDecorator] built from a function.
+///
+/// The sibling of [FnFactory] for `CobaltScope.decorate`, so a test that only
+/// wants to wrap something need not declare a class for it.
+class FnDecorator<T extends Object> implements CobaltDecorator<T> {
+  /// Creates a decorator that calls [wrap].
+  const FnDecorator(this.wrap);
+
+  /// Returns what callers receive instead of the inner instance.
+  final T Function(T inner, CobaltResolver resolver) wrap;
+
+  @override
+  T decorate(T inner, CobaltResolver resolver) => wrap(inner, resolver);
+}

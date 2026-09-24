@@ -28,6 +28,19 @@ void main() {
     },
   );
 
+  test('the session decorates every counter it builds', () {
+    final session = openSession(app, 'alice');
+    session.getWithParam<Counter, String>('alice').increment();
+
+    expect(
+      app.get<EventLog>().entries,
+      containsAllInOrder(['alice -> 1', 'audited alice']),
+    );
+    expect(session.debugDecoratorsOf(const CobaltKey(Counter)), [
+      AuditedCounterDecorator,
+    ]);
+  });
+
   test('two sessions share app singletons but keep separate counters', () {
     final alice = openSession(app, 'alice');
     final bob = openSession(app, 'bob');

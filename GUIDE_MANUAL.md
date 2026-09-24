@@ -234,6 +234,36 @@ is what tells you whether an override will be seen — see [§13](#13-tests).
 
 ---
 
+### Wrapping a registration
+
+A decorator wraps what a registration hands out without touching its class — logging, retries, a
+cache, a metric around a client you do not own:
+
+```dart
+class LoggingApi implements CobaltDecorator<ApiClient> {
+  const LoggingApi();
+
+  @override
+  ApiClient decorate(ApiClient inner, CobaltResolver resolver) =>
+      LoggedApiClient(inner, resolver.get<Logger>());
+}
+
+scope
+  ..registerLazySingleton<ApiClient>(const ApiClientFactory())
+  ..decorate<ApiClient>(const LoggingApi());
+```
+
+Decorators apply in the order they are added, the first innermost, and see the resolver of the scope
+that owns the registration. A retained registration is decorated once, the first time it is
+resolved, and everyone shares the result; a transient or parameterized one is decorated each time it
+is built. Where `decorate` sits relative to the registration inside `build()` does not matter, and an
+override is decorated like the registration it replaced.
+
+The scope keeps owning the inner instance and closes it once; a decorator holds nothing to close.
+Three mistakes are refused: decorating a key already resolved (its holders would keep the undecorated
+instance), decorating a key the scope does not register — `runBuilder` names the ancestor that owns
+it — and a decorator that resolves its own key, which is a `CobaltCycleError`.
+
 ## 4. Starting a Flutter app
 
 `CobaltAppScope` owns the root: it builds the graph, publishes it to the tree, disposes it on unmount,
