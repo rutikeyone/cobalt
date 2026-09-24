@@ -10,6 +10,7 @@ import 'package:cobalt_generator/src/errors/cobalt_generation_error.dart';
 import 'package:cobalt_generator/src/hashed_allocator.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:dart_style/dart_style.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 const _header = '// GENERATED CODE - DO NOT MODIFY BY HAND';
 
@@ -92,9 +93,11 @@ class ContainerSourceEmitter {
     );
 
     return DartFormatter(
-      languageVersion: DartFormatter.latestLanguageVersion,
+      languageVersion: _formattedAs,
     ).format('$_header\n\n$emitted');
   }
+
+  static final _formattedAs = Version(3, 10, 0);
 
   /// The record a parameterized registration is resolved with.
   ///

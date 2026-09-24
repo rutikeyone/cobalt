@@ -1,3 +1,9 @@
+## 0.2.1
+
+- No code changes in this package. Republished in lockstep with the toolchain
+  packages, which now accept analyzer 13 and 14 — see `cobalt_generator`'s
+  changelog.
+
 ## 0.2.0
 
 - Lazy async registrations get the `startup` colour, count as retained in the

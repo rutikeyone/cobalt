@@ -1,6 +1,6 @@
 name: cobalt_lint
 description: Analyzer plugin with lint rules for Cobalt. Catches invalid annotations in the IDE instead of at build time.
-version: 0.2.0
+version: 0.2.1
 repository: https://github.com/rutikeyone/cobalt
 issue_tracker: https://github.com/rutikeyone/cobalt/issues
 topics:
@@ -17,10 +17,10 @@ resolution: workspace
 dependencies:
   cobalt_analyzer: ^0.2.0
   analysis_server_plugin: ^0.3.0
-  analyzer: ">=10.0.1 <13.0.0"
+  analyzer: ">=10.0.1 <15.0.0"
   analyzer_plugin: ^0.14.0
 
 dev_dependencies:
-  analyzer_testing: ">=0.1.9 <0.3.0"
+  analyzer_testing: ">=0.1.9 <0.5.0"
   test: ^1.25.0
   test_reflective_loader: ^0.4.0

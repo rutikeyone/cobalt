@@ -131,36 +131,46 @@ all do. So the constraint does not permit a span, it selects a row:
 | where | analyzer | analyzer_plugin | analysis_server_plugin | analyzer_testing | dart_style |
 |---|---|---|---|---|---|
 | Flutter 3.38 | 10.0.1 | 0.14.1 | 0.3.7 | 0.1.9 | 3.1.7 |
-| everywhere else | 12.1.0 | 0.14.8 | 0.3.14 | 0.2.5 | 3.1.8 |
+| newer, until something else needs analyzer 13 | 12.1.0 | 0.14.8 | 0.3.14 | 0.2.5 | 3.1.8 |
+| Flutter 3.49's `test`, `build` 4.0.8+, current `freezed` | 13.x – 14.x | 0.14.9 – 0.14.17 | 0.3.15 – 0.3.23 | 0.2.6 – 0.4.2 | 3.1.9 – 3.1.13 |
 
-The three toolchain packages therefore declare `analyzer: ">=10.0.1 <13.0.0"`
-and `cobalt_generator` declares `dart_style: ">=3.1.6 <3.1.9"` — two rows, both
-tested, which is the same shape `injectable_generator` uses and the reason it
-works on 3.38 while we did not.
+The three toolchain packages therefore declare `analyzer: ">=10.0.1 <15.0.0"`,
+and `cobalt_generator` declares `dart_style: ">=3.1.7 <3.2.0"`. The range was
+capped below 13 for one release, 0.2.0, and that cap was the mistake this table
+exists to prevent repeating: Flutter 3.49's `flutter_test` pins `test_api
+0.7.14`, the `test` releases that accept it require analyzer 13, and the
+workspace stopped resolving on beta. A new analyzer major is admitted by a
+patch release of all fifteen once the matrix below passes on it.
 
-Two things worth knowing about the row that were measured rather than assumed:
+Things that were measured rather than assumed:
 
-- **The two `dart_style` versions emit identical bytes for generated code.**
-  3.1.7 is a dependency bump; 3.1.8's style changes are language-versioned to
-  3.13 or concern extension types, and the generator emits neither. Narrowing
-  the range did move something, though, and it is worth knowing before the next
-  narrowing: `flutter gen-l10n` formats its output with the `dart_style` the
-  *package* resolves, not the one the SDK bundles. Coming down from 3.1.13 to
-  3.1.8 dropped a blank line between directives in all eighteen generated
-  localisation files, so they had to be regenerated and committed. Both rows in
-  the table agree on that output; 3.1.13 was the odd one.
-
-  The floor job regenerates on 3.38.9 and diffs against what is committed, once
-  per row:
-  the stand covers the newer one, and `codegen_basics` — a Flutter package,
-  therefore held to `meta 1.17.0` — is the only place the older formatter is
-  ever asked to emit anything. Only `*.g.dart` is compared: `flutter gen-l10n`
-  also writes into `lib/`, and its output differs by a blank line between
-  Flutter releases, which is Flutter disagreeing with itself.
+- **Every row emits identical bytes for generated code.** The generator formats
+  at a fixed language version, 3.10, not at `DartFormatter.latestLanguageVersion`,
+  which moves with each `dart_style` release and gates its style changes. On
+  3.1.7, 3.1.8 and 3.1.13 the output was already identical, because their
+  latest language versions agree; the fixed version is what keeps the next
+  formatter release from changing that. The floor job regenerates on 3.38.9 and
+  diffs against what is committed on the two older rows — the stand for 12.1.0,
+  and `codegen_basics`, a Flutter package held to `meta 1.17.0`, for 10.0.1 —
+  and the `beta` job diffs the same files on the newest. Only `*.g.dart` is
+  compared: `flutter gen-l10n` formats its output with the `dart_style` the
+  *package* resolves, and differs by a blank line between rows, which is
+  Flutter's generator disagreeing with itself.
 - **Only `cobalt_lint` ever touched an analyzer-version-specific API**, in
-  `registration_index.dart`. `cobalt_analyzer` reads the element model, which
-  does not change across this range, and `cobalt_generator` does not import the
-  analyzer at all.
+  `registration_index.dart`. Analyzer 13 removed `NamedExpression`,
+  `DefaultFormalParameter` and `NormalFormalParameter`, and changed
+  `ArgumentList.arguments` from `Expression` to `Argument`, so no source that
+  names them compiles on both sides. The index reads what both sides share
+  instead — `childEntities`, tokens and `FormalParameter.metadata`. The rule
+  API is identical across the range, `cobalt_analyzer` reads only the element
+  model, and `cobalt_generator` does not import the analyzer at all.
+
+To check a new analyzer before admitting it, copy the three toolchain packages
+out of the workspace, set their `analyzer` constraint to that exact version,
+and run `dart analyze` and `dart test` in each: the constraint, not
+`dependency_overrides`, has to choose the version, or pub keeps whatever
+`analysis_server_plugin` and `dart_style` the old analyzer had and the result
+says nothing.
 
 `tool/floor_check.sh` proves the floor. It copies each member out of the
 workspace — keeping the repository layout, so a package whose analysis options
@@ -168,7 +178,7 @@ reach the root still find them — and resolves it alone, because a workspace is
 one resolution and this one cannot exist on 3.38: `flutter_test` there pins
 `test_api 0.7.7`, capping the `test` runner at 1.26.3 and `analyzer` below 9.
 Consumers never meet that; we do, because our analyzer packages and the test
-runner share a resolution. Both ends of the analyzer range are exercised —
+runner share a resolution. Both floor rows of the analyzer range are exercised —
 `codegen_basics` is a Flutter package with the generator, so it lands on
 10.0.1, while the pure-Dart members land on 12.1.0. Members declaring a floor
 above the running SDK are skipped, named, and not counted as passing.

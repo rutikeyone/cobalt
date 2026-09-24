@@ -1,3 +1,12 @@
+## 0.2.1
+
+- Accepts `analyzer` up to 14.x (`>=10.0.1 <15.0.0`, was `<13.0.0`). The cap
+  kept the repository's own workspace from resolving on Flutter 3.49, whose
+  `test` needs analyzer 13, and kept projects on current `build`,
+  `build_runner`, `freezed` or `json_serializable` from using the generator.
+  Flutter 3.38.9 stays the floor: the same source builds and passes its tests
+  on analyzer 10.0.1, 12.1.0, 13.3.0 and 14.4.0.
+
 ## 0.2.0
 
 - `CobaltInjectableClass.isLazyAsync`, read from `@CobaltInit(lazy: true)` and

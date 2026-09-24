@@ -252,14 +252,14 @@ void main() {
     /// to be the SDK at all: Flutter 3.38 pins `meta 1.17.0` and analyzer
     /// 10.0.2 wants `^1.18.0`, so a Flutter application there tops out at
     /// analyzer 10.0.1 whatever anyone's SDK constraint says. The toolchain
-    /// three now declare `>=10.0.1 <13.0.0` and land on 10.0.1 or 12.1.0
-    /// depending on the consumer.
+    /// three now declare `>=10.0.1 <15.0.0` and land on 10.0.1, 12.1.0 or a
+    /// 13.x–14.x row depending on the consumer.
     ///
-    /// That range has exactly two usable rows, because every package reading
-    /// the analyzer — `analysis_server_plugin`, `analyzer_plugin`,
-    /// `analyzer_testing`, `dart_style` — pins it exactly. Which is why the
-    /// third test here exists: the three have to agree on the range, or they
-    /// stop agreeing about what a declaration means.
+    /// Each row is fixed, because every package reading the analyzer —
+    /// `analysis_server_plugin`, `analyzer_plugin`, `analyzer_testing`,
+    /// `dart_style` — pins it exactly. Which is why the third test here exists:
+    /// the three have to agree on the range, or they stop agreeing about what a
+    /// declaration means.
     const toolchain = {'cobalt_analyzer', 'cobalt_generator', 'cobalt_lint'};
 
     /// The constraint a package declares, by key.

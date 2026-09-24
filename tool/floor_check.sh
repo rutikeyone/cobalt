@@ -114,6 +114,8 @@ for member in $SELECTED; do
     *) get="dart pub get"; run="dart test -x repo" ;;
   esac
 
+  if [ "$name" = cobalt_analyzer ]; then run="$run -j 1"; fi
+
   log=$WORK/$name.log
   printf '%-24s ' "$name"
 

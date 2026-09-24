@@ -122,20 +122,21 @@ on 3.38 tops out at analyzer 10.0.1, whatever its SDK constraint says. A pure-Da
 bound by that and takes 12.1.0; 13.0.0 is out of reach for both, because it needs
 `_fe_analyzer_shared 100`, which needs Dart 3.11.
 
-So the three toolchain packages declare `analyzer: ">=10.0.1 <13.0.0"` rather than a single version.
-That is a range with exactly two usable rows, and every package that reads the analyzer pins it
-exactly, so which row you get is decided by your project rather than by us:
+So the three toolchain packages declare `analyzer: ">=10.0.1 <15.0.0"` rather than a single version,
+and the same source builds and passes its tests on every row of it. Every package that reads the
+analyzer pins it exactly, so which row you get is decided by your project rather than by us:
 
 | your project | analyzer | analyzer_plugin | analysis_server_plugin | analyzer_testing | dart_style |
 |---|---|---|---|---|---|
 | Flutter 3.38 | 10.0.1 | 0.14.1 | 0.3.7 | 0.1.9 | 3.1.7 |
-| anything newer | 12.1.0 | 0.14.8 | 0.3.14 | 0.2.5 | 3.1.8 |
+| anything newer, until something else needs analyzer 13 | 12.1.0 | 0.14.8 | 0.3.14 | 0.2.5 | 3.1.8 |
+| Flutter 3.49's `test`, `build` 4.0.8+, current `freezed` or `json_serializable` | 13.x – 14.x | 0.14.9 – 0.14.17 | 0.3.15 – 0.3.23 | 0.2.6 – 0.4.2 | 3.1.9 – 3.1.13 |
 
-The two `dart_style` versions emit identical bytes for generated code — 3.1.7 is a dependency bump,
-and 3.1.8's style changes are language-versioned above this floor — so the same source generates the
-same file on both rows. That is checked rather than assumed: the floor job regenerates on 3.38.9 and
-diffs against what is committed, once per row — the compatibility stand for the newer one and
-`codegen_basics`, a Flutter package, for the older.
+The generator formats at a fixed language version, 3.10, rather than at whatever the resolved
+`dart_style` calls latest — so every row emits identical bytes, and a formatter release that adds
+style rules for a newer language version cannot change what is committed. That is checked rather
+than assumed: the floor job regenerates on 3.38.9 and diffs against what is committed on the 10.0.1
+and 12.1.0 rows, and the `beta` job, which resolves the newest row, diffs the same files.
 
 CI runs `stable` and `beta` rather than a matrix of past releases, plus one job pinned to Flutter
 3.38.9 that resolves, analyses and tests every package, the compatibility stand and every example

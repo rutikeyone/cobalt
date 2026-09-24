@@ -1,3 +1,14 @@
+## 0.2.1
+
+- Accepts `analyzer` up to 14.x (`>=10.0.1 <15.0.0`, was `<13.0.0`) and
+  `dart_style` up to 3.1.x (`>=3.1.7 <3.2.0`, was `<3.1.9`). Flutter 3.38.9
+  stays the floor.
+- The container is formatted at language version 3.10 rather than at
+  `DartFormatter.latestLanguageVersion`, which moves with each `dart_style`
+  release and gates its style changes. Every analyzer row emits identical
+  bytes, and a future formatter release cannot change the committed output.
+  Generated code does not change with this release.
+
 ## 0.2.0
 
 - Lazy async registrations are emitted with `registerLazyAsyncSingleton`, and

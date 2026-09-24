@@ -10,19 +10,17 @@ include: analysis_options.yaml
 # writes.
 #
 # `analysis_server_plugin` pins the analyzer it depends on exactly, and
-# `cobalt_lint` deliberately declares `analyzer: ">=10.0.1 <13.0.0"`, to keep
-# supporting Flutter 3.38.9 (see RELEASING.md). Once an SDK's bundled
-# `analysis_server_plugin` asks for an analyzer version outside that range —
-# which the beta channel already does, requiring analyzer 14.x — the synthetic
-# package fails to resolve and analysis crashes before a single file is read,
+# `cobalt_lint` declares `analyzer: ">=10.0.1 <15.0.0"` (see RELEASING.md).
+# An SDK whose bundled `analysis_server_plugin` asks for an analyzer outside
+# that range, or for a version pub.dev does not have yet, makes the synthetic
+# package fail to resolve, and analysis crashes before a single file is read,
 # on every file in the repository, not only ones this plugin would flag. That
 # is not a failure of the code being analysed, so it must not gate a build,
 # and it is why `analysis_options.yaml` does not enable the plugin itself.
 #
-# This is a standing constraint, not a pre-publication one: it holds for as
-# long as `cobalt_lint` supports an analyzer version older than whatever an
-# SDK's `analysis_server_plugin` requires, which is a permanent trade for
-# keeping the Code-Gen tools usable on Flutter 3.38.9.
+# The next analyzer major is admitted by a `cobalt_lint` release, so each SDK
+# that brings one is a window in which the plugin cannot load until that
+# release is out.
 #
 # The rules themselves do not depend on any of this: they are covered by
 # tests that go through `analyzer_testing` and never start a server.

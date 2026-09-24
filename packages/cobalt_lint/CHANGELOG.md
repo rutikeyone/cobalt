@@ -1,3 +1,14 @@
+## 0.2.1
+
+- Accepts `analyzer` up to 14.x (`>=10.0.1 <15.0.0`, was `<13.0.0`), so the
+  plugin resolves for SDKs whose `analysis_server_plugin` needs analyzer 13 or
+  14. Flutter 3.38.9 stays the floor.
+- The registration index no longer names AST classes that exist on only one
+  side of analyzer 13 — `NamedExpression`, `DefaultFormalParameter`,
+  `NormalFormalParameter` — and reads tokens and `childEntities` instead. The
+  rules report exactly what they did; every test passes on analyzer 10.0.1,
+  12.1.0, 13.3.0 and 14.4.0.
+
 ## 0.2.0
 
 - `cobalt_lazy_registration_injected_synchronously`: a lazy async

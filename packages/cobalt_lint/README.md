@@ -40,11 +40,12 @@ which doesn't match any versions, version solving failed.
 ```
 
 That case — an SDK vendoring a version pub.dev has never heard of — usually resolves itself once
-that version is published. A related failure does not: `analysis_server_plugin` pins the analyzer
-it depends on exactly, and `cobalt_lint` deliberately caps `analyzer` below 13.0.0 to keep working
-on Flutter 3.38.9. An SDK whose bundled `analysis_server_plugin` needs an analyzer at or above that
-makes the same crash permanent, not transitional — no future publication changes it, only a change
-to `cobalt_lint`'s own analyzer range would, and that range is a deliberate floor, not an oversight.
+that version is published. A related one waits for us: `analysis_server_plugin` pins the analyzer
+it depends on exactly, and `cobalt_lint` declares `analyzer: ">=10.0.1 <15.0.0"`, from the
+Flutter 3.38.9 floor to analyzer 14. An SDK whose bundled `analysis_server_plugin` needs analyzer 15
+makes the same crash until a `cobalt_lint` release admits that major — the source is kept free of
+anything that exists on only one side of an analyzer release, so admitting one is a constraint and a
+test run, not a rewrite.
 
 Neither is a failure of the code being analysed, and neither is fixable from the plugin's side —
 which is why this repository's own `analysis_options.yaml` does **not** enable the plugin, even now

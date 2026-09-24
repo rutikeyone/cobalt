@@ -3,6 +3,7 @@ import 'package:cobalt_lint/src/class_members.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/file_system/file_system.dart';
 
 /// What the package registers, and what each registration asks for.
@@ -283,7 +284,7 @@ class _IndexBuilder {
     final declared = _declaredBy(parameter);
     if (declared is SuperFormalParameter) return;
     if (_isCallSiteValue(parameter)) return;
-    final name = parameter.name?.lexeme;
+    final name = declared.name?.lexeme;
     final type =
         _returnedName(_typeOf(declared)) ??
         (declared is FieldFormalParameter && name != null
@@ -294,27 +295,41 @@ class _IndexBuilder {
 
   /// The node that carries a parameter's declaration.
   ///
-  /// A parameter that can take a default value — every named one, and every
-  /// optional positional one — arrives wrapped in a [DefaultFormalParameter],
-  /// so asking the outer node what kind of parameter it is answers about the
-  /// wrapper. `{@cobaltParam required this.id}` is the common shape here, and
-  /// unwrapped it is a [FieldFormalParameter] like any other.
-  static NormalFormalParameter _declaredBy(FormalParameter parameter) =>
-      parameter is DefaultFormalParameter
-      ? parameter.parameter
-      : parameter as NormalFormalParameter;
+  /// Before analyzer 13, a parameter that can take a default value — every
+  /// named one, and every optional positional one — arrives wrapped in a
+  /// `DefaultFormalParameter`, so asking the outer node what kind of parameter
+  /// it is answers about the wrapper. From 13 on there is no wrapper, and the
+  /// class is gone. The wrapper's one [FormalParameter] child is the parameter
+  /// it wraps, and no unwrapped parameter has one, so this finds the
+  /// declaration on both sides without naming a class only one side has.
+  /// `{@cobaltParam required this.id}` is the common shape here, and unwrapped
+  /// it is a [FieldFormalParameter] like any other.
+  static FormalParameter _declaredBy(FormalParameter parameter) =>
+      parameter.childEntities.whereType<FormalParameter>().firstOrNull ??
+      parameter;
 
   /// The type a parameter writes down, or null when it writes none.
   ///
+  /// Read as the parameter's direct [TypeAnnotation] child: the getter lives
+  /// on the subclasses before analyzer 13 and on [FormalParameter] after. A
+  /// default value sits a level deeper, so `const <String>[]` in it is never
+  /// taken for the type.
+  ///
   /// A function-typed parameter has a return type rather than a type of its
-  /// own; reading that would name the wrong thing, so it names nothing.
-  static TypeAnnotation? _typeOf(NormalFormalParameter parameter) =>
-      switch (parameter) {
-        SimpleFormalParameter(:final type) => type,
-        FieldFormalParameter(:final type) => type,
-        SuperFormalParameter(:final type) => type,
-        _ => null,
-      };
+  /// own; reading that would name the wrong thing, so it names nothing. Its
+  /// parameter list is a child before 13 and a grandchild, under a suffix
+  /// node, after.
+  static TypeAnnotation? _typeOf(FormalParameter parameter) {
+    for (final child in parameter.childEntities) {
+      if (child is FormalParameterList) return null;
+      if (child is AstNode &&
+          child is! TypeAnnotation &&
+          child.childEntities.any((entity) => entity is FormalParameterList)) {
+        return null;
+      }
+    }
+    return parameter.childEntities.whereType<TypeAnnotation>().firstOrNull;
+  }
 
   /// Whether `@CobaltParam` marks this parameter.
   ///
@@ -387,14 +402,17 @@ class _IndexBuilder {
   }
 
   static Expression? _namedArgument(Annotation annotation, String parameter) {
-    for (final argument
-        in annotation.arguments?.arguments ?? const <Expression>[]) {
-      if (argument is NamedExpression &&
-          argument.name.label.name == parameter) {
-        return argument.expression;
-      }
+    final arguments = annotation.arguments;
+    if (arguments == null) return null;
+    for (final argument in arguments.arguments) {
+      if (_labelOf(argument) == parameter) return _valueOf(argument);
     }
     return null;
+  }
+
+  static String? _labelOf(AstNode argument) {
+    final name = argument.beginToken;
+    return name.next?.type == TokenType.COLON ? name.lexeme : null;
   }
 
   /// Whether [expression] is the literal `true` — the only spelling of
@@ -403,8 +421,15 @@ class _IndexBuilder {
       expression is BooleanLiteral && expression.value;
 
   /// The value an argument carries, past its label if it has one.
-  static Expression _valueOf(Expression argument) =>
-      argument is NamedExpression ? argument.expression : argument;
+  ///
+  /// A named argument's value is its last [Expression] child in both shapes;
+  /// a positional argument is an [Expression] itself on every analyzer.
+  static Expression? _valueOf(AstNode argument) {
+    if (_labelOf(argument) != null) {
+      return argument.childEntities.whereType<Expression>().lastOrNull;
+    }
+    return argument is Expression ? argument : null;
+  }
 
   /// Reads the type an expression names, in every shape `provides`,
   /// `exposeAs` and `dependsOn` accept: `Foo`, `prefix.Foo`,
@@ -431,7 +456,9 @@ class _IndexBuilder {
 
   static void _addFirstArgument(ArgumentList arguments, Set<String> names) {
     final first = arguments.arguments.firstOrNull;
-    if (first != null) _addExpression(_valueOf(first), names);
+    if (first == null) return;
+    final value = _valueOf(first);
+    if (value != null) _addExpression(value, names);
   }
 }
 
