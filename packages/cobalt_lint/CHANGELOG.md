@@ -1,3 +1,14 @@
+## 0.3.0
+
+- `cobalt_override_needs_type_argument`: a `CobaltOverride` or
+  `CobaltParamOverride` written without its type argument, which Dart then
+  infers as `Object` inside a list or as the replacement's type on its own —
+  either way the override replaces nothing.
+- `cobalt_depends_on_lazy_registration`: `@CobaltInit(dependsOn: [...])`
+  naming a lazy async registration, which `init()` never builds. Read from the
+  package-wide index, like the other graph rules.
+- Sixteen rules.
+
 ## 0.2.1
 
 - Accepts `analyzer` up to 14.x (`>=10.0.1 <15.0.0`, was `<13.0.0`), so the

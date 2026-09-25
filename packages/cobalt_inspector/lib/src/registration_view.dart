@@ -14,6 +14,8 @@ class RegistrationView {
     required this.kind,
     required this.owner,
     required this.isInherited,
+    this.isOverridden = false,
+    this.decorators = const [],
   });
 
   /// Everything [scope] can resolve, its own registrations first.
@@ -30,6 +32,8 @@ class RegistrationView {
           kind: scope.debugKindOf(entry.key),
           owner: entry.value,
           isInherited: !own.contains(entry.key),
+          isOverridden: entry.value.overriddenKeys.contains(entry.key),
+          decorators: scope.debugDecoratorsOf(entry.key),
         ),
     ]..sort((a, b) {
       if (a.isInherited != b.isInherited) return a.isInherited ? 1 : -1;
@@ -48,6 +52,12 @@ class RegistrationView {
 
   /// Whether it comes from an ancestor rather than from the scope asked.
   final bool isInherited;
+
+  /// Whether an override stands in for it on [owner].
+  final bool isOverridden;
+
+  /// What wraps it, innermost first; empty when nothing does.
+  final List<String> decorators;
 
   /// Whether it can be built without a value from the caller.
   bool get isBuildable =>

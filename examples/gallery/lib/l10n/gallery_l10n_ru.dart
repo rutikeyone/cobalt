@@ -245,6 +245,51 @@ class GalleryL10nRu extends GalleryL10n {
       'Дубликат того же ключа в одном скоупе — ошибка, а не молчаливое «побеждает последний»';
 
   @override
+  String get decoratorsTitle => 'Декораторы';
+
+  @override
+  String get decoratorsTeaches =>
+      'Обёртка вокруг того, что отдаёт регистрация, — кэш, журнал — без правки её класса.';
+
+  @override
+  String get decoratorsPoint1 =>
+      'scope.decorate, или @CobaltDecorates, когда контейнер генерируется';
+
+  @override
+  String get decoratorsPoint2 =>
+      'Первый добавленный декоратор — самый внутренний, поэтому журнал здесь видит и ответы из кэша';
+
+  @override
+  String get decoratorsPoint3 =>
+      'Удерживаемая регистрация декорируется один раз и результат общий; скоуп закрывает только внутренний экземпляр';
+
+  @override
+  String get decoratorsPoint4 =>
+      'Override декорируется так же, как регистрация, которую он заменил';
+
+  @override
+  String get decoratorsChain => 'обёртки, начиная с внутренней';
+
+  @override
+  String decoratorsAsk(String city) {
+    return 'Прогноз для $city';
+  }
+
+  @override
+  String decoratorsStationCalls(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'вызвана $count раза',
+      many: 'вызвана $count раз',
+      few: 'вызвана $count раза',
+      one: 'вызвана $count раз',
+      zero: 'ещё не вызывалась',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get widgetScopeTitle => 'Скоуп, которым владеет виджет';
 
   @override

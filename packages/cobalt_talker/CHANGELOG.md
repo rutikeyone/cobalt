@@ -1,3 +1,9 @@
+## 0.3.0
+
+- No code changes in this package. Republished in lockstep with 0.3.0, which
+  adds decorators, overrides on widget and route scopes, and warm-up — see
+  `cobalt`'s changelog.
+
 ## 0.2.1
 
 - No code changes in this package. Republished in lockstep with the toolchain

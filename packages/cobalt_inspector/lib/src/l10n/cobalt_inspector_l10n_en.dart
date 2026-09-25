@@ -95,6 +95,12 @@ class CobaltInspectorL10nEn extends CobaltInspectorL10n {
   String get lifetimeGone => 'gone';
 
   @override
+  String get badgeOverridden => 'overridden';
+
+  @override
+  String get badgeDecorated => 'decorated';
+
+  @override
   String get copyRecord => 'copy this record';
 
   @override
@@ -135,6 +141,16 @@ class CobaltInspectorL10nEn extends CobaltInspectorL10n {
 
   @override
   String get reachedHere => 'registered in this scope';
+
+  @override
+  String get factReplaced => 'Replaced';
+
+  @override
+  String get replacedByOverride =>
+      'by an override — the real registration was skipped';
+
+  @override
+  String get factDecoratedBy => 'Decorated by';
 
   @override
   String get factTornDown => 'Torn down with the scope';

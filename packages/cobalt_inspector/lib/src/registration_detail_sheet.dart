@@ -71,6 +71,18 @@ class _RegistrationDetailSheetState extends State<RegistrationDetailSheet> {
                 ? strings.reachedInherited
                 : strings.reachedHere,
           ),
+          if (registration.isOverridden)
+            _Fact(
+              key: const Key('replaced-fact'),
+              label: strings.factReplaced,
+              value: strings.replacedByOverride,
+            ),
+          if (registration.decorators.isNotEmpty)
+            _Fact(
+              key: const Key('decorated-fact'),
+              label: strings.factDecoratedBy,
+              value: registration.decorators.join(' → '),
+            ),
           _Fact(
             label: strings.factTornDown,
             value: switch (registration.kind) {

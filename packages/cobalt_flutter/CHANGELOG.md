@@ -1,3 +1,17 @@
+## 0.3.0
+
+- `overrides` on `CobaltScopeWidget`, and an `overrides` getter on
+  `CobaltScopedWidget` and `CobaltScopedStatefulWidget`. A function called on
+  every mount, as on `CobaltAppScope`, so a remount never gets a value the
+  previous scope already closed. It replaces what that scope registers; an
+  override of a key an ancestor owns fails naming the owner.
+- `CobaltAppScope(warmUp: [...])` — also on `.start` and `.builder` — starts
+  building lazy async registrations as soon as the graph is up, behind the app
+  rather than behind `loading`. A failure goes to `FlutterError.reportError`.
+- Fixed: a builder that threw on a widget-owned scope, or an override that
+  replaced nothing, left the pushed child in the tree with nobody to close it.
+  The error now reaches `errorBuilder` and the half-built scope is disposed.
+
 ## 0.2.1
 
 - No code changes in this package. Republished in lockstep with the toolchain

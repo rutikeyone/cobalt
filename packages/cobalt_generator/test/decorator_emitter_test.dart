@@ -94,7 +94,7 @@ void main() {
         matches(
           RegExp(
             r"scope\.decorate<_i\d+\.Api>\(const _LoggingApiDecorator\(\), "
-            r"name: 'primary'\);",
+            r"name: 'primary', debugLabel: 'LoggingApi',? ?\);",
           ),
         ),
       );

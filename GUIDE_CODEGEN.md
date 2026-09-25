@@ -18,7 +18,7 @@ What the build step buys you, and what this document is mostly about:
   gap at once, instead of failing on whichever screen resolves it first;
 - **property injection** — `late final` fields filled by a generated mixin, so a class with five
   collaborators has an empty constructor;
-- **fourteen lint rules** that catch the rest in the editor.
+- **sixteen lint rules** that catch the rest in the editor.
 
 If you want none of that, or you are migrating an existing container gradually, everything works
 without the generator: [GUIDE_MANUAL.md](GUIDE_MANUAL.md).
@@ -59,15 +59,15 @@ environment:
   flutter: ">=3.38.0"
 
 dependencies:
-  cobalt: ^0.2.0
-  cobalt_flutter: ^0.2.0
+  cobalt: ^0.3.0
+  cobalt_flutter: ^0.3.0
 
 dev_dependencies:
-  cobalt_generator: ^0.2.0
+  cobalt_generator: ^0.3.0
   build_runner: ^2.15.0
-  cobalt_lint: ^0.2.0
-  cobalt_test: ^0.2.0
-  cobalt_test_flutter: ^0.2.0
+  cobalt_lint: ^0.3.0
+  cobalt_test: ^0.3.0
+  cobalt_test_flutter: ^0.3.0
 ```
 
 **The floor is the same as the other mode's**, so an application on Flutter 3.38 can start here
@@ -886,13 +886,13 @@ nothing registers, where it silently does nothing.
 
 ## 16. The lint plugin
 
-Fourteen rules, built on the same parsing layer the generator uses, so a mistake surfaces in the editor
+Sixteen rules, built on the same parsing layer the generator uses, so a mistake surfaces in the editor
 rather than only when `build_runner` runs.
 
 ```yaml
 # analysis_options.yaml
 plugins:
-  cobalt_lint: ^0.2.0
+  cobalt_lint: ^0.3.0
 ```
 
 | Rule | Catches |
@@ -911,6 +911,8 @@ plugins:
 | `cobalt_registration_is_never_released` | a registered class with a `dispose()` or `close()` the scope cannot see |
 | `cobalt_resource_is_never_closed` | A registration holds something closeable and offers no way to close it |
 | `cobalt_lazy_registration_injected_synchronously` | a lazy async registration injected where nothing can wait for it — a synchronous or eager constructor, or an `@injected` field |
+| `cobalt_depends_on_lazy_registration` | `@CobaltInit(dependsOn: [...])` naming a lazy async registration, which `init()` never builds |
+| `cobalt_override_needs_type_argument` | a `CobaltOverride` or `CobaltParamOverride` with no type argument, so Dart infers the key it replaces |
 
 Two things about wiring it up cost real time:
 

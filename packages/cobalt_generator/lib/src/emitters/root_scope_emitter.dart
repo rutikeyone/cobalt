@@ -73,7 +73,10 @@ class RootScopeEmitter {
     final name = decorator.name;
     return refer('scope').property('decorate').call(
       [refer(names.ofDecorator(decorator)).constInstance(const [])],
-      {if (name != null) 'name': literalString(name)},
+      {
+        if (name != null) 'name': literalString(name),
+        'debugLabel': literalString(decorator.type.name),
+      },
       [typeReferenceOf(decorator.target)],
     ).statement;
   }

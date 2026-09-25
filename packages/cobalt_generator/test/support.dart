@@ -154,11 +154,12 @@ String generate(
   ),
 );
 
-List<String> decorationsOf(String source) => source
-    .split('\n')
-    .map((line) => line.trim())
-    .where((line) => line.startsWith('scope.decorate'))
-    .toList();
+/// Every `scope.decorate` statement, each joined onto one line however the
+/// formatter wrapped it.
+List<String> decorationsOf(String source) => [
+  for (final match in RegExp(r'scope\.decorate<[^;]*;').allMatches(source))
+    match.group(0)!.replaceAll(RegExp(r'\s+'), ' ').replaceAll('( ', '('),
+];
 
 List<String> registrationsOf(String source) => source
     .split('\n')

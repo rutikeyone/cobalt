@@ -78,6 +78,40 @@ class LifetimeBadge extends StatelessWidget {
   }
 }
 
+/// A small tag saying something about a registration beyond its lifetime —
+/// that an override replaced it, or that a decorator wraps it.
+class MarkerBadge extends StatelessWidget {
+  /// Shows [label] in [color].
+  const MarkerBadge({
+    required this.label,
+    required this.color,
+    required this.theme,
+    super.key,
+  });
+
+  /// What the tag says.
+  final String label;
+
+  /// Its colour, from the palette.
+  final Color color;
+
+  /// The palette in force.
+  final CobaltInspectorThemeData theme;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(6),
+      border: Border.all(color: color.withValues(alpha: theme.borderAlpha)),
+    ),
+    child: Text(
+      label,
+      style: TextStyle(color: color, fontSize: 10, height: 1.2),
+    ),
+  );
+}
+
 /// A wall-clock time, in the palette's monospace.
 class Timestamp extends StatelessWidget {
   /// Shows [at], and the gap since [since] when there is one.

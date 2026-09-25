@@ -8,6 +8,7 @@ import 'package:cobalt_lint/src/rules/bootstrap_requires_run_method.dart';
 import 'package:cobalt_lint/src/rules/bootstrap_step_cannot_inject.dart';
 import 'package:cobalt_lint/src/rules/dependency_cycle.dart';
 import 'package:cobalt_lint/src/rules/dependency_is_not_registered.dart';
+import 'package:cobalt_lint/src/rules/depends_on_lazy_registration.dart';
 import 'package:cobalt_lint/src/rules/environment_needs_a_registration.dart';
 import 'package:cobalt_lint/src/rules/init_requires_init_method.dart';
 import 'package:cobalt_lint/src/rules/injectable_must_be_constructible.dart';
@@ -15,6 +16,7 @@ import 'package:cobalt_lint/src/rules/injected_field_must_be_late_final.dart';
 import 'package:cobalt_lint/src/rules/injected_field_needs_an_injectable.dart';
 import 'package:cobalt_lint/src/rules/lazy_registration_injected_synchronously.dart';
 import 'package:cobalt_lint/src/rules/missing_injection_mixin.dart';
+import 'package:cobalt_lint/src/rules/override_needs_type_argument.dart';
 import 'package:cobalt_lint/src/rules/param_needs_an_injectable.dart';
 import 'package:cobalt_lint/src/rules/registration_is_never_released.dart';
 import 'package:cobalt_lint/src/rules/resource_is_never_closed.dart';
@@ -30,6 +32,7 @@ void main() {
     defineReflectiveTests(BootstrapStepCannotInjectIsQuiet);
     defineReflectiveTests(DependencyCycleIsQuiet);
     defineReflectiveTests(DependencyIsNotRegisteredIsQuiet);
+    defineReflectiveTests(DependsOnLazyRegistrationIsQuiet);
     defineReflectiveTests(EnvironmentNeedsARegistrationIsQuiet);
     defineReflectiveTests(InitRequiresInitMethodIsQuiet);
     defineReflectiveTests(InjectableMustBeConstructibleIsQuiet);
@@ -37,6 +40,7 @@ void main() {
     defineReflectiveTests(InjectedFieldNeedsAnInjectableIsQuiet);
     defineReflectiveTests(LazyRegistrationInjectedSynchronouslyIsQuiet);
     defineReflectiveTests(MissingInjectionMixinIsQuiet);
+    defineReflectiveTests(OverrideNeedsTypeArgumentIsQuiet);
     defineReflectiveTests(ParamNeedsAnInjectableIsQuiet);
     defineReflectiveTests(RegistrationIsNeverReleasedIsQuiet);
     defineReflectiveTests(ResourceIsNeverClosedIsQuiet);
@@ -53,7 +57,7 @@ void main() {
 ///
 /// It answers the half of "does a clean lint mean the build will pass" that
 /// can be answered. It cannot mean that — thirty build-time refusals against
-/// fourteen rules, deliberately — but the reverse has to hold: nothing here
+/// sixteen rules, deliberately — but the reverse has to hold: nothing here
 /// may report code the generator is happy with.
 abstract class _QuietTest extends AnalysisRuleTest {
   AnalysisRule makeRule();
@@ -267,4 +271,16 @@ class RegistrationIsNeverReleasedIsQuiet extends _QuietTest {
 class ResourceIsNeverClosedIsQuiet extends _QuietTest {
   @override
   AnalysisRule makeRule() => ResourceIsNeverClosed();
+}
+
+@reflectiveTest
+class DependsOnLazyRegistrationIsQuiet extends _QuietTest {
+  @override
+  AnalysisRule makeRule() => DependsOnLazyRegistration();
+}
+
+@reflectiveTest
+class OverrideNeedsTypeArgumentIsQuiet extends _QuietTest {
+  @override
+  AnalysisRule makeRule() => OverrideNeedsTypeArgument();
 }

@@ -1,3 +1,11 @@
+## 0.3.0
+
+- `overrides` on `CobaltRouteScope`, `CobaltShellRoute`, `cobaltShellRoute`,
+  both `CobaltStatefulShellRoute` constructors and `CobaltStatefulShellBranch`.
+  On a route it is a `CobaltRouteOverrides`, built from the route state each
+  time the flow's scope is created — on entry and again when `identity`
+  changes.
+
 ## 0.2.1
 
 - No code changes in this package. Republished in lockstep with the toolchain

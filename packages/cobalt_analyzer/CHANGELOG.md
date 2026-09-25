@@ -1,3 +1,15 @@
+## 0.3.0
+
+- `CobaltDecoratorClass`, read by `CobaltDecoratorParser`, and
+  `CobaltLibraryDeclarations.decorators`, read tolerantly from IR written by
+  an older build. A decorator is kept apart from the injectables: it claims no
+  key, and every check that groups by key would take it for a duplicate.
+- The parser refuses a decorator that is not a subtype of its target, that
+  takes other than one parameter of the target type, that is also a
+  registration, that decorates twice, that is abstract or generic, that has no
+  public generative constructor, or that asks for `@CobaltParam` or
+  `@injected` fields.
+
 ## 0.2.1
 
 - Accepts `analyzer` up to 14.x (`>=10.0.1 <15.0.0`, was `<13.0.0`). The cap

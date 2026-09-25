@@ -1,3 +1,9 @@
+## 0.3.0
+
+- The tree marks a registration an override replaced and one a decorator
+  wraps, and the registration sheet names both: that an override stands in,
+  and the decorators, innermost first. Reading them builds nothing.
+
 ## 0.2.1
 
 - No code changes in this package. Republished in lockstep with the toolchain

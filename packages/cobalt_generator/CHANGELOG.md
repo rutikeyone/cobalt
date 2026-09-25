@@ -1,3 +1,17 @@
+## 0.3.0
+
+- Decorators. Each `@CobaltDecorates` class becomes a const `CobaltDecorator`
+  and a `scope.decorate<Target>(...)` after the registrations in `build()`,
+  guarded by its environments, with the annotated class as its `debugLabel`.
+- The build refuses a target nothing registers in some environment of the
+  decorator, a decorator dependency nothing registers, two decorators of one
+  registration without distinct orders, a decorator taking a lazy async
+  registration, and a cycle through a decorator.
+- An eager async class that resolves a decorated registration while phase 1
+  runs — directly or through synchronous registrations — waits in its
+  `dependsOn` for the async dependencies of those decorators. The wait sits on
+  the consumer, not the target, so an override of the target keeps it.
+
 ## 0.2.1
 
 - Accepts `analyzer` up to 14.x (`>=10.0.1 <15.0.0`, was `<13.0.0`) and

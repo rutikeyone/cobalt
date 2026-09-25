@@ -293,7 +293,8 @@ registration and with that scope's resolver. So:
 
 Decorating a key someone already resolved is refused — its holders would keep the undecorated
 instance — and so is decorating a key the scope does not register, reported by `runBuilder` with the
-ancestor that owns it. `debugDecoratorsOf(key)` lists what wraps a key, innermost first.
+ancestor that owns it. `debugDecoratorsOf(key)` lists what wraps a key, innermost first, by the
+`debugLabel` each was added with or else its type.
 `@CobaltDecorates` in `cobalt_generator` writes the same call from an annotation.
 
 ## Optional dependencies

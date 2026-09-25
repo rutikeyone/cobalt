@@ -1,3 +1,8 @@
+## 0.3.0
+
+- `FnDecorator<T>`: a decorator from a function, for tests that wrap a
+  registration without declaring a class.
+
 ## 0.2.1
 
 - No code changes in this package. Republished in lockstep with the toolchain

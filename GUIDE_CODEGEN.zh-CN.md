@@ -18,7 +18,7 @@
 - **图在构建期被检查**——没有人注册的依赖会让构建失败，并一次性点出所有缺口，
   而不是等到某个界面第一个解析到它时才失败；
 - **属性注入**——`late final` 字段由生成的 mixin 填充，于是有五个协作对象的类拥有一个空构造函数；
-- **十四条 lint 规则**，在编辑器里抓住其余的问题。
+- **十六条 lint 规则**，在编辑器里抓住其余的问题。
 
 如果这些你都不需要，或者你正在逐步迁移一个已有的容器，那么不用生成器一切照样能跑：
 [GUIDE_MANUAL.zh-CN.md](GUIDE_MANUAL.zh-CN.md)。
@@ -59,15 +59,15 @@ environment:
   flutter: ">=3.38.0"
 
 dependencies:
-  cobalt: ^0.2.0
-  cobalt_flutter: ^0.2.0
+  cobalt: ^0.3.0
+  cobalt_flutter: ^0.3.0
 
 dev_dependencies:
-  cobalt_generator: ^0.2.0
+  cobalt_generator: ^0.3.0
   build_runner: ^2.15.0
-  cobalt_lint: ^0.2.0
-  cobalt_test: ^0.2.0
-  cobalt_test_flutter: ^0.2.0
+  cobalt_lint: ^0.3.0
+  cobalt_test: ^0.3.0
+  cobalt_test_flutter: ^0.3.0
 ```
 
 **这里的下限和另一个模式相同**，所以停在 Flutter 3.38 的应用可以直接从这里开始，
@@ -840,13 +840,13 @@ bootstrap 步骤同样接受环境。只要其中任何一个用到，`$cobaltBo
 
 ## 16. lint 插件
 
-十四条规则，建立在生成器所用的同一套解析层之上，
+十六条规则，建立在生成器所用的同一套解析层之上，
 因此错误会在编辑器里出现，而不是非等到 `build_runner` 跑完。
 
 ```yaml
 # analysis_options.yaml
 plugins:
-  cobalt_lint: ^0.2.0
+  cobalt_lint: ^0.3.0
 ```
 
 | 规则 | 捕捉什么 |
@@ -865,6 +865,8 @@ plugins:
 | `cobalt_registration_is_never_released` | 已注册的类带有作用域看不见的 `dispose()` 或 `close()` |
 | `cobalt_resource_is_never_closed` | 注册项持有需要关闭的东西，却没有提供关闭它的办法 |
 | `cobalt_lazy_registration_injected_synchronously` | 惰性异步注册被注入到无法等待它的地方——同步或 eager 构造函数，或 `@injected` 字段 |
+| `cobalt_depends_on_lazy_registration` | `@CobaltInit(dependsOn: [...])` 指向惰性异步注册，而 `init()` 从不构建它 |
+| `cobalt_override_needs_type_argument` | `CobaltOverride` 或 `CobaltParamOverride` 没写类型参数，替换哪个键就由 Dart 推断 |
 
 配置它有两件事会实打实地耗掉你的时间：
 

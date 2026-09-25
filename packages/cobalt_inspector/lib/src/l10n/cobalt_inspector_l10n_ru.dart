@@ -95,6 +95,12 @@ class CobaltInspectorL10nRu extends CobaltInspectorL10n {
   String get lifetimeGone => 'исчезла';
 
   @override
+  String get badgeOverridden => 'подменена';
+
+  @override
+  String get badgeDecorated => 'обёрнута';
+
+  @override
   String get copyRecord => 'скопировать запись';
 
   @override
@@ -135,6 +141,15 @@ class CobaltInspectorL10nRu extends CobaltInspectorL10n {
 
   @override
   String get reachedHere => 'зарегистрирована в этом скоупе';
+
+  @override
+  String get factReplaced => 'Подмена';
+
+  @override
+  String get replacedByOverride => 'override — настоящая регистрация пропущена';
+
+  @override
+  String get factDecoratedBy => 'Декораторы';
 
   @override
   String get factTornDown => 'Разбирается вместе со скоупом';

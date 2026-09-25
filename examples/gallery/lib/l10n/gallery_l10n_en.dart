@@ -243,6 +243,49 @@ class GalleryL10nEn extends GalleryL10n {
       'A duplicate of the same key in one scope is an error, not a silent last-one-wins';
 
   @override
+  String get decoratorsTitle => 'Decorators';
+
+  @override
+  String get decoratorsTeaches =>
+      'Wrap what a registration hands out — a cache, a log — without touching its class.';
+
+  @override
+  String get decoratorsPoint1 =>
+      'scope.decorate, or @CobaltDecorates when the container is generated';
+
+  @override
+  String get decoratorsPoint2 =>
+      'The first decorator added is innermost, so logging here sees cached answers';
+
+  @override
+  String get decoratorsPoint3 =>
+      'A retained registration is decorated once and shared; the scope closes only the inner instance';
+
+  @override
+  String get decoratorsPoint4 =>
+      'An override is decorated like the registration it replaced';
+
+  @override
+  String get decoratorsChain => 'wrapped, innermost first';
+
+  @override
+  String decoratorsAsk(String city) {
+    return 'Forecast for $city';
+  }
+
+  @override
+  String decoratorsStationCalls(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'reached $count times',
+      one: 'reached once',
+      zero: 'not reached yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get widgetScopeTitle => 'Widget-owned scope';
 
   @override

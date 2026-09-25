@@ -484,6 +484,60 @@ abstract class GalleryL10n {
   /// **'A duplicate of the same key in one scope is an error, not a silent last-one-wins'**
   String get namedPoint3;
 
+  /// Name of the "Decorators" example.
+  ///
+  /// In en, this message translates to:
+  /// **'Decorators'**
+  String get decoratorsTitle;
+
+  /// One line: what "Decorators" exists to show.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrap what a registration hands out — a cache, a log — without touching its class.'**
+  String get decoratorsTeaches;
+
+  /// No description provided for @decoratorsPoint1.
+  ///
+  /// In en, this message translates to:
+  /// **'scope.decorate, or @CobaltDecorates when the container is generated'**
+  String get decoratorsPoint1;
+
+  /// No description provided for @decoratorsPoint2.
+  ///
+  /// In en, this message translates to:
+  /// **'The first decorator added is innermost, so logging here sees cached answers'**
+  String get decoratorsPoint2;
+
+  /// No description provided for @decoratorsPoint3.
+  ///
+  /// In en, this message translates to:
+  /// **'A retained registration is decorated once and shared; the scope closes only the inner instance'**
+  String get decoratorsPoint3;
+
+  /// No description provided for @decoratorsPoint4.
+  ///
+  /// In en, this message translates to:
+  /// **'An override is decorated like the registration it replaced'**
+  String get decoratorsPoint4;
+
+  /// Label above the chain of decorators around the weather service.
+  ///
+  /// In en, this message translates to:
+  /// **'wrapped, innermost first'**
+  String get decoratorsChain;
+
+  /// Button asking the decorated service for a city.
+  ///
+  /// In en, this message translates to:
+  /// **'Forecast for {city}'**
+  String decoratorsAsk(String city);
+
+  /// How often the real service behind the decorators was called.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{not reached yet} =1{reached once} other{reached {count} times}}'**
+  String decoratorsStationCalls(int count);
+
   /// Name of the "Widget-owned scope" example.
   ///
   /// In en, this message translates to:

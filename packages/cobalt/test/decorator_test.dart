@@ -99,8 +99,20 @@ void main() {
 
       expect(scope.get<Api>().trail, ['logged', 'retried', 'real']);
       expect(scope.debugDecoratorsOf(const CobaltKey(Api)), [
-        FnDecorator<Api>,
-        FnDecorator<Api>,
+        'FnDecorator<Api>',
+        'FnDecorator<Api>',
+      ]);
+    });
+
+    test('a debug label names a decorator instead of its type', () {
+      final scope = cobaltTestRoot()
+        ..registerLazySingleton<Api>(FnFactory((_) => RealApi(recorder)))
+        ..decorate<Api>(wrapping('retried'), debugLabel: 'Retrying')
+        ..decorate<Api>(wrapping('logged'));
+
+      expect(scope.debugDecoratorsOf(const CobaltKey(Api)), [
+        'Retrying',
+        'FnDecorator<Api>',
       ]);
     });
 

@@ -37,7 +37,7 @@ void main() {
       containsAllInOrder(['alice -> 1', 'audited alice']),
     );
     expect(session.debugDecoratorsOf(const CobaltKey(Counter)), [
-      AuditedCounterDecorator,
+      'AuditedCounterDecorator',
     ]);
   });
 

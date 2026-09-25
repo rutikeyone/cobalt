@@ -1,3 +1,9 @@
+## 0.3.0
+
+- `@CobaltDecorates(Target, {name, order})`: the generated form of
+  `CobaltScope.decorate`. The class implements `Target` and takes the wrapped
+  instance in its constructor; `order` says which of several wraps which.
+
 ## 0.2.1
 
 - No code changes in this package. Republished in lockstep with the toolchain

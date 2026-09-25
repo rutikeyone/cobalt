@@ -48,7 +48,7 @@ environment:
   sdk: ^3.10.0
 
 dependencies:
-  cobalt: ^0.2.0
+  cobalt: ^0.3.0
 ```
 
 A Flutter app adds the bindings, which re-export the whole runtime, so you never import both:
@@ -59,12 +59,12 @@ environment:
   flutter: ">=3.38.0"
 
 dependencies:
-  cobalt: ^0.2.0
-  cobalt_flutter: ^0.2.0
+  cobalt: ^0.3.0
+  cobalt_flutter: ^0.3.0
 
 dev_dependencies:
-  cobalt_test: ^0.2.0
-  cobalt_test_flutter: ^0.2.0
+  cobalt_test: ^0.3.0
+  cobalt_test_flutter: ^0.3.0
 ```
 
 **Nothing here is a dead end.** The floor is Dart `^3.10.0` / Flutter `>=3.38.0`, the same one
@@ -989,7 +989,7 @@ Three things are worth the build step when the graph gets big:
 
 - **completeness checked at build time** rather than by `expectGraphResolves` at test time;
 - **property injection**, which empties constructors that have grown to five or more collaborators;
-- **fourteen lint rules** that catch the mistakes in §14 in the editor.
+- **sixteen lint rules** that catch the mistakes in §14 in the editor.
 
 What stays exactly as it is: scopes, teardown, the two phases, parameterized registrations,
 observability, the tests. [GUIDE_CODEGEN.md](GUIDE_CODEGEN.md) picks up from here, and

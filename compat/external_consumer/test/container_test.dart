@@ -259,11 +259,9 @@ void main() {
 
     test('names its wrapper for introspection', () {
       expect(
-        scope
-            .debugDecoratorsOf(const CobaltKey(Database))
-            .map((type) => '$type'),
-        [contains('AuditedDatabase')],
-        reason: 'the scope sees the generated decorator, named after the class',
+        scope.debugDecoratorsOf(const CobaltKey(Database)),
+        ['AuditedDatabase'],
+        reason: 'named after the annotated class, not the generated wrapper',
       );
     });
   });

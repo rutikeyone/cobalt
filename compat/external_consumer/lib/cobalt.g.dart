@@ -276,7 +276,10 @@ final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
       const _ArchiveIndexFactory(),
     );
     scope.registerFactory<_i1031.Report>(const _ReportFactory());
-    scope.decorate<_i530.Database>(const _AuditedDatabaseDecorator());
+    scope.decorate<_i530.Database>(
+      const _AuditedDatabaseDecorator(),
+      debugLabel: 'AuditedDatabase',
+    );
   }
 }
 

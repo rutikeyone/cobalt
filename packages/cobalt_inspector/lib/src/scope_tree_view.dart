@@ -262,6 +262,24 @@ class _RegistrationTile extends StatelessWidget {
                   ),
             ),
           ),
+          if (registration.isOverridden) ...[
+            const SizedBox(width: 6),
+            MarkerBadge(
+              key: Key('overridden-${registration.key}'),
+              label: inspectorStringsOf(context).badgeOverridden,
+              color: theme.warning,
+              theme: theme,
+            ),
+          ],
+          if (registration.decorators.isNotEmpty) ...[
+            const SizedBox(width: 6),
+            MarkerBadge(
+              key: Key('decorated-${registration.key}'),
+              label: inspectorStringsOf(context).badgeDecorated,
+              color: theme.accent,
+              theme: theme,
+            ),
+          ],
           const SizedBox(width: 8),
           LifetimeBadge(kind: registration.kind, theme: theme),
           if (registration.isInherited) ...[

@@ -213,6 +213,43 @@ class GalleryL10nZh extends GalleryL10n {
   String get namedPoint3 => '同一作用域内重复的键是错误，而不是悄悄地“后者覆盖前者”';
 
   @override
+  String get decoratorsTitle => '装饰器';
+
+  @override
+  String get decoratorsTeaches => '包装注册交出的对象——缓存、日志——不改动它的类。';
+
+  @override
+  String get decoratorsPoint1 => 'scope.decorate，或者在生成容器时用 @CobaltDecorates';
+
+  @override
+  String get decoratorsPoint2 => '最先添加的装饰器在最里层，所以这里的日志也能看到缓存的答案';
+
+  @override
+  String get decoratorsPoint3 => '被持有的注册只装饰一次并共享结果；作用域只关闭内层实例';
+
+  @override
+  String get decoratorsPoint4 => '覆盖会像它替换的那条注册一样被装饰';
+
+  @override
+  String get decoratorsChain => '包装链，从最里层开始';
+
+  @override
+  String decoratorsAsk(String city) {
+    return '$city 的天气预报';
+  }
+
+  @override
+  String decoratorsStationCalls(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已调用 $count 次',
+      zero: '尚未调用',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get widgetScopeTitle => '由控件持有的作用域';
 
   @override

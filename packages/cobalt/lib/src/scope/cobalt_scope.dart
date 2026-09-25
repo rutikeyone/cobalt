@@ -191,12 +191,13 @@ final class CobaltScope implements CobaltResolver {
   /// The decorators that wrap [key], in the order they apply, innermost
   /// first; empty when none do.
   ///
+  /// Each is named by the `debugLabel` it was added with, or by its type.
   /// Answered for the scope that owns [key], the only one whose decorators
   /// can apply to it.
-  List<Type> debugDecoratorsOf(CobaltKey key) => [
+  List<String> debugDecoratorsOf(CobaltKey key) => [
     for (final decoration
         in _lookup(key)?.scope._decorators[key] ?? const <_Decoration>[])
-      decoration.type,
+      decoration.label,
   ];
 
   /// Resolves [key] without naming its type, or null when nothing registers it.
@@ -361,16 +362,21 @@ final class CobaltScope implements CobaltResolver {
   /// whoever holds it would keep the undecorated instance. A decorator for a
   /// key this scope does not register wraps nothing, and [runBuilder] reports
   /// that once the builder returns, naming the ancestor that owns it.
+  ///
+  /// [debugLabel] is how [debugDecoratorsOf] and the inspector name it,
+  /// defaulting to the decorator's type. The generator passes the annotated
+  /// class, since the type it emits is its own private wrapper.
   void decorate<T extends Object>(
     CobaltDecorator<T> decorator, {
     String? name,
+    String? debugLabel,
   }) {
     _assertUsable();
     final key = CobaltKey(T, name: name);
     if (_served.contains(key)) throw CobaltDecoratorError.late(key, this.name);
     (_decorators[key] ??= []).add(
       _Decoration(
-        decorator.runtimeType,
+        debugLabel ?? '${decorator.runtimeType}',
         (inner, resolver) => decorator.decorate(inner as T, resolver),
       ),
     );
@@ -1456,9 +1462,9 @@ final class CobaltScope implements CobaltResolver {
 
 /// A decorator with its type erased to what a scope can store.
 class _Decoration {
-  _Decoration(this.type, this.apply);
+  _Decoration(this.label, this.apply);
 
-  final Type type;
+  final String label;
   final Object Function(Object inner, CobaltResolver resolver) apply;
 }
 

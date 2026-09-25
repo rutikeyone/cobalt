@@ -123,7 +123,10 @@ final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
     scope.registerLazyAsyncSingleton<_i761.Leaderboard>(
       const _LeaderboardFactory(),
     );
-    scope.decorate<_i700.Repository>(const _TrackedRepositoryDecorator());
+    scope.decorate<_i700.Repository>(
+      const _TrackedRepositoryDecorator(),
+      debugLabel: 'TrackedRepository',
+    );
   }
 }
 

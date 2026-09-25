@@ -5,7 +5,7 @@ invalid annotations in the IDE instead of only when `build_runner` runs.
 
 ```yaml
 plugins:
-  cobalt_lint: ^0.2.0
+  cobalt_lint: ^0.3.0
 ```
 
 The `plugins` section only works at the root of a package or workspace — a nested
@@ -75,6 +75,8 @@ The overrides above are gone from this repository's own copy now that `cobalt_li
 | `cobalt_registration_is_never_released` | a registered class with a `dispose()` or `close()` the scope cannot see |
 | `cobalt_resource_is_never_closed` | A registration holds something closeable and offers no way to close it. |
 | `cobalt_lazy_registration_injected_synchronously` | a lazy async registration injected where nothing can wait for it — a synchronous or eager constructor, or an `@injected` field |
+| `cobalt_depends_on_lazy_registration` | `@CobaltInit(dependsOn: [...])` naming a lazy async registration, which `init()` never builds |
+| `cobalt_override_needs_type_argument` | a `CobaltOverride` or `CobaltParamOverride` with no type argument, so Dart infers the key it replaces |
 
 All rules are warnings, so they are on by default. Every rule reads annotations through
 `cobalt_analyzer`, the same layer the generator uses.
@@ -93,9 +95,10 @@ registration are not retained. It also stays quiet when a `Disposable` from some
 the supertypes, because it matches by name rather than by library — a rule that cannot see the
 whole graph should fail towards silence.
 
-Eleven of the fourteen rules answer a question about one declaration. The other three —
-`cobalt_dependency_is_not_registered`, `cobalt_dependency_cycle` and
-`cobalt_lazy_registration_injected_synchronously` — answer one about the whole package, and the
+Twelve of the sixteen rules answer a question about one declaration or one expression. The other
+four — `cobalt_dependency_is_not_registered`, `cobalt_dependency_cycle`,
+`cobalt_lazy_registration_injected_synchronously` and `cobalt_depends_on_lazy_registration` —
+answer one about the whole package, and the
 analysis server does not offer that view: it hands a rule one library at a time,
 and the only synchronous window onto the others is their **parsed**, unresolved source.
 

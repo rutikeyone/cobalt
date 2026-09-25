@@ -8,7 +8,7 @@ environment:
 
 
 dependencies:
-  cobalt: ^0.2.0
+  cobalt: ^0.3.0
 
 dev_dependencies:
   lints: ^6.0.0

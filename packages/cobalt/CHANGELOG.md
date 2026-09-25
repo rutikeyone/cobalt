@@ -1,3 +1,28 @@
+## 0.3.0
+
+- Decorators. `CobaltScope.decorate<T>(CobaltDecorator<T>)` wraps what a
+  registration hands out without touching its class — logging, retries, a
+  cache, a metric around a client you do not own. Decorators apply in the
+  order added, the first innermost, with the resolver of the scope that owns
+  the registration. They apply when an instance is handed out, not when it is
+  built: a retained registration is decorated once, on first resolution, and
+  shared; a transient or parameterized one on every build. So the order of
+  `decorate` and the registration inside a builder never matters, not even for
+  an async singleton built by `init()`, and an override is decorated like the
+  registration it replaced. The scope keeps owning the inner instance and
+  closes it once; the decorator is never closed.
+- `CobaltDecoratorError`: decorating a key someone already resolved — its
+  holders would keep the undecorated instance — or one the scope does not
+  register, reported by `runBuilder` with the ancestor that owns it. A
+  decorator resolving its own key is a `CobaltCycleError`.
+- `debugDecoratorsOf(CobaltKey)` names what wraps a key, innermost first, by
+  the `debugLabel` passed to `decorate` or else the decorator's type.
+- `warmUp(Iterable<CobaltKey>)` starts every lazy async build in the list at
+  once and completes when all have settled. Every key is checked before
+  anything is built; builds run on the owning scope and are the ones
+  `getAsync` would share; failures do not stop the others and arrive together
+  as a `CobaltWarmUpError` with a stack trace for each.
+
 ## 0.2.1
 
 - No code changes in this package. Republished in lockstep with the toolchain

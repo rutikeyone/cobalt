@@ -9,21 +9,21 @@ environment:
 
 
 dependencies:
-  cobalt_flutter: ^0.2.0
-  cobalt_talker: ^0.2.0
+  cobalt_flutter: ^0.3.0
+  cobalt_talker: ^0.3.0
   flutter:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
   intl: ^0.20.2
   talker: ^5.1.0
-  cobalt_talker_flutter: ^0.2.0
+  cobalt_talker_flutter: ^0.3.0
   talker_flutter: ^5.1.0
 
 dev_dependencies:
   lints: ^6.0.0
-  cobalt_test_flutter: ^0.2.0
-  cobalt_test: ^0.2.0
+  cobalt_test_flutter: ^0.3.0
+  cobalt_test: ^0.3.0
   flutter_test:
     sdk: flutter
 

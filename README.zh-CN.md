@@ -77,7 +77,7 @@
 | **可观测性** | 类型化事件而不是字符串——日志、结构化上报，以及带线索的崩溃报告 |
 | **应用内检查器** | 实时作用域树、构建了什么及其生命周期，以及上报过的一切 |
 | **导航流程** | 生命周期即一段 go_router 流程的作用域，并且没有任何东西去镜像路由 |
-| **lint 插件** | 十四条规则，建立在生成器所用的同一套解析层上 |
+| **lint 插件** | 十六条规则，建立在生成器所用的同一套解析层上 |
 | **依赖覆盖** | 在注册所属的作用域里替换它，让每个消费者都看到替身——无论是在测试、风味构建还是调试菜单里 |
 | **测试辅助** | 随测试一起销毁的作用域，以及与生产环境同一套机制的依赖覆盖 |
 | **没有全局容器** | 没有任何东西是环境隐式的，所以测试可以并行，同一进程里的两张图互不相关 |
@@ -217,7 +217,7 @@ something outside the generated container registers it.
 
 ## lint 规则
 
-`cobalt_lint` 是 `analysis_server_plugin`，不是 `custom_lint` 插件。它提供十四条 warning 规则，
+`cobalt_lint` 是 `analysis_server_plugin`，不是 `custom_lint` 插件。它提供十六条 warning 规则，
 全部建立在生成器所用的同一套 `cobalt_analyzer` 解析层上，
 因此错误会在 IDE 里出现，而不是非等到 `build_runner` 跑完：
 
@@ -237,6 +237,8 @@ something outside the generated container registers it.
 | `cobalt_registration_is_never_released` | 已注册的类带有作用域看不见的 `dispose()` 或 `close()` |
 | `cobalt_resource_is_never_closed` | 注册项持有需要关闭的东西，却没有提供关闭它的办法 |
 | `cobalt_lazy_registration_injected_synchronously` | 惰性异步注册被注入到无法等待它的地方——同步或 eager 构造函数，或 `@injected` 字段 |
+| `cobalt_depends_on_lazy_registration` | `@CobaltInit(dependsOn: [...])` 指向惰性异步注册，而 `init()` 从不构建它 |
+| `cobalt_override_needs_type_argument` | `CobaltOverride` 或 `CobaltParamOverride` 没写类型参数，替换哪个键就由 Dart 推断 |
 
 不使用 `custom_lint`：它的最新版本（0.8.1）被钉在 `analyzer ^8.0.0`，无法与现代 analyzer 共存。
 `riverpod_lint` 已迁移到官方的 `analysis_server_plugin`，`cobalt_lint` 亦然。
@@ -253,12 +255,12 @@ cd examples/gallery && flutter run
 ```
 
 画廊是按**能力**而不是按项目组织的——读者来这里是想知道作用域如何结束，
-而不是想看 `notes_app`。六个分区，十五个条目：
+而不是想看 `notes_app`。六个分区，十六个条目：
 
 | 分区 | 条目 |
 |---|---|
 | 启动 | 两阶段启动 · 环境 · 惰性异步 |
-| 注入 | 属性注入 · 命名与多重注入 |
+| 注入 | 属性注入 · 命名与多重注入 · 装饰器 |
 | 作用域与生命周期 | widget 持有的作用域 · 会话作用域 · 作用域树 · 导航流程 · 销毁 |
 | 代码生成 | 生成的容器 · Manual Mode |
 | 可观测性 | 图事件 · 应用内检查器 |

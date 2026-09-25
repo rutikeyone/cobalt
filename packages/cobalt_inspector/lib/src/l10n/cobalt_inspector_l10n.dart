@@ -268,6 +268,18 @@ abstract class CobaltInspectorL10n {
   /// **'gone'**
   String get lifetimeGone;
 
+  /// Badge on a registration an override replaced.
+  ///
+  /// In en, this message translates to:
+  /// **'overridden'**
+  String get badgeOverridden;
+
+  /// Badge on a registration a decorator wraps.
+  ///
+  /// In en, this message translates to:
+  /// **'decorated'**
+  String get badgeDecorated;
+
   /// Action that copies one log record to the clipboard.
   ///
   /// In en, this message translates to:
@@ -351,6 +363,24 @@ abstract class CobaltInspectorL10n {
   /// In en, this message translates to:
   /// **'registered in this scope'**
   String get reachedHere;
+
+  /// Fact label: whether an override stands in for the registration.
+  ///
+  /// In en, this message translates to:
+  /// **'Replaced'**
+  String get factReplaced;
+
+  /// The registration was replaced by an override.
+  ///
+  /// In en, this message translates to:
+  /// **'by an override — the real registration was skipped'**
+  String get replacedByOverride;
+
+  /// Fact label: the decorators wrapping the registration, innermost first.
+  ///
+  /// In en, this message translates to:
+  /// **'Decorated by'**
+  String get factDecoratedBy;
 
   /// Fact label: whether the scope releases the instance.
   ///

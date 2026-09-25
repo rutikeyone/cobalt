@@ -49,7 +49,7 @@ environment:
   sdk: ^3.10.0
 
 dependencies:
-  cobalt: ^0.2.0
+  cobalt: ^0.3.0
 ```
 
 Flutter 应用再加上绑定包，它会重新导出整个运行时，所以你永远不需要同时导入两个：
@@ -60,12 +60,12 @@ environment:
   flutter: ">=3.38.0"
 
 dependencies:
-  cobalt: ^0.2.0
-  cobalt_flutter: ^0.2.0
+  cobalt: ^0.3.0
+  cobalt_flutter: ^0.3.0
 
 dev_dependencies:
-  cobalt_test: ^0.2.0
-  cobalt_test_flutter: ^0.2.0
+  cobalt_test: ^0.3.0
+  cobalt_test_flutter: ^0.3.0
 ```
 
 **从这里出发不会走进死胡同。** 下限是 Dart `^3.10.0` / Flutter `>=3.38.0`，
@@ -951,7 +951,7 @@ class AppScope implements CobaltScopeBuilder {
 
 - **完整性在构建期被检查**，而不是靠测试期的 `expectGraphResolves`；
 - **属性注入**，让已经长到五个以上协作对象的构造函数清空；
-- **十四条 lint 规则**，在编辑器里就抓住 §14 里的那些错误。
+- **十六条 lint 规则**，在编辑器里就抓住 §14 里的那些错误。
 
 保持原样不变的部分：作用域、销毁、两个阶段、参数化注册、可观测性、测试。
 [GUIDE_CODEGEN.zh-CN.md](GUIDE_CODEGEN.zh-CN.md) 从这里接着讲，

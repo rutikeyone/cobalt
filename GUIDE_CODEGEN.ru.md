@@ -20,7 +20,7 @@ Cobalt с генератором: вы размечаете классы, `build
   все пробелы разом, вместо того чтобы упасть на том экране, который первым до неё дойдёт;
 - **property injection** — поля `late final`, заполняемые сгенерированным миксином, так что у класса
   с пятью зависимостями пустой конструктор;
-- **четырнадцать правил линтера**, ловящих остальное в редакторе.
+- **шестнадцать правил линтера**, ловящих остальное в редакторе.
 
 Если ничего из этого не нужно или вы постепенно мигрируете существующий контейнер — всё работает и
 без генератора: [GUIDE_MANUAL.ru.md](GUIDE_MANUAL.ru.md).
@@ -61,15 +61,15 @@ environment:
   flutter: ">=3.38.0"
 
 dependencies:
-  cobalt: ^0.2.0
-  cobalt_flutter: ^0.2.0
+  cobalt: ^0.3.0
+  cobalt_flutter: ^0.3.0
 
 dev_dependencies:
-  cobalt_generator: ^0.2.0
+  cobalt_generator: ^0.3.0
   build_runner: ^2.15.0
-  cobalt_lint: ^0.2.0
-  cobalt_test: ^0.2.0
-  cobalt_test_flutter: ^0.2.0
+  cobalt_lint: ^0.3.0
+  cobalt_test: ^0.3.0
+  cobalt_test_flutter: ^0.3.0
 ```
 
 **Пол здесь тот же, что и в другом режиме**, поэтому приложение на Flutter 3.38 может начинать
@@ -884,13 +884,13 @@ Bootstrap-шаги тоже принимают окружения. Когда х
 
 ## 16. Плагин линтера
 
-Четырнадцать правил на том же слое разбора, которым пользуется генератор, — ошибка видна в редакторе,
+Шестнадцать правил на том же слое разбора, которым пользуется генератор, — ошибка видна в редакторе,
 а не только когда отработает `build_runner`.
 
 ```yaml
 # analysis_options.yaml
 plugins:
-  cobalt_lint: ^0.2.0
+  cobalt_lint: ^0.3.0
 ```
 
 | Правило | Что ловит |
@@ -909,6 +909,8 @@ plugins:
 | `cobalt_registration_is_never_released` | зарегистрированный класс с `dispose()` или `close()`, которых скоуп не видит |
 | `cobalt_resource_is_never_closed` | Регистрация держит то, что надо закрывать, и не предлагает способа закрыть |
 | `cobalt_lazy_registration_injected_synchronously` | ленивая async-регистрация внедрена туда, где её некому ждать, — в синхронный или eager-конструктор или в `@injected`-поле |
+| `cobalt_depends_on_lazy_registration` | `@CobaltInit(dependsOn: [...])` с ленивой async-регистрацией, которую `init()` никогда не строит |
+| `cobalt_override_needs_type_argument` | `CobaltOverride` или `CobaltParamOverride` без аргумента типа — ключ, который он подменяет, выводит Dart |
 
 Две вещи про подключение стоят реального времени:
 

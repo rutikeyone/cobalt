@@ -3,6 +3,8 @@ import 'package:cobalt_inspector/cobalt_inspector.dart';
 import 'package:codegen_basics/cobalt.g.dart' as codegen;
 import 'package:codegen_basics/counter_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:gallery/catalog/decorators_graph.dart';
+import 'package:gallery/catalog/decorators_screen.dart';
 import 'package:gallery/catalog/example_entry.dart';
 import 'package:gallery/catalog/example_host.dart';
 import 'package:gallery/catalog/example_section.dart';
@@ -123,6 +125,27 @@ List<ExampleEntry> buildCatalog(GalleryL10n l10n) => [
     transcript:
         'examples/notes_app/lib/features/formatting/ui/formatters_screen.dart',
     open: (_) => notesGraph(const FormattersScreen()),
+  ),
+  ExampleEntry(
+    id: 'decorators',
+    title: l10n.decoratorsTitle,
+    kind: ExampleKind.screen,
+    section: ExampleSection.injection,
+    teaches: l10n.decoratorsTeaches,
+    glyph: Glyphs.flow,
+    points: [
+      l10n.decoratorsPoint1,
+      l10n.decoratorsPoint2,
+      l10n.decoratorsPoint3,
+      l10n.decoratorsPoint4,
+    ],
+    transcriptLabel: l10n.whereItLives,
+    transcript: 'examples/gallery/lib/catalog/decorators_graph.dart',
+    open: (_) => const ExampleHost(
+      root: DecoratorsScope(),
+      rootName: 'decorators',
+      child: DecoratorsScreen(),
+    ),
   ),
 
   // ── Scopes & lifetime ─────────────────────────────────────────────────

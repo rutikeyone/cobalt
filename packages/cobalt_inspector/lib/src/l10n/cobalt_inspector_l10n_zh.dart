@@ -95,6 +95,12 @@ class CobaltInspectorL10nZh extends CobaltInspectorL10n {
   String get lifetimeGone => '已消失';
 
   @override
+  String get badgeOverridden => '已覆盖';
+
+  @override
+  String get badgeDecorated => '已装饰';
+
+  @override
   String get copyRecord => '复制这条记录';
 
   @override
@@ -135,6 +141,15 @@ class CobaltInspectorL10nZh extends CobaltInspectorL10n {
 
   @override
   String get reachedHere => '注册在此作用域';
+
+  @override
+  String get factReplaced => '替换';
+
+  @override
+  String get replacedByOverride => '被覆盖替换——真实注册已跳过';
+
+  @override
+  String get factDecoratedBy => '装饰器';
 
   @override
   String get factTornDown => '随作用域一起释放';

@@ -77,7 +77,7 @@ graph.
 | **Observability** | typed events, not strings — logging, structured intake and crash reports with a trail |
 | **In-app inspector** | the live scope tree, what was built and with what lifetime, and everything reported |
 | **Navigation flows** | a scope whose lifetime is a go_router flow, without anything mirroring the router |
-| **Lint plugin** | fourteen rules on the same parsing layer the generator uses |
+| **Lint plugin** | sixteen rules on the same parsing layer the generator uses |
 | **Overrides** | replace a registration where it is owned, so every consumer sees the double — in a test, a flavour or a debug menu |
 | **Test helpers** | scopes that dispose with the test, overrides that work the way production ones do |
 | **No global container** | nothing is ambient, so tests run in parallel and two graphs in one process are unrelated |
@@ -230,7 +230,7 @@ package README.
 
 ## Lint rules
 
-`cobalt_lint` is an `analysis_server_plugin`, not a `custom_lint` plugin. It ships fourteen warning
+`cobalt_lint` is an `analysis_server_plugin`, not a `custom_lint` plugin. It ships sixteen warning
 rules, all built on the same `cobalt_analyzer` parsing layer the generator uses, so a mistake surfaces
 in the IDE instead of only when `build_runner` runs:
 
@@ -250,6 +250,8 @@ in the IDE instead of only when `build_runner` runs:
 | `cobalt_registration_is_never_released` | a registered class with a `dispose()` or `close()` the scope cannot see |
 | `cobalt_resource_is_never_closed` | A registration holds something closeable and offers no way to close it |
 | `cobalt_lazy_registration_injected_synchronously` | a lazy async registration injected where nothing can wait for it — a synchronous or eager constructor, or an `@injected` field |
+| `cobalt_depends_on_lazy_registration` | `@CobaltInit(dependsOn: [...])` naming a lazy async registration, which `init()` never builds |
+| `cobalt_override_needs_type_argument` | a `CobaltOverride` or `CobaltParamOverride` with no type argument, so Dart infers the key it replaces |
 
 `custom_lint` is not used: its latest release (0.8.1) is pinned to `analyzer ^8.0.0` and cannot
 coexist with a modern analyzer. `riverpod_lint` migrated off it to the first-party
@@ -267,12 +269,12 @@ cd examples/gallery && flutter run
 ```
 
 The gallery is organised by **capability**, not by project — a reader arrives wanting to know how
-scopes end, not wanting to see `notes_app`. Fifteen entries in six sections:
+scopes end, not wanting to see `notes_app`. Sixteen entries in six sections:
 
 | Section | Entries |
 |---|---|
 | Startup | Two-phase startup · Environments · Lazy async |
-| Injection | Property injection · Named and multi-injection |
+| Injection | Property injection · Named and multi-injection · Decorators |
 | Scopes & lifetime | Widget-owned scope · Session scope · Scope tree · Navigation flows · Teardown |
 | Code generation | Generated container · Manual mode |
 | Observability | Graph events · In-app inspector |

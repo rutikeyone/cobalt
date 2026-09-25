@@ -50,7 +50,7 @@ environment:
   sdk: ^3.10.0
 
 dependencies:
-  cobalt: ^0.2.0
+  cobalt: ^0.3.0
 ```
 
 Flutter-приложение добавляет биндинги, которые реэкспортируют весь рантайм, поэтому оба сразу
@@ -62,12 +62,12 @@ environment:
   flutter: ">=3.38.0"
 
 dependencies:
-  cobalt: ^0.2.0
-  cobalt_flutter: ^0.2.0
+  cobalt: ^0.3.0
+  cobalt_flutter: ^0.3.0
 
 dev_dependencies:
-  cobalt_test: ^0.2.0
-  cobalt_test_flutter: ^0.2.0
+  cobalt_test: ^0.3.0
+  cobalt_test_flutter: ^0.3.0
 ```
 
 **Отсюда никуда не упираешься.** Пол — Dart `^3.10.0` / Flutter `>=3.38.0`, тот же самый, что
@@ -992,7 +992,7 @@ class AppScope implements CobaltScopeBuilder {
 
 - **полнота, проверенная на сборке**, а не через `expectGraphResolves` на тестах;
 - **property injection**, опустошающий конструкторы, доросшие до пяти и более зависимостей;
-- **четырнадцать правил линтера**, ловящих ошибки из §14 прямо в редакторе.
+- **шестнадцать правил линтера**, ловящих ошибки из §14 прямо в редакторе.
 
 Что остаётся ровно как есть: скоупы, разбор, две фазы, параметризованные регистрации,
 наблюдаемость, тесты. [GUIDE_CODEGEN.ru.md](GUIDE_CODEGEN.ru.md) продолжает отсюда, а

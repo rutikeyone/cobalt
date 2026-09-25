@@ -9,8 +9,8 @@ environment:
 
 
 dependencies:
-  cobalt: ^0.2.0
-  cobalt_flutter: ^0.2.0
+  cobalt: ^0.3.0
+  cobalt_flutter: ^0.3.0
   flutter:
     sdk: flutter
   flutter_localizations:
@@ -19,8 +19,8 @@ dependencies:
 
 dev_dependencies:
   lints: ^6.0.0
-  cobalt_generator: ^0.2.0
-  cobalt_lint: ^0.2.0
+  cobalt_generator: ^0.3.0
+  cobalt_lint: ^0.3.0
   build_runner: ^2.15.0
   flutter_test:
     sdk: flutter

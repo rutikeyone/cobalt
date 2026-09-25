@@ -122,6 +122,14 @@
   "@lifetimeGone": {
     "description": "Badge for a registration whose lifetime is no longer known."
   },
+  "badgeOverridden": "overridden",
+  "@badgeOverridden": {
+    "description": "Badge on a registration an override replaced."
+  },
+  "badgeDecorated": "decorated",
+  "@badgeDecorated": {
+    "description": "Badge on a registration a decorator wraps."
+  },
   "copyRecord": "copy this record",
   "@copyRecord": {
     "description": "Action that copies one log record to the clipboard."
@@ -177,6 +185,18 @@
   "reachedHere": "registered in this scope",
   "@reachedHere": {
     "description": "The registration belongs to the scope being looked at."
+  },
+  "factReplaced": "Replaced",
+  "@factReplaced": {
+    "description": "Fact label: whether an override stands in for the registration."
+  },
+  "replacedByOverride": "by an override — the real registration was skipped",
+  "@replacedByOverride": {
+    "description": "The registration was replaced by an override."
+  },
+  "factDecoratedBy": "Decorated by",
+  "@factDecoratedBy": {
+    "description": "Fact label: the decorators wrapping the registration, innermost first."
   },
   "factTornDown": "Torn down with the scope",
   "@factTornDown": {

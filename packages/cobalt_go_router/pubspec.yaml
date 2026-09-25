@@ -1,6 +1,6 @@
 name: cobalt_go_router
 description: go_router bindings for Cobalt — dependency scopes whose lifetime is a navigation flow, created on entry and disposed on exit.
-version: 0.2.1
+version: 0.3.0
 repository: https://github.com/rutikeyone/cobalt
 issue_tracker: https://github.com/rutikeyone/cobalt/issues
 topics:
@@ -15,14 +15,14 @@ environment:
 
 
 dependencies:
-  cobalt_flutter: ^0.2.0
+  cobalt_flutter: ^0.3.0
   flutter:
     sdk: flutter
   go_router: ^17.0.0
 
 dev_dependencies:
   lints: ^6.0.0
-  cobalt_test_flutter: ^0.2.0
-  cobalt_test: ^0.2.0
+  cobalt_test_flutter: ^0.3.0
+  cobalt_test: ^0.3.0
   flutter_test:
     sdk: flutter
