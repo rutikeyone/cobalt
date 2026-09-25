@@ -746,6 +746,41 @@ class NetworkModule {
 
 成员参与类所参与的一切：重复检测、拓扑排序，以及完整性检查。
 
+### 包装一条注册
+
+`@CobaltDecorates` 在不改动类本身的情况下包装一条注册交出的对象——日志、重试、缓存，
+或者给另一个包里的客户端加一层指标：
+
+```dart
+@CobaltDecorates(ApiClient)
+class LoggingApi implements ApiClient {
+  LoggingApi(this._inner, this._log);
+
+  final ApiClient _inner;
+  final Logger _log;
+}
+```
+
+这个类本身不会被注册。生成器会围绕它生成一个 `CobaltDecorator`，并在 `build()` 里写入
+`scope.decorate<ApiClient>(...)`，所以每一次 `get<ApiClient>()`——包括注入的字段——拿到的都是包装。
+`examples/codegen_basics` 里 `Repository` 上就有一个。
+
+规则如下，每条都有原因：
+
+- 这个类**实现目标类型**，构造函数里**恰好一个**该类型的参数：被包装的实例。其余参数从拥有这条注册的
+  作用域解析，`@Named` 同样适用。`@CobaltParam` 和 `@injected` 字段会被拒绝——装饰器由作用域应用，
+  没有调用点。
+- 同一条注册的两个装饰器需要 **`order:`**，数值小的在里层。构建不会去猜，也不接受两个相同的顺序。
+  环境互不相交的装饰器之间不存在竞争。
+- 目标必须**在装饰器生效的每个环境里都已注册**，或者列在 `provides:` 里。它的依赖和任何类一样经过完整性检查，
+  而需要某个依赖于自身目标之物的装饰器就是一个循环。
+- 装饰器**不能接收惰性 async 注册**：它在实例被交出时同步执行。包装惰性注册没有问题。
+- 在阶段 1 期间解析被装饰注册的 async 类，会**等待装饰器所解析的东西**。生成器把它加进这个类的
+  `dependsOn`——加在使用方而不是目标上，所以覆盖目标不会让这份等待丢失。
+
+运行时它与 Manual Mode 中的 `decorate` 完全相同：被持有的注册只装饰一次并共享结果，覆盖会像它替换的那条注册一样被装饰，
+作用域关闭的是内层实例，从不关闭装饰器。
+
 ---
 
 ## 15. 一张图，多种构建

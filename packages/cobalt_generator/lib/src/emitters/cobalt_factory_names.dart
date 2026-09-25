@@ -20,10 +20,26 @@ import 'package:cobalt_analyzer/cobalt_analyzer.dart';
 ///   the order declarations were visited in and does not move between builds.
 class CobaltFactoryNames {
   /// Names the factories of [declarations], resolving collisions among them.
-  CobaltFactoryNames(Iterable<CobaltInjectableClass> declarations)
-    : _contested = _contestedIn(declarations);
+  CobaltFactoryNames(
+    Iterable<CobaltInjectableClass> declarations, {
+    Iterable<CobaltDecoratorClass> decorators = const [],
+  }) : _contested = _contestedIn(declarations),
+       _contestedDecorators = _twiceIn(decorators.map(_decoratorBaseOf));
 
   final Set<String> _contested;
+  final Set<String> _contestedDecorators;
+
+  /// The class name to emit for [decorator], contested the same way a
+  /// factory name is: two decorator classes of one name in different
+  /// libraries would otherwise emit one private class twice.
+  String ofDecorator(CobaltDecoratorClass decorator) {
+    final base = _decoratorBaseOf(decorator);
+    if (!_contestedDecorators.contains(base)) return base;
+    return '$base\$${_aliasOf(decorator.type.import ?? '')}';
+  }
+
+  static String _decoratorBaseOf(CobaltDecoratorClass decorator) =>
+      '_${decorator.type.name}Decorator';
 
   /// The class name to emit for [declaration].
   String of(CobaltInjectableClass declaration) {
@@ -48,12 +64,13 @@ class CobaltFactoryNames {
 
   static Set<String> _contestedIn(
     Iterable<CobaltInjectableClass> declarations,
-  ) {
+  ) => _twiceIn(declarations.map(_baseNameOf));
+
+  static Set<String> _twiceIn(Iterable<String> names) {
     final seen = <String>{};
     final twice = <String>{};
-    for (final declaration in declarations) {
-      final base = _baseNameOf(declaration);
-      if (!seen.add(base)) twice.add(base);
+    for (final name in names) {
+      if (!seen.add(name)) twice.add(name);
     }
     return twice;
   }

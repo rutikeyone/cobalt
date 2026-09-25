@@ -4,6 +4,8 @@ import 'package:codegen_basics/counter_screen.dart';
 import 'package:codegen_basics/greeting.dart';
 import 'package:codegen_basics/l10n/codegen_basics_l10n.dart';
 import 'package:codegen_basics/leaderboard.dart';
+import 'package:codegen_basics/services.dart';
+import 'package:codegen_basics/tracked_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -51,6 +53,26 @@ void main() {
     await tester.pump();
 
     expect(find.text('1'), findsOneWidget);
+  });
+
+  testWidgets('the bloc writes through the generated decorator', (
+    tester,
+  ) async {
+    await pumpScreen(tester);
+    await tester.tap(find.text('increment'));
+    await tester.pump();
+
+    final root = CobaltScopeProvider.of(
+      tester.element(find.byType(CounterScreen)),
+    ).root;
+    final repository = root.get<Repository>();
+
+    expect(repository, isA<TrackedRepository>());
+    expect(
+      (repository as TrackedRepository).writes,
+      1,
+      reason: 'the injected field received the wrapper, not the class itself',
+    );
   });
 
   test('startup does not build the leaderboard', () async {

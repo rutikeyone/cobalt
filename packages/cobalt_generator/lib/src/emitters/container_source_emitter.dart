@@ -3,6 +3,7 @@ import 'package:cobalt_annotations/cobalt_annotations.dart';
 import 'package:cobalt_generator/src/emitters/cobalt_factory_names.dart';
 import 'package:cobalt_generator/src/emitters/cobalt_references.dart';
 import 'package:cobalt_generator/src/emitters/bootstrap_emitter.dart';
+import 'package:cobalt_generator/src/emitters/decorator_emitter.dart';
 import 'package:cobalt_generator/src/emitters/injectable_factory_emitter.dart';
 import 'package:cobalt_generator/src/emitters/root_scope_emitter.dart';
 import 'package:cobalt_generator/src/emitters/start_function_emitter.dart';
@@ -21,6 +22,7 @@ class ContainerSourceEmitter {
   static const _rootScope = RootScopeEmitter();
   static const _bootstrap = BootstrapEmitter();
   static const _start = StartFunctionEmitter();
+  static const _decorators = DecoratorEmitter();
 
   String emit(CobaltLibraryDeclarations declarations) {
     final injectables = [...declarations.injectables]
@@ -29,11 +31,31 @@ class ContainerSourceEmitter {
         return byKey != 0 ? byKey : a.type.name.compareTo(b.type.name);
       });
 
+    final decorators = [...declarations.decorators]
+      ..sort((a, b) {
+        final byTarget = _targetOf(a).compareTo(_targetOf(b));
+        if (byTarget != 0) return byTarget;
+        final byOrder = (a.order ?? 0).compareTo(b.order ?? 0);
+        return byOrder != 0 ? byOrder : a.type.name.compareTo(b.type.name);
+      });
+
     _assertNoEnvironmentConflicts(injectables);
 
     final scopeName = _start.resolveName(declarations.scopeRoots);
 
-    _assertNoMissingDependencies(injectables, declarations.scopeRoots);
+    _assertDecoratorsHaveTargets(
+      injectables,
+      decorators,
+      declarations.scopeRoots,
+    );
+
+    _assertNoMissingDependencies(
+      injectables,
+      declarations.scopeRoots,
+      decorators,
+    );
+
+    _assertDecoratorOrder(decorators);
 
     _assertDependsOnIsAsync(injectables);
 
@@ -41,15 +63,15 @@ class ContainerSourceEmitter {
       for (final declaration in injectables)
         if (declaration.isLazyAsync) _keyOf(declaration),
     };
-    _assertLazyIsAwaited(injectables, lazyKeys);
+    _assertLazyIsAwaited(injectables, lazyKeys, decorators);
 
-    final ordered = _withDerivedDependsOn(injectables);
-    final names = CobaltFactoryNames(ordered);
+    final ordered = _withDerivedDependsOn(injectables, decorators);
+    final names = CobaltFactoryNames(ordered, decorators: decorators);
 
     final hasBootstrap = declarations.bootstrapSteps.isNotEmpty;
-    final scopeUsesEnvironments = injectables.any(
-      (declaration) => declaration.environments.isNotEmpty,
-    );
+    final scopeUsesEnvironments =
+        injectables.any((declaration) => declaration.environments.isNotEmpty) ||
+        decorators.any((decorator) => decorator.environments.isNotEmpty);
     final bootstrapUsesEnvironments = declarations.bootstrapSteps.any(
       (step) => step.environments.isNotEmpty,
     );
@@ -62,18 +84,21 @@ class ContainerSourceEmitter {
               _argsTypedef(declaration, names),
           for (final declaration in ordered)
             _factories.emit(declaration, names, awaited: lazyKeys),
-          if (ordered.isNotEmpty)
+          for (final decorator in decorators)
+            _decorators.emit(decorator, names),
+          if (ordered.isNotEmpty || decorators.isNotEmpty)
             _rootScope.emit(
-              _ordered(ordered),
+              _ordered(ordered, decorators),
               names,
               usesEnvironments: scopeUsesEnvironments,
+              decorators: decorators,
             ),
           if (hasBootstrap)
             _bootstrap.emit(
               declarations.bootstrapSteps,
               usesEnvironments: bootstrapUsesEnvironments,
             ),
-          if (injectables.isNotEmpty) ...[
+          if (injectables.isNotEmpty || decorators.isNotEmpty) ...[
             _start.emitName(scopeName),
             _start.emitStart(
               hasBootstrap: hasBootstrap,
@@ -123,16 +148,29 @@ class ContainerSourceEmitter {
     );
   }
 
+  /// Orders registrations so each comes after what it depends on.
+  ///
+  /// A decorator's dependencies count as its target's: the decorator runs
+  /// whenever the target is handed out, so what it resolves has to be there
+  /// by then, and a decorator that needs something depending on its own
+  /// target is a cycle like any other.
   List<CobaltInjectableClass> _ordered(
     List<CobaltInjectableClass> injectables,
+    List<CobaltDecoratorClass> decorators,
   ) {
     final byKey = _groupByKey(injectables);
+    final decoratorsByTarget = _decoratorsByTarget(decorators);
 
     final levels = layeredTopologicalSort<CobaltInjectableClass>(
       injectables,
       (declaration) => [
         for (final dependency in _dependenciesOf(declaration))
           ...?byKey[dependency.key],
+        for (final decorator
+            in decoratorsByTarget[_keyOf(declaration)] ??
+                const <CobaltDecoratorClass>[])
+          for (final dependency in decorator.dependencies)
+            ...?byKey[keyOfDependency(dependency)],
       ],
       labelOf: (declaration) => declaration.label,
     );
@@ -155,12 +193,10 @@ class ContainerSourceEmitter {
   void _assertNoMissingDependencies(
     List<CobaltInjectableClass> injectables,
     List<CobaltScopeRootClass> roots,
+    List<CobaltDecoratorClass> decorators,
   ) {
-    final provided = {
-      for (final root in roots)
-        for (final ref in root.provides) _refKey(ref.type, ref.name),
-    };
-    final universe = _environmentUniverse(injectables);
+    final provided = _providedKeys(roots);
+    final universe = _environmentUniverse(injectables, decorators);
     final missing = <String, _MissingDependency>{};
 
     for (final environment in universe) {
@@ -188,12 +224,107 @@ class ContainerSourceEmitter {
               .add(environment);
         }
       }
+
+      for (final decorator in decorators) {
+        if (!_activeIn(decorator.environments, environment)) continue;
+        for (final parameter in decorator.dependencies) {
+          final dependency = _dependency(parameter.type, parameter.name);
+          if (dependency.isOptional) continue;
+          if (available.contains(dependency.key)) continue;
+          missing
+              .putIfAbsent(
+                '${decorator.type.name}#${dependency.key}',
+                () => _MissingDependency(decorator.type.name, dependency.label),
+              )
+              .environments
+              .add(environment);
+        }
+      }
     }
 
     if (missing.isEmpty) return;
     throw CobaltGenerationError(
       _missingMessage(missing.values.toList(), universe),
     );
+  }
+
+  /// Rejects a decorator of something nothing registers.
+  ///
+  /// At runtime this is the owner check at the end of `runBuilder`; here it
+  /// becomes a build failure, checked per environment for the same reason the
+  /// completeness check is. A key named in `provides` is trusted: whatever
+  /// registers it by hand registers it in the same scope.
+  void _assertDecoratorsHaveTargets(
+    List<CobaltInjectableClass> injectables,
+    List<CobaltDecoratorClass> decorators,
+    List<CobaltScopeRootClass> roots,
+  ) {
+    if (decorators.isEmpty) return;
+    final provided = _providedKeys(roots);
+    final universe = _environmentUniverse(injectables, decorators);
+    final missing = <CobaltDecoratorClass, Set<String>>{};
+
+    for (final environment in universe) {
+      final available = {
+        ...provided,
+        for (final declaration in injectables)
+          if (_activeIn(declaration.environments, environment))
+            _keyOf(declaration),
+      };
+      for (final decorator in decorators) {
+        if (!_activeIn(decorator.environments, environment)) continue;
+        if (available.contains(_targetOf(decorator))) continue;
+        missing.putIfAbsent(decorator, () => {}).add(environment);
+      }
+    }
+    if (missing.isEmpty) return;
+
+    final lines = [
+      for (final MapEntry(key: decorator, value: environments)
+          in missing.entries)
+        '  ${decorator.type.name} decorates ${_targetLabel(decorator)}'
+            '${environments.length == universe.length ? '' : ' in ${(environments.toList()..sort()).join(', ')}'}',
+    ].join('\n');
+    throw CobaltGenerationError(
+      'A decorator wraps a registration nothing makes.\n$lines\n'
+      'Register what it decorates, restrict the decorator to the environments '
+      'that have it, or name it in @CobaltScopeRoot(provides: [...]) when '
+      'something outside the generated container registers it.',
+    );
+  }
+
+  /// Rejects two decorators of one registration that do not say which wraps
+  /// which.
+  ///
+  /// The order decides behaviour — a retry outside a cache is not a cache
+  /// outside a retry — and the order classes happen to be read in is no
+  /// order at all. Decorators whose environments never meet do not compete.
+  void _assertDecoratorOrder(List<CobaltDecoratorClass> decorators) {
+    for (final group in _decoratorsByTarget(decorators).values) {
+      for (var i = 0; i < group.length; i++) {
+        for (var j = i + 1; j < group.length; j++) {
+          final first = group[i];
+          final second = group[j];
+          if (!_canCoexist(first.environments, second.environments)) continue;
+          if (first.order == null || second.order == null) {
+            throw CobaltGenerationError(
+              '${first.type.name} and ${second.type.name} both decorate '
+              '${_targetLabel(first)} and do not say which wraps which. Give '
+              'each an order: the lower one is applied first and ends up '
+              'innermost.',
+            );
+          }
+          if (first.order == second.order) {
+            throw CobaltGenerationError(
+              '${first.type.name} and ${second.type.name} both decorate '
+              '${_targetLabel(first)} with order ${first.order}. Give them '
+              'different orders: the lower one is applied first and ends up '
+              'innermost.',
+            );
+          }
+        }
+      }
+    }
   }
 
   /// Rejects a `dependsOn` naming a registration that is not async.
@@ -268,8 +399,25 @@ class ContainerSourceEmitter {
   void _assertLazyIsAwaited(
     List<CobaltInjectableClass> injectables,
     Set<String> lazyKeys,
+    List<CobaltDecoratorClass> decorators,
   ) {
     if (lazyKeys.isEmpty) return;
+
+    final decorating = [
+      for (final decorator in decorators)
+        for (final parameter in decorator.dependencies)
+          if (lazyKeys.contains(keyOfDependency(parameter)))
+            '${decorator.type.name} injects ${_display(parameter.type)}',
+    ];
+    if (decorating.isNotEmpty) {
+      throw CobaltGenerationError(
+        'A decorator cannot take a lazy async registration.\n'
+        '${decorating.map((line) => '  $line').join('\n')}\n'
+        'A decorator is applied synchronously, when the instance it wraps is '
+        'handed out, so there is no getAsync to await. Resolve it with '
+        'getAsync inside the decorated call instead, or drop lazy from it.',
+      );
+    }
 
     final wrong = <String>[];
     for (final declaration in injectables) {
@@ -311,37 +459,142 @@ class ContainerSourceEmitter {
   ///
   /// Named async dependencies are left out, because `dependsOn` in the IR
   /// carries a type and no qualifier.
+  ///
+  /// An eager async registration also waits for the async dependencies of
+  /// every decorator it reaches while it is built — through what it injects,
+  /// and through the synchronous registrations those inject in turn. Handing
+  /// out a decorated instance runs the decorator, so what the decorator
+  /// resolves has to be finished by then. The wait sits on the consumer, not
+  /// on the decorated registration: an override replaces that registration
+  /// and would take the wait with it. Only a dependency present in every
+  /// environment the consumer is gets added, since `dependsOn` on a key the
+  /// build lacks is an error at runtime.
   List<CobaltInjectableClass> _withDerivedDependsOn(
     List<CobaltInjectableClass> injectables,
+    List<CobaltDecoratorClass> decorators,
   ) {
     final asyncKeys = {
       for (final declaration in injectables)
         if (declaration.isAsyncInit && !declaration.isLazyAsync)
           _keyOf(declaration),
     };
+    final decoratorsByTarget = _decoratorsByTarget(decorators);
+    final byKey = _groupByKey(injectables);
+    final universe = _environmentUniverse(injectables, decorators);
+    Set<String> presentIn(Set<String> environments) =>
+        environments.isEmpty ? universe.toSet() : environments;
+    final asyncPresence = <String, Set<String>>{};
+    for (final declaration in injectables) {
+      if (!declaration.isAsyncInit || declaration.isLazyAsync) continue;
+      asyncPresence
+          .putIfAbsent(_keyOf(declaration), () => {})
+          .addAll(presentIn(declaration.environments));
+    }
+
+    Iterable<String> injectedKeys(CobaltInjectableClass declaration) => [
+      for (final parameter in declaration.constructorParameters)
+        if (!parameter.isParam) keyOfDependency(parameter),
+      for (final property in declaration.properties) keyOfDependency(property),
+    ];
+
+    Set<String> reachedWhileBuilding(CobaltInjectableClass declaration) {
+      final reached = <String>{};
+      final pending = [...injectedKeys(declaration)];
+      while (pending.isNotEmpty) {
+        final key = pending.removeLast();
+        if (!reached.add(key)) continue;
+        for (final provider in byKey[key] ?? const <CobaltInjectableClass>[]) {
+          if (provider.isAsyncInit) continue;
+          pending.addAll(injectedKeys(provider));
+        }
+      }
+      return reached;
+    }
+
+    List<CobaltTypeRef> fromDecorators(CobaltInjectableClass declaration) {
+      if (decorators.isEmpty) return const [];
+      final needed = presentIn(declaration.environments);
+      final own = _keyOf(declaration);
+      return [
+        for (final key in reachedWhileBuilding(declaration))
+          for (final decorator
+              in decoratorsByTarget[key] ?? const <CobaltDecoratorClass>[])
+            for (final parameter in decorator.dependencies)
+              if (parameter.name == null &&
+                  _refKey(parameter.type, null) != own &&
+                  (asyncPresence[_refKey(parameter.type, null)]?.containsAll(
+                        needed,
+                      ) ??
+                      false))
+                parameter.type,
+      ];
+    }
 
     return [
       for (final declaration in injectables)
-        if (declaration.provider == null ||
-            !declaration.isAsyncInit ||
-            declaration.isLazyAsync ||
-            declaration.dependsOn.isNotEmpty)
+        if (!declaration.isAsyncInit || declaration.isLazyAsync)
           declaration
         else
-          declaration.withDependsOn([
-            for (final parameter in declaration.constructorParameters)
-              if (parameter.name == null &&
-                  asyncKeys.contains(_refKey(parameter.type, null)))
-                parameter.type,
+          _withExtraDependsOn(declaration, [
+            if (declaration.provider != null && declaration.dependsOn.isEmpty)
+              for (final parameter in declaration.constructorParameters)
+                if (parameter.name == null &&
+                    asyncKeys.contains(_refKey(parameter.type, null)))
+                  parameter.type,
+            ...fromDecorators(declaration),
           ]),
     ];
   }
 
-  static List<String> _environmentUniverse(
-    List<CobaltInjectableClass> injectables,
+  static CobaltInjectableClass _withExtraDependsOn(
+    CobaltInjectableClass declaration,
+    List<CobaltTypeRef> extra,
   ) {
+    final merged = [...declaration.dependsOn];
+    for (final type in extra) {
+      if (merged.any((existing) => existing.signature == type.signature)) {
+        continue;
+      }
+      merged.add(type);
+    }
+    if (merged.length == declaration.dependsOn.length) return declaration;
+    return declaration.withDependsOn(merged);
+  }
+
+  static Map<String, List<CobaltDecoratorClass>> _decoratorsByTarget(
+    List<CobaltDecoratorClass> decorators,
+  ) {
+    final byTarget = <String, List<CobaltDecoratorClass>>{};
+    for (final decorator in decorators) {
+      byTarget.putIfAbsent(_targetOf(decorator), () => []).add(decorator);
+    }
+    return byTarget;
+  }
+
+  static Set<String> _providedKeys(List<CobaltScopeRootClass> roots) => {
+    for (final root in roots)
+      for (final ref in root.provides) _refKey(ref.type, ref.name),
+  };
+
+  static bool _activeIn(Set<String> environments, String environment) =>
+      environments.isEmpty || environments.contains(environment);
+
+  static String _targetOf(CobaltDecoratorClass decorator) =>
+      _refKey(decorator.target, decorator.name);
+
+  static String _targetLabel(CobaltDecoratorClass decorator) {
+    final name = decorator.name;
+    final target = _display(decorator.target);
+    return name == null ? target : "$target named '$name'";
+  }
+
+  static List<String> _environmentUniverse(
+    List<CobaltInjectableClass> injectables, [
+    List<CobaltDecoratorClass> decorators = const [],
+  ]) {
     final declared = {
       for (final declaration in injectables) ...declaration.environments,
+      for (final decorator in decorators) ...decorator.environments,
     };
     if (declared.isEmpty) return [CobaltEnvironment.defaultEnvironment.name];
     return declared.toList()..sort();

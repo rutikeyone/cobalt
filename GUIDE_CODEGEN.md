@@ -779,6 +779,47 @@ The rules, each with a reason:
 Members participate in everything a class does: duplicate detection, topological ordering, and the
 completeness check.
 
+### Wrapping a registration
+
+`@CobaltDecorates` wraps what a registration hands out without touching its class — logging,
+retries, a cache, a metric around a client from another package:
+
+```dart
+@CobaltDecorates(ApiClient)
+class LoggingApi implements ApiClient {
+  LoggingApi(this._inner, this._log);
+
+  final ApiClient _inner;
+  final Logger _log;
+}
+```
+
+The class is not registered. The generator emits a `CobaltDecorator` around it and a
+`scope.decorate<ApiClient>(...)` in `build()`, so every `get<ApiClient>()` — injected fields
+included — receives the wrapper. `examples/codegen_basics` has one on `Repository`.
+
+The rules, each with a reason:
+
+- The class **implements the target** and takes **exactly one** constructor parameter of that type:
+  the instance it wraps. Every other parameter is resolved from the scope that owns the
+  registration, `@Named` included. `@CobaltParam` and `@injected` fields are refused — the scope
+  applies a decorator, and there is no call site.
+- Two decorators of one registration need an **`order:`**; the lower one is innermost. The build
+  refuses to guess, and refuses two equal orders. Decorators whose environments never meet do not
+  compete.
+- The target has to be **registered wherever the decorator is active**, or named in `provides:`.
+  Its dependencies go through the completeness check like any class's, and a decorator needing
+  something that depends on its own target is a cycle.
+- A decorator **cannot take a lazy async registration**: it runs synchronously, when the instance
+  is handed out. Wrapping a lazy one is fine.
+- An async class that resolves a decorated registration while phase 1 runs **waits for what the
+  decorator resolves**. The generator adds that to its `dependsOn` — on the consumer, not the
+  target, so an override of the target keeps the wait.
+
+At runtime it is the same `decorate` as in Manual Mode: a retained registration is decorated once
+and shared, an override is decorated like the registration it replaced, and the scope closes the
+inner instance, never the decorator.
+
 ---
 
 ## 15. One graph, several builds

@@ -11,6 +11,7 @@ import 'package:codegen_basics/greeting.dart' as _i767;
 import 'package:codegen_basics/leaderboard.dart' as _i761;
 import 'package:codegen_basics/platform_module.dart' as _i122;
 import 'package:codegen_basics/services.dart' as _i700;
+import 'package:codegen_basics/tracked_repository.dart' as _i421;
 
 typedef $GreetingArgs = ({String name, bool loud});
 
@@ -89,6 +90,17 @@ final class _TelemetryFactory implements _i573.CobaltFactory<_i700.Telemetry> {
   _i700.Telemetry create(_i573.CobaltResolver resolver) => _i700.Telemetry();
 }
 
+final class _TrackedRepositoryDecorator
+    implements _i573.CobaltDecorator<_i700.Repository> {
+  const _TrackedRepositoryDecorator();
+
+  @override
+  _i700.Repository decorate(
+    _i700.Repository inner,
+    _i573.CobaltResolver resolver,
+  ) => _i421.TrackedRepository(inner);
+}
+
 final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
   const $CobaltRootScope();
 
@@ -111,6 +123,7 @@ final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
     scope.registerLazyAsyncSingleton<_i761.Leaderboard>(
       const _LeaderboardFactory(),
     );
+    scope.decorate<_i700.Repository>(const _TrackedRepositoryDecorator());
   }
 }
 

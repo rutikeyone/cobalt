@@ -87,6 +87,28 @@ is not, which is every `Bloc`, `Cubit` and `StreamController`.
 Pairing it with a transient or a parameterized registration is a build error: the scope retains
 neither, so it could never call it.
 
+## Decorators
+
+`@CobaltDecorates(Target)` on a class that implements `Target` and takes one `Target` in its
+constructor — the instance it wraps. The class is not registered; the generator emits a
+`CobaltDecorator` around it and a `scope.decorate<Target>(...)` after the registrations in
+`build()`, so every `get<Target>()` hands out the wrapper. Every other constructor parameter is
+resolved from the scope that owns the registration.
+
+What the build checks:
+
+- the target is registered in every environment where the decorator is active, or named in
+  `provides:`;
+- the decorator's own dependencies are complete, and none of them is a lazy async registration —
+  a decorator runs synchronously, when the instance is handed out;
+- two decorators of one registration carry different `order:` values; the lower is innermost, and
+  the generator does not guess from the order files were read in;
+- a decorator needing something that depends on its own target fails as a cycle.
+
+An async class that resolves a decorated registration during phase 1 also waits for the async
+dependencies of the decorator — the generator adds them to that class's `dependsOn`. The wait sits
+on the consumer rather than the target, so an override of the target does not take it away.
+
 ## A missing registration is a build failure
 
 Every dependency the container resolves — constructor parameters, `@injected` fields and

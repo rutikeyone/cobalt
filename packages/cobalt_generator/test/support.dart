@@ -112,17 +112,53 @@ CobaltScopeRootClass scopeRoot(
   List<CobaltProvidedRef> provides = const [],
 }) => CobaltScopeRootClass(type: ref(type), name: name, provides: provides);
 
+/// A decorator of [target] whose constructor takes the wrapped instance
+/// first, then [dependencies].
+CobaltDecoratorClass decorator(
+  String type,
+  String target, {
+  List<CobaltInjectedProperty> dependencies = const [],
+  String? name,
+  int? order,
+  Set<String> environments = const {},
+  bool innerIsNamed = false,
+  String import = appImport,
+}) => CobaltDecoratorClass(
+  type: CobaltTypeRef(name: type, import: import),
+  target: ref(target),
+  inner: 'inner',
+  name: name,
+  order: order,
+  environments: environments,
+  constructorParameters: [
+    CobaltInjectedProperty(
+      field: 'inner',
+      type: ref(target),
+      isNamed: innerIsNamed,
+    ),
+    ...dependencies,
+  ],
+);
+
 String generate(
   List<CobaltInjectableClass> injectables, {
   List<CobaltBootstrapStepClass> bootstrap = const [],
   List<CobaltScopeRootClass> scopeRoots = const [],
+  List<CobaltDecoratorClass> decorators = const [],
 }) => const ContainerSourceEmitter().emit(
   CobaltLibraryDeclarations(
     injectables: injectables,
     bootstrapSteps: bootstrap,
     scopeRoots: scopeRoots,
+    decorators: decorators,
   ),
 );
+
+List<String> decorationsOf(String source) => source
+    .split('\n')
+    .map((line) => line.trim())
+    .where((line) => line.startsWith('scope.decorate'))
+    .toList();
 
 List<String> registrationsOf(String source) => source
     .split('\n')

@@ -184,4 +184,53 @@ void main() {
     expect(decoded.isNamed, isFalse);
     expect(decoded.isParam, isFalse);
   });
+
+  test('a decorator keeps everything the container needs through JSON', () {
+    final result = roundTrip(
+      CobaltLibraryDeclarations(
+        decorators: [
+          CobaltDecoratorClass(
+            type: ref('LoggingApi'),
+            target: ref('Api'),
+            inner: 'inner',
+            name: 'primary',
+            order: 2,
+            environments: const {'dev'},
+            constructorParameters: [
+              CobaltInjectedProperty(
+                field: 'log',
+                type: ref('Logger'),
+                name: 'audit',
+              ),
+              CobaltInjectedProperty(
+                field: 'inner',
+                type: ref('Api'),
+                isNamed: true,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    final decorator = result.decorators.single;
+    expect(decorator.type.name, 'LoggingApi');
+    expect(decorator.target.name, 'Api');
+    expect(decorator.inner, 'inner');
+    expect(decorator.name, 'primary');
+    expect(decorator.order, 2);
+    expect(decorator.environments, {'dev'});
+    expect(decorator.dependencies.single.name, 'audit');
+    expect(decorator.constructorParameters.last.isNamed, isTrue);
+    expect(result.isEmpty, isFalse);
+  });
+
+  test('IR written before decorators existed still reads', () {
+    final result = CobaltLibraryDeclarations.fromJson(const {
+      'injectables': <Object>[],
+    });
+
+    expect(result.decorators, isEmpty);
+    expect(result.toJson(), isNot(contains('decorators')));
+  });
 }

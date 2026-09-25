@@ -238,6 +238,36 @@ void main() {
     });
   });
 
+  group('a decorator generated outside the workspace', () {
+    test('wraps the async registration once, and everyone shares it', () {
+      final database = scope.get<Database>();
+
+      expect(database, isA<AuditedDatabase>());
+      expect(database, same(scope.get<Database>()));
+      expect(scope.get<AuditTrail>().lines, ['database handed out']);
+    });
+
+    test('an async consumer is built after what the decorator needs', () {
+      expect(
+        scope.get<SearchIndex>().isBuilt,
+        isTrue,
+        reason:
+            'SearchIndex resolves Database while phase 1 runs; the decorator '
+            'then asks for AuditTrail, which dependsOn has to have finished',
+      );
+    });
+
+    test('names its wrapper for introspection', () {
+      expect(
+        scope
+            .debugDecoratorsOf(const CobaltKey(Database))
+            .map((type) => '$type'),
+        [contains('AuditedDatabase')],
+        reason: 'the scope sees the generated decorator, named after the class',
+      );
+    });
+  });
+
   group('overrides handed to the generated start function', () {
     test('an eager singleton is built by the scope at startup', () {
       expect(scope.get<LicenseCheck>(), isNot(isA<_ValidLicense>()));
@@ -274,7 +304,15 @@ void main() {
 
         final archive = await overridden.getAsync<Archive>();
 
-        expect(archive.database, same(database));
+        expect(
+          archive.database,
+          isA<AuditedDatabase>().having(
+            (d) => d.inner,
+            'inner',
+            same(database),
+          ),
+          reason: 'the decorator wraps what the override put in its place',
+        );
         expect(
           overridden.get<SearchIndex>(),
           isA<SearchIndex>(),

@@ -261,6 +261,41 @@ Three things keep it honest:
   `registerEagerSingleton(factory)` gives it that chance; a value handed to `registerSingleton`
   already exists, so under an override it is closed with the scope but never resolved.
 
+## Wrapping a registration
+
+A decorator wraps what a registration hands out without touching its class — logging, retries, a
+cache, a metric around a client you do not own:
+
+```dart
+class LoggingApi implements CobaltDecorator<ApiClient> {
+  const LoggingApi();
+
+  @override
+  ApiClient decorate(ApiClient inner, CobaltResolver resolver) =>
+      LoggedApiClient(inner, resolver.get<Logger>());
+}
+
+scope
+  ..registerLazySingleton<ApiClient>(const ApiClientFactory())
+  ..decorate<ApiClient>(const LoggingApi());
+```
+
+It is applied when the instance is **handed out**, not when it is built, on the scope that owns the
+registration and with that scope's resolver. So:
+
+- a retained registration is decorated once and everyone shares the result; a transient or
+  parameterized one is decorated on every build;
+- where `decorate` sits relative to the registration inside `build()` does not matter, not even for
+  an async singleton built by `init()`;
+- an override is decorated like the registration it replaced, so a logging decorator keeps working
+  over a double in a test;
+- the scope closes the inner instance, once, and never the decorator.
+
+Decorating a key someone already resolved is refused — its holders would keep the undecorated
+instance — and so is decorating a key the scope does not register, reported by `runBuilder` with the
+ancestor that owns it. `debugDecoratorsOf(key)` lists what wraps a key, innermost first.
+`@CobaltDecorates` in `cobalt_generator` writes the same call from an annotation.
+
 ## Optional dependencies
 
 `scope.getOrNull<T>()` returns null when nothing is registered for `T`, instead of throwing. It is

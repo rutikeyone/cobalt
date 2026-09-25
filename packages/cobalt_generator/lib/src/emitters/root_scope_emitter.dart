@@ -6,10 +6,13 @@ import 'package:code_builder/code_builder.dart';
 class RootScopeEmitter {
   const RootScopeEmitter();
 
+  /// [decorators] come in the order they are applied, the innermost first,
+  /// and are added after every registration.
   Class emit(
     List<CobaltInjectableClass> ordered,
     CobaltFactoryNames names, {
     required bool usesEnvironments,
+    List<CobaltDecoratorClass> decorators = const [],
   }) => Class(
     (b) => b
       ..name = r'$CobaltRootScope'
@@ -59,10 +62,21 @@ class RootScopeEmitter {
                   declaration.environments,
                   _register(declaration, names),
                 ),
+              for (final decorator in decorators)
+                guardedBy(decorator.environments, _decorate(decorator, names)),
             ]),
         ),
       ),
   );
+
+  Code _decorate(CobaltDecoratorClass decorator, CobaltFactoryNames names) {
+    final name = decorator.name;
+    return refer('scope').property('decorate').call(
+      [refer(names.ofDecorator(decorator)).constInstance(const [])],
+      {if (name != null) 'name': literalString(name)},
+      [typeReferenceOf(decorator.target)],
+    ).statement;
+  }
 
   Code _register(CobaltInjectableClass declaration, CobaltFactoryNames names) {
     final exposed = typeReferenceOf(declaration.exposedType);

@@ -18,6 +18,7 @@ re-exports everything here.
 | `@CobaltInit` | class | an async singleton, with `dependsOn`; `lazy: true` builds it on the first `getAsync` |
 | `@cobaltLazyInit` | class | shorthand for `@CobaltInit(lazy: true)` |
 | `@CobaltModule` / `@cobaltModule` | class | its annotated members register types you do not own |
+| `@CobaltDecorates` | class | wraps what the registration of its target hands out; `name` and `order` among several |
 | `@CobaltScopeRoot` | class | names the root scope; `provides` declares registrations made by hand |
 | `CobaltProvided` | inside `provides` | a hand-made registration that carries a `@Named` qualifier |
 | `@CobaltEnvironment` | class | optional — restricts the registration to an environment; repeat it for several |

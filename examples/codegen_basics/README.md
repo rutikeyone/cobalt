@@ -25,6 +25,11 @@ container is committed, so you can read exactly what the annotations produced.
 this is the feature that removes five-to-fourteen-argument constructors from
 controllers.
 
+**A decorator.** `TrackedRepository` carries `@CobaltDecorates(Repository)`
+and counts writes. The container wraps the one `Repository` it hands out, so
+the bloc's injected field receives the wrapper and `Repository` itself is not
+touched.
+
 **A scope per screen.** `CobaltScopeWidget` gives the counter screen its own
 node in the scope tree. It registers nothing yet, which is the point: that is
 where screen-scoped state goes as the screen grows, and it is disposed when the

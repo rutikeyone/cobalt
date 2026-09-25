@@ -6,6 +6,9 @@ import 'dart:async' as _i687;
 
 import 'package:cobalt/cobalt.dart' as _i573;
 import 'package:cobalt_external_consumer/src/archive.dart' as _i768;
+import 'package:cobalt_external_consumer/src/audit_sink.dart' as _i604;
+import 'package:cobalt_external_consumer/src/audit_trail.dart' as _i720;
+import 'package:cobalt_external_consumer/src/audited_database.dart' as _i963;
 import 'package:cobalt_external_consumer/src/bind_platform.dart' as _i366;
 import 'package:cobalt_external_consumer/src/clock.dart' as _i612;
 import 'package:cobalt_external_consumer/src/database.dart' as _i530;
@@ -44,6 +47,30 @@ final class _ArchiveIndexFactory
     final instance = _i768.ArchiveIndex(
       await resolver.getAsync<_i768.Archive>(),
     );
+    await instance.init();
+    return instance;
+  }
+}
+
+final class _AuditSinkFactory
+    implements _i573.CobaltAsyncFactory<_i604.AuditSink> {
+  const _AuditSinkFactory();
+
+  @override
+  _i687.Future<_i604.AuditSink> create(_i573.CobaltResolver resolver) async {
+    final instance = _i604.AuditSink();
+    await instance.init();
+    return instance;
+  }
+}
+
+final class _AuditTrailFactory
+    implements _i573.CobaltAsyncFactory<_i720.AuditTrail> {
+  const _AuditTrailFactory();
+
+  @override
+  _i687.Future<_i720.AuditTrail> create(_i573.CobaltResolver resolver) async {
+    final instance = _i720.AuditTrail(resolver.get<_i604.AuditSink>());
     await instance.init();
     return instance;
   }
@@ -188,13 +215,24 @@ final class _SessionCacheFactory
       _i995.SessionCache();
 }
 
+final class _AuditedDatabaseDecorator
+    implements _i573.CobaltDecorator<_i530.Database> {
+  const _AuditedDatabaseDecorator();
+
+  @override
+  _i530.Database decorate(
+    _i530.Database inner,
+    _i573.CobaltResolver resolver,
+  ) => _i963.AuditedDatabase(inner, resolver.get<_i720.AuditTrail>());
+}
+
 final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
   const $CobaltRootScope();
 
   @override
   void build(_i573.CobaltScope scope) {
+    scope.registerAsyncSingleton<_i604.AuditSink>(const _AuditSinkFactory());
     scope.registerLazySingleton<_i612.Clock>(const _SystemClockFactory());
-    scope.registerAsyncSingleton<_i530.Database>(const _DatabaseFactory());
     scope.registerEagerSingleton<_i1023.LicenseCheck>(
       const _LicenseCheckFactory(),
     );
@@ -212,7 +250,10 @@ final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
       const _SessionCacheFactory(),
       dispose: _i995.closeSessionCache,
     );
-    scope.registerLazyAsyncSingleton<_i768.Archive>(const _ArchiveFactory());
+    scope.registerAsyncSingleton<_i720.AuditTrail>(
+      const _AuditTrailFactory(),
+      dependsOn: {const _i573.CobaltKey(_i604.AuditSink)},
+    );
     scope.registerLazySingleton<_i862.Diagnostics>(const _DiagnosticsFactory());
     scope.registerParamFactory<_i59.NoteEditor, $NoteEditorArgs>(
       const _NoteEditorFactory(),
@@ -222,14 +263,20 @@ final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
     );
     scope.registerLazySingleton<_i879.Reporter>(const _ReporterFactory());
     scope.registerLazySingleton<_i242.Catalog>(const _CatalogFactory());
+    scope.registerAsyncSingleton<_i530.Database>(const _DatabaseFactory());
+    scope.registerLazyAsyncSingleton<_i768.Archive>(const _ArchiveFactory());
     scope.registerAsyncSingleton<_i375.SearchIndex>(
       const _SearchIndexFactory(),
-      dependsOn: {const _i573.CobaltKey(_i530.Database)},
+      dependsOn: {
+        const _i573.CobaltKey(_i530.Database),
+        const _i573.CobaltKey(_i720.AuditTrail),
+      },
     );
     scope.registerLazyAsyncSingleton<_i768.ArchiveIndex>(
       const _ArchiveIndexFactory(),
     );
     scope.registerFactory<_i1031.Report>(const _ReportFactory());
+    scope.decorate<_i530.Database>(const _AuditedDatabaseDecorator());
   }
 }
 
