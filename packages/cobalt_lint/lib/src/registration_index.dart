@@ -476,8 +476,8 @@ class CobaltRegistrationIndexCache {
   /// The index for the package rooted at [packageRoot], or null when it cannot
   /// be read whole.
   CobaltRegistrationIndex? of(Folder packageRoot, AnalysisSession session) {
-    final lib = packageRoot.getChildAssumingFolder('lib');
-    if (!lib.exists) return null;
+    final lib = packageRoot.getChild('lib');
+    if (lib is! Folder || !lib.exists) return null;
 
     final stamps = <String, int>{};
     _stamp(lib, stamps);

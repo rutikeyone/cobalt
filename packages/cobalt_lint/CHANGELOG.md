@@ -8,6 +8,10 @@
   naming a lazy async registration, which `init()` never builds. Read from the
   package-wide index, like the other graph rules.
 - Sixteen rules.
+- The package index no longer calls `Folder.getChildAssumingFolder`, which
+  analyzer 13.1 deprecated: under a fresh resolution the package itself
+  failed `dart analyze --fatal-infos`. `getChild` exists and is current on
+  every analyzer from 10 to 14.
 
 ## 0.2.1
 
