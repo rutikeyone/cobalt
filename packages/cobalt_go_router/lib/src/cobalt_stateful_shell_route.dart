@@ -40,6 +40,7 @@ class CobaltStatefulShellRoute extends StatefulShellRoute {
     StatefulShellRouteBuilder? shell,
     Widget? loading,
     Widget Function(BuildContext context, Object error)? errorBuilder,
+    CobaltRouteOverrides? overrides,
     super.parentNavigatorKey,
     super.redirect,
     super.restorationScopeId,
@@ -52,6 +53,7 @@ class CobaltStatefulShellRoute extends StatefulShellRoute {
            builder: scope(state),
            loading: loading,
            errorBuilder: errorBuilder,
+           overrides: overrides == null ? null : () => overrides(state),
            child: shell == null
                ? navigationShell
                : shell(context, state, navigationShell),
@@ -68,6 +70,7 @@ class CobaltStatefulShellRoute extends StatefulShellRoute {
     StatefulShellRouteBuilder? shell,
     Widget? loading,
     Widget Function(BuildContext context, Object error)? errorBuilder,
+    CobaltRouteOverrides? overrides,
     super.parentNavigatorKey,
     super.redirect,
     super.restorationScopeId,
@@ -80,6 +83,7 @@ class CobaltStatefulShellRoute extends StatefulShellRoute {
            builder: scope(state),
            loading: loading,
            errorBuilder: errorBuilder,
+           overrides: overrides == null ? null : () => overrides(state),
            child: shell == null
                ? navigationShell
                : shell(context, state, navigationShell),

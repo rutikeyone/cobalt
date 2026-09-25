@@ -40,6 +40,10 @@ abstract class CobaltScopedStatefulWidget extends StatefulWidget {
   /// Shown when initialization fails. Without it the error is rethrown.
   Widget Function(BuildContext context, Object error)? get errorBuilder => null;
 
+  /// Replacements for registrations [registerScope] makes, produced each time
+  /// the scope is created. See [CobaltScopeWidget.overrides].
+  List<CobaltOverride<Object>> Function()? get overrides => null;
+
   /// Declares what this widget's scope holds.
   void registerScope(CobaltScope scope);
 
@@ -62,6 +66,7 @@ abstract class CobaltScopedState<W extends CobaltScopedStatefulWidget>
     builder: CobaltStatefulScopeBuilder(widget),
     loading: widget.loading,
     errorBuilder: widget.errorBuilder,
+    overrides: widget.overrides,
     child: CobaltScopedStateChild(this),
   );
 }

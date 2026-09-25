@@ -599,6 +599,18 @@ CobaltAsyncBuilder<SearchEngine>(
 )
 ```
 
+
+想让它在界面打开前就准备好，就预热它。`warmUp` 同时启动列表里的所有构建，不占用启动路径；
+每一个都是 `getAsync` 本会启动的那次构建，所以期间请求它的界面会等待这次构建，而不是再启动一次：
+
+```dart
+unawaited(scope.warmUp(const [CobaltKey(SearchEngine)]));
+```
+
+所有键都会在任何构建开始之前检查，失败的构建不会阻止其他构建——它们会一起作为 `CobaltWarmUpError` 报告。
+在 Flutter 中，`CobaltAppScope(warmUp: [...])` 在图就绪后立即这样做，位于应用之后而不是 `loading` 之后，
+并把失败报告给 `FlutterError.reportError`。
+
 ---
 
 ## 9. 来自调用方的值
@@ -827,6 +839,10 @@ final scope = cobaltTestRoot(
 接收一个函数，每次启动都会调用，这样重启拿到的不会是上一个图已经关闭的值。
 在应用里，这就是风味构建或调试菜单。覆盖从不静默：观察者会收到 `onRegistrationOverridden`，
 `overriddenKeys` 会列出被替换的键。
+
+`CobaltScopeWidget`、scoped widget 以及每个持有流程的路由也接受 `overrides`——一个在每次创建其作用域时调用的函数。
+在 widget 测试里挂载单个界面并换上替身，用的就是它。它们替换的是这个作用域注册的内容；祖先拥有的键要在祖先上覆盖，
+在子作用域里这样做会失败，并指出拥有者。
 
 构建代价高的 eager 单例请用 `registerEagerSingleton` 注册。交给 `registerSingleton` 的值
 在作用域来得及拒绝之前就已经存在，所以在覆盖之下它会被保留、随作用域关闭，但永远不会被解析；

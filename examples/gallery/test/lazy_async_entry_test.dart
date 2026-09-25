@@ -60,4 +60,23 @@ void main() {
     await tester.pumpAndSettle();
     expect(builds(tester), 'engine built once');
   });
+
+  testWidgets('warming up builds it before search opens', (tester) async {
+    await openEntry(tester);
+
+    await tester.tap(find.byKey(const Key('warm-up')));
+    await tester.pump(SearchEngineFactory.buildTime);
+    await tester.pumpAndSettle();
+    expect(builds(tester), 'engine built once');
+
+    await tester.tap(find.byKey(const Key('open-search')));
+    await tester.pump();
+    expect(
+      find.text('building the engine…'),
+      findsNothing,
+      reason: 'warmed up already, so search opens without a loading frame',
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('engine-ready')), findsOneWidget);
+  });
 }

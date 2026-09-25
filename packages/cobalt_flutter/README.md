@@ -38,7 +38,7 @@ class NoteDetailScreen extends CobaltScopedWidget {
 ```
 
 `buildScoped` runs below the scope, so `context.cobalt<T>()` resolves from it. Override `scopeName`,
-`loading` or `errorBuilder` when the defaults do not fit; the scope is otherwise named after the
+`loading`, `errorBuilder` or `overrides` when the defaults do not fit; the scope is otherwise named after the
 widget, which is what shows up in the scope tree.
 
 `CobaltScopedStatefulWidget` is the stateful counterpart — the widget declares the scope, its
@@ -58,7 +58,25 @@ CobaltScopeWidget(
 ```
 
 `name` is optional everywhere and defaults to the builder's type. If the scope registers async
-singletons, `loading` is shown while `init()` runs and `errorBuilder` receives anything it throws.
+singletons, `loading` is shown while `init()` runs and `errorBuilder` receives anything it throws —
+and so does a builder that throws, in which case the half-built scope is disposed rather than left in
+the tree.
+
+`overrides` replaces what this scope registers, the same way it does on the root — in a widget test
+mounting one screen, or a debug build of it:
+
+```dart
+CobaltScopeWidget(
+  builder: const NoteDetailScope(),
+  overrides: () => [CobaltOverride<NoteDraft>.value(NoteDraft('fixture'))],
+  child: const NoteDetailPage(),
+)
+```
+
+It is a function called on every mount, because the scope closes a value handed over with
+`CobaltOverride.value` when it unmounts. It reaches only this scope's registrations: overriding a key
+an ancestor owns replaces nothing, since the ancestor's factories never see this scope, and it fails
+naming that ancestor — override it there instead.
 
 ## A lazy async registration on one screen
 
@@ -79,6 +97,12 @@ it built and renders without a frame of `loading`. The resolution is held in the
 a parent rebuild neither restarts it nor retries a failed one by itself — `retry` does. Without an
 `errorBuilder` the failure is rethrown during build. For a one-off await outside a builder,
 `context.cobaltAsync<T>()` reads through the nearest scope.
+
+To have it ready before the screen opens, list it in `CobaltAppScope(warmUp: [...])`: the build
+starts as soon as the graph is up, behind `child` rather than behind `loading`, and a screen that
+opens early waits for that same build. A failed warm-up goes to `FlutterError.reportError` — the app
+is already running — and the next `getAsync` tries again. `CobaltScope.warmUp` does the same from
+anywhere else, a login handler for instance.
 
 ## Who owns the root scope
 

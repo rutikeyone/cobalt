@@ -47,6 +47,8 @@
   "lazyAsyncStarted": "启动已完成",
   "lazyAsyncOpen": "打开搜索",
   "lazyAsyncOpenDetail": "第一次进入构建引擎，之后的进入发现它已就绪",
+  "lazyAsyncWarmUp": "预热",
+  "lazyAsyncWarmUpDetail": "scope.warmUp 现在就构建它，搜索打开时无需等待",
   "lazyAsyncSearchTitle": "搜索",
   "lazyAsyncBuilding": "正在构建引擎…",
   "lazyAsyncBuilds": "{count, plural, =0{引擎尚未构建} other{引擎已构建 {count} 次}}",

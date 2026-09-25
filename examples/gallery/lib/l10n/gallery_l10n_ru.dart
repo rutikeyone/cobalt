@@ -171,6 +171,13 @@ class GalleryL10nRu extends GalleryL10n {
       'первый заход строит движок, следующие находят его готовым';
 
   @override
+  String get lazyAsyncWarmUp => 'Прогреть';
+
+  @override
+  String get lazyAsyncWarmUpDetail =>
+      'scope.warmUp строит его сейчас, и поиск открывается без ожидания';
+
+  @override
   String get lazyAsyncSearchTitle => 'Поиск';
 
   @override

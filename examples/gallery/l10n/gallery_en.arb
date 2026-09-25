@@ -116,6 +116,14 @@
   "@lazyAsyncOpenDetail": {
     "description": "What opening the search screen does."
   },
+  "lazyAsyncWarmUp": "Warm up",
+  "@lazyAsyncWarmUp": {
+    "description": "Starts building the lazy engine before the search screen is opened."
+  },
+  "lazyAsyncWarmUpDetail": "scope.warmUp builds it now, so search opens without waiting",
+  "@lazyAsyncWarmUpDetail": {
+    "description": "What warming up does."
+  },
   "lazyAsyncSearchTitle": "Search",
   "@lazyAsyncSearchTitle": {
     "description": "Title of the screen that waits for the lazy engine."

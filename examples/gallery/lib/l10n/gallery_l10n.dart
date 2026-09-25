@@ -382,6 +382,18 @@ abstract class GalleryL10n {
   /// **'the first visit builds the engine; later ones find it built'**
   String get lazyAsyncOpenDetail;
 
+  /// Starts building the lazy engine before the search screen is opened.
+  ///
+  /// In en, this message translates to:
+  /// **'Warm up'**
+  String get lazyAsyncWarmUp;
+
+  /// What warming up does.
+  ///
+  /// In en, this message translates to:
+  /// **'scope.warmUp builds it now, so search opens without waiting'**
+  String get lazyAsyncWarmUpDetail;
+
   /// Title of the screen that waits for the lazy engine.
   ///
   /// In en, this message translates to:

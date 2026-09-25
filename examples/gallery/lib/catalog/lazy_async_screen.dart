@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cobalt_flutter/cobalt_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:gallery/catalog/lazy_async_graph.dart';
@@ -23,6 +25,15 @@ class LazyAsyncScreen extends StatelessWidget {
               subtitle: Text(
                 l10n.lazyAsyncBuilds(builds.count),
                 key: const Key('engine-builds'),
+              ),
+            ),
+            ListTile(
+              key: const Key('warm-up'),
+              title: Text(l10n.lazyAsyncWarmUp),
+              subtitle: Text(l10n.lazyAsyncWarmUpDetail),
+              trailing: const Icon(Icons.bolt),
+              onTap: () => unawaited(
+                context.cobaltScope.warmUp(const [CobaltKey(SearchEngine)]),
               ),
             ),
             ListTile(

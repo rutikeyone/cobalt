@@ -171,6 +171,13 @@ class GalleryL10nEn extends GalleryL10n {
       'the first visit builds the engine; later ones find it built';
 
   @override
+  String get lazyAsyncWarmUp => 'Warm up';
+
+  @override
+  String get lazyAsyncWarmUpDetail =>
+      'scope.warmUp builds it now, so search opens without waiting';
+
+  @override
   String get lazyAsyncSearchTitle => 'Search';
 
   @override

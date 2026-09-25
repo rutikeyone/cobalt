@@ -634,6 +634,11 @@ class SearchEngine implements AsyncInitializable {
 第一次 `getAsync` 之前调用 `get` 会抛出 `CobaltLazyAsyncError`，销毁会等待进行中的构建。
 在组件里，`CobaltAsyncBuilder<SearchEngine>` 在第一个界面构建它时显示 `loading`，之后每个界面都会直接渲染。
 
+
+想让它在界面打开前就准备好，就预热它：`CobaltAppScope(warmUp: [CobaltKey(SearchEngine)])` 在图就绪后立即启动构建，
+位于应用之后而不是 `loading` 之后；`scope.warmUp([...])` 在任何其他地方做同样的事。期间请求它的界面会等待这次构建，
+而不是再启动一次，失败会一起作为 `CobaltWarmUpError` 报告。
+
 ---
 
 ## 12. 来自调用方的值
@@ -988,6 +993,10 @@ eager 单例会被生成为 `registerEagerSingleton`，所以被覆盖的那个�
 
 覆盖从不静默：观察者会收到 `onRegistrationOverridden`，`overriddenKeys` 会列出被替换的键。
 写明类型参数——在列表里 Dart 会把它推断为 `Object`，作用域一创建就会拒绝这样的覆盖。
+
+`CobaltScopeWidget`、scoped widget 以及每个持有流程的路由也接受 `overrides`——一个在每次创建其作用域时调用的函数。
+在 widget 测试里挂载单个界面并换上替身，用的就是它。它们替换的是这个作用域注册的内容；祖先拥有的键要在祖先上覆盖，
+在子作用域里这样做会失败，并指出拥有者。
 
 从子作用域遮蔽仍然可用，但只能影响从子作用域解析的东西：
 

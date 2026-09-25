@@ -47,6 +47,8 @@
   "lazyAsyncStarted": "старт закончен",
   "lazyAsyncOpen": "Открыть поиск",
   "lazyAsyncOpenDetail": "первый заход строит движок, следующие находят его готовым",
+  "lazyAsyncWarmUp": "Прогреть",
+  "lazyAsyncWarmUpDetail": "scope.warmUp строит его сейчас, и поиск открывается без ожидания",
   "lazyAsyncSearchTitle": "Поиск",
   "lazyAsyncBuilding": "движок строится…",
   "lazyAsyncBuilds": "{count, plural, =0{движок ещё не построен} =1{движок построен один раз} few{движок построен {count} раза} many{движок построен {count} раз} other{движок построен {count} раза}}",

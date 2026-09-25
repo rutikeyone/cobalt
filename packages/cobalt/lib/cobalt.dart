@@ -31,6 +31,7 @@ export 'package:cobalt/src/errors/cobalt_param_required_error.dart';
 export 'package:cobalt/src/errors/cobalt_param_type_error.dart';
 export 'package:cobalt/src/errors/cobalt_not_registered_error.dart';
 export 'package:cobalt/src/errors/cobalt_scope_state_error.dart';
+export 'package:cobalt/src/errors/cobalt_warm_up_error.dart';
 export 'package:cobalt/src/factory/cobalt_async_factory.dart';
 export 'package:cobalt/src/factory/cobalt_factory.dart';
 export 'package:cobalt/src/factory/cobalt_param_factory.dart';

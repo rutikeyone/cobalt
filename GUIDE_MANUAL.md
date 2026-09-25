@@ -618,6 +618,20 @@ CobaltAsyncBuilder<SearchEngine>(
 )
 ```
 
+
+To have it ready before a screen opens, warm it up. `warmUp` starts every build in the list at once,
+off the startup path; each is the build `getAsync` would start, so a screen that asks meanwhile waits
+for it rather than starting a second:
+
+```dart
+unawaited(scope.warmUp(const [CobaltKey(SearchEngine)]));
+```
+
+Every key is checked before anything is built, and builds that fail do not stop the others — they
+arrive together as a `CobaltWarmUpError`. In Flutter, `CobaltAppScope(warmUp: [...])` does it as soon
+as the graph is up, behind the app rather than behind `loading`, and reports a failure to
+`FlutterError.reportError`.
+
 ---
 
 ## 9. Values that come from the call site
@@ -855,6 +869,11 @@ a restart does not get back a value the previous graph already closed. A flavour
 the case in an app.
 An override is never silent: observers receive `onRegistrationOverridden`, and `overriddenKeys`
 lists what is replaced.
+
+`CobaltScopeWidget`, the scoped widgets and every flow-owning route take `overrides` too, as a
+function called each time their scope is created — the way to mount one screen in a widget test with
+a double in place. They replace what that scope registers; a key an ancestor owns is overridden on
+the ancestor, and asking the child to do it fails naming the owner.
 
 Register an eager singleton with `registerEagerSingleton` when it is expensive to build. A value
 handed to `registerSingleton` already exists before the scope can say no, so under an override it is

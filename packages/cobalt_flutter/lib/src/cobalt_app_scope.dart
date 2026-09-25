@@ -51,6 +51,7 @@ class CobaltAppScope extends StatefulWidget {
     this.rootName = 'root',
     this.observers = const [],
     this.overrides,
+    this.warmUp = const [],
     this.loading,
     this.errorBuilder,
     this.disposeOnExitRequest = false,
@@ -66,6 +67,7 @@ class CobaltAppScope extends StatefulWidget {
   const CobaltAppScope.start({
     required Future<CobaltScope> Function() this.start,
     required this.child,
+    this.warmUp = const [],
     this.loading,
     this.errorBuilder,
     this.disposeOnExitRequest = false,
@@ -110,6 +112,19 @@ class CobaltAppScope extends StatefulWidget {
   /// observers are told each time a registration is skipped for one. See
   /// [CobaltOverride].
   final List<CobaltOverride<Object>> Function()? overrides;
+
+  /// Lazy async registrations to start building as soon as the graph is up.
+  ///
+  /// For something expensive that a later screen needs and that should not
+  /// sit on the startup path: [loading] gives way to [child] as soon as the
+  /// graph is ready, and these build behind it — the same builds `getAsync`
+  /// would start, so a screen that asks early simply waits for the one in
+  /// flight. See [CobaltScope.warmUp].
+  ///
+  /// A failure does not replace the app with [errorBuilder]; the app is
+  /// running by then. It goes to `FlutterError.reportError`, like a failed
+  /// teardown, and the next `getAsync` of that key tries again.
+  final List<CobaltKey> warmUp;
 
   /// Builds the root scope. Null unless built with [CobaltAppScope.start].
   ///
@@ -184,6 +199,7 @@ class CobaltAppScope extends StatefulWidget {
     String rootName = 'root',
     List<CobaltObserver> observers = const [],
     List<CobaltOverride<Object>> Function()? overrides,
+    List<CobaltKey> warmUp = const [],
     Widget? loading,
     Widget Function(BuildContext context, Object error, VoidCallback retry)?
     errorBuilder,
@@ -201,6 +217,7 @@ class CobaltAppScope extends StatefulWidget {
       rootName: rootName,
       observers: observers,
       overrides: overrides,
+      warmUp: warmUp,
       loading: loading,
       errorBuilder: errorBuilder,
       disposeOnExitRequest: disposeOnExitRequest,
@@ -267,6 +284,7 @@ class _CobaltAppScopeState extends State<CobaltAppScope>
         _scope = scope;
         _error = null;
       });
+      if (widget.warmUp.isNotEmpty) unawaited(_warm(scope, attempt));
     } catch (error, stackTrace) {
       if (!mounted || attempt != _attempt) {
         _report(
@@ -278,6 +296,17 @@ class _CobaltAppScopeState extends State<CobaltAppScope>
         return;
       }
       setState(() => _error = error);
+    }
+  }
+
+  Future<void> _warm(CobaltScope scope, int attempt) async {
+    try {
+      await scope.warmUp(widget.warmUp);
+    } catch (error, stackTrace) {
+      // A graph that was restarted or unmounted in the meantime fails its
+      // builds on purpose; that is not worth a report.
+      if (!mounted || attempt != _attempt) return;
+      _report(error, stackTrace, 'warming up the root scope of CobaltAppScope');
     }
   }
 

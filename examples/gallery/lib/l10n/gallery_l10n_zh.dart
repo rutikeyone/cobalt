@@ -152,6 +152,12 @@ class GalleryL10nZh extends GalleryL10n {
   String get lazyAsyncOpenDetail => '第一次进入构建引擎，之后的进入发现它已就绪';
 
   @override
+  String get lazyAsyncWarmUp => '预热';
+
+  @override
+  String get lazyAsyncWarmUpDetail => 'scope.warmUp 现在就构建它，搜索打开时无需等待';
+
+  @override
   String get lazyAsyncSearchTitle => '搜索';
 
   @override

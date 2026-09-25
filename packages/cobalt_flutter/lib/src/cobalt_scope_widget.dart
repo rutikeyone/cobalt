@@ -27,6 +27,7 @@ class CobaltScopeWidget extends StatefulWidget {
     required this.child,
     this.loading,
     this.errorBuilder,
+    this.overrides,
     super.key,
   });
 
@@ -58,6 +59,19 @@ class CobaltScopeWidget extends StatefulWidget {
   /// and go to `FlutterError.reportError` instead.
   final Widget Function(BuildContext context, Object error)? errorBuilder;
 
+  /// Produces replacements for registrations [builder] makes, called each
+  /// time the scope is created.
+  ///
+  /// A function and not a list, for the reason `CobaltAppScope.overrides` is
+  /// one: the scope owns a value handed over with `CobaltOverride.value` and
+  /// closes it on unmount, so a stored list would hand the next mount an
+  /// object the previous one already closed.
+  ///
+  /// An override here replaces what this scope registers. One for a key an
+  /// ancestor owns replaces nothing — the ancestor's factories never see this
+  /// scope — and fails like any override nothing claims, naming the owner.
+  final List<CobaltOverride<Object>> Function()? overrides;
+
   @override
   State<CobaltScopeWidget> createState() => _CobaltScopeWidgetState();
 }
@@ -66,15 +80,35 @@ class _CobaltScopeWidgetState extends State<CobaltScopeWidget> {
   CobaltScope? _scope;
   Object? _error;
   var _isReady = false;
+  var _started = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_scope != null) return;
+    if (_started) return;
+    _started = true;
 
     final parent = CobaltScopeProvider.of(context);
-    final scope = parent.push(widget.effectiveName);
-    scope.runBuilder(widget.builder);
+    final CobaltScope scope;
+    try {
+      scope = parent.push(
+        widget.effectiveName,
+        overrides: widget.overrides?.call() ?? const [],
+      );
+    } catch (error) {
+      _error = error;
+      return;
+    }
+    try {
+      scope.runBuilder(widget.builder);
+    } catch (error) {
+      // A builder that fails, or an override nothing claims, leaves a pushed
+      // child holding whatever was registered before the failure. Nothing
+      // else will ever close it.
+      _error = error;
+      unawaited(_disposeScope(scope));
+      return;
+    }
     _scope = scope;
     unawaited(_initialize(scope));
   }

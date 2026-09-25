@@ -16,6 +16,7 @@ import 'package:cobalt/src/errors/cobalt_param_type_error.dart';
 import 'package:cobalt/src/errors/cobalt_not_registered_error.dart';
 import 'package:cobalt/src/errors/cobalt_override_error.dart';
 import 'package:cobalt/src/errors/cobalt_scope_state_error.dart';
+import 'package:cobalt/src/errors/cobalt_warm_up_error.dart';
 import 'package:cobalt/src/factory/cobalt_async_factory.dart';
 import 'package:cobalt/src/factory/cobalt_factory.dart';
 import 'package:cobalt/src/factory/cobalt_param_factory.dart';
@@ -622,6 +623,61 @@ final class CobaltScope implements CobaltResolver {
       );
     }
     return await found.scope._resolveAsync(found.registration) as T;
+  }
+
+  /// Starts building every lazy async registration in [keys] at once, and
+  /// completes when all of them have finished.
+  ///
+  /// For something expensive that should be ready before the screen that
+  /// needs it opens, without putting it back on the startup path. Each build
+  /// is the one `getAsync` would start — the same instance, built once,
+  /// shared with any `getAsync` already waiting — on the scope that owns the
+  /// registration.
+  ///
+  /// Every key is checked before anything is built: one nothing registers is
+  /// a `CobaltNotRegisteredError`, and one that is not a lazy async
+  /// registration is an [ArgumentError], because there is nothing to build
+  /// ahead of time. Builds that fail do not stop the others; once all have
+  /// settled they are reported together as a [CobaltWarmUpError].
+  Future<void> warmUp(Iterable<CobaltKey> keys) async {
+    _assertUsable();
+    final targets =
+        <({CobaltScope owner, LazyAsyncSingletonRegistration lazy})>[];
+    for (final key in keys.toSet()) {
+      final found = _lookup(key);
+      if (found == null) {
+        throw CobaltNotRegisteredError(key, name);
+      }
+      final registration = found.registration;
+      if (registration is! LazyAsyncSingletonRegistration) {
+        throw ArgumentError.value(
+          key,
+          'keys',
+          'is a ${debugKindOf(key)?.name} registration, not a lazy async one, '
+              'so there is nothing to build ahead of time',
+        );
+      }
+      targets.add((owner: found.scope, lazy: registration));
+    }
+
+    final failures = <CobaltKey, Object>{};
+    final stackTraces = <CobaltKey, StackTrace>{};
+    await Future.wait([
+      for (final (:owner, :lazy) in targets)
+        owner
+            ._resolveAsync(lazy)
+            .then<void>(
+              (_) {},
+              onError: (Object error, StackTrace stackTrace) {
+                failures[lazy.key] = error;
+                stackTraces[lazy.key] = stackTrace;
+              },
+            ),
+    ]);
+    if (failures.isEmpty) return;
+    throw CobaltWarmUpError(name, {
+      for (final (owner: _, :lazy) in targets) lazy.key: ?failures[lazy.key],
+    }, stackTraces);
   }
 
   @override

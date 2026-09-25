@@ -13,6 +13,11 @@ typedef CobaltRouteScopeBuilder =
 /// scope down and builds a new one; returning the same value keeps it.
 typedef CobaltRouteIdentity = Object? Function(GoRouterState state);
 
+/// Produces replacements for what a flow registers, from the route state
+/// that opened it — called each time the flow's scope is created.
+typedef CobaltRouteOverrides =
+    List<CobaltOverride<Object>> Function(GoRouterState state);
+
 /// A [ShellRoute] whose subtree owns an Cobalt scope.
 ///
 /// The scope is created when the flow is entered, survives every navigation
@@ -65,6 +70,7 @@ class CobaltShellRoute extends ShellRoute {
     ShellRouteBuilder? shell,
     Widget? loading,
     Widget Function(BuildContext context, Object error)? errorBuilder,
+    CobaltRouteOverrides? overrides,
     super.navigatorKey,
     super.observers,
     super.parentNavigatorKey,
@@ -78,6 +84,7 @@ class CobaltShellRoute extends ShellRoute {
            builder: scope(state),
            loading: loading,
            errorBuilder: errorBuilder,
+           overrides: overrides == null ? null : () => overrides(state),
            child: shell == null ? child : shell(context, state, child),
          ),
        );
@@ -95,6 +102,7 @@ CobaltShellRoute cobaltShellRoute({
   ShellRouteBuilder? shell,
   Widget? loading,
   Widget Function(BuildContext context, Object error)? errorBuilder,
+  CobaltRouteOverrides? overrides,
   GlobalKey<NavigatorState>? navigatorKey,
   List<NavigatorObserver>? observers,
 }) => CobaltShellRoute(
@@ -105,6 +113,7 @@ CobaltShellRoute cobaltShellRoute({
   shell: shell,
   loading: loading,
   errorBuilder: errorBuilder,
+  overrides: overrides,
   navigatorKey: navigatorKey,
   observers: observers,
 );

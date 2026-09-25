@@ -367,6 +367,19 @@ the path instead of hanging, and `dispose` waits for a build in flight — one t
 the deadline is closed as soon as it arrives. An async singleton cannot name a lazy one in its
 `dependsOn`. In Flutter, `CobaltAsyncBuilder` is the widget side of this.
 
+**When it should be ready before anyone asks, warm it up.** `warmUp` starts every build in a list at
+once, off the startup path, and completes when they have all settled:
+
+```dart
+unawaited(root.warmUp(const [CobaltKey(SearchEngine), CobaltKey(Catalog)]));
+```
+
+Each build is the one `getAsync` would start, on the scope that owns the registration, so a screen
+that asks while it is running waits for that build rather than starting a second. Every key is
+checked first — one nothing registers, or one that is not lazy async, fails before anything is
+built — and builds that fail do not stop the others: they are reported together as a
+`CobaltWarmUpError`, and the next `getAsync` of a failed key tries again.
+
 ## One graph per isolate
 
 Cobalt is single-threaded by construction. There are no locks anywhere in the

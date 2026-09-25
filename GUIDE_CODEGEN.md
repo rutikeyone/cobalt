@@ -657,6 +657,12 @@ build is retried by the next call, `get` before the first `getAsync` throws `Cob
 and teardown waits for a build in flight. In a widget, `CobaltAsyncBuilder<SearchEngine>` shows
 `loading` while the first screen builds it and renders straight away on every screen after.
 
+
+To have it ready before a screen opens, warm it up: `CobaltAppScope(warmUp: [CobaltKey(SearchEngine)])`
+starts the build as soon as the graph is up, behind the app rather than behind `loading`, and
+`scope.warmUp([...])` does the same from anywhere else. A screen that asks meanwhile waits for that
+build instead of starting a second, and failures arrive together as a `CobaltWarmUpError`.
+
 ---
 
 ## 12. Values that come from the call site
@@ -1037,6 +1043,11 @@ emitted as `registerEagerSingleton`, so an overridden one is never built at all.
 An override is never silent: observers receive `onRegistrationOverridden`, and `overriddenKeys`
 lists what is replaced. Name the type argument — inside the list Dart infers it as `Object`, which
 the scope refuses as soon as it is created.
+
+`CobaltScopeWidget`, the scoped widgets and every flow-owning route take `overrides` too, as a
+function called each time their scope is created — the way to mount one screen in a widget test with
+a double in place. They replace what that scope registers; a key an ancestor owns is overridden on
+the ancestor, and asking the child to do it fails naming the owner.
 
 Shadowing from a child scope still works, and reaches only what is resolved from the child:
 

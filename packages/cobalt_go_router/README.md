@@ -143,6 +143,25 @@ identity: (state) => state.pathParameters['orderId'],
 Leave it out when the flow has a single instance. The scope is named after the flow, with the
 identity appended (`checkout:42`), so a scope tree stays readable.
 
+## Replacing what a flow registers
+
+Every flow-owning type — `CobaltShellRoute`, `CobaltStatefulShellRoute`, `CobaltStatefulShellBranch`
+— takes `overrides`, built from the route state like `scope` is, and `CobaltRouteScope` takes the
+same thing without a state:
+
+```dart
+CobaltShellRoute(
+  name: 'checkout',
+  scope: (state) => CheckoutScope(state.pathParameters['orderId']!),
+  overrides: (state) => [CobaltOverride<PaymentGateway>.value(FakeGateway())],
+  routes: [...],
+)
+```
+
+It is called each time the flow's scope is created — on entry, and again when `identity` changes —
+so a value handed over with `CobaltOverride.value` is never one the previous run already closed. It
+replaces what the flow registers; a key the root owns is overridden on the root.
+
 ## What to expect
 
 - **A frame of `loading` on every rebuild.** `CobaltScopeWidget` publishes its scope only after

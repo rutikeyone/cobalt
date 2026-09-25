@@ -39,6 +39,7 @@ class CobaltRouteScope extends StatelessWidget {
     this.identity,
     this.loading,
     this.errorBuilder,
+    this.overrides,
     super.key,
   });
 
@@ -64,6 +65,10 @@ class CobaltRouteScope extends StatelessWidget {
   /// Builds a replacement subtree when the flow's `init()` throws.
   final Widget Function(BuildContext context, Object error)? errorBuilder;
 
+  /// Replacements for registrations [builder] makes, produced each time the
+  /// flow's scope is created. See [CobaltScopeWidget.overrides].
+  final List<CobaltOverride<Object>> Function()? overrides;
+
   /// The scope name, with the discriminator when the flow has one.
   String get scopeName => identity == null ? name : '$name:$identity';
 
@@ -74,6 +79,7 @@ class CobaltRouteScope extends StatelessWidget {
     builder: builder,
     loading: loading,
     errorBuilder: errorBuilder,
+    overrides: overrides,
     child: child,
   );
 }

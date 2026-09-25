@@ -43,6 +43,7 @@ class CobaltStatefulShellBranch extends StatefulShellBranch {
     ShellRouteBuilder? shell,
     Widget? loading,
     Widget Function(BuildContext context, Object error)? errorBuilder,
+    CobaltRouteOverrides? overrides,
     GlobalKey<NavigatorState>? branchNavigatorKey,
     super.initialLocation,
     super.restorationScopeId,
@@ -59,6 +60,7 @@ class CobaltStatefulShellBranch extends StatefulShellBranch {
              shell: shell,
              loading: loading,
              errorBuilder: errorBuilder,
+             overrides: overrides,
            ),
          ],
        );
