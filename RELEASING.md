@@ -44,7 +44,12 @@ wait for the previous group to appear on pub.dev — the index is not instant.
 - [ ] `repository:` and `issue_tracker:` point at a repository that actually
       exists and has the code pushed. They are currently
       `github.com/rutikeyone/cobalt`.
-- [ ] CI is green on that repository.
+- [ ] CI is green on that repository — **both** jobs, not only `verify`.
+      `forward` on `stable` is the only place fresh dependencies are resolved:
+      the lock files on a floor checkout hold analyzer 12 at most, so a
+      deprecation that arrives with analyzer 13 is invisible locally. It kept
+      `forward` red for three releases unnoticed. `tool/forward.sh` runs the
+      same thing on whatever newer Flutter is on PATH.
 - [ ] Translations updated. `README.ru.md`, `README.zh-CN.md`, the four
       translated guides, `MIGRATION.ru.md` and `MIGRATION.zh-CN.md` track the
       English originals; a test checks that all four sets exist and link to each
@@ -193,7 +198,9 @@ Both floor rows of the analyzer range are exercised by development itself —
 
 CI's `verify` job runs everything pinned to Flutter 3.38.9; the `forward` job
 repeats resolution, analysis, tests and the generated-code diff on `stable` and
-`beta`, so an upcoming Flutter change is found before release.
+`beta`, so an upcoming Flutter change is found before release. It also runs
+weekly on a schedule: a new analyzer or go_router on pub.dev can break the
+build with no commit here.
 
 Raising a floor later is a breaking change; lowering one is not. That asymmetry
 is why this was settled before the first publish rather than after.

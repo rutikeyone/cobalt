@@ -35,3 +35,7 @@ xcuserdata/
 # reads — and the published export is two megabytes of HTML, which is enough to
 # make GitHub call this an HTML project.
 .design/
+
+# LinkedIn cards for release posts. Made for social media, not read by any
+# package, README or build.
+assets/linkedin-card*

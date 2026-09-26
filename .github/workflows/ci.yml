@@ -4,12 +4,18 @@ on:
   push:
     branches: [main]
   pull_request:
+  # A dependency can break the build with no commit here: a new analyzer or
+  # go_router lands on pub.dev and only `forward` resolves it. Weekly, so that
+  # is found within days rather than on the next push.
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
 
 jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: subosito/flutter-action@v2
         with:
@@ -91,7 +97,7 @@ jobs:
         channel: [stable, beta]
     continue-on-error: ${{ matrix.channel == 'beta' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: subosito/flutter-action@v2
         with:
