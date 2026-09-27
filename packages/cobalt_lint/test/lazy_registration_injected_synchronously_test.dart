@@ -182,4 +182,45 @@ class Search {
 }
 ''');
   }
+
+  void test_aDecoratorTakingALazyRegistration_isReported() async {
+    const source =
+        '''
+$cobaltImport
+
+$_engine
+abstract interface class Api {}
+
+@CobaltInject(exposeAs: Api)
+class RealApi implements Api {}
+
+@CobaltDecorates(Api)
+class IndexedApi implements Api {
+  IndexedApi(this.inner, this.engine);
+  final Api inner;
+  final Engine engine;
+}
+''';
+    await _reportsOn(source, 'IndexedApi');
+  }
+
+  void test_aDecoratorOfALazyRegistration_isQuiet() async {
+    await assertNoDiagnostics('''
+$cobaltImport
+
+@CobaltInit(lazy: true)
+class Engine {
+  Engine();
+  Future<void> init() async {}
+}
+
+@CobaltDecorates(Engine)
+class TimedEngine implements Engine {
+  TimedEngine(this.inner);
+  final Engine inner;
+  @override
+  Future<void> init() async {}
+}
+''');
+  }
 }

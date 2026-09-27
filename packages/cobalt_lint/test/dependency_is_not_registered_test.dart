@@ -494,4 +494,70 @@ class Search {
 }
 ''');
   }
+
+  void test_aDecoratorOfSomethingNothingRegisters_isReported() async {
+    const source =
+        '''
+$cobaltImport
+
+abstract interface class Api {}
+
+@CobaltDecorates(Api)
+class LoggingApi implements Api {
+  LoggingApi(this.inner);
+  final Api inner;
+}
+''';
+    await assertDiagnostics(source, [
+      lint(source.indexOf('class LoggingApi') + 6, 'LoggingApi'.length),
+    ]);
+  }
+
+  void test_aDecoratorDependencyNothingRegisters_isReported() async {
+    const source =
+        '''
+$cobaltImport
+
+abstract interface class Api {}
+
+@CobaltInject(exposeAs: Api)
+class RealApi implements Api {}
+
+class Logger {}
+
+@CobaltDecorates(Api)
+class LoggingApi implements Api {
+  LoggingApi(this.inner, this.logger);
+  final Api inner;
+  final Logger logger;
+}
+''';
+    await assertDiagnostics(source, [
+      lint(source.indexOf('class LoggingApi') + 6, 'LoggingApi'.length),
+    ]);
+  }
+
+  void test_aDecoratorWhoseTargetAndDependenciesExist_isClean() async {
+    await assertNoDiagnostics('''
+$cobaltImport
+
+abstract interface class Api {}
+
+@CobaltInject(exposeAs: Api)
+class RealApi implements Api {}
+
+@cobaltInject
+class Logger {}
+
+@CobaltDecorates(Api)
+class LoggingApi implements Api {
+  LoggingApi(this.inner, this.logger, this.clock);
+  final Api inner;
+  final Logger logger;
+  final Clock? clock;
+}
+
+class Clock {}
+''');
+  }
 }

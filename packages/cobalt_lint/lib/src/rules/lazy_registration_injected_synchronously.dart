@@ -5,14 +5,16 @@ import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 /// Reports a class that injects a lazy async registration where nothing can
 /// wait for it.
 ///
 /// A lazy async registration is built by the first `getAsync`, so a
-/// synchronous or eager async class taking one in its constructor, and any
-/// class holding one in an `@injected` field, would find it unbuilt. The build
+/// synchronous or eager async class taking one in its constructor, any class
+/// holding one in an `@injected` field, and any decorator — applied
+/// synchronously when its target is handed out — would find it unbuilt. The build
 /// already refuses such a graph; this is the same answer in the editor, read
 /// from the package-wide [CobaltRegistrationIndex].
 class LazyRegistrationInjectedSynchronously extends AnalysisRule {
@@ -26,8 +28,9 @@ class LazyRegistrationInjectedSynchronously extends AnalysisRule {
     "'{0}' injects '{1}', which is registered lazily and is not built until "
         'the first getAsync.',
     correctionMessage:
-        "Make '{0}' lazy too with @CobaltInit(lazy: true), so its factory "
-        "awaits '{1}', or resolve '{1}' with getAsync where it is needed.",
+        "If '{0}' is a registration, make it lazy too with "
+        "@CobaltInit(lazy: true), so its factory awaits '{1}'. Otherwise "
+        "resolve '{1}' with getAsync where it is needed.",
   );
 
   final _cache = CobaltRegistrationIndexCache();
@@ -47,6 +50,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   static const _parser = CobaltInjectableParser();
   static const _modules = CobaltModuleParser();
+  static const _decorators = CobaltDecoratorParser();
 
   final AnalysisRule rule;
   final RuleContext context;
@@ -56,6 +60,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitClassDeclaration(ClassDeclaration node) {
     final element = node.declaredFragment?.element;
     if (element == null) return;
+
+    if (_decorators.declares(element)) {
+      _checkDecorator(node, element);
+      return;
+    }
 
     final List<CobaltInjectableClass> declarations;
     try {
@@ -79,6 +88,27 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtNode(
         node.namePart,
         arguments: [declaration.label, injected],
+      );
+      return;
+    }
+  }
+
+  void _checkDecorator(ClassDeclaration node, ClassElement element) {
+    final CobaltDecoratorClass decorator;
+    try {
+      decorator = _decorators.parseClass(element);
+    } on CobaltParseError {
+      return;
+    }
+
+    final index = _index();
+    if (index == null || index.lazy.isEmpty) return;
+
+    for (final parameter in decorator.dependencies) {
+      if (!index.lazy.contains(parameter.type.name)) continue;
+      rule.reportAtNode(
+        node.namePart,
+        arguments: [decorator.type.name, parameter.type.name],
       );
       return;
     }

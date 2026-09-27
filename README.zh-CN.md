@@ -232,11 +232,11 @@ something outside the generated container registers it.
 | `cobalt_bootstrap_requires_run_method` | `@CobaltBootstrap` 用在没有 `run()` 的类上 |
 | `cobalt_bootstrap_step_cannot_inject` | 构造函数带必填参数的 bootstrap 步骤 |
 | `cobalt_environment_needs_a_registration` | `@CobaltEnvironment` 用在无人注册的类上，此时它静默地什么也不做 |
-| `cobalt_dependency_is_not_registered` | 包内无人注册的被注入依赖 |
-| `cobalt_dependency_cycle` | 最终依赖到自身的可注入类 |
+| `cobalt_dependency_is_not_registered` | 包内无人注册的被注入依赖，或无人注册的装饰器目标或依赖 |
+| `cobalt_dependency_cycle` | 最终依赖到自身的可注入类，包括经由它的装饰器 |
 | `cobalt_registration_is_never_released` | 已注册的类带有作用域看不见的 `dispose()` 或 `close()` |
 | `cobalt_resource_is_never_closed` | 注册项持有需要关闭的东西，却没有提供关闭它的办法 |
-| `cobalt_lazy_registration_injected_synchronously` | 惰性异步注册被注入到无法等待它的地方——同步或 eager 构造函数，或 `@injected` 字段 |
+| `cobalt_lazy_registration_injected_synchronously` | 惰性异步注册被注入到无法等待它的地方——同步或 eager 构造函数、`@injected` 字段，或装饰器 |
 | `cobalt_depends_on_lazy_registration` | `@CobaltInit(dependsOn: [...])` 指向惰性异步注册，而 `init()` 从不构建它 |
 | `cobalt_override_needs_type_argument` | `CobaltOverride` 或 `CobaltParamOverride` 没写类型参数，替换哪个键就由 Dart 推断 |
 

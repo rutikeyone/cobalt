@@ -107,6 +107,14 @@ class _IndexBuilder {
   final ambiguous = <String>{};
   final lazy = <String>{};
 
+  /// What decorators of each registered name ask for.
+  ///
+  /// Kept apart from [edges] and merged into the target's own entry in
+  /// [build], because a decorator is not a registration: going through
+  /// [_link] would make its target look claimed twice, and drop it as
+  /// ambiguous.
+  final _decoratorEdges = <String, Set<String>>{};
+
   /// How many declarations in the package claim each bare name.
   ///
   /// Registered or not: an unregistered class is still something a dependency
@@ -119,6 +127,14 @@ class _IndexBuilder {
     // build keeps apart — which is how a graph with no loop grows one.
     for (final entry in _claims.entries) {
       if (entry.value > 1) ambiguous.add(entry.key);
+    }
+
+    // A decorator runs whenever its target is handed out, so what it resolves
+    // is part of what the target needs — a decorator asking for something
+    // that depends on its own target closes a loop.
+    for (final MapEntry(key: target, value: wanted)
+        in _decoratorEdges.entries) {
+      edges[target]?.addAll(wanted);
     }
 
     final nodes = {
@@ -155,6 +171,7 @@ class _IndexBuilder {
 
       var registers = false;
       var isModule = false;
+      String? decorates;
       var isLazy = false;
       String? exposed;
       final wanted = <String>{};
@@ -182,7 +199,20 @@ class _IndexBuilder {
           case 'CobaltModule':
           case 'cobaltModule':
             isModule = true;
+          case 'CobaltDecorates':
+            final arguments = annotation.arguments;
+            if (arguments == null) break;
+            final targets = <String>{};
+            _addFirstArgument(arguments, targets);
+            decorates = targets.firstOrNull;
         }
+      }
+
+      if (decorates != null && !registers) {
+        final wanted = <String>{};
+        _addConstructorParameters(declaration, wanted);
+        wanted.remove(decorates);
+        _decoratorEdges.putIfAbsent(decorates, () => {}).addAll(wanted);
       }
 
       if (registers) {

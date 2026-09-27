@@ -246,11 +246,11 @@ warning-правил, все построены на том же слое раз
 | `cobalt_bootstrap_requires_run_method` | `@CobaltBootstrap` на классе без `run()` |
 | `cobalt_bootstrap_step_cannot_inject` | bootstrap-шаг, чей конструктор берёт обязательные параметры |
 | `cobalt_environment_needs_a_registration` | `@CobaltEnvironment` на классе, который никто не регистрирует, где она молча ничего не делает |
-| `cobalt_dependency_is_not_registered` | инъектируемая зависимость, которую ничто в пакете не регистрирует |
-| `cobalt_dependency_cycle` | инъектируемый класс, который в итоге зависит от самого себя |
+| `cobalt_dependency_is_not_registered` | инъектируемая зависимость, которую ничто в пакете не регистрирует, либо цель или зависимость декоратора, которую никто не регистрирует |
+| `cobalt_dependency_cycle` | инъектируемый класс, который в итоге зависит от самого себя, в том числе через свой декоратор |
 | `cobalt_registration_is_never_released` | зарегистрированный класс с `dispose()` или `close()`, которых скоуп не видит |
 | `cobalt_resource_is_never_closed` | Регистрация держит то, что надо закрывать, и не предлагает способа закрыть |
-| `cobalt_lazy_registration_injected_synchronously` | ленивая async-регистрация внедрена туда, где её некому ждать, — в синхронный или eager-конструктор или в `@injected`-поле |
+| `cobalt_lazy_registration_injected_synchronously` | ленивая async-регистрация внедрена туда, где её некому ждать, — в синхронный или eager-конструктор, в `@injected`-поле или в декоратор |
 | `cobalt_depends_on_lazy_registration` | `@CobaltInit(dependsOn: [...])` с ленивой async-регистрацией, которую `init()` никогда не строит |
 | `cobalt_override_needs_type_argument` | `CobaltOverride` или `CobaltParamOverride` без аргумента типа — ключ, который он подменяет, выводит Dart |
 

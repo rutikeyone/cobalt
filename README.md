@@ -245,11 +245,11 @@ in the IDE instead of only when `build_runner` runs:
 | `cobalt_bootstrap_requires_run_method` | `@CobaltBootstrap` on a class with no `run()` |
 | `cobalt_bootstrap_step_cannot_inject` | a bootstrap step whose constructor takes required parameters |
 | `cobalt_environment_needs_a_registration` | `@CobaltEnvironment` on a class nothing registers, where it silently does nothing |
-| `cobalt_dependency_is_not_registered` | an injected dependency nothing in the package registers |
-| `cobalt_dependency_cycle` | an injectable class that depends, eventually, on itself |
+| `cobalt_dependency_is_not_registered` | an injected dependency nothing in the package registers, or a decorator's target or dependency nothing registers |
+| `cobalt_dependency_cycle` | an injectable class that depends, eventually, on itself — including through a decorator of it |
 | `cobalt_registration_is_never_released` | a registered class with a `dispose()` or `close()` the scope cannot see |
 | `cobalt_resource_is_never_closed` | A registration holds something closeable and offers no way to close it |
-| `cobalt_lazy_registration_injected_synchronously` | a lazy async registration injected where nothing can wait for it — a synchronous or eager constructor, or an `@injected` field |
+| `cobalt_lazy_registration_injected_synchronously` | a lazy async registration injected where nothing can wait for it — a synchronous or eager constructor, an `@injected` field, or a decorator |
 | `cobalt_depends_on_lazy_registration` | `@CobaltInit(dependsOn: [...])` naming a lazy async registration, which `init()` never builds |
 | `cobalt_override_needs_type_argument` | a `CobaltOverride` or `CobaltParamOverride` with no type argument, so Dart infers the key it replaces |
 

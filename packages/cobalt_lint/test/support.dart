@@ -42,6 +42,13 @@ class CobaltScopeRoot {
   final List<Object> provides;
 }
 
+class CobaltDecorates {
+  const CobaltDecorates(this.target, {this.name, this.order});
+  final Type target;
+  final String? name;
+  final int? order;
+}
+
 class CobaltParam {
   const CobaltParam();
 }

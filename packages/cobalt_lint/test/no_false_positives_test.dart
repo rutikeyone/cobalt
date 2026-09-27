@@ -106,6 +106,14 @@ class SearchIndex {
   Future<void> init() async {}
 }
 
+@CobaltDecorates(Sink)
+class AuditedSink implements Sink {
+  AuditedSink(this.inner, @Named('audit') this.log);
+
+  final Sink inner;
+  final AuditLog log;
+}
+
 @cobaltTransient
 class Query {
   Query(this.index);

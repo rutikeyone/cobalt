@@ -5,10 +5,12 @@ import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 /// Reports a dependency of an injectable class that nothing in the package
-/// registers.
+/// registers — and, for an `@CobaltDecorates` class, a target or a dependency
+/// nothing registers.
 ///
 /// The build already rejects such a graph. This is the same answer earlier, in
 /// the editor, from a coarser view — see [CobaltRegistrationIndex] for what the
@@ -45,6 +47,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   static const _parser = CobaltInjectableParser();
   static const _modules = CobaltModuleParser();
+  static const _decorators = CobaltDecoratorParser();
 
   final AnalysisRule rule;
   final RuleContext context;
@@ -54,6 +57,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitClassDeclaration(ClassDeclaration node) {
     final element = node.declaredFragment?.element;
     if (element == null) return;
+
+    if (_decorators.declares(element)) {
+      _checkDecorator(node, element);
+      return;
+    }
 
     final List<CobaltInjectableClass> declarations;
     try {
@@ -77,6 +85,33 @@ class _Visitor extends SimpleAstVisitor<void> {
       final missing = _firstMissing(declaration, index);
       if (missing == null) continue;
       rule.reportAtNode(node.namePart, arguments: [declaration.label, missing]);
+      return;
+    }
+  }
+
+  /// A decorator needs its target registered as well as its own
+  /// dependencies: wrapping something nothing makes wraps nothing.
+  void _checkDecorator(ClassDeclaration node, ClassElement element) {
+    final CobaltDecoratorClass decorator;
+    try {
+      decorator = _decorators.parseClass(element);
+    } on CobaltParseError {
+      return;
+    }
+
+    final index = _index();
+    if (index == null) return;
+
+    final wanted = [
+      decorator.target,
+      for (final parameter in decorator.dependencies) parameter.type,
+    ];
+    for (final type in wanted) {
+      if (type.isNullable || index.contains(type.name)) continue;
+      rule.reportAtNode(
+        node.namePart,
+        arguments: [decorator.type.name, type.name],
+      );
       return;
     }
   }
