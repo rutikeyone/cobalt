@@ -50,7 +50,7 @@ environment:
   sdk: ^3.10.0
 
 dependencies:
-  cobalt: ^0.3.0
+  cobalt: ^0.4.0
 ```
 
 Flutter-приложение добавляет биндинги, которые реэкспортируют весь рантайм, поэтому оба сразу
@@ -62,12 +62,12 @@ environment:
   flutter: ">=3.38.0"
 
 dependencies:
-  cobalt: ^0.3.0
-  cobalt_flutter: ^0.3.0
+  cobalt: ^0.4.0
+  cobalt_flutter: ^0.4.0
 
 dev_dependencies:
-  cobalt_test: ^0.3.0
-  cobalt_test_flutter: ^0.3.0
+  cobalt_test: ^0.4.0
+  cobalt_test_flutter: ^0.4.0
 ```
 
 **Отсюда никуда не упираешься.** Пол — Dart `^3.10.0` / Flutter `>=3.38.0`, тот же самый, что

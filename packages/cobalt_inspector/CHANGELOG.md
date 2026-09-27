@@ -1,3 +1,8 @@
+## 0.4.0
+
+- An async parameterized registration is shown as not retained and not
+  buildable from the sheet, like a parameterized one.
+
 ## 0.3.0
 
 - The tree marks a registration an override replaced and one a decorator

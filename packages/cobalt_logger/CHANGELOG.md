@@ -1,3 +1,9 @@
+## 0.4.0
+
+- No code changes in this package. Republished in lockstep with 0.4.0, which
+  adds async parameterized factories and go_router 18 support — see
+  `cobalt`'s changelog.
+
 ## 0.3.0
 
 - No code changes in this package. Republished in lockstep with 0.3.0, which

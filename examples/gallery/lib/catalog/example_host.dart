@@ -20,6 +20,7 @@ class ExampleHost extends StatelessWidget {
     this.bootstrap,
     this.rootName = 'root',
     this.observers = const [],
+    this.overrides,
     super.key,
   });
 
@@ -28,6 +29,7 @@ class ExampleHost extends StatelessWidget {
   final List<CobaltBootstrapStep> Function()? bootstrap;
   final String rootName;
   final List<CobaltObserver> observers;
+  final List<CobaltOverride<Object>> Function()? overrides;
 
   @override
   Widget build(BuildContext context) => CobaltAppScope(
@@ -35,6 +37,7 @@ class ExampleHost extends StatelessWidget {
     bootstrap: bootstrap,
     rootName: rootName,
     observers: observers,
+    overrides: overrides,
     loading: const _Starting(),
     errorBuilder: (context, error, retry) =>
         _StartupFailed(error: error, retry: retry),

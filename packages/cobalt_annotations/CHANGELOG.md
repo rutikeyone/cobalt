@@ -1,3 +1,8 @@
+## 0.4.0
+
+- `@CobaltParam` on an `@CobaltInit` class makes it an async parameterized
+  factory, built by each `getAsyncWithParam`. It used to be refused.
+
 ## 0.3.0
 
 - `@CobaltDecorates(Target, {name, order})`: the generated form of

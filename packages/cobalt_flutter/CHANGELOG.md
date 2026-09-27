@@ -1,3 +1,7 @@
+## 0.4.0
+
+- `context.cobaltAsyncWithParam<T, P>(param)`.
+
 ## 0.3.0
 
 - `overrides` on `CobaltScopeWidget`, and an `overrides` getter on

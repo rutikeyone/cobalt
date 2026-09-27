@@ -67,6 +67,24 @@ final class QueryFactory implements CobaltFactory<Query> {
   Query create(CobaltResolver resolver) => Query(resolver.get<Database>());
 }
 
+/// Wraps every [Query] the scope hands out, so the tree shows a decorated
+/// registration and its sheet names the decorator.
+class TracedQuery implements Query {
+  TracedQuery(this.inner);
+
+  final Query inner;
+
+  @override
+  Database get database => inner.database;
+}
+
+final class QueryTracing implements CobaltDecorator<Query> {
+  const QueryTracing();
+
+  @override
+  Query decorate(Query inner, CobaltResolver resolver) => TracedQuery(inner);
+}
+
 /// Takes a value the container cannot supply, so the inspector can describe it
 /// and not build it.
 class Ticket {
@@ -93,6 +111,7 @@ final class InspectorScope implements CobaltScopeBuilder {
     scope.registerAsyncSingleton<SearchIndex>(const SearchIndexFactory());
     scope.registerFactory<Query>(const QueryFactory());
     scope.registerParamFactory<Ticket, String>(const TicketFactory());
+    scope.decorate<Query>(const QueryTracing());
   }
 }
 

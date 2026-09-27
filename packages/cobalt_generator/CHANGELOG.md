@@ -1,3 +1,11 @@
+## 0.4.0
+
+- Async parameterized factories: an `@CobaltInit` class taking an
+  `@CobaltParam` becomes a `CobaltAsyncParamFactory` that constructs, awaits
+  `init()` and awaits any lazy dependency through `getAsync`, registered with
+  `registerAsyncParamFactory`. A `dependsOn` naming one is a build error, and
+  it takes no derived `dependsOn` of its own.
+
 ## 0.3.0
 
 - Decorators. Each `@CobaltDecorates` class becomes a const `CobaltDecorator`

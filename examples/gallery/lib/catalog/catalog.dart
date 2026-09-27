@@ -360,6 +360,7 @@ class _InspectorHostState extends State<_InspectorHost> {
     bootstrap: () => [InspectorWarmUp()],
     rootName: 'inspector',
     observers: [_log],
+    overrides: () => [CobaltOverride<Settings>.value(Settings('preview'))],
     child: _InspectorDemo(log: _log),
   );
 }

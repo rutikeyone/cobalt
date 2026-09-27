@@ -1,3 +1,20 @@
+## 0.4.0
+
+- Async parameterized factories. `registerAsyncParamFactory<T, P>` registers
+  something built asynchronously from a value only the call site knows — a
+  document loaded by id — and `getAsyncWithParam<T, P>` awaits it. Every call
+  builds a new instance the scope does not keep; it is never part of
+  `init()`, so it may be registered afterwards. The build runs on the owning
+  scope, may await lazy registrations, is decorated like any build, and a
+  build that asks through its own awaits for the key it is building is a
+  `CobaltCycleError` rather than a hang. `getAsyncWithParam` on an ordinary
+  parameterized registration returns what `getWithParam` would.
+- `CobaltAsyncParamFactory`, `CobaltAsyncParamOverride`, `CobaltAsyncParamError`
+  (for `getWithParam` on one), `debugResolveWithParamAsync`, and
+  `CobaltParamRequiredError` naming the async form.
+- **Breaking:** `CobaltRegistrationKind.asyncParameterized`, and
+  `getAsyncWithParam` on `CobaltResolver` for anything implementing it.
+
 ## 0.3.0
 
 - Decorators. `CobaltScope.decorate<T>(CobaltDecorator<T>)` wraps what a

@@ -1,3 +1,10 @@
+## 0.4.0
+
+- `@CobaltInit` with an `@CobaltParam` is parsed instead of refused, and
+  `CobaltInjectableClass` gains `isAsyncParam` and `isBuiltInPhaseOne`. Such a
+  class with `lazy: true` or `dependsOn` is refused: it is built per call,
+  never by `init()`.
+
 ## 0.3.0
 
 - `CobaltDecoratorClass`, read by `CobaltDecoratorParser`, and

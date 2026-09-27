@@ -1,3 +1,8 @@
+## 0.4.0
+
+- Supports go_router 18 (`">=17.0.0 <19.0.0"`). go_router 18 requires
+  Flutter 3.44; on the 3.38 floor the resolver keeps 17.
+
 ## 0.3.0
 
 - `overrides` on `CobaltRouteScope`, `CobaltShellRoute`, `cobaltShellRoute`,

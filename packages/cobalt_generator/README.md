@@ -5,7 +5,7 @@ never ships in an application.
 
 ```yaml
 dev_dependencies:
-  cobalt_generator: ^0.3.0
+  cobalt_generator: ^0.4.0
   build_runner: ^2.16.0
 ```
 

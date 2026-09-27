@@ -1,3 +1,13 @@
+## 0.4.0
+
+- The graph rules see decorators: `cobalt_dependency_is_not_registered`
+  reports a decorator whose target or dependency nothing registers,
+  `cobalt_dependency_cycle` a loop through a decorator, and
+  `cobalt_lazy_registration_injected_synchronously` a decorator taking a lazy
+  registration.
+- An async class built from a call-site value may take a lazy dependency; the
+  lazy rule no longer reports it.
+
 ## 0.3.0
 
 - `cobalt_override_needs_type_argument`: a `CobaltOverride` or

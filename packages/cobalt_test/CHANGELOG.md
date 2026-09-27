@@ -1,3 +1,8 @@
+## 0.4.0
+
+- `AsyncFnParamFactory`, and `checkGraph` builds an async parameterized
+  registration from the sample value in `params:`.
+
 ## 0.3.0
 
 - `FnDecorator<T>`: a decorator from a function, for tests that wrap a
