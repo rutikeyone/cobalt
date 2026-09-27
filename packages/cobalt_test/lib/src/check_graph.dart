@@ -39,7 +39,8 @@ Future<CobaltGraphReport> checkGraph(
     final key = entry.key;
     final kind = scope.debugKindOf(key);
 
-    if (kind == CobaltRegistrationKind.parameterized) {
+    if (kind == CobaltRegistrationKind.parameterized ||
+        kind == CobaltRegistrationKind.asyncParameterized) {
       final param = params[key];
       if (param == null) {
         entries.add(
@@ -51,7 +52,7 @@ Future<CobaltGraphReport> checkGraph(
         );
         continue;
       }
-      entries.add(_resolveParam(scope, key, param, loose));
+      entries.add(await _resolveParam(scope, key, param, loose));
       continue;
     }
 
@@ -87,14 +88,14 @@ Future<void> expectGraphResolves(
   throw StateError('The graph did not resolve completely.\n$report');
 }
 
-CobaltGraphEntry _resolveParam(
+Future<CobaltGraphEntry> _resolveParam(
   CobaltScope scope,
   CobaltKey key,
   Object param,
   List<Object> loose,
-) {
+) async {
   try {
-    final instance = scope.debugResolveWithParam(key, param);
+    final instance = await scope.debugResolveWithParamAsync(key, param);
     if (instance != null) loose.add(instance);
     return CobaltGraphEntry(key, CobaltGraphOutcome.resolved);
   } on Object catch (error) {

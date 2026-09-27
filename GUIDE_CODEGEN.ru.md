@@ -708,6 +708,33 @@ final greeting = context.cobaltWithParam<Greeting, $GreetingArgs>((name: 'Cobalt
 Резолв такой регистрации обычным `get<T>()` бросает `CobaltParamRequiredError`; неверный тип —
 `CobaltParamTypeError` с ключом и обоими типами.
 
+
+### Асинхронная сборка
+
+На `@CobaltInit`-классе сборка асинхронная. Каждый вызов конструирует экземпляр, ждёт `init()` и
+отдаёт его:
+
+```dart
+@cobaltInit
+class Document implements AsyncInitializable {
+  Document(this._store, {@cobaltParam required this.id});
+
+  final DocumentStore _store;
+  final int id;
+
+  @override
+  Future<void> init() => _store.load(this);
+}
+
+// typedef $DocumentArgs = ({int id});
+final document = await scope.getAsyncWithParam<Document, $DocumentArgs>((id: 42));
+```
+
+Генератор пишет `CobaltAsyncParamFactory` и регистрирует её через `registerAsyncParamFactory`.
+Экземпляр строится на каждый вызов и никогда в фазе 1, поэтому сборка отвергает `lazy: true` и
+`dependsOn` на таком классе, а также `dependsOn`, который его называет; ленивые зависимости фабрика
+ждёт через `getAsync`.
+
 ---
 
 ## 13. Опциональные зависимости

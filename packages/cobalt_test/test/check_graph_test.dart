@@ -120,6 +120,35 @@ void main() {
       expect(report.unchecked, isEmpty);
       expect(report.entries.single.outcome, CobaltGraphOutcome.resolved);
     });
+
+    test(
+      'an async parameterized registration is awaited with its sample',
+      () async {
+        final scope = cobaltTestRoot()
+          ..registerAsyncParamFactory<Ticket, String>(
+            AsyncFnParamFactory((_, id) async => Ticket(id)),
+          )
+          ..registerAsyncParamFactory<Api, String>(
+            AsyncFnParamFactory((r, _) async => Api(r.get<Clock>())),
+          );
+
+        final unchecked = await checkGraph(scope);
+        final report = await checkGraph(
+          scope,
+          params: {const CobaltKey(Ticket): 'abc', const CobaltKey(Api): 'x'},
+        );
+
+        expect(unchecked.unchecked, hasLength(2));
+        expect(report.unchecked, isEmpty);
+        expect(report.failures.single.key, const CobaltKey(Api));
+        expect(
+          report.entries
+              .singleWhere((entry) => entry.key == const CobaltKey(Ticket))
+              .outcome,
+          CobaltGraphOutcome.resolved,
+        );
+      },
+    );
   });
 
   group('side effects it is honest about', () {

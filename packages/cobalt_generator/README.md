@@ -255,10 +255,16 @@ constructor willing to take null still can. A **default** is not, and an optiona
 is refused rather than silently ignored — a record carries no defaults, so `@cobaltParam this.draft =
 false` would leave the caller obliged to pass it anyway. Make it required, or make it nullable.
 
-Three combinations are refused, each naming the fix: `@CobaltInit`, because there is no asynchronous
-parameterized factory; `lifetime: singleton`, because a singleton is built while the container is
-assembled, when no call site has supplied anything; and a module member, because a module registers
-types you did not write while a call-site value belongs to a class you did.
+On an `@CobaltInit` class the factory is async: it implements `CobaltAsyncParamFactory`, awaits
+`init()` after construction, awaits any lazy dependency through `getAsync`, and is registered with
+`registerAsyncParamFactory` — read with `getAsyncWithParam`. It is built per call, never in phase 1,
+so nothing may wait for it in `dependsOn` and it takes no derived `dependsOn` of its own.
+
+Four combinations are refused, each naming the fix: `lifetime: singleton`, because a singleton is
+built while the container is assembled, when no call site has supplied anything; `@CobaltInit(lazy:
+true)`, because a lazy registration is one shared instance; `dependsOn` on such a class, because it
+is not built by `init()`; and a module member, because a module registers types you did not write
+while a call-site value belongs to a class you did.
 
 ## Constructors with named parameters
 

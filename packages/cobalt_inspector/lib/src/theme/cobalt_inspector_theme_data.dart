@@ -201,7 +201,8 @@ class CobaltInspectorThemeData {
         CobaltRegistrationKind.asyncSingleton ||
         CobaltRegistrationKind.lazyAsyncSingleton => startup,
         CobaltRegistrationKind.transient ||
-        CobaltRegistrationKind.parameterized => instance,
+        CobaltRegistrationKind.parameterized ||
+        CobaltRegistrationKind.asyncParameterized => instance,
       };
 
   /// The icon one family is marked with, from [familyIcons] or the default.

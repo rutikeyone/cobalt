@@ -62,4 +62,18 @@ abstract interface class CobaltResolver {
   /// [getAll], building any lazy async registration of [T] that is not built
   /// yet, in the same order.
   Future<List<T>> getAllAsync<T extends Object>();
+
+  /// Builds an instance from an async parameterized factory, passing [param]
+  /// to it, and waits for it.
+  ///
+  /// Every call builds a new instance; the scope never retains it, and the
+  /// caller owns it. A synchronous parameterized registration resolves here
+  /// too, as [getWithParam] would. Throws `CobaltNotParameterizedError` for a
+  /// registration that takes no parameter, `CobaltParamTypeError` when [param]
+  /// is not what the factory takes, and `CobaltCycleError` when the build asks,
+  /// through its own chain, for the key it is building.
+  Future<T> getAsyncWithParam<T extends Object, P extends Object>(
+    P param, {
+    String? name,
+  });
 }

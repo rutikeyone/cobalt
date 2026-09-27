@@ -223,4 +223,19 @@ class TimedEngine implements Engine {
 }
 ''');
   }
+
+  void test_anAsyncClassBuiltFromACallSiteValue_mayTakeOne() async {
+    await assertNoDiagnostics('''
+$cobaltImport
+
+$_engine
+@cobaltInit
+class Document {
+  Document(this.engine, {@cobaltParam required this.id});
+  final Engine engine;
+  final int id;
+  Future<void> init() async {}
+}
+''');
+  }
 }

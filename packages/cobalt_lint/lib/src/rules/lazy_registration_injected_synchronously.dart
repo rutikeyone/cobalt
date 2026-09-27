@@ -116,14 +116,15 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   /// The first lazy type [declaration] takes where it cannot await it.
   ///
-  /// A lazy class may take lazy dependencies in its constructor — its factory
-  /// awaits them — but no class can hold one in an `@injected` field, which is
-  /// filled synchronously after construction.
+  /// A lazy class, and an async class built from a call-site value, may take
+  /// lazy dependencies in its constructor — its factory awaits them — but no
+  /// class can hold one in an `@injected` field, which is filled
+  /// synchronously after construction.
   String? _firstLazy(
     CobaltInjectableClass declaration,
     CobaltRegistrationIndex index,
   ) {
-    if (!declaration.isLazyAsync) {
+    if (!declaration.isLazyAsync && !declaration.isAsyncParam) {
       for (final parameter in declaration.constructorParameters) {
         if (parameter.isParam) continue;
         if (index.lazy.contains(parameter.type.name)) {

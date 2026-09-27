@@ -652,6 +652,32 @@ scope.getWithParam<Editor, EditorArgs>((id: 7, title: 'draft', draft: true));
 
 用普通的 `get<T>()` 去解析一个参数化注册会抛 `CobaltParamRequiredError`——参数无处可来。
 
+
+### 异步构建
+
+如果构建时需要等待某些东西——按 id 加载的文档、为某个账户打开的会话——就注册一个异步工厂，
+并用 `getAsyncWithParam` 读取：
+
+```dart
+class DocumentFactory implements CobaltAsyncParamFactory<Document, int> {
+  const DocumentFactory();
+
+  @override
+  Future<Document> create(CobaltResolver resolver, int id) =>
+      resolver.get<DocumentStore>().load(id);
+}
+
+scope.registerAsyncParamFactory<Document, int>(const DocumentFactory());
+
+final document = await scope.getAsyncWithParam<Document, int>(42);
+```
+
+每次调用都会构建一个新实例，作用域不持有它——由调用方拥有。它从不由 `init()` 构建，所以可以在
+`init()` 之后注册，`dependsOn` 里也没有可等待的东西。它的工厂可以通过 `getAsync` 等待惰性注册；
+通过自身的 `await` 又请求正在构建的键会得到 `CobaltCycleError`，而不是挂起。用 `getWithParam`
+解析它会抛出 `CobaltAsyncParamError`；对普通参数化注册调用 `getAsyncWithParam` 则直接返回
+`getWithParam` 的结果。测试里用 `CobaltAsyncParamOverride` 替换它。
+
 ---
 
 ## 10. 可选依赖

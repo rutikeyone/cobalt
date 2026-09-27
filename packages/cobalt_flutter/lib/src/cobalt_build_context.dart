@@ -47,4 +47,14 @@ extension CobaltBuildContext on BuildContext {
   /// future across rebuilds and handles loading and failure.
   Future<T> cobaltAsync<T extends Object>({String? name}) =>
       CobaltScopeProvider.of(this).getAsync<T>(name: name);
+
+  /// Builds [T] from an async parameterized factory, passing [param], with
+  /// `getAsyncWithParam`.
+  ///
+  /// Every call builds a new instance. Call it once — from `initState`, or
+  /// from an event — and keep the future, rather than from `build`.
+  Future<T> cobaltAsyncWithParam<T extends Object, P extends Object>(
+    P param, {
+    String? name,
+  }) => CobaltScopeProvider.of(this).getAsyncWithParam<T, P>(param, name: name);
 }

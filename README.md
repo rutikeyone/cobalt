@@ -68,7 +68,7 @@ graph.
 | **Topological ordering** | async initializers are layered by Kahn's algorithm; independent branches run through `Future.wait`, a cycle fails the build naming the cycle |
 | **Property injection** | `late final` fields filled by a generated mixin, so a class with five collaborators has an empty constructor |
 | **Compile-time completeness** | a dependency nothing registers fails the build, naming every gap at once |
-| **Parameterized registrations** | `@CobaltParam` for what the call site supplies; the generator writes the argument type as a named record |
+| **Parameterized registrations** | `@CobaltParam` for what the call site supplies; the generator writes the argument type as a named record. On an `@CobaltInit` class the build is async, awaited with `getAsyncWithParam` |
 | **Optional dependencies** | `Foo?` resolves through `getOrNull` and injects null instead of failing the build |
 | **Modules** | register types you did not write — a client from another package, a value the SDK hands you |
 | **Decorators** | wrap what a registration hands out — logging, retries, a cache — without touching its class, by hand or with `@CobaltDecorates` |

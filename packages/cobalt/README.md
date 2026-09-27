@@ -438,6 +438,11 @@ three fields where the hand-written factory had eight parameters.
 
 Positional records work as well, and are fine for two values. Past that the names earn their keep.
 
+When the build itself awaits — a document loaded by id — register a `CobaltAsyncParamFactory` with
+`registerAsyncParamFactory` and read it with `getAsyncWithParam`. Every call builds a new instance
+the scope does not keep, it is never part of `init()`, and it can await lazy registrations through
+`getAsync`; `getWithParam` on it throws `CobaltAsyncParamError`.
+
 ## Watching one subtree
 
 Observers are fixed when a scope is built, and inherited by its children. `push` takes its own, so

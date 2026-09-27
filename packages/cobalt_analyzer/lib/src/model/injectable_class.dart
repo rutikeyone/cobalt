@@ -129,6 +129,17 @@ class CobaltInjectableClass {
   bool get takesCallSiteValues =>
       constructorParameters.any((parameter) => parameter.isParam);
 
+  /// Whether this is built asynchronously from a call-site value — an
+  /// `@CobaltInit` class taking an `@CobaltParam`.
+  ///
+  /// Like a lazy registration it is built on request rather than by `init()`,
+  /// so its factory may await lazy dependencies and nothing may wait for it in
+  /// `dependsOn`. Unlike one, every request builds a new instance.
+  bool get isAsyncParam => isAsyncInit && takesCallSiteValues;
+
+  /// Whether `init()` builds this, in phase 1.
+  bool get isBuiltInPhaseOne => isAsyncInit && !isLazyAsync && !isAsyncParam;
+
   Map<String, dynamic> toJson() => {
     'type': type.toJson(),
     'lifetime': lifetime.name,

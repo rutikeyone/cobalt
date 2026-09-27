@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:cobalt/src/factory/cobalt_async_factory.dart';
+import 'package:cobalt/src/factory/cobalt_async_param_factory.dart';
 import 'package:cobalt/src/factory/cobalt_factory.dart';
 import 'package:cobalt/src/factory/cobalt_param_factory.dart';
 import 'package:cobalt/src/key/cobalt_key.dart';
 
+part 'async_param_registration.dart';
 part 'async_singleton_registration.dart';
 part 'lazy_async_singleton_registration.dart';
 part 'lazy_singleton_registration.dart';

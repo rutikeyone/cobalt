@@ -60,6 +60,21 @@ class FnParamFactory<T extends Object, P extends Object>
   T create(CobaltResolver resolver, P param) => build(resolver, param);
 }
 
+/// An [CobaltAsyncParamFactory] built from a function.
+///
+/// The async sibling of [FnParamFactory], for `registerAsyncParamFactory`.
+class AsyncFnParamFactory<T extends Object, P extends Object>
+    implements CobaltAsyncParamFactory<T, P> {
+  /// Creates a factory that calls [build].
+  const AsyncFnParamFactory(this.build);
+
+  /// Builds the instance from the runtime argument.
+  final Future<T> Function(CobaltResolver resolver, P param) build;
+
+  @override
+  Future<T> create(CobaltResolver resolver, P param) => build(resolver, param);
+}
+
 /// An [CobaltDecorator] built from a function.
 ///
 /// The sibling of [FnFactory] for `CobaltScope.decorate`, so a test that only

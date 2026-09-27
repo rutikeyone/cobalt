@@ -709,6 +709,32 @@ Two rules the generator enforces:
 Resolving one with plain `get<T>()` throws `CobaltParamRequiredError`; passing the wrong type throws
 `CobaltParamTypeError` naming the key and both types.
 
+
+### Built asynchronously
+
+On an `@CobaltInit` class the build is async. Each call constructs it, awaits `init()`, and hands it
+over:
+
+```dart
+@cobaltInit
+class Document implements AsyncInitializable {
+  Document(this._store, {@cobaltParam required this.id});
+
+  final DocumentStore _store;
+  final int id;
+
+  @override
+  Future<void> init() => _store.load(this);
+}
+
+// typedef $DocumentArgs = ({int id});
+final document = await scope.getAsyncWithParam<Document, $DocumentArgs>((id: 42));
+```
+
+The generator emits a `CobaltAsyncParamFactory` and registers it with `registerAsyncParamFactory`.
+It is built per call, never in phase 1, so the build refuses `lazy: true` and `dependsOn` on such a
+class and a `dependsOn` naming it; its factory awaits any lazy dependency through `getAsync`.
+
 ---
 
 ## 13. Optional dependencies

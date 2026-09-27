@@ -29,7 +29,11 @@ void main() {
     scope = cobaltTestRoot(name: 'app')
       ..registerSingleton<Formatter>(const Formatter('plain'), name: 'plain')
       ..registerSingleton<Formatter>(const Formatter('shout'), name: 'shout')
-      ..registerParamFactory<Ticket, String>(const TicketFactory());
+      ..registerParamFactory<Ticket, String>(const TicketFactory())
+      ..registerAsyncParamFactory<Ticket, String>(
+        AsyncFnParamFactory((_, id) async => Ticket(id)),
+        name: 'loaded',
+      );
   });
 
   Future<T> read<T>(WidgetTester tester, T Function(BuildContext) of) async {
@@ -73,6 +77,18 @@ void main() {
       );
 
       expect(ticket.id, 'A7');
+    });
+
+    testWidgets('cobaltAsyncWithParam awaits the async factory', (
+      tester,
+    ) async {
+      final pending = await read(
+        tester,
+        (context) =>
+            context.cobaltAsyncWithParam<Ticket, String>('B9', name: 'loaded'),
+      );
+
+      expect((await pending).id, 'B9');
     });
 
     testWidgets('cobaltScope is the scope the provider published', (

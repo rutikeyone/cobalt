@@ -266,6 +266,36 @@ void main() {
     });
   });
 
+  group('an async class built from a call-site value', () {
+    test('is built by getAsyncWithParam, init awaited', () async {
+      final document = await scope.getAsyncWithParam<Document, $DocumentArgs>((
+        id: 5,
+      ));
+
+      expect(document.id, 5);
+      expect(document.isLoaded, isTrue);
+      expect(
+        scope.debugKindOf(const CobaltKey(Document)),
+        CobaltRegistrationKind.asyncParameterized,
+      );
+    });
+
+    test('builds a new one on every call, and startup built none', () async {
+      final first = await scope.getAsyncWithParam<Document, $DocumentArgs>((
+        id: 1,
+      ));
+      final second = await scope.getAsyncWithParam<Document, $DocumentArgs>((
+        id: 1,
+      ));
+
+      expect(first, isNot(same(second)));
+      expect(
+        () => scope.getWithParam<Document, $DocumentArgs>((id: 1)),
+        throwsA(isA<CobaltAsyncParamError>()),
+      );
+    });
+  });
+
   group('overrides handed to the generated start function', () {
     test('an eager singleton is built by the scope at startup', () {
       expect(scope.get<LicenseCheck>(), isNot(isA<_ValidLicense>()));

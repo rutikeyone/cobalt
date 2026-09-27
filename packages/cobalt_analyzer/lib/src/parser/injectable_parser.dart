@@ -48,16 +48,6 @@ class CobaltInjectableParser {
       );
     }
 
-    if (takesParams && isAsyncInit) {
-      throw CobaltParseError(
-        '${clazz.displayName} is annotated with @CobaltInit and takes an '
-        '@CobaltParam. There is no asynchronous parameterized factory: phase 1 '
-        'builds what it finds, and a call-site value does not exist yet. Take '
-        "the value through a child scope's registration instead.",
-        clazz,
-      );
-    }
-
     if (takesParams &&
         _lifetimeOf(annotation, isAsyncInit: false) ==
             CobaltLifetime.singleton) {
@@ -103,6 +93,26 @@ class CobaltInjectableParser {
 
     final isLazyAsync = initAnnotation?.readBool('lazy') ?? false;
     final dependsOn = _dependsOnOf(initAnnotation);
+
+    if (takesParams && isLazyAsync) {
+      throw CobaltParseError(
+        '${clazz.displayName} is @CobaltInit(lazy: true) and takes an '
+        '@CobaltParam. A lazy registration is one instance built by the first '
+        'getAsync; a call-site value builds a new one on every call. Drop lazy '
+        '— @CobaltInit with an @CobaltParam is already built only when asked, '
+        'through getAsyncWithParam.',
+        clazz,
+      );
+    }
+    if (takesParams && dependsOn.isNotEmpty) {
+      throw CobaltParseError(
+        '${clazz.displayName} takes an @CobaltParam and declares dependsOn. '
+        'dependsOn orders init(), and this class is not built by init(): each '
+        'getAsyncWithParam builds one, awaiting whatever it asks for. Drop the '
+        'dependsOn.',
+        clazz,
+      );
+    }
     if (isLazyAsync && dependsOn.isNotEmpty) {
       throw CobaltParseError(
         '${clazz.displayName} is @CobaltInit(lazy: true) and declares '

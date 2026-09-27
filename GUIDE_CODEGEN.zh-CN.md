@@ -680,6 +680,31 @@ final greeting = context.cobaltWithParam<Greeting, $GreetingArgs>((name: 'Cobalt
 用普通的 `get<T>()` 去解析会抛 `CobaltParamRequiredError`；传错类型会抛 `CobaltParamTypeError`，
 并点明键和两个类型。
 
+
+### 异步构建
+
+在 `@CobaltInit` 类上构建是异步的。每次调用都会构造它、等待 `init()`，然后交出：
+
+```dart
+@cobaltInit
+class Document implements AsyncInitializable {
+  Document(this._store, {@cobaltParam required this.id});
+
+  final DocumentStore _store;
+  final int id;
+
+  @override
+  Future<void> init() => _store.load(this);
+}
+
+// typedef $DocumentArgs = ({int id});
+final document = await scope.getAsyncWithParam<Document, $DocumentArgs>((id: 42));
+```
+
+生成器会写出 `CobaltAsyncParamFactory` 并用 `registerAsyncParamFactory` 注册。它按调用构建，
+从不在阶段 1 构建，所以构建会拒绝这种类上的 `lazy: true` 和 `dependsOn`，也拒绝指向它的
+`dependsOn`；它的工厂通过 `getAsync` 等待惰性依赖。
+
 ---
 
 ## 13. 可选依赖

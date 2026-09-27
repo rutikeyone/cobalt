@@ -98,7 +98,11 @@ class RootScopeEmitter {
 
     if (declaration.takesCallSiteValues) {
       return refer('scope')
-          .property('registerParamFactory')
+          .property(
+            declaration.isAsyncInit
+                ? 'registerAsyncParamFactory'
+                : 'registerParamFactory',
+          )
           .call([factory], named, [exposed, refer(names.argsOf(declaration))])
           .statement;
     }

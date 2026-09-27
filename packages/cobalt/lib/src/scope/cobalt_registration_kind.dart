@@ -5,8 +5,9 @@
 /// registration carries factories and mutable build state, and handing those
 /// out would make every diagnostic a way to corrupt the graph.
 ///
-/// The distinction that matters most in practice is [parameterized]: it is the
-/// one kind that cannot be resolved without a value from the caller, so a tool
+/// The distinction that matters most in practice is [parameterized] and
+/// [asyncParameterized]: they are the kinds that cannot be resolved without a
+/// value from the caller, so a tool
 /// walking a graph has to report it as unchecked rather than as broken.
 enum CobaltRegistrationKind {
   /// An instance registered directly, already built.
@@ -26,4 +27,8 @@ enum CobaltRegistrationKind {
 
   /// Built from a value the caller passes to `getWithParam`, not retained.
   parameterized,
+
+  /// Built asynchronously from a value the caller passes to
+  /// `getAsyncWithParam`, not retained.
+  asyncParameterized,
 }

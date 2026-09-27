@@ -679,6 +679,33 @@ scope.getWithParam<Editor, EditorArgs>((id: 7, title: 'draft', draft: true));
 Резолв параметризованной регистрации обычным `get<T>()` бросает `CobaltParamRequiredError` —
 аргументу неоткуда взяться.
 
+
+### Асинхронная сборка
+
+Когда для сборки нужно что-то дождаться — документ, загруженный по id, сессия, открытая для одного
+аккаунта, — зарегистрируйте async-фабрику и читайте её через `getAsyncWithParam`:
+
+```dart
+class DocumentFactory implements CobaltAsyncParamFactory<Document, int> {
+  const DocumentFactory();
+
+  @override
+  Future<Document> create(CobaltResolver resolver, int id) =>
+      resolver.get<DocumentStore>().load(id);
+}
+
+scope.registerAsyncParamFactory<Document, int>(const DocumentFactory());
+
+final document = await scope.getAsyncWithParam<Document, int>(42);
+```
+
+Каждый вызов строит новый экземпляр, скоуп его не удерживает — им владеет вызывающий. `init()` его
+никогда не строит, поэтому регистрировать можно и после `init()`, а ждать его в `dependsOn` нечего.
+Фабрика может дождаться ленивой регистрации через `getAsync`, а сборка, которая через свои `await`
+просит собственный ключ, — это `CobaltCycleError`, а не зависание. `getWithParam` на ней бросает
+`CobaltAsyncParamError`; `getAsyncWithParam` на обычной параметризованной регистрации просто
+возвращает то же, что `getWithParam`. В тесте такую регистрацию подменяет `CobaltAsyncParamOverride`.
+
 ---
 
 ## 10. Опциональные зависимости

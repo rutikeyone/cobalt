@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cobalt/src/bootstrap/cobalt_scope_builder.dart';
 import 'package:cobalt/src/decorator/cobalt_decorator.dart';
+import 'package:cobalt/src/errors/cobalt_async_param_error.dart';
 import 'package:cobalt/src/errors/cobalt_decorator_error.dart';
 import 'package:cobalt/src/errors/cobalt_depends_on_error.dart';
 import 'package:cobalt/src/errors/cobalt_dispose_error.dart';
@@ -18,6 +19,7 @@ import 'package:cobalt/src/errors/cobalt_override_error.dart';
 import 'package:cobalt/src/errors/cobalt_scope_state_error.dart';
 import 'package:cobalt/src/errors/cobalt_warm_up_error.dart';
 import 'package:cobalt/src/factory/cobalt_async_factory.dart';
+import 'package:cobalt/src/factory/cobalt_async_param_factory.dart';
 import 'package:cobalt/src/factory/cobalt_factory.dart';
 import 'package:cobalt/src/factory/cobalt_param_factory.dart';
 import 'package:cobalt/src/graph/topological_sort.dart';
@@ -185,6 +187,7 @@ final class CobaltScope implements CobaltResolver {
         LazyAsyncSingletonRegistration() =>
           CobaltRegistrationKind.lazyAsyncSingleton,
         ParamRegistration() => CobaltRegistrationKind.parameterized,
+        AsyncParamRegistration() => CobaltRegistrationKind.asyncParameterized,
         null => null,
       };
 
@@ -239,6 +242,9 @@ final class CobaltScope implements CobaltResolver {
     final found = _lookup(key);
     if (found == null) return null;
     final registration = found.registration;
+    if (registration is AsyncParamRegistration) {
+      throw CobaltAsyncParamError(key);
+    }
     if (registration is! ParamRegistration) {
       throw CobaltNotParameterizedError(key);
     }
@@ -259,6 +265,17 @@ final class CobaltScope implements CobaltResolver {
       );
       return found.scope._serveFresh(key, instance);
     });
+  }
+
+  /// [debugResolveWithParam] by way of [getAsyncWithParam]: builds an async
+  /// parameterized registration from [param] and waits for it.
+  ///
+  /// Returns null when nothing registers [key].
+  Future<Object?> debugResolveWithParamAsync(CobaltKey key, Object param) {
+    _assertUsable();
+    final found = _lookup(key);
+    if (found == null) return Future.value();
+    return found.scope._resolveWithParamAsync(found.registration, param);
   }
 
   /// Renders this scope and everything under it, one line per scope.
@@ -587,6 +604,27 @@ final class CobaltScope implements CobaltResolver {
     );
   }
 
+  /// Registers an async [factory] that builds [T] from a [P] the caller
+  /// supplies, resolved through [getAsyncWithParam].
+  ///
+  /// Nothing is built until someone asks, and every call builds a new
+  /// instance the scope does not retain — the caller owns it. It has no part
+  /// in `init()`, so it may be registered after `init()` as well.
+  void registerAsyncParamFactory<T extends Object, P extends Object>(
+    CobaltAsyncParamFactory<T, P> factory, {
+    String? name,
+  }) {
+    _put(
+      AsyncParamRegistration(
+        key: CobaltKey(T, name: name),
+        order: _order++,
+        factory: factory,
+        paramType: P,
+        accepts: (value) => value is P,
+      ),
+    );
+  }
+
   @override
   bool isRegistered<T extends Object>({String? name}) =>
       _lookup(CobaltKey(T, name: name)) != null;
@@ -715,6 +753,9 @@ final class CobaltScope implements CobaltResolver {
       );
     }
     final registration = found.registration;
+    if (registration is AsyncParamRegistration) {
+      throw CobaltAsyncParamError(key);
+    }
     if (registration is! ParamRegistration) {
       throw CobaltNotParameterizedError(key);
     }
@@ -735,6 +776,26 @@ final class CobaltScope implements CobaltResolver {
       );
       return found.scope._serveFresh(key, instance) as T;
     });
+  }
+
+  @override
+  Future<T> getAsyncWithParam<T extends Object, P extends Object>(
+    P param, {
+    String? name,
+  }) async {
+    _assertUsable();
+    final key = CobaltKey(T, name: name);
+    final found = _lookup(key);
+    if (found == null) {
+      throw CobaltNotRegisteredError(
+        key,
+        this.name,
+        resolving: _trail(),
+        whileBuilding: _building,
+      );
+    }
+    return await found.scope._resolveWithParamAsync(found.registration, param)
+        as T;
   }
 
   @override
@@ -1163,6 +1224,9 @@ final class CobaltScope implements CobaltResolver {
 
       case ParamRegistration():
         throw CobaltParamRequiredError(registration.key);
+
+      case AsyncParamRegistration():
+        throw CobaltParamRequiredError(registration.key, isAsync: true);
     }
   }
 
@@ -1193,8 +1257,69 @@ final class CobaltScope implements CobaltResolver {
       case SingletonRegistration() ||
           LazySingletonRegistration() ||
           TransientRegistration() ||
-          ParamRegistration():
+          ParamRegistration() ||
+          AsyncParamRegistration():
         return _materialize(registration);
+    }
+  }
+
+  /// Builds a parameterized [registration] from [param] on this scope, its
+  /// owner — awaiting the factory when it is async.
+  ///
+  /// An async build runs inside the lazy chain, so one that asks, through its
+  /// own awaits, for the key it is building fails as a cycle instead of
+  /// waiting forever.
+  Future<Object> _resolveWithParamAsync(
+    CobaltRegistration registration,
+    Object param,
+  ) async {
+    final key = registration.key;
+    switch (registration) {
+      case ParamRegistration():
+        if (!registration.accepts(param)) {
+          throw CobaltParamTypeError(
+            key,
+            registration.paramType,
+            param.runtimeType,
+          );
+        }
+        return _tracker.guard(key, () {
+          final instance = registration.factory.create(this, param);
+          _afterCreate(
+            instance,
+            key,
+            kind: CobaltRegistrationKind.parameterized,
+            retain: false,
+          );
+          return _serveFresh(key, instance);
+        });
+
+      case AsyncParamRegistration():
+        if (!registration.accepts(param)) {
+          throw CobaltParamTypeError(
+            key,
+            registration.paramType,
+            param.runtimeType,
+          );
+        }
+        final instance = await CobaltResolutionTracker.guardLazy(
+          key,
+          () => registration.factory.create(this, param),
+        );
+        _afterCreate(
+          instance,
+          key,
+          kind: CobaltRegistrationKind.asyncParameterized,
+          retain: false,
+        );
+        return _serveFresh(key, instance);
+
+      case SingletonRegistration() ||
+          LazySingletonRegistration() ||
+          TransientRegistration() ||
+          AsyncSingletonRegistration() ||
+          LazyAsyncSingletonRegistration():
+        throw CobaltNotParameterizedError(key);
     }
   }
 

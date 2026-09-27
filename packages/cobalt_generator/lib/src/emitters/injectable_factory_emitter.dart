@@ -16,7 +16,7 @@ class InjectableFactoryEmitter {
   }) {
     final exposed = typeReferenceOf(declaration.exposedType);
     final provider = declaration.provider;
-    final resolve = declaration.isLazyAsync
+    final resolve = declaration.isLazyAsync || declaration.isAsyncParam
         ? (CobaltInjectedProperty parameter) =>
               awaited.contains(keyOfDependency(parameter))
               ? awaitedResolveCall(parameter)
@@ -38,7 +38,9 @@ class InjectableFactoryEmitter {
           args != null
               ? TypeReference(
                   (t) => t
-                    ..symbol = 'CobaltParamFactory'
+                    ..symbol = declaration.isAsyncInit
+                        ? 'CobaltAsyncParamFactory'
+                        : 'CobaltParamFactory'
                     ..url = cobaltUrl
                     ..types.addAll([exposed, args]),
                 )
@@ -51,7 +53,12 @@ class InjectableFactoryEmitter {
         )
         ..constructors.add(Constructor((c) => c..constant = true))
         ..methods.add(switch ((args, declaration.isAsyncInit, provider)) {
-          (final Reference args, _, _) => _paramCreate(
+          (final Reference args, true, _) => _asyncParamCreate(
+            exposed,
+            args,
+            construction,
+          ),
+          (final Reference args, false, _) => _paramCreate(
             exposed,
             args,
             construction,
@@ -146,6 +153,36 @@ class InjectableFactoryEmitter {
       ])
       ..lambda = true
       ..body = construction.code,
+  );
+
+  Method _asyncParamCreate(
+    Reference exposed,
+    Reference args,
+    Expression construction,
+  ) => Method(
+    (m) => m
+      ..name = 'create'
+      ..annotations.add(refer('override'))
+      ..modifier = MethodModifier.async
+      ..returns = TypeReference(
+        (b) => b
+          ..symbol = 'Future'
+          ..url = 'dart:async'
+          ..types.add(exposed),
+      )
+      ..requiredParameters.addAll([
+        _resolverParameter,
+        Parameter(
+          (p) => p
+            ..name = 'args'
+            ..type = args,
+        ),
+      ])
+      ..body = Block.of([
+        declareFinal('instance').assign(construction).statement,
+        refer('instance').property('init').call(const []).awaited.statement,
+        refer('instance').returned.statement,
+      ]),
   );
 
   Method _syncCreate(Reference exposed, Expression construction) => Method(

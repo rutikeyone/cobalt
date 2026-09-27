@@ -28,9 +28,11 @@ import 'package:meta/meta_meta.dart';
 /// then changes what you pass rather than the name of the type, and the call
 /// site keeps reading like the constructor it stands for.
 ///
-/// Not compatible with `@CobaltInit` — the runtime has no asynchronous
-/// parameterized factory — nor with a singleton lifetime, since a scope never
-/// retains what it builds from a call-site value.
+/// On an `@CobaltInit` class it becomes an async parameterized factory: each
+/// `getAsyncWithParam` builds one, awaiting `init()`. Such a class is not
+/// built in phase 1, so it takes neither `lazy: true` nor `dependsOn`. Not
+/// compatible with a singleton lifetime either, since a scope never retains
+/// what it builds from a call-site value.
 @Target({TargetKind.parameter})
 class CobaltParam {
   /// Marks the parameter.

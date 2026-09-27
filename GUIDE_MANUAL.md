@@ -676,6 +676,33 @@ accepted, because what is checked is the value rather than the type literal.
 Resolving a parameterized registration with plain `get<T>()` throws `CobaltParamRequiredError` — the
 argument has nowhere to come from.
 
+
+### Built asynchronously
+
+When building one has to await something — a document loaded by id, a session opened for one
+account — register an async factory and read it with `getAsyncWithParam`:
+
+```dart
+class DocumentFactory implements CobaltAsyncParamFactory<Document, int> {
+  const DocumentFactory();
+
+  @override
+  Future<Document> create(CobaltResolver resolver, int id) =>
+      resolver.get<DocumentStore>().load(id);
+}
+
+scope.registerAsyncParamFactory<Document, int>(const DocumentFactory());
+
+final document = await scope.getAsyncWithParam<Document, int>(42);
+```
+
+Every call builds a new instance the scope does not keep; the caller owns it. It is never built by
+`init()`, so it may be registered afterwards and nothing waits for it in `dependsOn`. Its factory may
+await a lazy registration through `getAsync`, and a build that asks, through its own awaits, for the
+key it is building is a `CobaltCycleError` rather than a hang. Resolving it with `getWithParam`
+throws `CobaltAsyncParamError`; `getAsyncWithParam` on an ordinary parameterized registration simply
+returns what `getWithParam` would. `CobaltAsyncParamOverride` replaces one in a test.
+
 ---
 
 ## 10. Optional dependencies

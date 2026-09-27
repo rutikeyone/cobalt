@@ -344,15 +344,19 @@ class ContainerSourceEmitter {
     };
     final asyncKeys = {
       for (final declaration in injectables)
-        if (declaration.isAsyncInit && !declaration.isLazyAsync)
-          _keyOf(declaration),
+        if (declaration.isBuiltInPhaseOne) _keyOf(declaration),
     };
     final lazyKeys = {
       for (final declaration in injectables)
         if (declaration.isLazyAsync) _keyOf(declaration),
     };
+    final perCallKeys = {
+      for (final declaration in injectables)
+        if (declaration.isAsyncParam) _keyOf(declaration),
+    };
 
     final lazy = <String>[];
+    final perCall = <String>[];
     final wrong = <String>[];
     for (final declaration in injectables) {
       for (final dependency in declaration.dependsOn) {
@@ -360,6 +364,8 @@ class ContainerSourceEmitter {
         if (asyncKeys.contains(key)) continue;
         if (lazyKeys.contains(key)) {
           lazy.add('${declaration.label} waits for ${dependency.name}');
+        } else if (perCallKeys.contains(key)) {
+          perCall.add('${declaration.label} waits for ${dependency.name}');
         } else if (registered.contains(key)) {
           wrong.add('${declaration.label} waits for ${dependency.name}');
         }
@@ -373,6 +379,16 @@ class ContainerSourceEmitter {
         'A lazy registration is built by the first getAsync, not by init(), '
         'so init() has nothing to wait for. Make the waiting class lazy too, '
         'or drop lazy from what it waits for.',
+      );
+    }
+    if (perCall.isNotEmpty) {
+      throw CobaltGenerationError(
+        'dependsOn cannot wait for a registration built from a call-site '
+        'value.\n'
+        '${perCall.map((line) => '  $line').join('\n')}\n'
+        'It is built by each getAsyncWithParam, never by init(), so there is '
+        'nothing to wait for. Resolve it with getAsyncWithParam where it is '
+        'needed.',
       );
     }
     if (wrong.isEmpty) return;
@@ -422,7 +438,11 @@ class ContainerSourceEmitter {
     final wrong = <String>[];
     for (final declaration in injectables) {
       for (final parameter in declaration.constructorParameters) {
-        if (parameter.isParam || declaration.isLazyAsync) continue;
+        if (parameter.isParam ||
+            declaration.isLazyAsync ||
+            declaration.isAsyncParam) {
+          continue;
+        }
         if (!lazyKeys.contains(_refKey(parameter.type, parameter.name))) {
           continue;
         }
@@ -475,8 +495,7 @@ class ContainerSourceEmitter {
   ) {
     final asyncKeys = {
       for (final declaration in injectables)
-        if (declaration.isAsyncInit && !declaration.isLazyAsync)
-          _keyOf(declaration),
+        if (declaration.isBuiltInPhaseOne) _keyOf(declaration),
     };
     final decoratorsByTarget = _decoratorsByTarget(decorators);
     final byKey = _groupByKey(injectables);
@@ -485,7 +504,7 @@ class ContainerSourceEmitter {
         environments.isEmpty ? universe.toSet() : environments;
     final asyncPresence = <String, Set<String>>{};
     for (final declaration in injectables) {
-      if (!declaration.isAsyncInit || declaration.isLazyAsync) continue;
+      if (!declaration.isBuiltInPhaseOne) continue;
       asyncPresence
           .putIfAbsent(_keyOf(declaration), () => {})
           .addAll(presentIn(declaration.environments));
@@ -532,7 +551,7 @@ class ContainerSourceEmitter {
 
     return [
       for (final declaration in injectables)
-        if (!declaration.isAsyncInit || declaration.isLazyAsync)
+        if (!declaration.isBuiltInPhaseOne)
           declaration
         else
           _withExtraDependsOn(declaration, [

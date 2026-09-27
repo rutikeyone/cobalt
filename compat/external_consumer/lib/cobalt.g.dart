@@ -14,6 +14,7 @@ import 'package:cobalt_external_consumer/src/clock.dart' as _i612;
 import 'package:cobalt_external_consumer/src/database.dart' as _i530;
 import 'package:cobalt_external_consumer/src/device_info.dart' as _i829;
 import 'package:cobalt_external_consumer/src/diagnostics.dart' as _i862;
+import 'package:cobalt_external_consumer/src/document.dart' as _i601;
 import 'package:cobalt_external_consumer/src/license_check.dart' as _i1023;
 import 'package:cobalt_external_consumer/src/note_editor.dart' as _i59;
 import 'package:cobalt_external_consumer/src/platform_module.dart' as _i455;
@@ -25,6 +26,7 @@ import 'package:cobalt_external_consumer/src/session_cache.dart' as _i995;
 import 'package:cobalt_external_consumer/src/system_clock.dart' as _i271;
 import 'package:cobalt_external_consumer/src/telemetry.dart' as _i186;
 
+typedef $DocumentArgs = ({int id});
 typedef $NoteEditorArgs = ({int id, String title, bool draft});
 
 final class _ArchiveFactory implements _i573.CobaltAsyncFactory<_i768.Archive> {
@@ -104,6 +106,24 @@ final class _DiagnosticsFactory
     resolver.get<_i829.DeviceInfo>(),
     resolver.get<_i612.Clock>(),
   );
+}
+
+final class _DocumentFactory
+    implements _i573.CobaltAsyncParamFactory<_i601.Document, $DocumentArgs> {
+  const _DocumentFactory();
+
+  @override
+  _i687.Future<_i601.Document> create(
+    _i573.CobaltResolver resolver,
+    $DocumentArgs args,
+  ) async {
+    final instance = _i601.Document(
+      resolver.get<_i530.Database>(),
+      id: args.id,
+    );
+    await instance.init();
+    return instance;
+  }
 }
 
 final class _LicenseCheckFactory
@@ -265,6 +285,9 @@ final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
     scope.registerLazySingleton<_i242.Catalog>(const _CatalogFactory());
     scope.registerAsyncSingleton<_i530.Database>(const _DatabaseFactory());
     scope.registerLazyAsyncSingleton<_i768.Archive>(const _ArchiveFactory());
+    scope.registerAsyncParamFactory<_i601.Document, $DocumentArgs>(
+      const _DocumentFactory(),
+    );
     scope.registerAsyncSingleton<_i375.SearchIndex>(
       const _SearchIndexFactory(),
       dependsOn: {

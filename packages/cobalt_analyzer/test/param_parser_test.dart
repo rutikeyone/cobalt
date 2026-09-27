@@ -54,12 +54,34 @@ class Api {
     });
   });
 
-  group('what @CobaltParam cannot be combined with', () {
-    test('an async initializer', () async {
-      final clazz = await classNamed('Warmer', '''
+  group('an async initializer built from a call-site value', () {
+    test('is read as one, built per call', () async {
+      final declaration = parser.parseClass(
+        await classNamed('Document', '''
 @CobaltInit()
-class Warmer implements AsyncInitializable {
-  Warmer({@cobaltParam required this.id});
+class Document implements AsyncInitializable {
+  Document({@cobaltParam required this.id});
+
+  final int id;
+
+  @override
+  Future<void> init() async {}
+}
+'''),
+      );
+
+      expect(declaration.isAsyncInit, isTrue);
+      expect(declaration.takesCallSiteValues, isTrue);
+      expect(declaration.isAsyncParam, isTrue);
+      expect(declaration.isBuiltInPhaseOne, isFalse);
+      expect(declaration.isLazyAsync, isFalse);
+    });
+
+    test('refuses lazy, which is one shared instance', () async {
+      final clazz = await classNamed('Document', '''
+@CobaltInit(lazy: true)
+class Document implements AsyncInitializable {
+  Document({@cobaltParam required this.id});
 
   final int id;
 
@@ -74,15 +96,45 @@ class Warmer implements AsyncInitializable {
           isA<CobaltParseError>().having(
             (error) => error.message,
             'message',
-            allOf(
-              contains('Warmer'),
-              contains('no asynchronous parameterized factory'),
-            ),
+            contains('Drop lazy'),
           ),
         ),
       );
     });
 
+    test('refuses dependsOn, which orders init()', () async {
+      final clazz = await classNamed('Document', '''
+@cobaltInit
+class Database implements AsyncInitializable {
+  @override
+  Future<void> init() async {}
+}
+
+@CobaltInit(dependsOn: [Database])
+class Document implements AsyncInitializable {
+  Document({@cobaltParam required this.id});
+
+  final int id;
+
+  @override
+  Future<void> init() async {}
+}
+''');
+
+      expect(
+        () => parser.parseClass(clazz),
+        throwsA(
+          isA<CobaltParseError>().having(
+            (error) => error.message,
+            'message',
+            contains('Drop the dependsOn'),
+          ),
+        ),
+      );
+    });
+  });
+
+  group('what @CobaltParam cannot be combined with', () {
     test('a singleton lifetime', () async {
       final clazz = await classNamed('Editor', '''
 @CobaltInject(lifetime: CobaltLifetime.singleton)
