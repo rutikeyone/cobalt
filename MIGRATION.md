@@ -43,6 +43,7 @@ the most edges, and until its dependencies are Cobalt's you gain nothing.
 | `registerSingletonAsync<T>(() async => …)` | `registerAsyncSingleton<T>(const TFactory())` |
 | `registerSingletonWithDependencies<T>(…, dependsOn: [A])` | `registerAsyncSingleton<T>(…, dependsOn: {CobaltKey(A)})` |
 | `registerLazySingletonAsync<T>(() async => …)` | `registerLazyAsyncSingleton<T>(const TFactory())` |
+| `registerFactoryAsync<T>(() async => …)` | `registerAsyncFactory<T>(const TFactory())`, read with `getAsync` |
 | `registerFactoryParam<T, P, void>((p, _) => …)` | `registerParamFactory<T, P>(const TFactory())` |
 | `registerFactoryParamAsync<T, P, void>((p, _) async => …)` | `registerAsyncParamFactory<T, P>(const TFactory())`, read with `getAsyncWithParam` |
 | `getIt<T>()` / `getIt.get<T>()` | `scope.get<T>()` |
@@ -116,12 +117,6 @@ Be aware of these before you commit to the move:
   Code-Gen Mode you do not write any of that: mark the parameters with
   `@CobaltParam` and the generator emits the record type, the factory and the
   registration.
-- **`registerFactoryAsync`** — a fresh async build on every call, with no
-  value from the caller. Cobalt's per-call async factory takes one:
-  `registerAsyncParamFactory<T, P>`, read with `getAsyncWithParam` — which is
-  also what `registerFactoryParamAsync` maps to. Without a value to pass, a
-  lazy async *singleton* (`registerLazyAsyncSingleton`, read with `getAsync`)
-  is usually what was meant: built by the first call and kept.
 - **`resetLazySingletons`** — dispose the scope instead. Resetting instances
   underneath live holders is the class of bug scopes exist to prevent.
 - **A global instance.** There is no `GetIt.I`. A scope is passed, injected, or

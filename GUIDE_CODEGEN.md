@@ -663,6 +663,34 @@ starts the build as soon as the graph is up, behind the app rather than behind `
 `scope.warmUp([...])` does the same from anywhere else. A screen that asks meanwhile waits for that
 build instead of starting a second, and failures arrive together as a `CobaltWarmUpError`.
 
+
+### Built anew on every call
+
+A transient `@CobaltInit` class is built by every `getAsync`: each call constructs it, awaits
+`init()`, and hands it over. The scope keeps none of them.
+
+```dart
+@cobaltTransient
+@cobaltInit
+class Report implements AsyncInitializable {
+  Report(this._service);
+
+  final ReportService _service;
+
+  @override
+  Future<void> init() => _service.assemble(this);
+}
+
+final report = await scope.getAsync<Report>();
+```
+
+On a module member returning a `Future`, the same is `@cobaltTransient`. The generator registers it
+with `registerAsyncFactory`, and its factory awaits `getAsync` for every lazy dependency. The same
+three things are build errors as for a lazy registration — a synchronous or eager async class
+injecting it, an `@injected` field of its type, and a `dependsOn` naming it — and two more on the
+class itself: `lazy: true`, because a lazy registration is one shared instance, and `dependsOn`,
+because it is not built by `init()`. A `dispose:` is refused as on any transient.
+
 ---
 
 ## 12. Values that come from the call site

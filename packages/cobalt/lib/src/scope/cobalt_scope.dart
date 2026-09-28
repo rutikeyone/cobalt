@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cobalt/src/bootstrap/cobalt_scope_builder.dart';
 import 'package:cobalt/src/decorator/cobalt_decorator.dart';
 import 'package:cobalt/src/errors/cobalt_async_param_error.dart';
+import 'package:cobalt/src/errors/cobalt_async_transient_error.dart';
 import 'package:cobalt/src/errors/cobalt_decorator_error.dart';
 import 'package:cobalt/src/errors/cobalt_depends_on_error.dart';
 import 'package:cobalt/src/errors/cobalt_dispose_error.dart';
@@ -188,6 +189,7 @@ final class CobaltScope implements CobaltResolver {
           CobaltRegistrationKind.lazyAsyncSingleton,
         ParamRegistration() => CobaltRegistrationKind.parameterized,
         AsyncParamRegistration() => CobaltRegistrationKind.asyncParameterized,
+        AsyncTransientRegistration() => CobaltRegistrationKind.asyncTransient,
         null => null,
       };
 
@@ -563,6 +565,31 @@ final class CobaltScope implements CobaltResolver {
     );
   }
 
+  /// Registers [T] so every [getAsync] builds a new instance asynchronously.
+  ///
+  /// The async counterpart of [registerFactory]: for something whose
+  /// construction awaits I/O and that each caller wants fresh — a query that
+  /// opens its own connection, a report assembled on request. The scope does
+  /// not retain what it builds, so the caller owns it and closes it.
+  ///
+  /// Nothing is built during [init], so it may be registered after [init] as
+  /// well. An async singleton cannot name it in its `dependsOn` — there is no
+  /// single instance for `init()` to wait for — and throws
+  /// `CobaltDependsOnError` if it does. A synchronous [get] throws
+  /// `CobaltAsyncTransientError`.
+  void registerAsyncFactory<T extends Object>(
+    CobaltAsyncFactory<T> factory, {
+    String? name,
+  }) {
+    _put(
+      AsyncTransientRegistration(
+        key: CobaltKey(T, name: name),
+        order: _order++,
+        factory: factory,
+      ),
+    );
+  }
+
   /// Refuses an async registration that phase 1 can no longer build.
   ///
   /// [init] collects what to build once, at its start, and memoizes its own
@@ -872,6 +899,15 @@ final class CobaltScope implements CobaltResolver {
             reason:
                 'is a lazy async registration, built by the first getAsync '
                 'rather than by init()',
+          );
+        }
+        if (found.registration is AsyncTransientRegistration) {
+          throw CobaltDependsOnError(
+            registration.key,
+            dependency,
+            reason:
+                'is an async factory, built anew by every getAsync rather '
+                'than once by init()',
           );
         }
         if (found.registration is! AsyncSingletonRegistration) {
@@ -1227,11 +1263,19 @@ final class CobaltScope implements CobaltResolver {
 
       case AsyncParamRegistration():
         throw CobaltParamRequiredError(registration.key, isAsync: true);
+
+      case AsyncTransientRegistration():
+        throw CobaltAsyncTransientError(registration.key, resolving: _trail());
     }
   }
 
-  /// [_materialize] for [getAsync]: builds a lazy async registration, and
-  /// waits for an async singleton `init()` is still building.
+  /// [_materialize] for [getAsync]: builds a lazy async registration or an
+  /// async transient, and waits for an async singleton `init()` is still
+  /// building.
+  ///
+  /// An async transient builds inside the lazy chain, like an async
+  /// parameterized one, so a build that asks through its own awaits for the
+  /// key it is building fails as a cycle instead of waiting forever.
   Future<Object> _resolveAsync(CobaltRegistration registration) async {
     switch (registration) {
       case LazyAsyncSingletonRegistration():
@@ -1253,6 +1297,20 @@ final class CobaltScope implements CobaltResolver {
           return _serve(registration.key, built);
         }
         throw CobaltNotReadyError(registration.key, resolving: _trail());
+
+      case AsyncTransientRegistration():
+        final key = registration.key;
+        final instance = await CobaltResolutionTracker.guardLazy(
+          key,
+          () => registration.factory.create(this),
+        );
+        _afterCreate(
+          instance,
+          key,
+          kind: CobaltRegistrationKind.asyncTransient,
+          retain: false,
+        );
+        return _serveFresh(key, instance);
 
       case SingletonRegistration() ||
           LazySingletonRegistration() ||
@@ -1318,7 +1376,8 @@ final class CobaltScope implements CobaltResolver {
           LazySingletonRegistration() ||
           TransientRegistration() ||
           AsyncSingletonRegistration() ||
-          LazyAsyncSingletonRegistration():
+          LazyAsyncSingletonRegistration() ||
+          AsyncTransientRegistration():
         throw CobaltNotParameterizedError(key);
     }
   }

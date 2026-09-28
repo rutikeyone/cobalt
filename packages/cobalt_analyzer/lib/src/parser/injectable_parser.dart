@@ -113,6 +113,26 @@ class CobaltInjectableParser {
         clazz,
       );
     }
+    if (isAsyncInit && !takesParams && lifetime == CobaltLifetime.transient) {
+      if (isLazyAsync) {
+        throw CobaltParseError(
+          '${clazz.displayName} is transient and @CobaltInit(lazy: true). A '
+          'lazy registration is one instance built by the first getAsync; a '
+          'transient builds a new one on every call. Drop lazy — a transient '
+          '@CobaltInit class is already built only when asked, by getAsync.',
+          clazz,
+        );
+      }
+      if (dependsOn.isNotEmpty) {
+        throw CobaltParseError(
+          '${clazz.displayName} is transient and declares dependsOn. dependsOn '
+          'orders init(), and a transient @CobaltInit class is not built by '
+          'init(): each getAsync builds one, awaiting whatever it asks for. '
+          'Drop the dependsOn.',
+          clazz,
+        );
+      }
+    }
     if (isLazyAsync && dependsOn.isNotEmpty) {
       throw CobaltParseError(
         '${clazz.displayName} is @CobaltInit(lazy: true) and declares '
@@ -176,15 +196,23 @@ class CobaltInjectableParser {
         (supertype) => supertype.methods.any((method) => method.name == 'init'),
       );
 
+  /// The lifetime [annotation] asks for.
+  ///
+  /// An async class is retained unless it says transient: an `@CobaltInit`
+  /// class is built once — by `init()`, or by the first `getAsync` when lazy —
+  /// and a transient one by every `getAsync`.
   CobaltLifetime _lifetimeOf(
     DartObject annotation, {
     required bool isAsyncInit,
   }) {
-    if (isAsyncInit) return CobaltLifetime.lazySingleton;
     final index = annotation.readEnumIndex('lifetime');
-    return index == null
-        ? CobaltLifetime.lazySingleton
-        : CobaltLifetime.values[index];
+    final declared = index == null ? null : CobaltLifetime.values[index];
+    if (isAsyncInit) {
+      return declared == CobaltLifetime.transient
+          ? CobaltLifetime.transient
+          : CobaltLifetime.lazySingleton;
+    }
+    return declared ?? CobaltLifetime.lazySingleton;
   }
 
   CobaltTypeRef? _exposeAsOf(DartObject annotation) {

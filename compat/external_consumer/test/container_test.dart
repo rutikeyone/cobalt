@@ -296,6 +296,29 @@ void main() {
     });
   });
 
+  group('a transient async class', () {
+    test('is built by getAsync, init awaited', () async {
+      final snapshot = await scope.getAsync<Snapshot>();
+
+      expect(snapshot.isTaken, isTrue);
+      expect(
+        scope.debugKindOf(const CobaltKey(Snapshot)),
+        CobaltRegistrationKind.asyncTransient,
+      );
+    });
+
+    test('builds a new one on every call, and startup built none', () async {
+      final first = await scope.getAsync<Snapshot>();
+      final second = await scope.getAsync<Snapshot>();
+
+      expect(first, isNot(same(second)));
+      expect(
+        () => scope.get<Snapshot>(),
+        throwsA(isA<CobaltAsyncTransientError>()),
+      );
+    });
+  });
+
   group('overrides handed to the generated start function', () {
     test('an eager singleton is built by the scope at startup', () {
       expect(scope.get<LicenseCheck>(), isNot(isA<_ValidLicense>()));

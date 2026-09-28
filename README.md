@@ -65,6 +65,7 @@ graph.
 | **Ownership and teardown** | the scope releases what it built, LIFO by **creation** order, best-effort with one deadline for the whole tree |
 | **Two-phase startup** | `@CobaltBootstrap` before the container exists, `@CobaltInit` inside it, both awaited before `start` returns |
 | **Lazy async singletons** | built by the first `getAsync`, not at startup — for something expensive that lives as long as the app but few screens want |
+| **Async transients** | `registerAsyncFactory`, or `@cobaltTransient` on an `@CobaltInit` class: every `getAsync` builds and awaits a new instance the scope does not keep |
 | **Topological ordering** | async initializers are layered by Kahn's algorithm; independent branches run through `Future.wait`, a cycle fails the build naming the cycle |
 | **Property injection** | `late final` fields filled by a generated mixin, so a class with five collaborators has an empty constructor |
 | **Compile-time completeness** | a dependency nothing registers fails the build, naming every gap at once |

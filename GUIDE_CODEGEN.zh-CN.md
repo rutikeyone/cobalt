@@ -639,6 +639,31 @@ class SearchEngine implements AsyncInitializable {
 位于应用之后而不是 `loading` 之后；`scope.warmUp([...])` 在任何其他地方做同样的事。期间请求它的界面会等待这次构建，
 而不是再启动一次，失败会一起作为 `CobaltWarmUpError` 报告。
 
+
+### 每次调用都重新构建
+
+瞬态的 `@CobaltInit` 类由每次 `getAsync` 构建：每次调用都构造它、等待 `init()`，然后交出去。作用域一个也不持有。
+
+```dart
+@cobaltTransient
+@cobaltInit
+class Report implements AsyncInitializable {
+  Report(this._service);
+
+  final ReportService _service;
+
+  @override
+  Future<void> init() => _service.assemble(this);
+}
+
+final report = await scope.getAsync<Report>();
+```
+
+在返回 `Future` 的模块成员上，同样写 `@cobaltTransient`。生成器用 `registerAsyncFactory` 注册它，
+它的工厂对每个惰性依赖都通过 `getAsync` 等待。与惰性注册相同的三件事会让构建失败——同步或 eager 异步类注入它、
+它类型的 `@injected` 字段、以及指名它的 `dependsOn`——另外还有类本身上的两件：`lazy: true`，因为惰性注册是
+一个共享实例；`dependsOn`，因为它不是由 `init()` 构建的。`dispose:` 会像在任何瞬态上一样被拒绝。
+
 ---
 
 ## 12. 来自调用方的值

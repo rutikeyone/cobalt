@@ -16,6 +16,7 @@ export 'package:cobalt/src/bootstrap/cobalt_bootstrap_step.dart';
 export 'package:cobalt/src/bootstrap/cobalt_scope_builder.dart';
 export 'package:cobalt/src/decorator/cobalt_decorator.dart';
 export 'package:cobalt/src/errors/cobalt_async_param_error.dart';
+export 'package:cobalt/src/errors/cobalt_async_transient_error.dart';
 export 'package:cobalt/src/errors/cobalt_bootstrap_error.dart';
 export 'package:cobalt/src/errors/cobalt_decorator_error.dart';
 export 'package:cobalt/src/errors/cobalt_dispose_error.dart';

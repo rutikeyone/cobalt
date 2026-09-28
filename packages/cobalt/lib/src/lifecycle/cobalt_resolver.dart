@@ -45,7 +45,8 @@ abstract interface class CobaltResolver {
   bool isRegistered<T extends Object>({String? name});
 
   /// Returns the instance registered for [T], building it first if it is a
-  /// lazy async registration nobody has asked for yet.
+  /// lazy async registration nobody has asked for yet, or building a new one
+  /// if it is an async transient.
   ///
   /// Every other kind resolves as [get] would. The one other difference is an
   /// async singleton that `init()` is still building: this waits for `init()`
@@ -56,11 +57,13 @@ abstract interface class CobaltResolver {
   /// Concurrent calls for the same key share one build. A build that fails is
   /// not remembered: every caller waiting on it gets the error, and the next
   /// call tries again. A lazy build that asks, through its own chain, for the
-  /// key it is building throws `CobaltCycleError` naming the path.
+  /// key it is building throws `CobaltCycleError` naming the path. An async
+  /// transient is never shared: every call builds its own instance, which the
+  /// caller owns.
   Future<T> getAsync<T extends Object>({String? name});
 
   /// [getAll], building any lazy async registration of [T] that is not built
-  /// yet, in the same order.
+  /// yet and a new instance of any async transient, in the same order.
   Future<List<T>> getAllAsync<T extends Object>();
 
   /// Builds an instance from an async parameterized factory, passing [param]

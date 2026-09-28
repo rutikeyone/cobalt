@@ -43,6 +43,9 @@ extension CobaltBuildContext on BuildContext {
   /// Resolves [T] from the nearest scope with `getAsync`, building a lazy
   /// async registration the first time it is asked for.
   ///
+  /// An async transient is built anew by every call, so call it once and
+  /// keep the future rather than calling it from `build`.
+  ///
   /// To build a subtree from the result, `CobaltAsyncBuilder` holds the
   /// future across rebuilds and handles loading and failure.
   Future<T> cobaltAsync<T extends Object>({String? name}) =>

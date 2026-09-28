@@ -178,7 +178,7 @@ cd examples/manual_mode && dart run
 
 ## 3. Регистрация и чтение
 
-### Семь способов зарегистрировать
+### Девять способов зарегистрировать
 
 | Вызов | Когда строится | Скоуп удерживает |
 |---|---|---|
@@ -188,7 +188,9 @@ cd examples/manual_mode && dart run
 | `registerAsyncSingleton<T>(factory)` | в `init()`, в порядке зависимостей | да |
 | `registerLazyAsyncSingleton<T>(factory)` | при первом `getAsync` | да |
 | `registerFactory<T>(factory)` | на каждый резолв | нет |
+| `registerAsyncFactory<T>(factory)` | на каждый `getAsync` | нет |
 | `registerParamFactory<T, P>(factory)` | на каждый резолв, из аргумента | нет |
+| `registerAsyncParamFactory<T, P>(factory)` | на каждый `getAsyncWithParam`, из аргумента | нет |
 
 «Удерживает» — и есть всё различие, и оно решает разбор: скоуп освобождает удержанное, а транзиент
 освобождать некому — см. [§7](#7-как-закрывается-то-что-вы-зарегистрировали).
@@ -634,6 +636,38 @@ unawaited(scope.warmUp(const [CobaltKey(SearchEngine)]));
 Все ключи проверяются до начала сборок, а упавшие сборки не останавливают остальные — они приходят
 вместе как `CobaltWarmUpError`. Во Flutter `CobaltAppScope(warmUp: [...])` делает это сразу после
 подъёма графа, за приложением, а не за `loading`, и отправляет сбой в `FlutterError.reportError`.
+
+
+### Новая сборка на каждый вызов
+
+Когда каждому вызывающему нужен свой экземпляр, а его сборка чего-то дожидается — запрос, который
+открывает своё соединение, отчёт, собираемый по требованию, — зарегистрируйте async-транзиент и
+читайте его через `getAsync`:
+
+```dart
+class ReportFactory implements CobaltAsyncFactory<Report> {
+  const ReportFactory();
+
+  @override
+  Future<Report> create(CobaltResolver resolver) =>
+      resolver.get<ReportService>().assemble();
+}
+
+scope.registerAsyncFactory<Report>(const ReportFactory());
+
+final report = await scope.getAsync<Report>();
+```
+
+Каждый вызов строит новый экземпляр, который скоуп не удерживает: им владеет и его закрывает
+вызывающий. Параллельные вызовы не делят одну сборку. `init()` его никогда не строит, поэтому его
+можно зарегистрировать и после, а async-синглтон не может назвать его в своём `dependsOn`. Его фабрика
+может дождаться ленивой регистрации через `getAsync`, а сборка, которая через свои `await` просит
+собственный ключ, — это `CobaltCycleError`, а не зависание. Синхронное чтение — `get`, `getOrNull`,
+`getAll` — бросает `CobaltAsyncTransientError` с подсказкой про `getAsync`. В тесте его заменяет
+синхронный дублёр через `CobaltOverride.transient`.
+
+В виджете вызывайте `context.cobaltAsync` один раз — из `initState` или из события — и храните
+future: каждый вызов строит ещё один экземпляр.
 
 ---
 

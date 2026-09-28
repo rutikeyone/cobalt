@@ -40,6 +40,7 @@ GetIt.I.registerSingleton<Database>(app.get<Database>());
 | `registerSingletonAsync<T>(() async => …)` | `registerAsyncSingleton<T>(const TFactory())` |
 | `registerSingletonWithDependencies<T>(…, dependsOn: [A])` | `registerAsyncSingleton<T>(…, dependsOn: {CobaltKey(A)})` |
 | `registerLazySingletonAsync<T>(() async => …)` | `registerLazyAsyncSingleton<T>(const TFactory())` |
+| `registerFactoryAsync<T>(() async => …)` | `registerAsyncFactory<T>(const TFactory())`，用 `getAsync` 读取 |
 | `registerFactoryParam<T, P, void>((p, _) => …)` | `registerParamFactory<T, P>(const TFactory())` |
 | `registerFactoryParamAsync<T, P, void>((p, _) async => …)` | `registerAsyncParamFactory<T, P>(const TFactory())`, read with `getAsyncWithParam` |
 | `getIt<T>()` / `getIt.get<T>()` | `scope.get<T>()` |
@@ -100,10 +101,6 @@ final tabB = app.push('tab:b');   // 是兄弟，而不是压在 tabA 上面
   参数名，位置式 record 做不到。只有容器无法知道的值才进 record —— 依赖仍从 resolver 取，
   所以 record 通常比它替换掉的参数列表更短。在 Code-Gen Mode 下这些都不用手写：给参数加上
   `@CobaltParam`，生成器会写出 record 类型、工厂和注册。
-- **`registerFactoryAsync`** —— 每次调用都重新异步构建，且调用方不传值。Cobalt 按调用的异步工厂
-  需要一个值：`registerAsyncParamFactory<T, P>`，用 `getAsyncWithParam` 读取——`registerFactoryParamAsync`
-  也对应它。如果没有值可传，通常想要的是惰性异步*单例*（`registerLazyAsyncSingleton`，用 `getAsync`
-  读取）：由第一次调用构建并被持有。
 - **`resetLazySingletons`** —— 请改为释放作用域。在活着的持有者脚下重置实例，正是作用域要防止的那类 bug。
 - **全局实例。** 没有 `GetIt.I`。作用域要么被传递、要么被注入、要么通过 `context.cobalt<T>()` 从 widget 树
   里读取。这是有意为之：正是那个全局变量让 get_it 的图无法并行测试。

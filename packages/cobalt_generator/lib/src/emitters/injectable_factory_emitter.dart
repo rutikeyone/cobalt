@@ -6,9 +6,10 @@ import 'package:code_builder/code_builder.dart';
 class InjectableFactoryEmitter {
   const InjectableFactoryEmitter();
 
-  /// [awaited] holds the keys of lazy async registrations. Only a lazy
-  /// declaration may depend on one, and its factory awaits `getAsync` for it
-  /// instead of calling `get` — the container rejects every other dependent.
+  /// [awaited] holds the keys of lazy async registrations and async
+  /// transients. Only a declaration built by `getAsync` may depend on one, and
+  /// its factory awaits `getAsync` for it instead of calling `get` — the
+  /// container rejects every other dependent.
   Class emit(
     CobaltInjectableClass declaration,
     CobaltFactoryNames names, {
@@ -16,7 +17,10 @@ class InjectableFactoryEmitter {
   }) {
     final exposed = typeReferenceOf(declaration.exposedType);
     final provider = declaration.provider;
-    final resolve = declaration.isLazyAsync || declaration.isAsyncParam
+    final resolve =
+        declaration.isLazyAsync ||
+            declaration.isAsyncParam ||
+            declaration.isAsyncTransient
         ? (CobaltInjectedProperty parameter) =>
               awaited.contains(keyOfDependency(parameter))
               ? awaitedResolveCall(parameter)

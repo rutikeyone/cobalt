@@ -238,4 +238,100 @@ class Document {
 }
 ''');
   }
+
+  static const _report = '''
+@cobaltTransient
+@cobaltInit
+class Report {
+  Report();
+  Future<void> init() async {}
+}
+''';
+
+  void test_asyncTransient_isReportedOnASyncConsumer() async {
+    await _reportsOn('''
+$cobaltImport
+
+$_report
+@cobaltInject
+class Screen {
+  Screen(this.report);
+  final Report report;
+}
+''', 'Screen');
+  }
+
+  void test_asyncTransientSpelledWithLifetime_isReported() async {
+    await _reportsOn('''
+$cobaltImport
+
+@CobaltInject(lifetime: CobaltLifetime.transient)
+@cobaltInit
+class Report {
+  Report();
+  Future<void> init() async {}
+}
+
+@cobaltInject
+class Screen {
+  Screen(this.report);
+  final Report report;
+}
+''', 'Screen');
+  }
+
+  void test_asyncTransientModuleMember_isReportedOnItsConsumer() async {
+    await _reportsOn('''
+$cobaltImport
+import 'package:engine/engine.dart';
+
+@cobaltModule
+class EngineModule {
+  const EngineModule();
+
+  @cobaltTransient
+  Future<Engine> engine() async => Engine();
+}
+
+@cobaltInject
+class Search {
+  Search(this.engine);
+  final Engine engine;
+}
+''', 'Search');
+  }
+
+  void test_asyncTransientConsumer_mayTakeALazyOne() async {
+    await assertNoDiagnostics('''
+$cobaltImport
+
+$_engine
+$_report
+@cobaltTransient
+@cobaltInit
+class Digest {
+  Digest(this.engine, this.report);
+  final Engine engine;
+  final Report report;
+  Future<void> init() async {}
+}
+''');
+  }
+
+  void test_syncTransient_isClean() async {
+    await assertNoDiagnostics('''
+$cobaltImport
+
+@cobaltTransient
+class Report {
+  Report();
+}
+
+@cobaltInject
+class Screen {
+  Screen(this.report);
+  final Report report;
+}
+''');
+  }
 }

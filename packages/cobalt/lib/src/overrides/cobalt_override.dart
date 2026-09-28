@@ -49,6 +49,9 @@ abstract interface class CobaltOverride<T extends Object> {
 
   /// Replaces [T] with a factory that builds a new instance on every
   /// resolution.
+  ///
+  /// This also replaces an async transient: `getAsync` resolves a synchronous
+  /// registration as `get` would, so the double needs no `Future`.
   const factory CobaltOverride.transient(
     CobaltFactory<T> factory, {
     String? name,

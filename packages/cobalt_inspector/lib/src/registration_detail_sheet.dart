@@ -92,7 +92,8 @@ class _RegistrationDetailSheetState extends State<RegistrationDetailSheet> {
               CobaltRegistrationKind.lazyAsyncSingleton => strings.tornDownYes,
               CobaltRegistrationKind.transient ||
               CobaltRegistrationKind.parameterized ||
-              CobaltRegistrationKind.asyncParameterized => strings.tornDownNo,
+              CobaltRegistrationKind.asyncParameterized ||
+              CobaltRegistrationKind.asyncTransient => strings.tornDownNo,
               null => strings.tornDownUnknown,
             },
           ),

@@ -662,6 +662,34 @@ class SearchEngine implements AsyncInitializable {
 делает то же откуда угодно. Экран, который попросит в это время, дождётся этой сборки, а не начнёт
 вторую, а сбои приходят вместе как `CobaltWarmUpError`.
 
+
+### Новая сборка на каждый вызов
+
+Транзиентный класс с `@CobaltInit` строится каждым `getAsync`: каждый вызов конструирует его, ждёт
+`init()` и отдаёт. Скоуп не удерживает ни один из них.
+
+```dart
+@cobaltTransient
+@cobaltInit
+class Report implements AsyncInitializable {
+  Report(this._service);
+
+  final ReportService _service;
+
+  @override
+  Future<void> init() => _service.assemble(this);
+}
+
+final report = await scope.getAsync<Report>();
+```
+
+На члене модуля, возвращающем `Future`, то же самое — `@cobaltTransient`. Генератор регистрирует его
+через `registerAsyncFactory`, а его фабрика дожидается `getAsync` для каждой ленивой зависимости.
+Ошибками сборки считаются те же три вещи, что и для ленивой регистрации, — синхронный или eager
+async-класс, который его инжектит, `@injected`-поле его типа и `dependsOn`, который его называет, — и
+ещё две на самом классе: `lazy: true`, потому что ленивая регистрация — это один общий экземпляр, и
+`dependsOn`, потому что его строит не `init()`. `dispose:` отвергается, как на любом транзиенте.
+
 ---
 
 ## 12. Значения, приходящие с места вызова

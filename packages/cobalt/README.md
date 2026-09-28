@@ -368,6 +368,19 @@ the path instead of hanging, and `dispose` waits for a build in flight — one t
 the deadline is closed as soon as it arrives. An async singleton cannot name a lazy one in its
 `dependsOn`. In Flutter, `CobaltAsyncBuilder` is the widget side of this.
 
+**When every caller needs a fresh one, make it an async transient.** `registerAsyncFactory` builds a
+new instance on every `getAsync` and keeps none of them — the caller owns what it gets:
+
+```dart
+root.registerAsyncFactory<Report>(const ReportFactory());
+
+final report = await root.getAsync<Report>();
+```
+
+Concurrent calls do not share a build, `init()` never builds it, and an async singleton cannot name
+it in its `dependsOn`. `get` on it throws `CobaltAsyncTransientError`; a build that comes back to its
+own key throws `CobaltCycleError` like a lazy one.
+
 **When it should be ready before anyone asks, warm it up.** `warmUp` starts every build in a list at
 once, off the startup path, and completes when they have all settled:
 

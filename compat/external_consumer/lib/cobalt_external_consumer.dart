@@ -21,5 +21,6 @@ export 'package:cobalt_external_consumer/src/support_bundle.dart';
 export 'package:cobalt_external_consumer/src/repository.dart';
 export 'package:cobalt_external_consumer/src/search_index.dart';
 export 'package:cobalt_external_consumer/src/session_cache.dart';
+export 'package:cobalt_external_consumer/src/snapshot.dart';
 export 'package:cobalt_external_consumer/src/system_clock.dart';
 export 'package:cobalt_external_consumer/src/telemetry.dart';

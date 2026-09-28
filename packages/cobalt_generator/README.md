@@ -99,8 +99,8 @@ What the build checks:
 
 - the target is registered in every environment where the decorator is active, or named in
   `provides:`;
-- the decorator's own dependencies are complete, and none of them is a lazy async registration —
-  a decorator runs synchronously, when the instance is handed out;
+- the decorator's own dependencies are complete, and none of them is a lazy async registration or
+  an async transient — a decorator runs synchronously, when the instance is handed out;
 - two decorators of one registration carry different `order:` values; the lower is innermost, and
   the generator does not guess from the order files were read in;
 - a decorator needing something that depends on its own target fails as a cycle.
@@ -206,6 +206,15 @@ in the worst way: the container registered the class and awaited its `init()`, t
 written, the `@injected` fields stayed unassigned, and the first read threw a
 `LateInitializationError` — while the lint told you to mix in something nothing would generate.
 Both halves now read the declaration the same way.
+
+## Async transients
+
+`@cobaltTransient` on an `@CobaltInit` class — or on a module member returning a `Future` — makes an
+async transient: the factory implements `CobaltAsyncFactory`, constructs, awaits `init()`, awaits any
+lazy dependency through `getAsync`, and is registered with `registerAsyncFactory`. Every `getAsync`
+builds a new one and the scope keeps none. Only a class whose own factory is awaited — lazy, async
+parameterized or another async transient — may inject it; a `dependsOn` naming it, `lazy: true`,
+`dependsOn` or a `dispose:` on it are build errors.
 
 ## Values the call site supplies
 

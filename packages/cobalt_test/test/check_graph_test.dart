@@ -193,6 +193,22 @@ void main() {
       },
     );
 
+    test(
+      'an async transient is built through getAsync and disposed like one',
+      () async {
+        final recorder = DisposeRecorder();
+        final scope = cobaltTestRoot()
+          ..registerAsyncFactory<Disposable>(
+            AsyncFnFactory((_) async => recorder.value('loose async')),
+          );
+
+        final report = await checkGraph(scope);
+
+        expect(report.isComplete, isTrue);
+        expect(recorder.entries, ['loose async']);
+      },
+    );
+
     test('a cycle arrives with its path', () async {
       final scope = cobaltTestRoot()
         ..registerLazySingleton<Api>(FnFactory((r) => r.get<Api>()));

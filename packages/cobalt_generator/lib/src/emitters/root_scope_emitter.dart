@@ -109,6 +109,8 @@ class RootScopeEmitter {
 
     final method = declaration.isLazyAsync
         ? 'registerLazyAsyncSingleton'
+        : declaration.isAsyncTransient
+        ? 'registerAsyncFactory'
         : declaration.isAsyncInit
         ? 'registerAsyncSingleton'
         : switch (declaration.lifetime) {

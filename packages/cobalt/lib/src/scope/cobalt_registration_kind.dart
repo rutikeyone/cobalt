@@ -31,4 +31,7 @@ enum CobaltRegistrationKind {
   /// Built asynchronously from a value the caller passes to
   /// `getAsyncWithParam`, not retained.
   asyncParameterized,
+
+  /// Built asynchronously by every `getAsync`, not retained.
+  asyncTransient,
 }

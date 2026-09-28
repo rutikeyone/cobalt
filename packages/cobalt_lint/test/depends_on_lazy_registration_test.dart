@@ -48,6 +48,29 @@ class Search {
     ]);
   }
 
+  void test_waitingForAnAsyncTransient_isReported() async {
+    const source =
+        '''
+$cobaltImport
+
+@cobaltTransient
+@cobaltInit
+class Report {
+  Report();
+  Future<void> init() async {}
+}
+
+@CobaltInit(dependsOn: [Report])
+class Search {
+  Search();
+  Future<void> init() async {}
+}
+''';
+    await assertDiagnostics(source, [
+      lint(source.indexOf('class Search') + 6, 'Search'.length),
+    ]);
+  }
+
   void test_waitingForAnEagerAsyncRegistration_isQuiet() async {
     await assertNoDiagnostics('''
 $cobaltImport

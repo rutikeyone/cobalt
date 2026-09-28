@@ -173,7 +173,7 @@ cd examples/manual_mode && dart run
 
 ## 3. Registering and reading
 
-### Seven ways to register
+### Nine ways to register
 
 | Call | Built | Held by the scope |
 |---|---|---|
@@ -183,7 +183,9 @@ cd examples/manual_mode && dart run
 | `registerAsyncSingleton<T>(factory)` | during `init()`, in dependency order | yes |
 | `registerLazyAsyncSingleton<T>(factory)` | on the first `getAsync` | yes |
 | `registerFactory<T>(factory)` | on every resolve | no |
+| `registerAsyncFactory<T>(factory)` | on every `getAsync` | no |
 | `registerParamFactory<T, P>(factory)` | on every resolve, from an argument | no |
+| `registerAsyncParamFactory<T, P>(factory)` | on every `getAsyncWithParam`, from an argument | no |
 
 "Held" is the whole distinction, and it decides teardown: a scope releases what it holds, and a
 transient is nobody's to release — see [§7](#7-closing-what-you-registered).
@@ -631,6 +633,38 @@ Every key is checked before anything is built, and builds that fail do not stop 
 arrive together as a `CobaltWarmUpError`. In Flutter, `CobaltAppScope(warmUp: [...])` does it as soon
 as the graph is up, behind the app rather than behind `loading`, and reports a failure to
 `FlutterError.reportError`.
+
+
+### Built anew on every call
+
+When every caller needs its own instance and building one awaits something — a query that opens
+its own connection, a report assembled on request — register an async transient and read it with
+`getAsync`:
+
+```dart
+class ReportFactory implements CobaltAsyncFactory<Report> {
+  const ReportFactory();
+
+  @override
+  Future<Report> create(CobaltResolver resolver) =>
+      resolver.get<ReportService>().assemble();
+}
+
+scope.registerAsyncFactory<Report>(const ReportFactory());
+
+final report = await scope.getAsync<Report>();
+```
+
+Every call builds a new instance the scope does not keep; the caller owns it and closes it.
+Concurrent calls do not share a build. It is never built by `init()`, so it may be registered
+afterwards, and an async singleton cannot name it in its `dependsOn`. Its factory may await a lazy
+registration through `getAsync`, and a build that asks, through its own awaits, for the key it is
+building is a `CobaltCycleError` rather than a hang. Reading it synchronously — `get`, `getOrNull`,
+`getAll` — throws `CobaltAsyncTransientError` naming `getAsync`. In a test,
+`CobaltOverride.transient` replaces it with a synchronous double.
+
+In a widget, call `context.cobaltAsync` once — from `initState` or from an event — and keep the
+future: every call builds another.
 
 ---
 

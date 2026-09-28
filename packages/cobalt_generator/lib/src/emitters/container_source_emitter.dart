@@ -61,7 +61,7 @@ class ContainerSourceEmitter {
 
     final lazyKeys = {
       for (final declaration in injectables)
-        if (declaration.isLazyAsync) _keyOf(declaration),
+        if (declaration.isAwaited) _keyOf(declaration),
     };
     _assertLazyIsAwaited(injectables, lazyKeys, decorators);
 
@@ -354,9 +354,14 @@ class ContainerSourceEmitter {
       for (final declaration in injectables)
         if (declaration.isAsyncParam) _keyOf(declaration),
     };
+    final transientKeys = {
+      for (final declaration in injectables)
+        if (declaration.isAsyncTransient) _keyOf(declaration),
+    };
 
     final lazy = <String>[];
     final perCall = <String>[];
+    final transient = <String>[];
     final wrong = <String>[];
     for (final declaration in injectables) {
       for (final dependency in declaration.dependsOn) {
@@ -366,6 +371,8 @@ class ContainerSourceEmitter {
           lazy.add('${declaration.label} waits for ${dependency.name}');
         } else if (perCallKeys.contains(key)) {
           perCall.add('${declaration.label} waits for ${dependency.name}');
+        } else if (transientKeys.contains(key)) {
+          transient.add('${declaration.label} waits for ${dependency.name}');
         } else if (registered.contains(key)) {
           wrong.add('${declaration.label} waits for ${dependency.name}');
         }
@@ -391,6 +398,15 @@ class ContainerSourceEmitter {
         'needed.',
       );
     }
+    if (transient.isNotEmpty) {
+      throw CobaltGenerationError(
+        'dependsOn cannot wait for an async transient.\n'
+        '${transient.map((line) => '  $line').join('\n')}\n'
+        'It is built anew by each getAsync, never by init(), so there is no '
+        'one instance to wait for. Resolve it with getAsync where it is '
+        'needed.',
+      );
+    }
     if (wrong.isEmpty) return;
 
     throw CobaltGenerationError(
@@ -402,12 +418,13 @@ class ContainerSourceEmitter {
     );
   }
 
-  /// Rejects anything that would have to hold a lazy registration without
-  /// awaiting it.
+  /// Rejects anything that would have to hold a lazy registration or an
+  /// async transient without awaiting it.
   ///
-  /// A lazy async registration exists only once someone awaits `getAsync`, so
-  /// the only thing that can take one as a dependency is another lazy
-  /// registration, whose factory is itself awaited. A synchronous or eager
+  /// A lazy async registration exists only once someone awaits `getAsync`, and
+  /// an async transient is built by every `getAsync`, so the only thing that
+  /// can take one as a dependency is a registration whose factory is itself
+  /// awaited — lazy, parameterized or transient. A synchronous or eager
   /// dependent would be handed nothing — at runtime that is a
   /// `CobaltLazyAsyncError` on the first resolve, which this makes a build
   /// failure instead. `@injected` fields are filled synchronously, so they
@@ -427,7 +444,8 @@ class ContainerSourceEmitter {
     ];
     if (decorating.isNotEmpty) {
       throw CobaltGenerationError(
-        'A decorator cannot take a lazy async registration.\n'
+        'A decorator cannot take a lazy async registration or an async '
+        'transient.\n'
         '${decorating.map((line) => '  $line').join('\n')}\n'
         'A decorator is applied synchronously, when the instance it wraps is '
         'handed out, so there is no getAsync to await. Resolve it with '
@@ -440,7 +458,8 @@ class ContainerSourceEmitter {
       for (final parameter in declaration.constructorParameters) {
         if (parameter.isParam ||
             declaration.isLazyAsync ||
-            declaration.isAsyncParam) {
+            declaration.isAsyncParam ||
+            declaration.isAsyncTransient) {
           continue;
         }
         if (!lazyKeys.contains(_refKey(parameter.type, parameter.name))) {
@@ -461,9 +480,10 @@ class ContainerSourceEmitter {
     if (wrong.isEmpty) return;
 
     throw CobaltGenerationError(
-      'A lazy async registration can only be injected into another lazy one.\n'
+      'A lazy async registration or an async transient can only be injected '
+      'into a class built by getAsync.\n'
       '${wrong.map((line) => '  $line').join('\n')}\n'
-      'It is built by the first getAsync, so there is nothing to hand over '
+      'It is built by getAsync, so there is nothing to hand over '
       'synchronously. Make the dependent @CobaltInit(lazy: true) — its factory '
       'then awaits it — or resolve it with getAsync where it is needed.',
     );

@@ -8,10 +8,11 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
-/// Reports a class that injects a lazy async registration where nothing can
-/// wait for it.
+/// Reports a class that injects a lazy async registration or an async
+/// transient where nothing can wait for it.
 ///
-/// A lazy async registration is built by the first `getAsync`, so a
+/// Both are built by `getAsync` — a lazy one by the first call, a transient
+/// by every call — so a
 /// synchronous or eager async class taking one in its constructor, any class
 /// holding one in an `@injected` field, and any decorator — applied
 /// synchronously when its target is handed out — would find it unbuilt. The build
@@ -25,8 +26,8 @@ class LazyRegistrationInjectedSynchronously extends AnalysisRule {
   /// The diagnostic this rule reports.
   static const code = LintCode(
     'cobalt_lazy_registration_injected_synchronously',
-    "'{0}' injects '{1}', which is registered lazily and is not built until "
-        'the first getAsync.',
+    "'{0}' injects '{1}', which is built by getAsync — lazily or as an async "
+        'transient — so there is nothing to hand over synchronously.',
     correctionMessage:
         "If '{0}' is a registration, make it lazy too with "
         "@CobaltInit(lazy: true), so its factory awaits '{1}'. Otherwise "
@@ -116,15 +117,18 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   /// The first lazy type [declaration] takes where it cannot await it.
   ///
-  /// A lazy class, and an async class built from a call-site value, may take
-  /// lazy dependencies in its constructor — its factory awaits them — but no
+  /// A lazy class, an async class built from a call-site value, and an async
+  /// transient may take lazy dependencies in its constructor — its factory
+  /// awaits them — but no
   /// class can hold one in an `@injected` field, which is filled
   /// synchronously after construction.
   String? _firstLazy(
     CobaltInjectableClass declaration,
     CobaltRegistrationIndex index,
   ) {
-    if (!declaration.isLazyAsync && !declaration.isAsyncParam) {
+    if (!declaration.isLazyAsync &&
+        !declaration.isAsyncParam &&
+        !declaration.isAsyncTransient) {
       for (final parameter in declaration.constructorParameters) {
         if (parameter.isParam) continue;
         if (index.lazy.contains(parameter.type.name)) {

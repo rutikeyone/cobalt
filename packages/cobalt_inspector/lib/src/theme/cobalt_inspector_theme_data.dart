@@ -190,7 +190,7 @@ class CobaltInspectorThemeData {
 
   /// The colour of one lifetime, from [lifetimeColors] or derived.
   ///
-  /// Six lifetimes derive onto three colours, because the tree is read for
+  /// Eight lifetimes derive onto three colours, because the tree is read for
   /// what is retained rather than for how it was spelled. Name them when that
   /// is not the reading you want.
   Color colorOfLifetime(CobaltRegistrationKind kind) =>
@@ -202,7 +202,8 @@ class CobaltInspectorThemeData {
         CobaltRegistrationKind.lazyAsyncSingleton => startup,
         CobaltRegistrationKind.transient ||
         CobaltRegistrationKind.parameterized ||
-        CobaltRegistrationKind.asyncParameterized => instance,
+        CobaltRegistrationKind.asyncParameterized ||
+        CobaltRegistrationKind.asyncTransient => instance,
       };
 
   /// The icon one family is marked with, from [familyIcons] or the default.

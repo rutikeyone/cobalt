@@ -174,7 +174,7 @@ cd examples/manual_mode && dart run
 
 ## 3. 注册与读取
 
-### 七种注册方式
+### 九种注册方式
 
 | 调用 | 何时构建 | 作用域是否持有 |
 |---|---|---|
@@ -184,7 +184,9 @@ cd examples/manual_mode && dart run
 | `registerAsyncSingleton<T>(factory)` | 在 `init()` 中，按依赖顺序 | 是 |
 | `registerLazyAsyncSingleton<T>(factory)` | 首次 `getAsync` 时 | 是 |
 | `registerFactory<T>(factory)` | 每次解析 | 否 |
+| `registerAsyncFactory<T>(factory)` | 每次 `getAsync` | 否 |
 | `registerParamFactory<T, P>(factory)` | 每次解析，带一个参数 | 否 |
+| `registerAsyncParamFactory<T, P>(factory)` | 每次 `getAsyncWithParam`，带一个参数 | 否 |
 
 「是否持有」就是全部区别，它也决定了销毁：作用域释放它持有的东西，
 而瞬态对象不归它释放——见 [§7](#7-关闭你注册的东西)。
@@ -610,6 +612,35 @@ unawaited(scope.warmUp(const [CobaltKey(SearchEngine)]));
 所有键都会在任何构建开始之前检查，失败的构建不会阻止其他构建——它们会一起作为 `CobaltWarmUpError` 报告。
 在 Flutter 中，`CobaltAppScope(warmUp: [...])` 在图就绪后立即这样做，位于应用之后而不是 `loading` 之后，
 并把失败报告给 `FlutterError.reportError`。
+
+
+### 每次调用都重新构建
+
+当每个调用方都需要自己的实例，而构建它又要等待某些东西——一个自己打开连接的查询、一份按需组装的报告——
+就注册一个异步瞬态，并用 `getAsync` 读取：
+
+```dart
+class ReportFactory implements CobaltAsyncFactory<Report> {
+  const ReportFactory();
+
+  @override
+  Future<Report> create(CobaltResolver resolver) =>
+      resolver.get<ReportService>().assemble();
+}
+
+scope.registerAsyncFactory<Report>(const ReportFactory());
+
+final report = await scope.getAsync<Report>();
+```
+
+每次调用都构建一个作用域不持有的新实例：由调用方拥有并关闭它。并发调用不共享同一次构建。`init()` 从不构建它，
+所以也可以在之后注册，而异步单例不能在自己的 `dependsOn` 里指名它。它的工厂可以通过 `getAsync` 等待惰性注册；
+如果构建过程通过自己的 await 又去请求正在构建的键，会得到 `CobaltCycleError`，而不是挂起。同步读取——`get`、
+`getOrNull`、`getAll`——会抛出指明 `getAsync` 的 `CobaltAsyncTransientError`。在测试中，用
+`CobaltOverride.transient` 换成一个同步的替身。
+
+在 widget 里，只调用一次 `context.cobaltAsync`——在 `initState` 或某个事件里——并保存这个 future：
+每次调用都会再构建一个。
 
 ---
 

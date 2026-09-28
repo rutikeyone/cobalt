@@ -23,6 +23,7 @@ import 'package:cobalt_external_consumer/src/reporter.dart' as _i879;
 import 'package:cobalt_external_consumer/src/repository.dart' as _i242;
 import 'package:cobalt_external_consumer/src/search_index.dart' as _i375;
 import 'package:cobalt_external_consumer/src/session_cache.dart' as _i995;
+import 'package:cobalt_external_consumer/src/snapshot.dart' as _i1062;
 import 'package:cobalt_external_consumer/src/system_clock.dart' as _i271;
 import 'package:cobalt_external_consumer/src/telemetry.dart' as _i186;
 
@@ -235,6 +236,18 @@ final class _SessionCacheFactory
       _i995.SessionCache();
 }
 
+final class _SnapshotFactory
+    implements _i573.CobaltAsyncFactory<_i1062.Snapshot> {
+  const _SnapshotFactory();
+
+  @override
+  _i687.Future<_i1062.Snapshot> create(_i573.CobaltResolver resolver) async {
+    final instance = _i1062.Snapshot(resolver.get<_i530.Database>());
+    await instance.init();
+    return instance;
+  }
+}
+
 final class _AuditedDatabaseDecorator
     implements _i573.CobaltDecorator<_i530.Database> {
   const _AuditedDatabaseDecorator();
@@ -295,6 +308,7 @@ final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
         const _i573.CobaltKey(_i720.AuditTrail),
       },
     );
+    scope.registerAsyncFactory<_i1062.Snapshot>(const _SnapshotFactory());
     scope.registerLazyAsyncSingleton<_i768.ArchiveIndex>(
       const _ArchiveIndexFactory(),
     );

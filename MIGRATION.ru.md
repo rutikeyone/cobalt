@@ -42,6 +42,7 @@ GetIt.I.registerSingleton<Database>(app.get<Database>());
 | `registerSingletonAsync<T>(() async => …)` | `registerAsyncSingleton<T>(const TFactory())` |
 | `registerSingletonWithDependencies<T>(…, dependsOn: [A])` | `registerAsyncSingleton<T>(…, dependsOn: {CobaltKey(A)})` |
 | `registerLazySingletonAsync<T>(() async => …)` | `registerLazyAsyncSingleton<T>(const TFactory())` |
+| `registerFactoryAsync<T>(() async => …)` | `registerAsyncFactory<T>(const TFactory())`, читается через `getAsync` |
 | `registerFactoryParam<T, P, void>((p, _) => …)` | `registerParamFactory<T, P>(const TFactory())` |
 | `registerFactoryParamAsync<T, P, void>((p, _) async => …)` | `registerAsyncParamFactory<T, P>(const TFactory())`, read with `getAsyncWithParam` |
 | `getIt<T>()` / `getIt.get<T>()` | `scope.get<T>()` |
@@ -110,11 +111,6 @@ final tabB = app.push('tab:b');   // сосед, а не «сверху на tab
   по-прежнему приходят из резолвера, поэтому запись обычно короче списка параметров, который она
   заменяет. В Code-Gen Mode всё это писать не нужно: пометьте параметры `@CobaltParam`, и генератор
   сам напишет тип записи, фабрику и регистрацию.
-- **`registerFactoryAsync`** — новая async-сборка на каждый вызов, без значения от вызывающего.
-  Async-фабрика на каждый вызов у Cobalt берёт такое значение: `registerAsyncParamFactory<T, P>`,
-  читается через `getAsyncWithParam`, — ей же соответствует `registerFactoryParamAsync`. Если
-  передавать нечего, обычно имелся в виду ленивый async-*синглтон* (`registerLazyAsyncSingleton`,
-  читается через `getAsync`): строится первым вызовом и удерживается.
 - **`resetLazySingletons`** — вместо этого разберите скоуп. Сброс инстансов под живыми держателями это
   ровно тот класс багов, ради предотвращения которого скоупы и существуют.
 - **Глобальный инстанс.** Никакого `GetIt.I` нет. Скоуп передают, инжектят или читают из дерева виджетов

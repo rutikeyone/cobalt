@@ -115,7 +115,7 @@ class CobaltModuleParser {
     final lifetime = _lifetimeOf(annotation, isAsync: isAsync);
     final dispose = disposeOf(annotation, where, member);
 
-    if (dispose != null && lifetime == CobaltLifetime.transient && !isAsync) {
+    if (dispose != null && lifetime == CobaltLifetime.transient) {
       throw CobaltParseError(
         '$where is transient and also names a dispose function. The scope '
         'does not retain a transient, so it could never call it.',
@@ -124,6 +124,15 @@ class CobaltModuleParser {
     }
 
     final isLazyAsync = annotation.readBool('lazyInit');
+    if (isLazyAsync && lifetime == CobaltLifetime.transient) {
+      throw CobaltParseError(
+        '$where is transient and marked lazyInit. lazyInit builds one instance '
+        'on the first getAsync; a transient builds a new one on every call. '
+        'Drop lazyInit — a transient member returning a Future is already '
+        'built only when asked, by getAsync.',
+        member,
+      );
+    }
     if (isLazyAsync && !isAsync) {
       throw CobaltParseError(
         '$where is marked lazyInit but does not return a Future. lazyInit '
@@ -232,12 +241,19 @@ class CobaltModuleParser {
     );
   }
 
+  /// The lifetime [annotation] asks for.
+  ///
+  /// A member returning a `Future` is retained unless it says transient, in
+  /// which case every `getAsync` calls it again.
   CobaltLifetime _lifetimeOf(DartObject annotation, {required bool isAsync}) {
-    if (isAsync) return CobaltLifetime.lazySingleton;
     final index = annotation.readEnumIndex('lifetime');
-    return index == null
-        ? CobaltLifetime.lazySingleton
-        : CobaltLifetime.values[index];
+    final declared = index == null ? null : CobaltLifetime.values[index];
+    if (isAsync) {
+      return declared == CobaltLifetime.transient
+          ? CobaltLifetime.transient
+          : CobaltLifetime.lazySingleton;
+    }
+    return declared ?? CobaltLifetime.lazySingleton;
   }
 
   CobaltTypeRef? _exposeAsOf(DartObject annotation) {

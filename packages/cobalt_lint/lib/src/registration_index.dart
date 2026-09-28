@@ -68,8 +68,9 @@ class CobaltRegistrationIndex {
   /// they answer identically.
   final List<String>? cycle;
 
-  /// Names registered lazily, built by the first `getAsync` rather than by
-  /// `init()`.
+  /// Names built by `getAsync` rather than by `init()` or `get`: lazy async
+  /// registrations, built by the first `getAsync`, and async transients,
+  /// built by every one.
   ///
   /// A name in [ambiguous] is left out: from syntax alone it could be the
   /// other declaration, and a rule built on this set must not report a class
@@ -173,6 +174,8 @@ class _IndexBuilder {
       var isModule = false;
       String? decorates;
       var isLazy = false;
+      var isAsync = false;
+      var isTransient = false;
       String? exposed;
       final wanted = <String>{};
 
@@ -186,6 +189,13 @@ class _IndexBuilder {
           case 'cobaltInit':
           case 'cobaltLazyInit':
             registers = true;
+            final spelled = annotation.name.name.split('.').last;
+            isAsync =
+                isAsync ||
+                spelled == 'CobaltInit' ||
+                spelled == 'cobaltInit' ||
+                spelled == 'cobaltLazyInit';
+            isTransient = isTransient || _isTransient(annotation);
             isLazy =
                 isLazy ||
                 annotation.name.name.endsWith('cobaltLazyInit') ||
@@ -220,7 +230,7 @@ class _IndexBuilder {
         _addConstructorParameters(declaration, wanted);
         _addInjectedFields(declaration, wanted);
         _link(node, wanted);
-        if (isLazy) lazy.add(node);
+        if (isLazy || (isAsync && isTransient)) lazy.add(node);
       }
       if (isModule) _collectMembers(declaration);
     }
@@ -253,7 +263,10 @@ class _IndexBuilder {
             // module registering `Channel` and an unrelated `Channel` class
             // elsewhere in the package read as one node.
             _claims[node] = (_claims[node] ?? 0) + 1;
-            if (_isTrue(_namedArgument(annotation, 'lazyInit'))) lazy.add(node);
+            if (_isTrue(_namedArgument(annotation, 'lazyInit')) ||
+                (_isFuture(member.returnType) && _isTransient(annotation))) {
+              lazy.add(node);
+            }
 
             final wanted = <String>{};
             for (final parameter
@@ -444,6 +457,22 @@ class _IndexBuilder {
     final name = argument.beginToken;
     return name.next?.type == TokenType.COLON ? name.lexeme : null;
   }
+
+  /// Whether [annotation] asks for a transient: `@cobaltTransient`, or a
+  /// `lifetime:` naming `transient`.
+  static bool _isTransient(Annotation annotation) {
+    if (annotation.name.name.split('.').last == 'cobaltTransient') return true;
+    return switch (_namedArgument(annotation, 'lifetime')) {
+      PrefixedIdentifier(identifier: SimpleIdentifier(:final name)) ||
+      PropertyAccess(
+        propertyName: SimpleIdentifier(:final name),
+      ) => name == 'transient',
+      _ => false,
+    };
+  }
+
+  static bool _isFuture(TypeAnnotation? type) =>
+      type is NamedType && type.name.lexeme == 'Future';
 
   /// Whether [expression] is the literal `true` — the only spelling of
   /// `lazy: true` a syntactic index can read without guessing.

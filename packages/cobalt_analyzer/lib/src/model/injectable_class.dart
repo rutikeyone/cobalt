@@ -137,8 +137,25 @@ class CobaltInjectableClass {
   /// `dependsOn`. Unlike one, every request builds a new instance.
   bool get isAsyncParam => isAsyncInit && takesCallSiteValues;
 
+  /// Whether every `getAsync` builds a new one asynchronously — a transient
+  /// `@CobaltInit` class, or a transient module member returning a `Future`.
+  ///
+  /// Like a lazy registration it is built on request rather than by `init()`,
+  /// so its factory may await lazy dependencies, only an awaiting dependent may
+  /// take it, and nothing may wait for it in `dependsOn`. Unlike one, every
+  /// request builds a new instance the scope does not retain.
+  bool get isAsyncTransient =>
+      isAsyncInit &&
+      !takesCallSiteValues &&
+      lifetime == CobaltLifetime.transient;
+
+  /// Whether this is built by `getAsync` rather than by `init()` or `get` —
+  /// lazy or transient — so a dependent has to await it.
+  bool get isAwaited => isLazyAsync || isAsyncTransient;
+
   /// Whether `init()` builds this, in phase 1.
-  bool get isBuiltInPhaseOne => isAsyncInit && !isLazyAsync && !isAsyncParam;
+  bool get isBuiltInPhaseOne =>
+      isAsyncInit && !isLazyAsync && !isAsyncParam && !isAsyncTransient;
 
   Map<String, dynamic> toJson() => {
     'type': type.toJson(),
