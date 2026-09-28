@@ -1,3 +1,18 @@
+## 0.5.0
+
+- A transient lifetime on an `@CobaltInit` class or on a module member
+  returning a `Future` is honoured: `CobaltInjectableClass.isAsyncTransient`
+  and `isAwaited`. Before, it was silently read as a singleton built by
+  `init()`. `lazy: true` / `lazyInit`, `dependsOn` and `dispose:` on one are
+  refused.
+- `CobaltDecoratorClass.allNames`, refused together with `name`.
+- `@injected` fields on an `@CobaltDecorates` class are read instead of
+  refused — `CobaltDecoratorClass.injectedFields` — and count among its
+  `dependencies`. Field reading is shared with registrations, so the same
+  `late final` and `static` refusals apply.
+- IR written before these fields reads as before: not transient, not
+  `allNames`, no injected fields.
+
 ## 0.4.0
 
 - `@CobaltInit` with an `@CobaltParam` is parsed instead of refused, and

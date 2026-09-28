@@ -1,3 +1,19 @@
+## 0.5.0
+
+- Async transients: a transient `@CobaltInit` class, or a transient module
+  member returning a `Future`, becomes a `CobaltAsyncFactory` registered with
+  `registerAsyncFactory`, awaiting lazy dependencies through `getAsync`. A
+  synchronous or eager dependent, an `@injected` field of its type, a
+  decorator taking it and a `dependsOn` naming it are build errors.
+- `@CobaltDecorates(allNames: true)` is emitted as `scope.decorateAll`.
+  Decorators are emitted by type and then by `order`, and a decorator of
+  every name counts for each key of its type in the order check, graph edges
+  and cycles, and derived `dependsOn`; any registration of the type — or a
+  `provides:` of it — satisfies its target.
+- `@injected` fields on a decorator class: the property injection builder
+  writes its `_$ClassName` mixin, and the generated decorator builds it as
+  `Class(inner, ...)..onInject(resolver)`.
+
 ## 0.4.0
 
 - Async parameterized factories: an `@CobaltInit` class taking an

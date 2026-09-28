@@ -1,3 +1,8 @@
+## 0.5.0
+
+- No code changes. `context.cobaltAsync` documents that an async transient is
+  built anew by every call, so the future belongs outside `build`.
+
 ## 0.4.0
 
 - `context.cobaltAsyncWithParam<T, P>(param)`.

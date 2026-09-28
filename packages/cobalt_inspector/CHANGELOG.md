@@ -1,3 +1,7 @@
+## 0.5.0
+
+- An async transient is shown as not torn down, in the instance colour.
+
 ## 0.4.0
 
 - An async parameterized registration is shown as not retained and not

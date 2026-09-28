@@ -142,6 +142,48 @@
     "description": "The engine was resolved; the instance shows a second visit gets the same one.",
     "placeholders": { "instance": { "type": "String", "example": "268479144" } }
   },
+  "asyncTransientTitle": "Async transient",
+  "@asyncTransientTitle": {
+    "description": "Name of the \"Async transient\" example."
+  },
+  "asyncTransientTeaches": "Something built with I/O that every caller wants fresh — a report on request.",
+  "@asyncTransientTeaches": {
+    "description": "One line: what \"Async transient\" exists to show."
+  },
+  "asyncTransientPoint1": "registerAsyncFactory, or @cobaltTransient on an @CobaltInit class, builds a new one on every getAsync",
+  "asyncTransientPoint2": "init() never builds it and the scope keeps none — the caller owns what it gets",
+  "asyncTransientPoint3": "Calls at the same time do not share a build: two at once are two builds",
+  "asyncTransientPoint4": "get throws CobaltAsyncTransientError naming getAsync, and dependsOn cannot wait for it",
+  "asyncTransientStarted": "startup finished",
+  "@asyncTransientStarted": {
+    "description": "Shown on the async transient screen once the graph is up."
+  },
+  "asyncTransientOne": "Build a report",
+  "@asyncTransientOne": {
+    "description": "Asks for one report with getAsync."
+  },
+  "asyncTransientOneDetail": "every getAsync builds a new one",
+  "@asyncTransientOneDetail": {
+    "description": "What asking for one report does."
+  },
+  "asyncTransientTwo": "Ask twice at once",
+  "@asyncTransientTwo": {
+    "description": "Asks for two reports at the same time."
+  },
+  "asyncTransientTwoDetail": "concurrent calls do not share a build",
+  "@asyncTransientTwoDetail": {
+    "description": "What asking twice at once shows."
+  },
+  "asyncTransientBuilds": "{count, plural, =0{no report built yet} =1{1 report built} other{{count} reports built}}",
+  "@asyncTransientBuilds": {
+    "description": "How many reports have been built this visit.",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "asyncTransientReceived": "report #{number} \u00b7 instance {instance}",
+  "@asyncTransientReceived": {
+    "description": "One report a caller received; the instance shows each is a different object.",
+    "placeholders": { "number": { "type": "int" }, "instance": { "type": "String", "example": "268479144" } }
+  },
   "propertyTitle": "Property injection",
   "@propertyTitle": {
     "description": "Name of the \"Property injection\" example."
@@ -173,13 +215,22 @@
   "@decoratorsTeaches": {
     "description": "One line: what \"Decorators\" exists to show."
   },
-  "decoratorsPoint1": "scope.decorate, or @CobaltDecorates when the container is generated",
-  "decoratorsPoint2": "The first decorator added is innermost, so logging here sees cached answers",
+  "decoratorsPoint1": "scope.decorate wraps one registration and decorateAll every one of a type — or @CobaltDecorates(allNames: true)",
+  "decoratorsPoint2": "The first decorator added is innermost, for a key or a whole type, so logging here sees cached answers",
   "decoratorsPoint3": "A retained registration is decorated once and shared; the scope closes only the inner instance",
-  "decoratorsPoint4": "An override is decorated like the registration it replaced",
+  "decoratorsPoint4": "An override is decorated like the registration it replaced; a generated decorator may take @injected fields",
   "decoratorsChain": "wrapped, innermost first",
   "@decoratorsChain": {
     "description": "Label above the chain of decorators around the weather service."
+  },
+  "decoratorsBackupChain": "the backup station, named",
+  "@decoratorsBackupChain": {
+    "description": "Label above the chain around the named backup station, wrapped only by the decorator of every Weather."
+  },
+  "decoratorsAskBackup": "Backup forecast for {city}",
+  "@decoratorsAskBackup": {
+    "description": "Button asking the named backup station, which nothing decorates by name.",
+    "placeholders": {"city": {"type": "String"}}
   },
   "decoratorsAsk": "Forecast for {city}",
   "@decoratorsAsk": {

@@ -59,15 +59,15 @@ environment:
   flutter: ">=3.38.0"
 
 dependencies:
-  cobalt: ^0.4.0
-  cobalt_flutter: ^0.4.0
+  cobalt: ^0.5.0
+  cobalt_flutter: ^0.5.0
 
 dev_dependencies:
-  cobalt_generator: ^0.4.0
+  cobalt_generator: ^0.5.0
   build_runner: ^2.15.0
-  cobalt_lint: ^0.4.0
-  cobalt_test: ^0.4.0
-  cobalt_test_flutter: ^0.4.0
+  cobalt_lint: ^0.5.0
+  cobalt_test: ^0.5.0
+  cobalt_test_flutter: ^0.5.0
 ```
 
 **The floor is the same as the other mode's**, so an application on Flutter 3.38 can start here
@@ -954,7 +954,7 @@ rather than only when `build_runner` runs.
 ```yaml
 # analysis_options.yaml
 plugins:
-  cobalt_lint: ^0.4.0
+  cobalt_lint: ^0.5.0
 ```
 
 | Rule | Catches |

@@ -6,7 +6,7 @@ Every Cobalt example in one app, organised by capability rather than by project.
 flutter run
 ```
 
-Sixteen entries in six sections. Each one that has a UI opens with a graph **of its own** — built
+Seventeen entries in six sections. Each one that has a UI opens with a graph **of its own** — built
 when you open it, disposed when you leave — so opening two gives you two unrelated scope trees.
 That is the thing the gallery is really demonstrating, which is why there is no container above the
 entries.
@@ -87,7 +87,7 @@ of the screens are mounted from the example packages next door:
 | `flow_scopes` | Navigation flows |
 | `graph_events` | Graph events |
 | `codegen_basics` | Generated container |
-| `gallery` itself | Lazy async · Decorators · In-app inspector, each in `lib/catalog/` |
+| `gallery` itself | Lazy async · Async transient · Decorators · In-app inspector, each in `lib/catalog/` |
 
 Those stay separate packages for a reason that is not tidiness: `cobalt_container` aggregates a
 whole package into a single `$CobaltRootScope`, and two `@CobaltScopeRoot` classes in one package is

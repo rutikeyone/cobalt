@@ -1,3 +1,14 @@
+## 0.5.0
+
+- `cobalt_lazy_registration_injected_synchronously` and
+  `cobalt_depends_on_lazy_registration` see async transients — a transient
+  lifetime next to `@CobaltInit`, or on a module member returning a `Future`
+  — and their messages say so.
+- `cobalt_missing_injection_mixin` covers `@CobaltDecorates` classes, and
+  `cobalt_injected_field_needs_an_injectable` no longer reports them; a
+  decorator's `@injected` fields are edges of its target, so a loop through
+  one is a `cobalt_dependency_cycle`.
+
 ## 0.4.0
 
 - The graph rules see decorators: `cobalt_dependency_is_not_registered`

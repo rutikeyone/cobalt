@@ -3,6 +3,8 @@ import 'package:cobalt_inspector/cobalt_inspector.dart';
 import 'package:codegen_basics/cobalt.g.dart' as codegen;
 import 'package:codegen_basics/counter_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:gallery/catalog/async_transient_graph.dart';
+import 'package:gallery/catalog/async_transient_screen.dart';
 import 'package:gallery/catalog/decorators_graph.dart';
 import 'package:gallery/catalog/decorators_screen.dart';
 import 'package:gallery/catalog/example_entry.dart';
@@ -92,6 +94,27 @@ List<ExampleEntry> buildCatalog(GalleryL10n l10n) => [
       root: LazyAsyncScope(),
       rootName: 'lazy-async',
       child: LazyAsyncScreen(),
+    ),
+  ),
+  ExampleEntry(
+    id: 'async-transient',
+    title: l10n.asyncTransientTitle,
+    kind: ExampleKind.screen,
+    section: ExampleSection.startup,
+    teaches: l10n.asyncTransientTeaches,
+    glyph: Glyphs.flow,
+    points: [
+      l10n.asyncTransientPoint1,
+      l10n.asyncTransientPoint2,
+      l10n.asyncTransientPoint3,
+      l10n.asyncTransientPoint4,
+    ],
+    transcriptLabel: l10n.whereItLives,
+    transcript: 'examples/gallery/lib/catalog/async_transient_graph.dart',
+    open: (_) => const ExampleHost(
+      root: AsyncTransientScope(),
+      rootName: 'async-transient',
+      child: AsyncTransientScreen(),
     ),
   ),
 

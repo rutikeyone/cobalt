@@ -1,3 +1,11 @@
+## 0.5.0
+
+- `@CobaltDecorates(Target, allNames: true)` wraps every registration of
+  `Target`, whatever its name. It cannot be combined with `name:`.
+- `@cobaltTransient` (or `lifetime: CobaltLifetime.transient`) next to
+  `@CobaltInit`, and on a module member returning a `Future`, now means an
+  async transient built by every `getAsync`. It used to be ignored.
+
 ## 0.4.0
 
 - `@CobaltParam` on an `@CobaltInit` class makes it an async parameterized

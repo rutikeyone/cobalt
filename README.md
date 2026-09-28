@@ -270,11 +270,11 @@ cd examples/gallery && flutter run
 ```
 
 The gallery is organised by **capability**, not by project — a reader arrives wanting to know how
-scopes end, not wanting to see `notes_app`. Sixteen entries in six sections:
+scopes end, not wanting to see `notes_app`. Seventeen entries in six sections:
 
 | Section | Entries |
 |---|---|
-| Startup | Two-phase startup · Environments · Lazy async |
+| Startup | Two-phase startup · Environments · Lazy async · Async transient |
 | Injection | Property injection · Named and multi-injection · Decorators |
 | Scopes & lifetime | Widget-owned scope · Session scope · Scope tree · Navigation flows · Teardown |
 | Code generation | Generated container · Manual mode |

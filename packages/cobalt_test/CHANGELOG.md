@@ -1,3 +1,8 @@
+## 0.5.0
+
+- `checkGraph` builds an async transient through `getAsync` and disposes it
+  like a transient.
+
 ## 0.4.0
 
 - `AsyncFnParamFactory`, and `checkGraph` builds an async parameterized

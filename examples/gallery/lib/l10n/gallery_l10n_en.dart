@@ -201,6 +201,61 @@ class GalleryL10nEn extends GalleryL10n {
   }
 
   @override
+  String get asyncTransientTitle => 'Async transient';
+
+  @override
+  String get asyncTransientTeaches =>
+      'Something built with I/O that every caller wants fresh — a report on request.';
+
+  @override
+  String get asyncTransientPoint1 =>
+      'registerAsyncFactory, or @cobaltTransient on an @CobaltInit class, builds a new one on every getAsync';
+
+  @override
+  String get asyncTransientPoint2 =>
+      'init() never builds it and the scope keeps none — the caller owns what it gets';
+
+  @override
+  String get asyncTransientPoint3 =>
+      'Calls at the same time do not share a build: two at once are two builds';
+
+  @override
+  String get asyncTransientPoint4 =>
+      'get throws CobaltAsyncTransientError naming getAsync, and dependsOn cannot wait for it';
+
+  @override
+  String get asyncTransientStarted => 'startup finished';
+
+  @override
+  String get asyncTransientOne => 'Build a report';
+
+  @override
+  String get asyncTransientOneDetail => 'every getAsync builds a new one';
+
+  @override
+  String get asyncTransientTwo => 'Ask twice at once';
+
+  @override
+  String get asyncTransientTwoDetail => 'concurrent calls do not share a build';
+
+  @override
+  String asyncTransientBuilds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count reports built',
+      one: '1 report built',
+      zero: 'no report built yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String asyncTransientReceived(int number, String instance) {
+    return 'report #$number · instance $instance';
+  }
+
+  @override
   String get propertyTitle => 'Property injection';
 
   @override
@@ -251,11 +306,11 @@ class GalleryL10nEn extends GalleryL10n {
 
   @override
   String get decoratorsPoint1 =>
-      'scope.decorate, or @CobaltDecorates when the container is generated';
+      'scope.decorate wraps one registration and decorateAll every one of a type — or @CobaltDecorates(allNames: true)';
 
   @override
   String get decoratorsPoint2 =>
-      'The first decorator added is innermost, so logging here sees cached answers';
+      'The first decorator added is innermost, for a key or a whole type, so logging here sees cached answers';
 
   @override
   String get decoratorsPoint3 =>
@@ -263,10 +318,18 @@ class GalleryL10nEn extends GalleryL10n {
 
   @override
   String get decoratorsPoint4 =>
-      'An override is decorated like the registration it replaced';
+      'An override is decorated like the registration it replaced; a generated decorator may take @injected fields';
 
   @override
   String get decoratorsChain => 'wrapped, innermost first';
+
+  @override
+  String get decoratorsBackupChain => 'the backup station, named';
+
+  @override
+  String decoratorsAskBackup(String city) {
+    return 'Backup forecast for $city';
+  }
 
   @override
   String decoratorsAsk(String city) {

@@ -42,6 +42,13 @@ class Station implements Weather {
   }
 }
 
+/// A second station, registered under a name. Nobody decorates it by name:
+/// it is logged because logging wraps every `Weather`.
+class Backup implements Weather {
+  @override
+  String forecast(String city) => '$city ~${city.length * 3}°';
+}
+
 /// Answers a city it has seen from memory.
 class Cached implements Weather {
   Cached(this._inner);
@@ -77,6 +84,13 @@ final class StationFactory implements CobaltFactory<Weather> {
       Station(resolver.get<ForecastLog>());
 }
 
+final class BackupFactory implements CobaltFactory<Weather> {
+  const BackupFactory();
+
+  @override
+  Weather create(CobaltResolver resolver) => Backup();
+}
+
 final class CachingDecorator implements CobaltDecorator<Weather> {
   const CachingDecorator();
 
@@ -92,8 +106,10 @@ final class LoggingDecorator implements CobaltDecorator<Weather> {
       Logged(inner, resolver.get<ForecastLog>());
 }
 
-/// What the entry owns for as long as it is open. The first decorator added
-/// is the innermost, so logging sees cached answers too.
+/// What the entry owns for as long as it is open. The cache wraps the main
+/// station alone; logging wraps every `Weather`, the backup included. The
+/// first decorator added is the innermost, whether it was added for a key or
+/// for the whole type, so logging sees cached answers too.
 final class DecoratorsScope implements CobaltScopeBuilder {
   const DecoratorsScope();
 
@@ -101,6 +117,7 @@ final class DecoratorsScope implements CobaltScopeBuilder {
   void build(CobaltScope scope) => scope
     ..registerSingleton<ForecastLog>(ForecastLog())
     ..registerLazySingleton<Weather>(const StationFactory())
+    ..registerLazySingleton<Weather>(const BackupFactory(), name: 'backup')
     ..decorate<Weather>(const CachingDecorator())
-    ..decorate<Weather>(const LoggingDecorator());
+    ..decorateAll<Weather>(const LoggingDecorator());
 }

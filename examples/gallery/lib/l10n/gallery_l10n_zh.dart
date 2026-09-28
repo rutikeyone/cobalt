@@ -180,6 +180,57 @@ class GalleryL10nZh extends GalleryL10n {
   }
 
   @override
+  String get asyncTransientTitle => '异步瞬态';
+
+  @override
+  String get asyncTransientTeaches => '需要 I/O 才能构建、每个调用方都要一份新的东西——按需生成的报告。';
+
+  @override
+  String get asyncTransientPoint1 =>
+      'registerAsyncFactory，或在 @CobaltInit 类上加 @cobaltTransient，每次 getAsync 都构建一个新的';
+
+  @override
+  String get asyncTransientPoint2 => 'init() 从不构建它，作用域一个也不持有——拿到的由调用方拥有';
+
+  @override
+  String get asyncTransientPoint3 => '同时发起的调用不共享构建：同时两次就是两次构建';
+
+  @override
+  String get asyncTransientPoint4 =>
+      'get 会抛出指明 getAsync 的 CobaltAsyncTransientError，dependsOn 也不能等待它';
+
+  @override
+  String get asyncTransientStarted => '启动已完成';
+
+  @override
+  String get asyncTransientOne => '生成一份报告';
+
+  @override
+  String get asyncTransientOneDetail => '每次 getAsync 都构建一个新的';
+
+  @override
+  String get asyncTransientTwo => '同时请求两次';
+
+  @override
+  String get asyncTransientTwoDetail => '并发调用不共享构建';
+
+  @override
+  String asyncTransientBuilds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已生成 $count 份报告',
+      zero: '尚未生成报告',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String asyncTransientReceived(int number, String instance) {
+    return '报告 #$number · 实例 $instance';
+  }
+
+  @override
   String get propertyTitle => '属性注入';
 
   @override
@@ -219,19 +270,29 @@ class GalleryL10nZh extends GalleryL10n {
   String get decoratorsTeaches => '包装注册交出的对象——缓存、日志——不改动它的类。';
 
   @override
-  String get decoratorsPoint1 => 'scope.decorate，或者在生成容器时用 @CobaltDecorates';
+  String get decoratorsPoint1 =>
+      'scope.decorate 包装一条注册，decorateAll 包装某类型的所有注册——或者用 @CobaltDecorates(allNames: true)';
 
   @override
-  String get decoratorsPoint2 => '最先添加的装饰器在最里层，所以这里的日志也能看到缓存的答案';
+  String get decoratorsPoint2 =>
+      '最先添加的装饰器在最里层，不论是为某个键还是为整个类型添加，所以这里的日志也能看到缓存的答案';
 
   @override
   String get decoratorsPoint3 => '被持有的注册只装饰一次并共享结果；作用域只关闭内层实例';
 
   @override
-  String get decoratorsPoint4 => '覆盖会像它替换的那条注册一样被装饰';
+  String get decoratorsPoint4 => '覆盖会像它替换的那条注册一样被装饰；生成的装饰器可以使用 @injected 字段';
 
   @override
   String get decoratorsChain => '包装链，从最里层开始';
+
+  @override
+  String get decoratorsBackupChain => '备用站点（具名）';
+
+  @override
+  String decoratorsAskBackup(String city) {
+    return '$city 的备用预报';
+  }
 
   @override
   String decoratorsAsk(String city) {

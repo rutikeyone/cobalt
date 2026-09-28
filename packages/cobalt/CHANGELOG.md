@@ -1,3 +1,28 @@
+## 0.5.0
+
+- Async transients. `registerAsyncFactory<T>(factory)` registers something
+  built asynchronously that every caller wants fresh — a report assembled on
+  request, a query opening its own connection. Every `getAsync` builds and
+  awaits a new instance the scope does not keep, and calls at the same time
+  do not share a build. It is never part of `init()`, so it may be
+  registered afterwards; the build runs on the owning scope inside the lazy
+  chain, so one that awaits its own key is a `CobaltCycleError` rather than a
+  hang, and it is decorated on every build. `get`, `getOrNull` and `getAll`
+  throw the new `CobaltAsyncTransientError` naming `getAsync`, and a
+  `dependsOn` naming one is a `CobaltDependsOnError`. `CobaltOverride.transient`
+  replaces one with a synchronous double.
+- Decorators of every registration of a type. `decorateAll<T>(decorator)`
+  wraps every registration of `T` in the scope, named or not, including one
+  registered later. It shares one order with `decorate`: whatever wraps a key
+  applies in the order it was added, the first innermost, whether it was
+  added for the key or for its type. Refused like `decorate` — a key of `T`
+  already resolved is `CobaltDecoratorError.late`, and a scope that registers
+  no key of `T` is the new `CobaltDecoratorError.notOwnedType` from
+  `runBuilder`, naming the nearest ancestor that registers the type.
+  `debugDecoratorsOf` lists both kinds.
+- **Breaking:** `CobaltRegistrationKind.asyncTransient`, so an exhaustive
+  `switch` over it needs a new case.
+
 ## 0.4.0
 
 - Async parameterized factories. `registerAsyncParamFactory<T, P>` registers

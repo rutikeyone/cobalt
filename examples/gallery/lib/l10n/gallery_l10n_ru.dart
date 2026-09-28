@@ -203,6 +203,63 @@ class GalleryL10nRu extends GalleryL10n {
   }
 
   @override
+  String get asyncTransientTitle => 'Async-транзиент';
+
+  @override
+  String get asyncTransientTeaches =>
+      'То, что собирается с вводом-выводом и нужно каждому свежим, — отчёт по запросу.';
+
+  @override
+  String get asyncTransientPoint1 =>
+      'registerAsyncFactory или @cobaltTransient на классе с @CobaltInit строит новый экземпляр на каждый getAsync';
+
+  @override
+  String get asyncTransientPoint2 =>
+      'init() его не строит, а скоуп ни одного не удерживает — полученным владеет вызывающий';
+
+  @override
+  String get asyncTransientPoint3 =>
+      'Одновременные вызовы не делят сборку: два сразу — это две сборки';
+
+  @override
+  String get asyncTransientPoint4 =>
+      'get бросает CobaltAsyncTransientError с подсказкой про getAsync, а dependsOn не может его ждать';
+
+  @override
+  String get asyncTransientStarted => 'старт завершён';
+
+  @override
+  String get asyncTransientOne => 'Собрать отчёт';
+
+  @override
+  String get asyncTransientOneDetail => 'каждый getAsync строит новый';
+
+  @override
+  String get asyncTransientTwo => 'Попросить дважды сразу';
+
+  @override
+  String get asyncTransientTwoDetail => 'одновременные вызовы не делят сборку';
+
+  @override
+  String asyncTransientBuilds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'собрано $count отчёта',
+      many: 'собрано $count отчётов',
+      few: 'собрано $count отчёта',
+      one: 'собран $count отчёт',
+      zero: 'ни один отчёт ещё не собран',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String asyncTransientReceived(int number, String instance) {
+    return 'отчёт №$number · инстанс $instance';
+  }
+
+  @override
   String get propertyTitle => 'Инъекция в поля';
 
   @override
@@ -253,11 +310,11 @@ class GalleryL10nRu extends GalleryL10n {
 
   @override
   String get decoratorsPoint1 =>
-      'scope.decorate, или @CobaltDecorates, когда контейнер генерируется';
+      'scope.decorate оборачивает одну регистрацию, decorateAll — все регистрации типа, или @CobaltDecorates(allNames: true)';
 
   @override
   String get decoratorsPoint2 =>
-      'Первый добавленный декоратор — самый внутренний, поэтому журнал здесь видит и ответы из кэша';
+      'Первый добавленный декоратор — самый внутренний, для ключа или для всего типа, поэтому журнал здесь видит и ответы из кэша';
 
   @override
   String get decoratorsPoint3 =>
@@ -265,10 +322,18 @@ class GalleryL10nRu extends GalleryL10n {
 
   @override
   String get decoratorsPoint4 =>
-      'Override декорируется так же, как регистрация, которую он заменил';
+      'Override декорируется так же, как регистрация, которую он заменил; сгенерированный декоратор может брать поля @injected';
 
   @override
   String get decoratorsChain => 'обёртки, начиная с внутренней';
+
+  @override
+  String get decoratorsBackupChain => 'запасная станция, именованная';
+
+  @override
+  String decoratorsAskBackup(String city) {
+    return 'Запасной прогноз для $city';
+  }
 
   @override
   String decoratorsAsk(String city) {

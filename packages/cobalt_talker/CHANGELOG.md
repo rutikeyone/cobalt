@@ -1,3 +1,9 @@
+## 0.5.0
+
+- No code changes in this package. Republished in lockstep with 0.5.0, which
+  adds async transients, decorators of every registration of a type and
+  `@injected` fields on decorator classes — see `cobalt`'s changelog.
+
 ## 0.4.0
 
 - No code changes in this package. Republished in lockstep with 0.4.0, which

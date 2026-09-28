@@ -418,6 +418,84 @@ abstract class GalleryL10n {
   /// **'engine ready · instance {instance}'**
   String lazyAsyncReady(String instance);
 
+  /// Name of the "Async transient" example.
+  ///
+  /// In en, this message translates to:
+  /// **'Async transient'**
+  String get asyncTransientTitle;
+
+  /// One line: what "Async transient" exists to show.
+  ///
+  /// In en, this message translates to:
+  /// **'Something built with I/O that every caller wants fresh — a report on request.'**
+  String get asyncTransientTeaches;
+
+  /// No description provided for @asyncTransientPoint1.
+  ///
+  /// In en, this message translates to:
+  /// **'registerAsyncFactory, or @cobaltTransient on an @CobaltInit class, builds a new one on every getAsync'**
+  String get asyncTransientPoint1;
+
+  /// No description provided for @asyncTransientPoint2.
+  ///
+  /// In en, this message translates to:
+  /// **'init() never builds it and the scope keeps none — the caller owns what it gets'**
+  String get asyncTransientPoint2;
+
+  /// No description provided for @asyncTransientPoint3.
+  ///
+  /// In en, this message translates to:
+  /// **'Calls at the same time do not share a build: two at once are two builds'**
+  String get asyncTransientPoint3;
+
+  /// No description provided for @asyncTransientPoint4.
+  ///
+  /// In en, this message translates to:
+  /// **'get throws CobaltAsyncTransientError naming getAsync, and dependsOn cannot wait for it'**
+  String get asyncTransientPoint4;
+
+  /// Shown on the async transient screen once the graph is up.
+  ///
+  /// In en, this message translates to:
+  /// **'startup finished'**
+  String get asyncTransientStarted;
+
+  /// Asks for one report with getAsync.
+  ///
+  /// In en, this message translates to:
+  /// **'Build a report'**
+  String get asyncTransientOne;
+
+  /// What asking for one report does.
+  ///
+  /// In en, this message translates to:
+  /// **'every getAsync builds a new one'**
+  String get asyncTransientOneDetail;
+
+  /// Asks for two reports at the same time.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask twice at once'**
+  String get asyncTransientTwo;
+
+  /// What asking twice at once shows.
+  ///
+  /// In en, this message translates to:
+  /// **'concurrent calls do not share a build'**
+  String get asyncTransientTwoDetail;
+
+  /// How many reports have been built this visit.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{no report built yet} =1{1 report built} other{{count} reports built}}'**
+  String asyncTransientBuilds(int count);
+
+  /// One report a caller received; the instance shows each is a different object.
+  ///
+  /// In en, this message translates to:
+  /// **'report #{number} · instance {instance}'**
+  String asyncTransientReceived(int number, String instance);
+
   /// Name of the "Property injection" example.
   ///
   /// In en, this message translates to:
@@ -499,13 +577,13 @@ abstract class GalleryL10n {
   /// No description provided for @decoratorsPoint1.
   ///
   /// In en, this message translates to:
-  /// **'scope.decorate, or @CobaltDecorates when the container is generated'**
+  /// **'scope.decorate wraps one registration and decorateAll every one of a type — or @CobaltDecorates(allNames: true)'**
   String get decoratorsPoint1;
 
   /// No description provided for @decoratorsPoint2.
   ///
   /// In en, this message translates to:
-  /// **'The first decorator added is innermost, so logging here sees cached answers'**
+  /// **'The first decorator added is innermost, for a key or a whole type, so logging here sees cached answers'**
   String get decoratorsPoint2;
 
   /// No description provided for @decoratorsPoint3.
@@ -517,7 +595,7 @@ abstract class GalleryL10n {
   /// No description provided for @decoratorsPoint4.
   ///
   /// In en, this message translates to:
-  /// **'An override is decorated like the registration it replaced'**
+  /// **'An override is decorated like the registration it replaced; a generated decorator may take @injected fields'**
   String get decoratorsPoint4;
 
   /// Label above the chain of decorators around the weather service.
@@ -525,6 +603,18 @@ abstract class GalleryL10n {
   /// In en, this message translates to:
   /// **'wrapped, innermost first'**
   String get decoratorsChain;
+
+  /// Label above the chain around the named backup station, wrapped only by the decorator of every Weather.
+  ///
+  /// In en, this message translates to:
+  /// **'the backup station, named'**
+  String get decoratorsBackupChain;
+
+  /// Button asking the named backup station, which nothing decorates by name.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup forecast for {city}'**
+  String decoratorsAskBackup(String city);
 
   /// Button asking the decorated service for a city.
   ///

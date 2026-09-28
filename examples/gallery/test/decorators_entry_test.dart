@@ -26,7 +26,26 @@ void main() {
       text(tester, 'decorator-chain'),
       'Station → CachingDecorator → LoggingDecorator',
     );
+    expect(text(tester, 'backup-chain'), 'Backup → LoggingDecorator');
     expect(text(tester, 'station-calls'), 'not reached yet');
+  });
+
+  testWidgets('a decorator of every Weather logs the named backup too', (
+    tester,
+  ) async {
+    await openEntry(tester);
+
+    await tester.tap(find.byKey(const Key('ask-backup')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('ask-backup')));
+    await tester.pump();
+
+    expect(find.text('Oslo ~12°'), findsNWidgets(2));
+    expect(
+      text(tester, 'station-calls'),
+      'not reached yet',
+      reason: 'the backup is a registration of its own, uncached',
+    );
   });
 
   testWidgets('the cache answers a repeat; the log sees every answer', (
