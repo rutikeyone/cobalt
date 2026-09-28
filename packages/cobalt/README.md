@@ -297,6 +297,10 @@ ancestor that owns it. `debugDecoratorsOf(key)` lists what wraps a key, innermos
 `debugLabel` each was added with or else its type.
 `@CobaltDecorates` in `cobalt_generator` writes the same call from an annotation.
 
+`decorateAll<ApiClient>(...)` wraps every registration of the type in the scope, named or not,
+including one registered later. It shares one order with `decorate` — whatever wraps a key applies
+in the order it was added — and is refused in the same situations.
+
 ## Optional dependencies
 
 `scope.getOrNull<T>()` returns null when nothing is registered for `T`, instead of throwing. It is

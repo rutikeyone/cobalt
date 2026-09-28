@@ -43,10 +43,16 @@ class CobaltScopeRoot {
 }
 
 class CobaltDecorates {
-  const CobaltDecorates(this.target, {this.name, this.order});
+  const CobaltDecorates(
+    this.target, {
+    this.name,
+    this.order,
+    this.allNames = false,
+  });
   final Type target;
   final String? name;
   final int? order;
+  final bool allNames;
 }
 
 class CobaltParam {

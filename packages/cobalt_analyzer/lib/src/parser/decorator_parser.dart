@@ -108,12 +108,24 @@ class CobaltDecoratorParser {
       );
     }
 
+    final name = annotation.readString('name');
+    final allNames = annotation.readBool('allNames');
+    if (allNames && name != null) {
+      throw CobaltParseError(
+        "${clazz.displayName} names the registration '$name' and asks for "
+        'allNames. allNames already wraps every registration of '
+        '${targetRef.name}, that one included — drop one of the two.',
+        clazz,
+      );
+    }
+
     return CobaltDecoratorClass(
       type: typeRefOfElement(clazz),
       target: targetRef,
       inner: inner.single.name ?? '',
-      name: annotation.readString('name'),
+      name: name,
       order: annotation.readInt('order'),
+      allNames: allNames,
       environments: environmentsOf(clazz),
       constructorParameters: [
         for (final parameter in parameters)

@@ -266,6 +266,18 @@ Three mistakes are refused: decorating a key already resolved (its holders would
 instance), decorating a key the scope does not register — `runBuilder` names the ancestor that owns
 it — and a decorator that resolves its own key, which is a `CobaltCycleError`.
 
+To wrap every registration of a type — the unnamed `ApiClient` and each named one — use
+`decorateAll`:
+
+```dart
+scope.decorateAll<ApiClient>(const LoggingApi());
+```
+
+It wraps the registrations of the type added before it and after it, and shares one order with
+`decorate`: whatever wraps a key applies in the order it was added, whether it was added for the key
+or for its type. It is refused in the same two situations — a key of the type already resolved, or
+a scope that registers no key of the type at all.
+
 ## 4. Starting a Flutter app
 
 `CobaltAppScope` owns the root: it builds the graph, publishes it to the tree, disposes it on unmount,

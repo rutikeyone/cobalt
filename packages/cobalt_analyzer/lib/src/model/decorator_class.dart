@@ -14,6 +14,7 @@ class CobaltDecoratorClass {
     required this.constructorParameters,
     this.name,
     this.order,
+    this.allNames = false,
     this.environments = const {},
   });
 
@@ -28,6 +29,7 @@ class CobaltDecoratorClass {
         ],
         name: json['name'] as String?,
         order: json['order'] as int?,
+        allNames: json['allNames'] as bool? ?? false,
         environments: {
           for (final e in json['environments'] as List<dynamic>? ?? const [])
             e as String,
@@ -53,6 +55,10 @@ class CobaltDecoratorClass {
   /// Its place among decorators of the same registration, lowest innermost.
   final int? order;
 
+  /// Whether it wraps every registration of [target], whatever its name,
+  /// rather than the one [name] picks. Never true together with a [name].
+  final bool allNames;
+
   /// Environment names it is restricted to, empty when it applies in all.
   final Set<String> environments;
 
@@ -71,6 +77,7 @@ class CobaltDecoratorClass {
     ],
     'name': name,
     'order': order,
+    'allNames': allNames,
     'environments': [...environments],
   };
 }

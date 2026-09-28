@@ -113,6 +113,8 @@ final class CobaltScope implements CobaltResolver {
   var _applyingOverrides = false;
 
   final _decorators = <CobaltKey, List<_Decoration>>{};
+  final _typeDecorators = <Type, List<_Decoration>>{};
+  var _decorationOrder = 0;
   final _decorated = <CobaltKey, Object>{};
   final _served = <CobaltKey>{};
 
@@ -198,10 +200,10 @@ final class CobaltScope implements CobaltResolver {
   ///
   /// Each is named by the `debugLabel` it was added with, or by its type.
   /// Answered for the scope that owns [key], the only one whose decorators
-  /// can apply to it.
+  /// can apply to it — those of the key and those of its whole type alike.
   List<String> debugDecoratorsOf(CobaltKey key) => [
     for (final decoration
-        in _lookup(key)?.scope._decorators[key] ?? const <_Decoration>[])
+        in _lookup(key)?.scope._decorationsOf(key) ?? const <_Decoration>[])
       decoration.label,
   ];
 
@@ -397,8 +399,49 @@ final class CobaltScope implements CobaltResolver {
       _Decoration(
         debugLabel ?? '${decorator.runtimeType}',
         (inner, resolver) => decorator.decorate(inner as T, resolver),
+        _decorationOrder++,
       ),
     );
+  }
+
+  /// Wraps what every registration of [T] in this scope produces, whatever
+  /// its name — including one registered after this call.
+  ///
+  /// For something that belongs to the type rather than to one registration:
+  /// logging every named `ApiClient`, a metric around every `Repository`.
+  /// It is [decorate] for each of them, and shares one order with [decorate]:
+  /// whatever wraps a key applies in the order it was added, the first
+  /// innermost, whether it was added for the key or for its type.
+  ///
+  /// A key of [T] already resolved from this scope throws
+  /// [CobaltDecoratorError], as [decorate] does. A scope that registers no
+  /// key of [T] wraps nothing, and [runBuilder] reports that once the builder
+  /// returns, naming the ancestor that registers the type.
+  void decorateAll<T extends Object>(
+    CobaltDecorator<T> decorator, {
+    String? debugLabel,
+  }) {
+    _assertUsable();
+    for (final key in _served) {
+      if (key.type == T) throw CobaltDecoratorError.late(key, name);
+    }
+    (_typeDecorators[T] ??= []).add(
+      _Decoration(
+        debugLabel ?? '${decorator.runtimeType}',
+        (inner, resolver) => decorator.decorate(inner as T, resolver),
+        _decorationOrder++,
+      ),
+    );
+  }
+
+  /// What wraps [key] in this scope, innermost first: the decorators added
+  /// for the key and those added for its type, in the order they were added.
+  List<_Decoration>? _decorationsOf(CobaltKey key) {
+    final exact = _decorators[key];
+    final wide = _typeDecorators[key.type];
+    if (wide == null) return exact;
+    if (exact == null) return wide;
+    return [...exact, ...wide]..sort((a, b) => a.order.compareTo(b.order));
   }
 
   /// Registers [T] so every resolution builds a new instance.
@@ -1150,6 +1193,7 @@ final class CobaltScope implements CobaltResolver {
     _owned.clear();
     _registrations.clear();
     _decorators.clear();
+    _typeDecorators.clear();
     _decorated.clear();
     _initFuture = null;
     parent?._children.remove(this);
@@ -1503,7 +1547,7 @@ final class CobaltScope implements CobaltResolver {
   /// Hands out a retained instance, decorated once and shared from then on.
   Object _serve(CobaltKey key, Object inner) {
     _served.add(key);
-    final decorations = _decorators[key];
+    final decorations = _decorationsOf(key);
     if (decorations == null) return inner;
     return _decorated[key] ??= _tracker.guard(
       key,
@@ -1516,7 +1560,7 @@ final class CobaltScope implements CobaltResolver {
   /// Called inside the build's own guard, which already holds [key].
   Object _serveFresh(CobaltKey key, Object inner) {
     _served.add(key);
-    final decorations = _decorators[key];
+    final decorations = _decorationsOf(key);
     if (decorations == null) return inner;
     return _applyDecorations(decorations, inner);
   }
@@ -1599,6 +1643,17 @@ final class CobaltScope implements CobaltResolver {
         owner: parent?._lookup(key)?.scope.name,
       );
     }
+    for (final type in _typeDecorators.keys) {
+      if (_registrations.keys.any((key) => key.type == type)) continue;
+      String? owner;
+      for (var scope = parent; scope != null; scope = scope.parent) {
+        if (scope._registrations.keys.any((key) => key.type == type)) {
+          owner = scope.name;
+          break;
+        }
+      }
+      throw CobaltDecoratorError.notOwnedType(type, name, owner: owner);
+    }
   }
 
   void _assertOverridesClaimed() {
@@ -1646,10 +1701,14 @@ final class CobaltScope implements CobaltResolver {
 
 /// A decorator with its type erased to what a scope can store.
 class _Decoration {
-  _Decoration(this.label, this.apply);
+  _Decoration(this.label, this.apply, this.order);
 
   final String label;
   final Object Function(Object inner, CobaltResolver resolver) apply;
+
+  /// When it was added in its scope, so the decorators of a key and of its
+  /// type apply in one order.
+  final int order;
 }
 
 /// An instance the scope owns, with whatever closes it.

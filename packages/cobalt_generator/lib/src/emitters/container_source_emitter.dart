@@ -31,13 +31,20 @@ class ContainerSourceEmitter {
         return byKey != 0 ? byKey : a.type.name.compareTo(b.type.name);
       });
 
+    // Grouped by type rather than by key: a decorator of every registration
+    // of a type and one of a single key apply to that key in the order they
+    // are added, so the emitted order has to follow `order` across both.
     final decorators = [...declarations.decorators]
       ..sort((a, b) {
-        final byTarget = _targetOf(a).compareTo(_targetOf(b));
-        if (byTarget != 0) return byTarget;
+        final byType = _typeKeyOf(a).compareTo(_typeKeyOf(b));
+        if (byType != 0) return byType;
         final byOrder = (a.order ?? 0).compareTo(b.order ?? 0);
-        return byOrder != 0 ? byOrder : a.type.name.compareTo(b.type.name);
+        if (byOrder != 0) return byOrder;
+        final byTarget = _targetOf(a).compareTo(_targetOf(b));
+        return byTarget != 0 ? byTarget : a.type.name.compareTo(b.type.name);
       });
+
+    final keysByType = _keysByType(injectables, declarations.scopeRoots);
 
     _assertNoEnvironmentConflicts(injectables);
 
@@ -55,7 +62,7 @@ class ContainerSourceEmitter {
       decorators,
     );
 
-    _assertDecoratorOrder(decorators);
+    _assertDecoratorOrder(decorators, keysByType);
 
     _assertDependsOnIsAsync(injectables);
 
@@ -65,7 +72,7 @@ class ContainerSourceEmitter {
     };
     _assertLazyIsAwaited(injectables, lazyKeys, decorators);
 
-    final ordered = _withDerivedDependsOn(injectables, decorators);
+    final ordered = _withDerivedDependsOn(injectables, decorators, keysByType);
     final names = CobaltFactoryNames(ordered, decorators: decorators);
 
     final hasBootstrap = declarations.bootstrapSteps.isNotEmpty;
@@ -88,7 +95,7 @@ class ContainerSourceEmitter {
             _decorators.emit(decorator, names),
           if (ordered.isNotEmpty || decorators.isNotEmpty)
             _rootScope.emit(
-              _ordered(ordered, decorators),
+              _ordered(ordered, decorators, keysByType),
               names,
               usesEnvironments: scopeUsesEnvironments,
               decorators: decorators,
@@ -157,9 +164,10 @@ class ContainerSourceEmitter {
   List<CobaltInjectableClass> _ordered(
     List<CobaltInjectableClass> injectables,
     List<CobaltDecoratorClass> decorators,
+    Map<String, Set<String>> keysByType,
   ) {
     final byKey = _groupByKey(injectables);
-    final decoratorsByTarget = _decoratorsByTarget(decorators);
+    final decoratorsByTarget = _decoratorsByTarget(decorators, keysByType);
 
     final levels = layeredTopologicalSort<CobaltInjectableClass>(
       injectables,
@@ -264,16 +272,31 @@ class ContainerSourceEmitter {
     final universe = _environmentUniverse(injectables, decorators);
     final missing = <CobaltDecoratorClass, Set<String>>{};
 
+    final providedTypes = {
+      for (final root in roots)
+        for (final ref in root.provides) _refKey(ref.type, null),
+    };
+
     for (final environment in universe) {
+      final active = [
+        for (final declaration in injectables)
+          if (_activeIn(declaration.environments, environment)) declaration,
+      ];
       final available = {
         ...provided,
-        for (final declaration in injectables)
-          if (_activeIn(declaration.environments, environment))
-            _keyOf(declaration),
+        for (final declaration in active) _keyOf(declaration),
+      };
+      final availableTypes = {
+        ...providedTypes,
+        for (final declaration in active)
+          _refKey(declaration.exposedType, null),
       };
       for (final decorator in decorators) {
         if (!_activeIn(decorator.environments, environment)) continue;
-        if (available.contains(_targetOf(decorator))) continue;
+        final wraps = decorator.allNames
+            ? availableTypes.contains(_typeKeyOf(decorator))
+            : available.contains(_targetOf(decorator));
+        if (wraps) continue;
         missing.putIfAbsent(decorator, () => {}).add(environment);
       }
     }
@@ -299,27 +322,33 @@ class ContainerSourceEmitter {
   /// The order decides behaviour — a retry outside a cache is not a cache
   /// outside a retry — and the order classes happen to be read in is no
   /// order at all. Decorators whose environments never meet do not compete.
-  void _assertDecoratorOrder(List<CobaltDecoratorClass> decorators) {
-    for (final group in _decoratorsByTarget(decorators).values) {
+  /// A decorator of every registration of a type competes with the decorators
+  /// of each of those registrations.
+  void _assertDecoratorOrder(
+    List<CobaltDecoratorClass> decorators,
+    Map<String, Set<String>> keysByType,
+  ) {
+    final checked = <(CobaltDecoratorClass, CobaltDecoratorClass)>{};
+    for (final group in _decoratorsByTarget(decorators, keysByType).values) {
       for (var i = 0; i < group.length; i++) {
         for (var j = i + 1; j < group.length; j++) {
           final first = group[i];
           final second = group[j];
+          if (!checked.add((first, second))) continue;
           if (!_canCoexist(first.environments, second.environments)) continue;
+          final target = _targetLabel(first.allNames ? second : first);
           if (first.order == null || second.order == null) {
             throw CobaltGenerationError(
               '${first.type.name} and ${second.type.name} both decorate '
-              '${_targetLabel(first)} and do not say which wraps which. Give '
-              'each an order: the lower one is applied first and ends up '
-              'innermost.',
+              '$target and do not say which wraps which. Give each an order: '
+              'the lower one is applied first and ends up innermost.',
             );
           }
           if (first.order == second.order) {
             throw CobaltGenerationError(
               '${first.type.name} and ${second.type.name} both decorate '
-              '${_targetLabel(first)} with order ${first.order}. Give them '
-              'different orders: the lower one is applied first and ends up '
-              'innermost.',
+              '$target with order ${first.order}. Give them different orders: '
+              'the lower one is applied first and ends up innermost.',
             );
           }
         }
@@ -512,12 +541,13 @@ class ContainerSourceEmitter {
   List<CobaltInjectableClass> _withDerivedDependsOn(
     List<CobaltInjectableClass> injectables,
     List<CobaltDecoratorClass> decorators,
+    Map<String, Set<String>> keysByType,
   ) {
     final asyncKeys = {
       for (final declaration in injectables)
         if (declaration.isBuiltInPhaseOne) _keyOf(declaration),
     };
-    final decoratorsByTarget = _decoratorsByTarget(decorators);
+    final decoratorsByTarget = _decoratorsByTarget(decorators, keysByType);
     final byKey = _groupByKey(injectables);
     final universe = _environmentUniverse(injectables, decorators);
     Set<String> presentIn(Set<String> environments) =>
@@ -600,15 +630,50 @@ class ContainerSourceEmitter {
     return declaration.withDependsOn(merged);
   }
 
+  /// The decorators that wrap each key, in emitted order.
+  ///
+  /// A decorator of every registration of a type is listed under each key of
+  /// that type in [keysByType] — the keys the graph registers or is provided.
   static Map<String, List<CobaltDecoratorClass>> _decoratorsByTarget(
     List<CobaltDecoratorClass> decorators,
+    Map<String, Set<String>> keysByType,
   ) {
     final byTarget = <String, List<CobaltDecoratorClass>>{};
     for (final decorator in decorators) {
-      byTarget.putIfAbsent(_targetOf(decorator), () => []).add(decorator);
+      final targets = decorator.allNames
+          ? keysByType[_typeKeyOf(decorator)] ?? const <String>{}
+          : {_targetOf(decorator)};
+      for (final target in targets) {
+        byTarget.putIfAbsent(target, () => []).add(decorator);
+      }
     }
     return byTarget;
   }
+
+  /// Every key the graph has — registered or named in `provides` — grouped
+  /// by the key of its type without a name.
+  static Map<String, Set<String>> _keysByType(
+    List<CobaltInjectableClass> injectables,
+    List<CobaltScopeRootClass> roots,
+  ) {
+    final byType = <String, Set<String>>{};
+    for (final declaration in injectables) {
+      byType
+          .putIfAbsent(_refKey(declaration.exposedType, null), () => {})
+          .add(_keyOf(declaration));
+    }
+    for (final root in roots) {
+      for (final ref in root.provides) {
+        byType
+            .putIfAbsent(_refKey(ref.type, null), () => {})
+            .add(_refKey(ref.type, ref.name));
+      }
+    }
+    return byType;
+  }
+
+  static String _typeKeyOf(CobaltDecoratorClass decorator) =>
+      _refKey(decorator.target, null);
 
   static Set<String> _providedKeys(List<CobaltScopeRootClass> roots) => {
     for (final root in roots)
@@ -624,6 +689,7 @@ class ContainerSourceEmitter {
   static String _targetLabel(CobaltDecoratorClass decorator) {
     final name = decorator.name;
     final target = _display(decorator.target);
+    if (decorator.allNames) return 'every $target';
     return name == null ? target : "$target named '$name'";
   }
 

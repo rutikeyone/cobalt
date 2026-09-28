@@ -880,6 +880,11 @@ At runtime it is the same `decorate` as in Manual Mode: a retained registration 
 and shared, an override is decorated like the registration it replaced, and the scope closes the
 inner instance, never the decorator.
 
+`@CobaltDecorates(ApiClient, allNames: true)` wraps **every registration of the type**, named or
+not, and becomes `scope.decorateAll<ApiClient>(...)`. It cannot be combined with `name:`, needs at
+least one registration of the type wherever it is active, and competes for `order:` with the
+decorators of each registration it wraps.
+
 ---
 
 ## 15. One graph, several builds

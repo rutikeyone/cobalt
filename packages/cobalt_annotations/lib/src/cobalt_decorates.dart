@@ -25,13 +25,22 @@ import 'package:meta/meta_meta.dart';
 /// applied first and ends up innermost. The generator refuses to guess which
 /// wraps which.
 ///
+/// [allNames] wraps every registration of [target], named or not — the
+/// generated form of `CobaltScope.decorateAll`. It competes for [order] with
+/// every decorator of each of those registrations.
+///
 /// `@CobaltEnvironment` restricts it to one build like any registration. A
 /// decorator is a wrapper, not an owner: the scope closes the instance it
 /// wraps and never the decorator, so it holds no resources of its own.
 @Target({TargetKind.classType})
 class CobaltDecorates {
   /// Creates the annotation for [target], optionally a named registration.
-  const CobaltDecorates(this.target, {this.name, this.order});
+  const CobaltDecorates(
+    this.target, {
+    this.name,
+    this.order,
+    this.allNames = false,
+  });
 
   /// The registered type to wrap — the exposed type when the registration
   /// uses `exposeAs`.
@@ -43,4 +52,8 @@ class CobaltDecorates {
   /// Where this decorator sits among others of the same registration; the
   /// lowest is innermost. Required when there is more than one.
   final int? order;
+
+  /// Whether to wrap every registration of [target], whatever its name.
+  /// Cannot be combined with [name].
+  final bool allNames;
 }

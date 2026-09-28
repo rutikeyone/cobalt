@@ -105,6 +105,11 @@ What the build checks:
   the generator does not guess from the order files were read in;
 - a decorator needing something that depends on its own target fails as a cycle.
 
+`allNames: true` wraps every registration of the target, named or not, and is emitted as
+`scope.decorateAll<Target>(...)`. It cannot be combined with `name:`, needs a registration of the
+type wherever it is active, and competes for `order:` with the decorators of each registration it
+wraps.
+
 An async class that resolves a decorated registration during phase 1 also waits for the async
 dependencies of the decorator — the generator adds them to that class's `dependsOn`. The wait sits
 on the consumer rather than the target, so an override of the target does not take it away.

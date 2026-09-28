@@ -120,6 +120,7 @@ CobaltDecoratorClass decorator(
   List<CobaltInjectedProperty> dependencies = const [],
   String? name,
   int? order,
+  bool allNames = false,
   Set<String> environments = const {},
   bool innerIsNamed = false,
   String import = appImport,
@@ -129,6 +130,7 @@ CobaltDecoratorClass decorator(
   inner: 'inner',
   name: name,
   order: order,
+  allNames: allNames,
   environments: environments,
   constructorParameters: [
     CobaltInjectedProperty(
@@ -154,10 +156,12 @@ String generate(
   ),
 );
 
-/// Every `scope.decorate` statement, each joined onto one line however the
-/// formatter wrapped it.
+/// Every `scope.decorate` and `scope.decorateAll` statement, each joined onto
+/// one line however the formatter wrapped it.
 List<String> decorationsOf(String source) => [
-  for (final match in RegExp(r'scope\.decorate<[^;]*;').allMatches(source))
+  for (final match in RegExp(
+    r'scope\.decorate(?:All)?<[^;]*;',
+  ).allMatches(source))
     match.group(0)!.replaceAll(RegExp(r'\s+'), ' ').replaceAll('( ', '('),
 ];
 

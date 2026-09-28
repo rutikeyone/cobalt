@@ -836,6 +836,10 @@ class LoggingApi implements ApiClient {
 运行时它与 Manual Mode 中的 `decorate` 完全相同：被持有的注册只装饰一次并共享结果，覆盖会像它替换的那条注册一样被装饰，
 作用域关闭的是内层实例，从不关闭装饰器。
 
+`@CobaltDecorates(ApiClient, allNames: true)` 包装**该类型的所有注册**，不论是否具名，生成的是
+`scope.decorateAll<ApiClient>(...)`。它不能与 `name:` 一起用，在它生效的每处都至少要有该类型的一条注册，
+并与它所包装的每条注册的装饰器一起竞争 `order:`。
+
 ---
 
 ## 15. 一张图，多种构建

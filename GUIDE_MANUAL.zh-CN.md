@@ -262,6 +262,16 @@ scope
 装饰已经被解析过的键（持有者会留着未包装的实例）、装饰作用域没有注册的键——`runBuilder`
 会指出拥有它的祖先——以及解析自身键的装饰器，这是 `CobaltCycleError`。
 
+要包装某个类型的所有注册——无名的 `ApiClient` 和每个具名的——用 `decorateAll`：
+
+```dart
+scope.decorateAll<ApiClient>(const LoggingApi());
+```
+
+它会包装在它之前和之后添加的该类型注册，并与 `decorate` 共用同一个顺序：包装某个键的一切都按添加顺序应用，
+不论是为这个键添加的还是为它的类型添加的。它在同样两种情况下被拒绝——该类型的某个键已经被解析过，
+或者作用域根本没有注册该类型的任何键。
+
 ## 4. 启动 Flutter 应用
 
 根作用域由 `CobaltAppScope` 持有：构建图、发布到 widget 树、卸载时销毁，

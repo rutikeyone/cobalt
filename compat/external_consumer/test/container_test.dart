@@ -319,6 +319,22 @@ void main() {
     });
   });
 
+  group('a decorator of every registration of a type', () {
+    test('wraps each named one', () {
+      expect(
+        scope.get<Endpoint>(name: 'api').url,
+        'https://api.example.com?traced',
+      );
+      expect(
+        scope.get<Endpoint>(name: 'cdn').url,
+        'https://cdn.example.com?traced',
+      );
+      expect(scope.debugDecoratorsOf(const CobaltKey(Endpoint, name: 'cdn')), [
+        'TracedEndpoint',
+      ]);
+    });
+  });
+
   group('overrides handed to the generated start function', () {
     test('an eager singleton is built by the scope at startup', () {
       expect(scope.get<LicenseCheck>(), isNot(isA<_ValidLicense>()));

@@ -15,6 +15,7 @@ import 'package:cobalt_external_consumer/src/database.dart' as _i530;
 import 'package:cobalt_external_consumer/src/device_info.dart' as _i829;
 import 'package:cobalt_external_consumer/src/diagnostics.dart' as _i862;
 import 'package:cobalt_external_consumer/src/document.dart' as _i601;
+import 'package:cobalt_external_consumer/src/endpoint.dart' as _i416;
 import 'package:cobalt_external_consumer/src/license_check.dart' as _i1023;
 import 'package:cobalt_external_consumer/src/note_editor.dart' as _i59;
 import 'package:cobalt_external_consumer/src/platform_module.dart' as _i455;
@@ -125,6 +126,22 @@ final class _DocumentFactory
     await instance.init();
     return instance;
   }
+}
+
+final class _ApiEndpointApiFactory
+    implements _i573.CobaltFactory<_i416.Endpoint> {
+  const _ApiEndpointApiFactory();
+
+  @override
+  _i416.Endpoint create(_i573.CobaltResolver resolver) => _i416.ApiEndpoint();
+}
+
+final class _CdnEndpointCdnFactory
+    implements _i573.CobaltFactory<_i416.Endpoint> {
+  const _CdnEndpointCdnFactory();
+
+  @override
+  _i416.Endpoint create(_i573.CobaltResolver resolver) => _i416.CdnEndpoint();
 }
 
 final class _LicenseCheckFactory
@@ -259,6 +276,17 @@ final class _AuditedDatabaseDecorator
   ) => _i963.AuditedDatabase(inner, resolver.get<_i720.AuditTrail>());
 }
 
+final class _TracedEndpointDecorator
+    implements _i573.CobaltDecorator<_i416.Endpoint> {
+  const _TracedEndpointDecorator();
+
+  @override
+  _i416.Endpoint decorate(
+    _i416.Endpoint inner,
+    _i573.CobaltResolver resolver,
+  ) => _i416.TracedEndpoint(inner);
+}
+
 final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
   const $CobaltRootScope();
 
@@ -266,6 +294,14 @@ final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
   void build(_i573.CobaltScope scope) {
     scope.registerAsyncSingleton<_i604.AuditSink>(const _AuditSinkFactory());
     scope.registerLazySingleton<_i612.Clock>(const _SystemClockFactory());
+    scope.registerLazySingleton<_i416.Endpoint>(
+      const _ApiEndpointApiFactory(),
+      name: 'api',
+    );
+    scope.registerLazySingleton<_i416.Endpoint>(
+      const _CdnEndpointCdnFactory(),
+      name: 'cdn',
+    );
     scope.registerEagerSingleton<_i1023.LicenseCheck>(
       const _LicenseCheckFactory(),
     );
@@ -316,6 +352,10 @@ final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
     scope.decorate<_i530.Database>(
       const _AuditedDatabaseDecorator(),
       debugLabel: 'AuditedDatabase',
+    );
+    scope.decorateAll<_i416.Endpoint>(
+      const _TracedEndpointDecorator(),
+      debugLabel: 'TracedEndpoint',
     );
   }
 }

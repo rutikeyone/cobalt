@@ -71,7 +71,8 @@ class RootScopeEmitter {
 
   Code _decorate(CobaltDecoratorClass decorator, CobaltFactoryNames names) {
     final name = decorator.name;
-    return refer('scope').property('decorate').call(
+    final method = decorator.allNames ? 'decorateAll' : 'decorate';
+    return refer('scope').property(method).call(
       [refer(names.ofDecorator(decorator)).constInstance(const [])],
       {
         if (name != null) 'name': literalString(name),
