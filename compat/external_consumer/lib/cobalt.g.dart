@@ -284,7 +284,7 @@ final class _TracedEndpointDecorator
   _i416.Endpoint decorate(
     _i416.Endpoint inner,
     _i573.CobaltResolver resolver,
-  ) => _i416.TracedEndpoint(inner);
+  ) => _i416.TracedEndpoint(inner)..onInject(resolver);
 }
 
 final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
@@ -294,14 +294,6 @@ final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
   void build(_i573.CobaltScope scope) {
     scope.registerAsyncSingleton<_i604.AuditSink>(const _AuditSinkFactory());
     scope.registerLazySingleton<_i612.Clock>(const _SystemClockFactory());
-    scope.registerLazySingleton<_i416.Endpoint>(
-      const _ApiEndpointApiFactory(),
-      name: 'api',
-    );
-    scope.registerLazySingleton<_i416.Endpoint>(
-      const _CdnEndpointCdnFactory(),
-      name: 'cdn',
-    );
     scope.registerEagerSingleton<_i1023.LicenseCheck>(
       const _LicenseCheckFactory(),
     );
@@ -324,6 +316,14 @@ final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
       dependsOn: {const _i573.CobaltKey(_i604.AuditSink)},
     );
     scope.registerLazySingleton<_i862.Diagnostics>(const _DiagnosticsFactory());
+    scope.registerLazySingleton<_i416.Endpoint>(
+      const _ApiEndpointApiFactory(),
+      name: 'api',
+    );
+    scope.registerLazySingleton<_i416.Endpoint>(
+      const _CdnEndpointCdnFactory(),
+      name: 'cdn',
+    );
     scope.registerParamFactory<_i59.NoteEditor, $NoteEditorArgs>(
       const _NoteEditorFactory(),
     );

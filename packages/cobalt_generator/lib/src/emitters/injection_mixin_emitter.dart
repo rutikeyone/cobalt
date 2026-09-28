@@ -4,14 +4,19 @@ import 'package:code_builder/code_builder.dart';
 class InjectionMixinEmitter {
   const InjectionMixinEmitter();
 
-  String emit(CobaltInjectableClass declaration) {
+  String emit(CobaltInjectableClass declaration) =>
+      emitFor(declaration.type, declaration.properties);
+
+  /// The mixin for a class of [type] whose `@injected` fields are
+  /// [properties] — a registration or a decorator alike.
+  String emitFor(CobaltTypeRef type, List<CobaltInjectedProperty> properties) {
     final mixin = Mixin(
       (b) => b
-        ..name = '_\$${declaration.type.name}'
+        ..name = '_\$${type.name}'
         ..implements.add(refer('CobaltInjectable'))
         ..methods.addAll([
-          for (final property in declaration.properties) _setter(property),
-          _onInject(declaration),
+          for (final property in properties) _setter(property),
+          _onInject(properties),
         ]),
     );
 
@@ -37,7 +42,7 @@ class InjectionMixinEmitter {
       ),
   );
 
-  Method _onInject(CobaltInjectableClass declaration) => Method(
+  Method _onInject(List<CobaltInjectedProperty> properties) => Method(
     (m) => m
       ..name = 'onInject'
       ..annotations.add(refer('override'))
@@ -50,7 +55,7 @@ class InjectionMixinEmitter {
         ),
       )
       ..body = Block.of([
-        for (final property in declaration.properties)
+        for (final property in properties)
           refer(property.field).assign(_resolve(property)).statement,
       ]),
   );

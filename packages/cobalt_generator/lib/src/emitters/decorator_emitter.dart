@@ -6,7 +6,10 @@ import 'package:code_builder/code_builder.dart';
 /// Emits the `CobaltDecorator` an `@CobaltDecorates` class stands for.
 ///
 /// A const class with no state, like a factory: the wrapped instance and the
-/// resolver arrive as arguments, and the class is rebuilt around them.
+/// resolver arrive as arguments, and the class is rebuilt around them. A class
+/// with `@injected` fields has them filled by its generated mixin right after
+/// construction, from the same resolver — the scope never calls `onInject`
+/// on what a decorator returns, since that may be the instance it was handed.
 class DecoratorEmitter {
   const DecoratorEmitter();
 
@@ -54,7 +57,13 @@ class DecoratorEmitter {
                 ),
               ])
               ..lambda = true
-              ..body = construction.code,
+              ..body =
+                  (decorator.hasPropertyInjection
+                          ? construction.cascade('onInject').call([
+                              refer('resolver'),
+                            ])
+                          : construction)
+                      .code,
           ),
         ),
     );

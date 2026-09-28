@@ -221,6 +221,7 @@ class _IndexBuilder {
       if (decorates != null && !registers) {
         final wanted = <String>{};
         _addConstructorParameters(declaration, wanted);
+        _addInjectedFields(declaration, wanted);
         wanted.remove(decorates);
         _decoratorEdges.putIfAbsent(decorates, () => {}).addAll(wanted);
       }

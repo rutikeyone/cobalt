@@ -823,8 +823,9 @@ class LoggingApi implements ApiClient {
 规则如下，每条都有原因：
 
 - 这个类**实现目标类型**，构造函数里**恰好一个**该类型的参数：被包装的实例。其余参数从拥有这条注册的
-  作用域解析，`@Named` 同样适用。`@CobaltParam` 和 `@injected` 字段会被拒绝——装饰器由作用域应用，
-  没有调用点。
+  作用域解析，`@Named` 同样适用。`@CobaltParam` 会被拒绝——装饰器由作用域应用，没有调用点。
+- **`@injected` 字段**与任何类上一样可用：混入生成的 `_$ClassName`，生成的装饰器会在构造之后立即用同一个
+  resolver 填充它们。在下面的每项检查里，它们都算作装饰器的依赖。
 - 同一条注册的两个装饰器需要 **`order:`**，数值小的在里层。构建不会去猜，也不接受两个相同的顺序。
   环境互不相交的装饰器之间不存在竞争。
 - 目标必须**在装饰器生效的每个环境里都已注册**，或者列在 `provides:` 里。它的依赖和任何类一样经过完整性检查，
@@ -905,8 +906,8 @@ plugins:
 
 | 规则 | 捕捉什么 |
 |---|---|
-| `cobalt_missing_injection_mixin` | 容器会注册的类上有 `@injected` 字段却没有 `with _$ClassName` |
-| `cobalt_injected_field_needs_an_injectable` | 容器根本不注册的类上有 `@injected` 字段 |
+| `cobalt_missing_injection_mixin` | 容器会注册或作为装饰器应用的类上有 `@injected` 字段却没有 `with _$ClassName` |
+| `cobalt_injected_field_needs_an_injectable` | 容器既不注册、也不作为装饰器应用的类上有 `@injected` 字段 |
 | `cobalt_param_needs_an_injectable` | 容器根本不注册的类上有 `@CobaltParam` |
 | `cobalt_injected_field_must_be_late_final` | `@injected` 用在可变、非 late 或静态字段上 |
 | `cobalt_injectable_must_be_constructible` | `@CobaltInject` 用在抽象类或没有公开生成式构造函数的类上 |

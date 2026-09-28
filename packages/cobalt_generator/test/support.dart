@@ -121,6 +121,7 @@ CobaltDecoratorClass decorator(
   String? name,
   int? order,
   bool allNames = false,
+  List<CobaltInjectedProperty> injectedFields = const [],
   Set<String> environments = const {},
   bool innerIsNamed = false,
   String import = appImport,
@@ -131,6 +132,7 @@ CobaltDecoratorClass decorator(
   name: name,
   order: order,
   allNames: allNames,
+  injectedFields: injectedFields,
   environments: environments,
   constructorParameters: [
     CobaltInjectedProperty(

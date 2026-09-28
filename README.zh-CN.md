@@ -224,8 +224,8 @@ something outside the generated container registers it.
 
 | 规则 | 捕捉什么 |
 |---|---|
-| `cobalt_missing_injection_mixin` | 容器会注册的类上有 `@injected` 字段却没有 `with _$ClassName` |
-| `cobalt_injected_field_needs_an_injectable` | 容器根本不注册的类上有 `@injected` 字段 |
+| `cobalt_missing_injection_mixin` | 容器会注册或作为装饰器应用的类上有 `@injected` 字段却没有 `with _$ClassName` |
+| `cobalt_injected_field_needs_an_injectable` | 容器既不注册、也不作为装饰器应用的类上有 `@injected` 字段 |
 | `cobalt_param_needs_an_injectable` | 容器根本不注册的类上有 `@CobaltParam` |
 | `cobalt_injected_field_must_be_late_final` | `@injected` 用在可变、非 late 或静态字段上 |
 | `cobalt_injectable_must_be_constructible` | `@CobaltInject` 用在抽象类或没有公开生成式构造函数的类上 |

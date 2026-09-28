@@ -224,6 +224,23 @@ class TimedEngine implements Engine {
 ''');
   }
 
+  void test_aDecoratorsInjectedFieldOfALazyType_isReported() async {
+    await _reportsOn('''
+$cobaltImport
+
+$_engine
+abstract interface class Api {}
+
+@CobaltDecorates(Api)
+class TimedApi implements Api {
+  TimedApi(this.inner);
+  final Api inner;
+  @injected
+  late final Engine engine;
+}
+''', 'TimedApi');
+  }
+
   void test_anAsyncClassBuiltFromACallSiteValue_mayTakeOne() async {
     await assertNoDiagnostics('''
 $cobaltImport

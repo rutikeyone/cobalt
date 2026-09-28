@@ -238,8 +238,8 @@ warning-правил, все построены на том же слое раз
 
 | Правило | Что ловит |
 |---|---|
-| `cobalt_missing_injection_mixin` | `@injected`-поля без `with _$ClassName` на классе, который контейнер регистрирует |
-| `cobalt_injected_field_needs_an_injectable` | `@injected`-поля на классе, который контейнер не регистрирует вовсе |
+| `cobalt_missing_injection_mixin` | `@injected`-поля без `with _$ClassName` на классе, который контейнер регистрирует или применяет как декоратор |
+| `cobalt_injected_field_needs_an_injectable` | `@injected`-поля на классе, который контейнер не регистрирует и не применяет как декоратор |
 | `cobalt_param_needs_an_injectable` | `@CobaltParam` на классе, который контейнер не регистрирует вовсе |
 | `cobalt_injected_field_must_be_late_final` | `@injected` на изменяемом, не-late или статическом поле |
 | `cobalt_injectable_must_be_constructible` | `@CobaltInject` на абстрактном классе или классе без публичного генеративного конструктора |

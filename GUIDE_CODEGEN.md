@@ -862,8 +862,11 @@ The rules, each with a reason:
 
 - The class **implements the target** and takes **exactly one** constructor parameter of that type:
   the instance it wraps. Every other parameter is resolved from the scope that owns the
-  registration, `@Named` included. `@CobaltParam` and `@injected` fields are refused — the scope
-  applies a decorator, and there is no call site.
+  registration, `@Named` included. `@CobaltParam` is refused — the scope applies a decorator,
+  and there is no call site.
+- **`@injected` fields** work as on any class: mix in the generated `_$ClassName`, and the
+  generated decorator fills them right after construction, from the same resolver. They count as
+  the decorator's dependencies in every check below.
 - Two decorators of one registration need an **`order:`**; the lower one is innermost. The build
   refuses to guess, and refuses two equal orders. Decorators whose environments never meet do not
   compete.
@@ -956,8 +959,8 @@ plugins:
 
 | Rule | Catches |
 |---|---|
-| `cobalt_missing_injection_mixin` | `@injected` fields without `with _$ClassName`, on a class the container registers |
-| `cobalt_injected_field_needs_an_injectable` | `@injected` fields on a class the container never registers |
+| `cobalt_missing_injection_mixin` | `@injected` fields without `with _$ClassName`, on a class the container registers or applies as a decorator |
+| `cobalt_injected_field_needs_an_injectable` | `@injected` fields on a class the container neither registers nor applies as a decorator |
 | `cobalt_param_needs_an_injectable` | `@CobaltParam` on a class the container never registers |
 | `cobalt_injected_field_must_be_late_final` | `@injected` on a mutable, non-late, or static field |
 | `cobalt_injectable_must_be_constructible` | `@CobaltInject` on an abstract class or one with no public generative constructor |

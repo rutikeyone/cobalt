@@ -123,6 +123,42 @@ class Warmer {
       },
     );
 
+    test('emits for an @CobaltDecorates class with injected fields', () async {
+      await testBuilder(
+        builder,
+        {
+          ...deps,
+          '$_pkg|lib/logged.dart': '''
+import 'package:cobalt_annotations/cobalt_annotations.dart';
+
+abstract interface class Api {}
+
+class Logger {}
+
+@CobaltDecorates(Api)
+class LoggedApi implements Api {
+  LoggedApi(this.inner);
+
+  final Api inner;
+
+  @injected
+  late final Logger _log;
+}
+''',
+        },
+        packageConfig: packages,
+        generateFor: {'$_pkg|lib/logged.dart'},
+        outputs: {
+          '$_pkg|lib/logged.cobalt.g.part': decodedMatches(
+            allOf(
+              contains(r'mixin _$LoggedApi implements CobaltInjectable'),
+              contains('set _log('),
+            ),
+          ),
+        },
+      );
+    });
+
     test('emits one mixin per class in a library that has several', () async {
       await testBuilder(
         builder,

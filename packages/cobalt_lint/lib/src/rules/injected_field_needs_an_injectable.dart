@@ -11,7 +11,8 @@ const _injectedMatcher = CobaltAnnotationMatcher('Injected');
 /// Reports `@injected` fields on a class the container never registers.
 ///
 /// `@injected` is filled by the generated `_$ClassName` mixin, and that mixin
-/// is written only for a class the container knows about. On a class that says
+/// is written only for a class the container knows about — a registration or
+/// an `@CobaltDecorates` class. On a class that says
 /// nothing, `@injected` does nothing at all — the field stays unassigned and
 /// throws a `LateInitializationError` the first time it is read.
 ///
@@ -28,9 +29,9 @@ class InjectedFieldNeedsAnInjectable extends AnalysisRule {
     'cobalt_injected_field_needs_an_injectable',
     "'{0}' has @injected fields but nothing registers it.",
     correctionMessage:
-        'Annotate the class with @CobaltInject or @CobaltInit so the mixin that '
-        'fills the fields is generated, or drop @injected and take the '
-        'dependency through the constructor.',
+        'Annotate the class with @CobaltInject, @CobaltInit or @CobaltDecorates '
+        'so the mixin that fills the fields is generated, or drop @injected and '
+        'take the dependency through the constructor.',
   );
 
   @override
@@ -47,6 +48,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   static const _parser = CobaltInjectableParser();
+  static const _decorators = CobaltDecoratorParser();
 
   final AnalysisRule rule;
 
@@ -54,7 +56,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitClassDeclaration(ClassDeclaration node) {
     final element = node.declaredFragment?.element;
     if (element == null) return;
-    if (_parser.declares(element)) return;
+    if (_parser.declares(element) || _decorators.declares(element)) return;
 
     final hasInjectedFields = element.fields.any(
       (field) => _injectedMatcher.matches(field),

@@ -3,6 +3,7 @@ import 'package:cobalt_analyzer/src/model/injected_property.dart';
 import 'package:cobalt_analyzer/src/parser/cobalt_matchers.dart';
 import 'package:cobalt_analyzer/src/parser/dart_object_reader.dart';
 import 'package:cobalt_analyzer/src/parser/environment_reader.dart';
+import 'package:cobalt_analyzer/src/parser/injected_field_reader.dart';
 import 'package:cobalt_analyzer/src/parser/parse_error.dart';
 import 'package:cobalt_analyzer/src/parser/type_ref_resolver.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -99,14 +100,6 @@ class CobaltDecoratorParser {
         clazz,
       );
     }
-    for (final field in clazz.fields) {
-      if (!injectedMatcher.matches(field)) continue;
-      throw CobaltParseError(
-        '${clazz.displayName}.${field.displayName} is @injected. A decorator '
-        'takes its dependencies through the constructor.',
-        field,
-      );
-    }
 
     final name = annotation.readString('name');
     final allNames = annotation.readBool('allNames');
@@ -126,6 +119,7 @@ class CobaltDecoratorParser {
       name: name,
       order: annotation.readInt('order'),
       allNames: allNames,
+      injectedFields: injectedFieldsOf(clazz),
       environments: environmentsOf(clazz),
       constructorParameters: [
         for (final parameter in parameters)

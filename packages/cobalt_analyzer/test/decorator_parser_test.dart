@@ -236,7 +236,7 @@ class Wrapper implements Api {
       );
     });
 
-    test('property injection', () async {
+    test('an @injected field that is not late', () async {
       expect(
         () => parse('''
 $api
@@ -245,10 +245,61 @@ class Wrapper implements Api {
   Wrapper(this.inner);
   final Api inner;
   @injected
-  late final Logger log;
+  final Logger log = Logger();
 }
 '''),
-        rejects(contains('is @injected')),
+        rejects(contains('"late final"')),
+      );
+    });
+  });
+
+  group('property injection', () {
+    test('@injected fields are read, and count as dependencies', () async {
+      final decorator = await parse('''
+$api
+@CobaltDecorates(Api)
+class Wrapper implements Api {
+  Wrapper(this.inner);
+  final Api inner;
+  @injected
+  late final Logger log;
+  @Injected(name: 'audit')
+  late final Logger? audit;
+}
+''');
+
+      expect(decorator.injectedFields.map((f) => f.field), ['log', 'audit']);
+      expect(decorator.injectedFields.last.name, 'audit');
+      expect(decorator.injectedFields.last.type.isNullable, isTrue);
+      expect(decorator.hasPropertyInjection, isTrue);
+      expect(decorator.dependencies.map((d) => d.field), ['log', 'audit']);
+    });
+
+    test('the IR keeps them, and reads IR written before them as none', () {
+      const decorator = CobaltDecoratorClass(
+        type: CobaltTypeRef(name: 'Wrapper', import: 'package:a/a.dart'),
+        target: CobaltTypeRef(name: 'Api', import: 'package:a/a.dart'),
+        inner: 'inner',
+        constructorParameters: [],
+        injectedFields: [
+          CobaltInjectedProperty(
+            field: 'log',
+            type: CobaltTypeRef(name: 'Logger', import: 'package:a/a.dart'),
+          ),
+        ],
+      );
+
+      expect(
+        CobaltDecoratorClass.fromJson(
+          decorator.toJson(),
+        ).injectedFields.single.field,
+        'log',
+      );
+      expect(
+        CobaltDecoratorClass.fromJson(
+          decorator.toJson()..remove('injectedFields'),
+        ).injectedFields,
+        isEmpty,
       );
     });
   });

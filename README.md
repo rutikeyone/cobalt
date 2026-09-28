@@ -237,8 +237,8 @@ in the IDE instead of only when `build_runner` runs:
 
 | Rule | Catches |
 |---|---|
-| `cobalt_missing_injection_mixin` | `@injected` fields without `with _$ClassName`, on a class the container registers |
-| `cobalt_injected_field_needs_an_injectable` | `@injected` fields on a class the container never registers |
+| `cobalt_missing_injection_mixin` | `@injected` fields without `with _$ClassName`, on a class the container registers or applies as a decorator |
+| `cobalt_injected_field_needs_an_injectable` | `@injected` fields on a class the container neither registers nor applies as a decorator |
 | `cobalt_param_needs_an_injectable` | `@CobaltParam` on a class the container never registers |
 | `cobalt_injected_field_must_be_late_final` | `@injected` on a mutable, non-late, or static field |
 | `cobalt_injectable_must_be_constructible` | `@CobaltInject` on an abstract class or one with no public generative constructor |

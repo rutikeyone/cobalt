@@ -68,6 +68,43 @@ class Service {
   /// The mixin is written only for a class the container registers, so on a
   /// class nothing registers this rule stays quiet and
   /// `cobalt_injected_field_needs_an_injectable` speaks instead.
+  void test_decoratorWithoutMixin_isReported() async {
+    const source = r'''
+import 'package:cobalt_annotations/cobalt_annotations.dart';
+
+abstract interface class Api {}
+
+@CobaltDecorates(Api)
+class LoggedApi implements Api {
+  LoggedApi(this.inner);
+  final Api inner;
+  @injected
+  late final String value;
+}
+''';
+    await assertDiagnostics(source, [
+      lint(source.indexOf('class LoggedApi') + 6, 'LoggedApi'.length),
+    ]);
+  }
+
+  void test_decoratorWithMixin_isClean() async {
+    await assertNoDiagnostics(r'''
+import 'package:cobalt_annotations/cobalt_annotations.dart';
+
+abstract interface class Api {}
+
+mixin _$LoggedApi {}
+
+@CobaltDecorates(Api)
+class LoggedApi with _$LoggedApi implements Api {
+  LoggedApi(this.inner);
+  final Api inner;
+  @injected
+  late final String value;
+}
+''');
+  }
+
   void test_classNothingRegisters_isNotThisRule() async {
     await assertNoDiagnostics(r'''
 import 'package:cobalt_annotations/cobalt_annotations.dart';

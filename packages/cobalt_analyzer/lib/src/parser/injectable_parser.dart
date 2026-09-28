@@ -5,6 +5,7 @@ import 'package:cobalt_analyzer/src/parser/cobalt_matchers.dart';
 import 'package:cobalt_analyzer/src/parser/dart_object_reader.dart';
 import 'package:cobalt_analyzer/src/parser/dispose_reader.dart';
 import 'package:cobalt_analyzer/src/parser/environment_reader.dart';
+import 'package:cobalt_analyzer/src/parser/injected_field_reader.dart';
 import 'package:cobalt_analyzer/src/parser/parse_error.dart';
 import 'package:cobalt_analyzer/src/parser/type_ref_resolver.dart';
 import 'package:cobalt_annotations/cobalt_annotations.dart';
@@ -163,10 +164,7 @@ class CobaltInjectableParser {
             isParam: paramMatcher.matches(parameter),
           ),
       ],
-      properties: [
-        for (final field in clazz.fields)
-          if (injectedMatcher.matches(field)) _property(clazz, field),
-      ],
+      properties: injectedFieldsOf(clazz),
     );
   }
 
@@ -227,30 +225,5 @@ class CobaltInjectableParser {
       for (final value in values)
         if (value.toTypeValue() case final type?) typeRefOf(type),
     ];
-  }
-
-  CobaltInjectedProperty _property(ClassElement clazz, FieldElement field) {
-    if (field.isStatic) {
-      throw CobaltParseError(
-        '${clazz.displayName}.${field.displayName} is static and cannot be '
-        'injected.',
-        field,
-      );
-    }
-    if (!field.isLate) {
-      throw CobaltParseError(
-        '${clazz.displayName}.${field.displayName} must be declared '
-        '"late final" to receive property injection.',
-        field,
-      );
-    }
-
-    return CobaltInjectedProperty(
-      field: field.displayName,
-      type: typeRefOf(field.type),
-      name:
-          namedMatcher.firstOf(field)?.readString('name') ??
-          injectedMatcher.firstOf(field)?.readString('name'),
-    );
   }
 }

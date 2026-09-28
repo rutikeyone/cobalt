@@ -14,8 +14,8 @@ const _injectedMatcher = CobaltAnnotationMatcher('Injected');
 /// Without the mixin the fields are never assigned and the class fails at
 /// runtime with a `LateInitializationError` far from the actual mistake.
 ///
-/// Only for a class the container registers. A class nothing registers gets no
-/// mixin written for it either, so telling it to mix one in would send you to
+/// Only for a class the container registers or applies as a decorator. A
+/// class that is neither gets no mixin written for it either, so telling it to mix one in would send you to
 /// a name that does not exist — that case is
 /// `cobalt_injected_field_needs_an_injectable`.
 class MissingInjectionMixin extends AnalysisRule {
@@ -44,6 +44,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   static const _parser = CobaltInjectableParser();
+  static const _decorators = CobaltDecoratorParser();
 
   final AnalysisRule rule;
 
@@ -51,7 +52,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitClassDeclaration(ClassDeclaration node) {
     final element = node.declaredFragment?.element;
     if (element == null) return;
-    if (!_parser.declares(element)) return;
+    if (!_parser.declares(element) && !_decorators.declares(element)) return;
 
     final hasInjectedFields = element.fields.any(
       (field) => _injectedMatcher.matches(field),

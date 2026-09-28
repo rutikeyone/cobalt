@@ -440,6 +440,36 @@ class AuditedApi implements Api {
     ]);
   }
 
+  void test_aLoopThroughADecoratorsInjectedField_isReported() async {
+    const source =
+        '''
+$cobaltImport
+
+abstract interface class Api {}
+
+@CobaltInject(exposeAs: Api)
+class RealApi implements Api {}
+
+@cobaltInject
+class Audit {
+  Audit(this.api);
+  final Api api;
+}
+
+@CobaltDecorates(Api)
+class AuditedApi implements Api {
+  AuditedApi(this.inner);
+  final Api inner;
+  @injected
+  late final Audit audit;
+}
+''';
+    await assertDiagnostics(source, [
+      lint(source.indexOf('class RealApi') + 6, 'RealApi'.length),
+      lint(source.indexOf('class Audit ') + 6, 'Audit'.length),
+    ]);
+  }
+
   void test_aDecoratorTakingItsTargetOnly_isNoLoop() async {
     await assertNoDiagnostics('''
 $cobaltImport

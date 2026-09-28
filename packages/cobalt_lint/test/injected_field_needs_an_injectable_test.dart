@@ -63,6 +63,22 @@ class Warmer {
 ''');
   }
 
+  void test_decoratorClass_isClean() async {
+    await assertNoDiagnostics(r'''
+import 'package:cobalt_annotations/cobalt_annotations.dart';
+
+abstract interface class Api {}
+
+@CobaltDecorates(Api)
+class LoggedApi implements Api {
+  LoggedApi(this.inner);
+  final Api inner;
+  @injected
+  late final String value;
+}
+''');
+  }
+
   void test_noInjectedFields_isClean() async {
     await assertNoDiagnostics(r'''
 class Plain {

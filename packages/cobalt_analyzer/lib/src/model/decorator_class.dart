@@ -15,6 +15,7 @@ class CobaltDecoratorClass {
     this.name,
     this.order,
     this.allNames = false,
+    this.injectedFields = const [],
     this.environments = const {},
   });
 
@@ -30,6 +31,10 @@ class CobaltDecoratorClass {
         name: json['name'] as String?,
         order: json['order'] as int?,
         allNames: json['allNames'] as bool? ?? false,
+        injectedFields: [
+          for (final p in json['injectedFields'] as List<dynamic>? ?? const [])
+            CobaltInjectedProperty.fromJson(p as Map<String, dynamic>),
+        ],
         environments: {
           for (final e in json['environments'] as List<dynamic>? ?? const [])
             e as String,
@@ -62,10 +67,19 @@ class CobaltDecoratorClass {
   /// Environment names it is restricted to, empty when it applies in all.
   final Set<String> environments;
 
-  /// The parameters resolved from the scope — everything but [inner].
+  /// Its `@injected` fields, filled by the generated `_$ClassName` mixin
+  /// right after construction.
+  final List<CobaltInjectedProperty> injectedFields;
+
+  /// Whether it has `@injected` fields to fill.
+  bool get hasPropertyInjection => injectedFields.isNotEmpty;
+
+  /// Everything resolved from the scope — the constructor parameters but
+  /// [inner], and the `@injected` fields.
   List<CobaltInjectedProperty> get dependencies => [
     for (final parameter in constructorParameters)
       if (parameter.field != inner) parameter,
+    ...injectedFields,
   ];
 
   Map<String, dynamic> toJson() => {
@@ -78,6 +92,7 @@ class CobaltDecoratorClass {
     'name': name,
     'order': order,
     'allNames': allNames,
+    'injectedFields': [for (final p in injectedFields) p.toJson()],
     'environments': [...environments],
   };
 }

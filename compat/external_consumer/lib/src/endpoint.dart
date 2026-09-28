@@ -1,4 +1,7 @@
 import 'package:cobalt/cobalt.dart';
+import 'package:cobalt_external_consumer/src/clock.dart';
+
+part 'endpoint.g.dart';
 
 abstract interface class Endpoint {
   String get url;
@@ -16,13 +19,17 @@ class CdnEndpoint implements Endpoint {
   String get url => 'https://cdn.example.com';
 }
 
-/// Wraps every `Endpoint`, whatever its name, with one annotation.
+/// Wraps every `Endpoint`, whatever its name, with one annotation, and takes
+/// what it needs through an `@injected` field rather than its constructor.
 @CobaltDecorates(Endpoint, allNames: true)
-class TracedEndpoint implements Endpoint {
+class TracedEndpoint with _$TracedEndpoint implements Endpoint {
   TracedEndpoint(this.inner);
 
   final Endpoint inner;
 
+  @injected
+  late final Clock _clock;
+
   @override
-  String get url => '${inner.url}?traced';
+  String get url => '${inner.url}?traced=${_clock.now().year}';
 }

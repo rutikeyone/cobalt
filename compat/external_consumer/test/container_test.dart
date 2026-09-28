@@ -323,11 +323,11 @@ void main() {
     test('wraps each named one', () {
       expect(
         scope.get<Endpoint>(name: 'api').url,
-        'https://api.example.com?traced',
+        'https://api.example.com?traced=2026',
       );
       expect(
         scope.get<Endpoint>(name: 'cdn').url,
-        'https://cdn.example.com?traced',
+        'https://cdn.example.com?traced=2026',
       );
       expect(scope.debugDecoratorsOf(const CobaltKey(Endpoint, name: 'cdn')), [
         'TracedEndpoint',

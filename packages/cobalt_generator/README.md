@@ -212,6 +212,11 @@ written, the `@injected` fields stayed unassigned, and the first read threw a
 `LateInitializationError` — while the lint told you to mix in something nothing would generate.
 Both halves now read the declaration the same way.
 
+An `@CobaltDecorates` class gets the mixin too when it has `@injected` fields. The generated
+decorator constructs it and calls `onInject` on it straight away, with the resolver of the scope that
+owns the registration — the scope itself never calls `onInject` on what a decorator returns, since
+that may be the very instance it was handed.
+
 ## Async transients
 
 `@cobaltTransient` on an `@CobaltInit` class — or on a module member returning a `Future` — makes an
