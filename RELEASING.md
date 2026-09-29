@@ -262,22 +262,30 @@ is simply re-run.
 
 The six images under `assets/screenshots/` are the gallery on an iPhone 16 Pro,
 in English, dark appearance, 552×1200. When a release changes a screen one of
-them shows, retake that one from a container with `mac-sim` (see the workspace
-note on the iOS Simulator) — it needs Remote Login on in the Mac's sharing
-settings:
+them shows, retake it from a container with `mac-sim` (see the workspace note
+on the iOS Simulator) — it needs Remote Login on in the Mac's sharing settings:
 
 ```
-repo=flutter/cobalt-workspace/cobalt   # relative to the shared projects directory
-mac-sim locale en_US "iPhone 16 Pro"
-mac-sim appearance dark "iPhone 16 Pro"
-mac-sim run $repo/examples/gallery "iPhone 16 Pro"
-mac-sim screenshot $repo/assets/screenshots/hub.png "iPhone 16 Pro" 552x1200
+tool/screenshots.sh              # all six
+tool/screenshots.sh flow env     # just those
 ```
 
-The gateway has no taps, so only the screen the app opens on — the hub — can be
-shot unattended; the others need the screen opened by hand first. The Mac builds
-with its own Flutter, which may be newer than 3.38.9: fine for a picture, and
-the reason a screenshot is never evidence that the floor works.
+The gateway has no taps, so the gallery stages each screen itself. A shot is a
+named entry in `examples/gallery/lib/app/shots.dart` that also sets up what the
+picture needs — a session open in the inspector, two orders walked through the
+flow. `integration_test/screenshots_test.dart` opens them one by one on the
+Simulator, in a fresh app each, and announces each once it is on screen; the
+script takes the picture then. The same shots open from a link,
+`cobaltgallery:///shot/<name>`, which is handy by hand — but not from the
+script, because iOS asks "Open in Gallery?" first and nothing can answer it.
+
+A new screenshot is a new entry in `shots.dart` and a line in
+`test/shots_test.dart`, which checks each shot lands on the screen it names.
+Look at every image before committing it: the test proves the screen, not the
+picture.
+
+The Mac builds with its own Flutter, which may be newer than 3.38.9: fine for a
+picture, and the reason a screenshot is never evidence that the floor works.
 
 ## After publishing
 

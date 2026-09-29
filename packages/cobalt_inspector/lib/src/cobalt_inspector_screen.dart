@@ -1,5 +1,6 @@
 import 'package:cobalt_flutter/cobalt_flutter.dart';
 import 'package:cobalt_inspector/src/cobalt_inspector_log.dart';
+import 'package:cobalt_inspector/src/cobalt_inspector_tab.dart';
 import 'package:cobalt_inspector/src/created_view.dart';
 import 'package:cobalt_inspector/src/event_log_view.dart';
 import 'package:cobalt_inspector/src/scope_tree_view.dart';
@@ -31,6 +32,9 @@ import 'package:flutter/material.dart';
 /// are fixed at construction, so an inspector cannot start listening to a
 /// scope that is already running.
 ///
+/// [initialTab] is the tab it opens on — the log, say, for a debug menu entry
+/// that exists to read what just happened.
+///
 /// [theme] overrides whatever `CobaltInspectorTheme` is in force above this
 /// screen. Leave it out and the palette is inherited, or derived from the
 /// host's own `Theme` where nobody has set one — so an inspector dropped into
@@ -40,9 +44,13 @@ class CobaltInspectorScreen extends StatelessWidget {
   const CobaltInspectorScreen({
     required this.log,
     required this.scope,
+    this.initialTab = CobaltInspectorTab.tree,
     this.theme,
     super.key,
   });
+
+  /// The tab shown first.
+  final CobaltInspectorTab initialTab;
 
   /// The palette to draw with, overriding the inherited one.
   final CobaltInspectorThemeData? theme;
@@ -62,7 +70,8 @@ class CobaltInspectorScreen extends StatelessWidget {
     return CobaltInspectorTheme(
       data: palette,
       child: DefaultTabController(
-        length: 3,
+        length: CobaltInspectorTab.values.length,
+        initialIndex: initialTab.index,
         child: Scaffold(
           backgroundColor: palette.background,
           appBar: AppBar(

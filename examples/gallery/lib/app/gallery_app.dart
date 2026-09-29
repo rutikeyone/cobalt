@@ -4,6 +4,7 @@ import 'package:flow_scopes/l10n/flow_scopes_l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:gallery/app/gallery_locale.dart';
+import 'package:gallery/app/shots.dart';
 import 'package:gallery/design/gallery_theme.dart';
 import 'package:gallery/features/hub/hub_screen.dart';
 import 'package:gallery/l10n/gallery_l10n.dart';
@@ -68,6 +69,12 @@ class _GalleryAppState extends State<GalleryApp> {
       ],
       supportedLocales: GalleryLocaleScope.supported,
       home: const HubScreen(),
+      // A link — `cobaltgallery:///shot/log` — is pushed as a named route.
+      // Anything but a known shot lands on the hub rather than on an error.
+      onGenerateRoute: (settings) => MaterialPageRoute<void>(
+        settings: settings,
+        builder: shotFor(settings.name) ?? (_) => const HubScreen(),
+      ),
     ),
   );
 }

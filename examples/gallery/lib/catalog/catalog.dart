@@ -361,8 +361,17 @@ List<SectionedEntries<ExampleEntry>> buildSections(GalleryL10n l10n) {
 /// The log has to be installed when the graph is built, because observers are
 /// fixed at construction — so the host owns one per visit, and a second visit
 /// starts with an empty trail rather than the last one's.
+/// The inspector entry as a screenshot shows it: a session already open and
+/// the inspector already pushed, on [tab]. What a reader would reach by
+/// tapping "open session" and then the inspector button.
+Widget inspectorShot(CobaltInspectorTab tab) => _InspectorHost(shot: tab);
+
 class _InspectorHost extends StatefulWidget {
-  const _InspectorHost();
+  const _InspectorHost({this.shot});
+
+  /// When set, the demo opens a session and pushes the inspector on this tab
+  /// by itself.
+  final CobaltInspectorTab? shot;
 
   @override
   State<_InspectorHost> createState() => _InspectorHostState();
@@ -384,15 +393,16 @@ class _InspectorHostState extends State<_InspectorHost> {
     rootName: 'inspector',
     observers: [_log],
     overrides: () => [CobaltOverride<Settings>.value(Settings('preview'))],
-    child: _InspectorDemo(log: _log),
+    child: _InspectorDemo(log: _log, shot: widget.shot),
   );
 }
 
 /// Something for the graph to do, then the inspector to look at it with.
 class _InspectorDemo extends StatefulWidget {
-  const _InspectorDemo({required this.log});
+  const _InspectorDemo({required this.log, this.shot});
 
   final CobaltInspectorLog log;
+  final CobaltInspectorTab? shot;
 
   @override
   State<_InspectorDemo> createState() => _InspectorDemoState();
@@ -400,6 +410,35 @@ class _InspectorDemo extends StatefulWidget {
 
 class _InspectorDemoState extends State<_InspectorDemo> {
   CobaltScope? _session;
+
+  @override
+  void initState() {
+    super.initState();
+    final shot = widget.shot;
+    if (shot == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _openSession();
+      if (mounted) _openInspector(shot);
+    });
+  }
+
+  // The scope is read here, below the provider — a pushed route is built by
+  // the navigator, which sits above it.
+  void _openInspector([CobaltInspectorTab tab = CobaltInspectorTab.tree]) {
+    final scope = context.cobaltScope;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => CobaltInspectorScreen(
+          log: widget.log,
+          scope: scope,
+          initialTab: tab,
+          // The gallery's own palette, so the inspector reads as part of
+          // this app rather than as a panel bolted onto it.
+          theme: galleryInspectorTheme(context),
+        ),
+      ),
+    );
+  }
 
   Future<void> _openSession() async {
     if (_session != null) return;
@@ -430,19 +469,7 @@ class _InspectorDemoState extends State<_InspectorDemo> {
             key: const Key('open-inspector'),
             tooltip: l10n.demoInspect,
             icon: const Icon(Icons.account_tree_outlined),
-            // The scope is read here, below the provider — a pushed route is
-            // built by the navigator, which sits above it.
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => CobaltInspectorScreen(
-                  log: widget.log,
-                  scope: context.cobaltScope,
-                  // The gallery's own palette, so the inspector reads as part
-                  // of this app rather than as a panel bolted onto it.
-                  theme: galleryInspectorTheme(context),
-                ),
-              ),
-            ),
+            onPressed: _openInspector,
           ),
         ],
       ),

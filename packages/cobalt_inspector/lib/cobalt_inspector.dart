@@ -7,6 +7,7 @@ library;
 
 export 'package:cobalt_inspector/src/cobalt_inspector_log.dart';
 export 'package:cobalt_inspector/src/cobalt_inspector_screen.dart';
+export 'package:cobalt_inspector/src/cobalt_inspector_tab.dart';
 export 'package:cobalt_inspector/src/created_view.dart';
 export 'package:cobalt_inspector/src/event_log_view.dart';
 export 'package:cobalt_inspector/src/l10n/cobalt_inspector_l10n.dart';
