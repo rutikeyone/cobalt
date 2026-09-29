@@ -205,6 +205,30 @@ build with no commit here.
 Raising a floor later is a breaking change; lowering one is not. That asymmetry
 is why this was settled before the first publish rather than after.
 
+## Publishing (automated, from a tag)
+
+`.github/workflows/publish.yml` publishes all fifteen packages when a `vX.Y.Z` tag is
+pushed: it checks the tag equals every pubspec version, then runs `dart pub publish --force`
+group by group in the order above, waiting for each group to appear on pub.dev and keeping at
+least 40 s between any two publishes. Versions already on pub.dev are skipped, so a failed run
+is simply re-run.
+
+- Auth is pub.dev automated publishing (GitHub OIDC) — there is no token anywhere. Each
+  package's pub.dev admin page has: repository `rutikeyone/cobalt`, tag pattern `v{{version}}`,
+  required environment `pub.dev`.
+- The `pub.dev` environment in the GitHub repository settings has the maintainer as required
+  reviewer: pushing the tag only *queues* the release; nothing is published until the run is
+  approved in GitHub. Agents may push the tag; approving is the maintainer's decision.
+- GitHub runs the workflow file **from the tagged commit**, so the tag must point at a commit
+  that contains `publish.yml`.
+- The tag is created before publishing now, not after — the rules below about the tag still
+  hold: it may be moved only until the run is approved.
+- One-off exception, 0.5.0: `cobalt_annotations 0.5.0` was published by hand from the
+  commit tagged `v0.5.0` (b9838a1) before `publish.yml` existed. The tag was then moved to the
+  commit that adds `publish.yml` — that commit changes only `.github/` and this file, so every
+  package archive is byte-for-byte the same as from b9838a1. Moving a tag after a publish is
+  otherwise still forbidden.
+
 ## After publishing
 
 **Tag the commit the archives were built from**, and do it before anything else

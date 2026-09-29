@@ -1,0 +1,97 @@
+# Publishes all fifteen packages to pub.dev when a release tag is pushed.
+#
+# Authentication is pub.dev "automated publishing" (GitHub OIDC) — no secrets.
+# Every package on pub.dev must have, under Admin → Automated publishing:
+#   repository: rutikeyone/cobalt · tag pattern: v{{version}}
+#   · "Require GitHub Actions environment": pub.dev
+# The `pub.dev` environment in the repository settings carries the required
+# reviewer, so nothing is published until the maintainer approves the run.
+#
+# Order follows RELEASING.md: a group starts only once the previous one is
+# visible on pub.dev, and consecutive publishes are at least 40 s apart.
+# Already-published versions are skipped, so a failed run can simply be re-run.
+name: Publish
+
+on:
+  push:
+    tags: ['v[0-9]+.[0-9]+.[0-9]+*']
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: pub.dev
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.38.9
+
+      - name: Tag matches every package version (lockstep)
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          bad=0
+          for p in packages/*/pubspec.yaml; do
+            v="$(sed -n 's/^version: *//p' "$p")"
+            [ "$v" = "$version" ] || { echo "::error::$p is $v, tag is $version"; bad=1; }
+          done
+          exit $bad
+
+      - name: Resolve every member
+        run: ./tool/get.sh
+
+      - name: Publish in dependency order
+        env:
+          PUBLISH_ORDER: |
+            cobalt_annotations
+            cobalt
+            cobalt_analyzer cobalt_flutter cobalt_logger cobalt_logging cobalt_talker cobalt_test cobalt_bloc
+            cobalt_generator cobalt_lint cobalt_go_router cobalt_inspector cobalt_test_flutter
+            cobalt_talker_flutter
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          dart pub token add https://pub.dev --env-var PUB_TOKEN
+
+          published() {
+            curl -fsS "https://pub.dev/api/packages/$1" 2>/dev/null \
+              | jq -e --arg v "$version" 'any(.versions[]; .version == $v)' >/dev/null
+          }
+          fresh_token() {
+            PUB_TOKEN="$(curl -fsS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+              "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=https://pub.dev" | jq -r .value)"
+            export PUB_TOKEN
+          }
+
+          # pub.dev rate limit: at least MIN_GAP seconds between any two publishes.
+          MIN_GAP=40
+          last=0
+
+          while read -r group; do
+            [ -n "$group" ] || continue
+            echo "::group::$group"
+            for p in $group; do
+              if published "$p"; then echo "$p $version already on pub.dev — skip"; continue; fi
+              wait=$(( last + MIN_GAP - $(date +%s) ))
+              if [ "$wait" -gt 0 ]; then echo "waiting ${wait}s before $p"; sleep "$wait"; fi
+              fresh_token
+              (cd "packages/$p" && dart pub publish --force)
+              last=$(date +%s)
+            done
+            echo "::endgroup::"
+            # Next group resolves against these on pub.dev — wait for the index.
+            for p in $group; do
+              for i in $(seq 1 60); do
+                published "$p" && break
+                [ "$i" = 60 ] && { echo "::error::$p $version not visible after 10 min"; exit 1; }
+                sleep 10
+              done
+            done
+          done <<< "$PUBLISH_ORDER"
