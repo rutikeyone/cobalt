@@ -104,6 +104,9 @@ final tabB = app.push('tab:b');   // 是兄弟，而不是压在 tabA 上面
 - **`resetLazySingletons`** —— 请改为释放作用域。在活着的持有者脚下重置实例，正是作用域要防止的那类 bug。
 - **全局实例。** 没有 `GetIt.I`。作用域要么被传递、要么被注入、要么通过 `context.cobalt<T>()` 从 widget 树
   里读取。这是有意为之：正是那个全局变量让 get_it 的图无法并行测试。
+- **解析器的 mock。** `CobaltResolver` 是 `base` 类，既不能实现也不能 mock——正因如此它才能在次版本中扩展。
+  原先 mock `GetIt` 的测试，请用 `cobalt_test` 的 `cobaltTestRoot()` 构建真实作用域并在其中注册替身，
+  或者给图传入 override。
 
 ## injectable → Cobalt
 

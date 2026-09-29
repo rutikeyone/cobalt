@@ -149,3 +149,24 @@ jobs:
 
       - name: Test the analyzer-facing packages
         run: ./tool/matrix.sh ${{ matrix.analyzer }}
+
+  # What changed in each package's public API since the release on pub.dev,
+  # with the version step dart_apitool thinks it needs. Informational until
+  # 1.0: every 0.x release is a minor step, and the tool misses class-modifier
+  # changes — breaking changes are still written into the changelog by hand.
+  api:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.38.9
+
+      - name: Resolve every member
+        run: ./tool/get.sh
+
+      - name: Report API changes
+        run: ./tool/api.sh
+

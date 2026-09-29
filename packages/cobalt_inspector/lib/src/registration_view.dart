@@ -60,8 +60,5 @@ class RegistrationView {
   final List<String> decorators;
 
   /// Whether it can be built without a value from the caller.
-  bool get isBuildable =>
-      kind != null &&
-      kind != CobaltRegistrationKind.parameterized &&
-      kind != CobaltRegistrationKind.asyncParameterized;
+  bool get isBuildable => kind?.takesParam == false;
 }

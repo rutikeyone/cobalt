@@ -122,6 +122,11 @@ Be aware of these before you commit to the move:
 - **A global instance.** There is no `GetIt.I`. A scope is passed, injected, or
   read from the widget tree with `context.cobalt<T>()`. This is deliberate: the
   global is what makes get_it graphs untestable in parallel.
+- **A mock of the resolver.** `CobaltResolver` is a `base` class and cannot be
+  implemented or mocked — that is what lets it grow in minor releases. Where a
+  test mocked `GetIt`, build a real scope with `cobaltTestRoot()` from
+  `cobalt_test` and register the doubles in it, or hand the scope's graph an
+  override.
 
 ## injectable → Cobalt
 

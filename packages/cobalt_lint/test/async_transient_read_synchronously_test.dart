@@ -15,14 +15,14 @@ void main() {
 }
 
 const _runtime = r'''
-abstract interface class CobaltResolver {
+abstract base class CobaltResolver {
   T get<T extends Object>({String? name});
   T? getOrNull<T extends Object>({String? name});
   List<T> getAll<T extends Object>();
   Future<T> getAsync<T extends Object>({String? name});
 }
 
-final class CobaltScope implements CobaltResolver {
+final class CobaltScope extends CobaltResolver {
   @override
   T get<T extends Object>({String? name}) => throw UnimplementedError();
   @override

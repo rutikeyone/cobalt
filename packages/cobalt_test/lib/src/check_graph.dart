@@ -40,8 +40,7 @@ Future<CobaltGraphReport> checkGraph(
     final key = entry.key;
     final kind = scope.debugKindOf(key);
 
-    if (kind == CobaltRegistrationKind.parameterized ||
-        kind == CobaltRegistrationKind.asyncParameterized) {
+    if (kind != null && kind.takesParam) {
       final param = params[key];
       if (param == null) {
         entries.add(
@@ -58,14 +57,10 @@ Future<CobaltGraphReport> checkGraph(
     }
 
     try {
-      final instance =
-          kind == CobaltRegistrationKind.lazyAsyncSingleton ||
-              kind == CobaltRegistrationKind.asyncTransient
+      final instance = kind != null && kind.isAsync && !kind.isBuiltByInit
           ? await scope.debugResolveAsync(key)
           : scope.debugResolve(key);
-      if ((kind == CobaltRegistrationKind.transient ||
-              kind == CobaltRegistrationKind.asyncTransient) &&
-          instance != null) {
+      if (kind != null && !kind.isRetained && instance != null) {
         loose.add(instance);
       }
       entries.add(CobaltGraphEntry(key, CobaltGraphOutcome.resolved));

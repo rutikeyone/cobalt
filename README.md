@@ -148,6 +148,24 @@ resolves on its own and takes its siblings from a `pubspec_overrides.yaml` that 
 writes. CI's `verify` job runs everything on Flutter 3.38.9, and `forward` runs `stable` and `beta`
 to find what is coming, rather than a matrix of past releases.
 
+## Compatibility
+
+Before 1.0 every minor release may break something, and its changelog says what under
+**Breaking**. From 1.0 on, only a major release breaks, with three rules about what that covers:
+
+- **A new value in a public enum is a minor change.** `CobaltRegistrationKind` has grown in three
+  releases and will again. Ask its getters — `isRetained`, `takesParam`, `isAsync`,
+  `isBuiltByInit` — instead of switching over the values; an exhaustive `switch` is yours to update.
+- **`CobaltResolver` cannot be implemented outside Cobalt.** It is a `base` class, so a new way of
+  resolving arrives in a minor release. A test builds a real scope — `cobaltTestRoot` from
+  `cobalt_test` — rather than a mock.
+- **A new observer hook is a minor change.** `CobaltObserver` is a base class with empty hooks, so an
+  observer written against an older release keeps compiling (`onInstanceBuilt` arrived that way).
+  Anything you *implement* — factories, decorators, sinks, `Disposable` — gains members only in a
+  major.
+
+`tool/api.sh` reports what changed in every package against the version on pub.dev.
+
 ## How it works
 
 ### Scopes own what they build

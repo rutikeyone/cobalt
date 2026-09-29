@@ -202,16 +202,11 @@ class CobaltInspectorThemeData {
   /// is not the reading you want.
   Color colorOfLifetime(CobaltRegistrationKind kind) =>
       lifetimeColors?[kind] ??
-      switch (kind) {
-        CobaltRegistrationKind.singleton ||
-        CobaltRegistrationKind.lazySingleton => scope,
-        CobaltRegistrationKind.asyncSingleton ||
-        CobaltRegistrationKind.lazyAsyncSingleton => startup,
-        CobaltRegistrationKind.transient ||
-        CobaltRegistrationKind.parameterized ||
-        CobaltRegistrationKind.asyncParameterized ||
-        CobaltRegistrationKind.asyncTransient => instance,
-      };
+      (!kind.isRetained
+          ? instance
+          : kind.isAsync
+          ? startup
+          : scope);
 
   /// The icon one family is marked with, from [familyIcons] or the default.
   IconData iconOfFamily(CobaltInspectorFamily family) =>

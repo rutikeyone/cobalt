@@ -120,6 +120,31 @@ version, and every changelog heads with the version its own pubspec declares.
 Bumping a release is fifteen identical edits, and the one you miss is not
 visible in a diff you are scrolling past.
 
+### What breaks, once there is a 1.0
+
+Semver, with three decisions about the cases semver leaves open. The README states them for
+users; this is the table they come from.
+
+| Public type | Users… | Kind of class | Adding a member | Also minor |
+|---|---|---|---|---|
+| `CobaltScope`, `CobaltKey`, `CobaltApplication`, records and errors | use / catch | `final` or concrete | minor | new optional parameter |
+| `CobaltResolver` | use | `abstract base` — only `CobaltScope` | minor | — |
+| `CobaltObserver`, `CobaltRecordingObserver` | extend | `abstract base` | minor, with an empty body | — |
+| factories, `CobaltDecorator`, `CobaltScopeBuilder`, `CobaltBootstrapStep`, `CobaltLogSink`, `CobaltErrorSink`, `Disposable`, `AsyncDisposable`, `AsyncInitializable`, `CobaltInjectable` | implement | `interface` | **major** | — |
+| `CobaltOverride` and its subtypes | construct | `interface` / `final` | major | new named constructor |
+| `CobaltRegistrationKind`, `CobaltEventKind`, `CobaltDisposeStage`, `CobaltLogLevel`, `CobaltScopeState` | read | `enum` | **minor** — a new value | new getter |
+
+A new enum value breaks an exhaustive `switch` in user code; it is minor anyway, because the
+alternative freezes the set of registration kinds for a whole major, and `CobaltRegistrationKind`
+carries getters that answer every question the repository itself had. `CobaltEventKind` has none:
+its one `switch` in the repository is the inspector sorting events into its own families, which
+ships in lockstep.
+
+`tool/api.sh` — the `api` job in CI — runs `dart_apitool` against the version on pub.dev and names
+each change breaking or not. Treat it as a second pair of eyes, not the authority: it did not flag
+`CobaltResolver` turning from an interface into a base class. The changelog's **Breaking** list is
+still written by hand.
+
 ## Flutter and Dart versions
 
 One floor: Dart `^3.10.0` for all fifteen, and Flutter `>=3.38.0` for the five

@@ -1,8 +1,18 @@
 /// Reads instances out of a scope.
 ///
-/// A scope implements this, and it is what factories receive, so a factory can
+/// A scope is one, and it is what factories receive, so a factory can
 /// resolve its own dependencies without holding a reference to the container.
-abstract interface class CobaltResolver {
+///
+/// A `base` class, so nothing outside Cobalt can implement it — `CobaltScope`
+/// is the only resolver. That is what lets a new way of resolving arrive in a
+/// minor release: every new method of an interface breaks whoever implemented
+/// it, `getAsyncWithParam` among them. It also means a resolver cannot be
+/// mocked; a test builds a real scope instead — `cobaltTestRoot` in
+/// `cobalt_test` — and registers the doubles it needs.
+abstract base class CobaltResolver {
+  /// For `CobaltScope`, the one subclass.
+  const CobaltResolver();
+
   /// Returns the instance registered for [T].
   ///
   /// Resolution starts in this scope and walks up through its ancestors, so a

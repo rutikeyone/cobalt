@@ -145,6 +145,22 @@ analyzer 限制在 9 以下，而 `cobalt_analyzer` 需要 10.0.1。所以每个
 CI 的 `verify` job 在 Flutter 3.38.9 上运行全部检查，`forward` 则在 `stable` 和 `beta` 上运行，
 提前发现即将到来的问题，而不是跑历史版本矩阵。
 
+## 兼容性
+
+1.0 之前，任何次版本都可能带来破坏性变更，其 CHANGELOG 会在 **Breaking** 下列出。从 1.0 起，只有主版本
+才会破坏兼容，具体有三条规则：
+
+- **公开枚举新增取值属于次版本变更。** `CobaltRegistrationKind` 已在三个版本中增长，以后还会增长。请使用
+  它的属性——`isRetained`、`takesParam`、`isAsync`、`isBuiltByInit`——而不是对取值做 `switch`；
+  穷尽式 `switch` 需要你自己更新。
+- **`CobaltResolver` 不能在 Cobalt 之外实现。** 它是 `base` 类，所以新的解析方式可以在次版本中加入。
+  测试里请构建真实的作用域——`cobalt_test` 的 `cobaltTestRoot`——而不是 mock。
+- **新增观察者钩子属于次版本变更。** `CobaltObserver` 是带空钩子的基类，针对旧版本写的观察者依然能编译
+  （`onInstanceBuilt` 就是这样加入的）。你*实现*的东西——工厂、装饰器、日志接收器、`Disposable`——
+  只会在主版本中新增成员。
+
+`tool/api.sh` 会报告每个包相对 pub.dev 上版本的变化。
+
 ## 它如何工作
 
 ### 作用域拥有它构建的东西

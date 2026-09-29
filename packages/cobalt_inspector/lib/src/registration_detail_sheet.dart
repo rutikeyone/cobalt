@@ -113,15 +113,9 @@ class _RegistrationDetailSheetState extends State<RegistrationDetailSheet> {
             ),
           _Fact(
             label: strings.factTornDown,
-            value: switch (registration.kind) {
-              CobaltRegistrationKind.singleton ||
-              CobaltRegistrationKind.lazySingleton ||
-              CobaltRegistrationKind.asyncSingleton ||
-              CobaltRegistrationKind.lazyAsyncSingleton => strings.tornDownYes,
-              CobaltRegistrationKind.transient ||
-              CobaltRegistrationKind.parameterized ||
-              CobaltRegistrationKind.asyncParameterized ||
-              CobaltRegistrationKind.asyncTransient => strings.tornDownNo,
+            value: switch (registration.kind?.isRetained) {
+              true => strings.tornDownYes,
+              false => strings.tornDownNo,
               null => strings.tornDownUnknown,
             },
           ),

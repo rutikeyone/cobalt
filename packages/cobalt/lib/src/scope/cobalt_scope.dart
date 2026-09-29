@@ -58,7 +58,7 @@ import 'package:cobalt/src/scope/resolution_tracker.dart';
 /// // ... use it ...
 /// await session.dispose();
 /// ```
-final class CobaltScope implements CobaltResolver {
+final class CobaltScope extends CobaltResolver {
   CobaltScope._(this.name, this.parent, this._tracker, this._observers)
     : depth = parent == null ? 0 : parent.depth + 1;
 
