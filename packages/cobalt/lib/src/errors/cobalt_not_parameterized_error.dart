@@ -6,7 +6,7 @@ import 'package:cobalt/src/key/cobalt_key.dart';
 ///
 /// The mirror of [CobaltParamRequiredError]: one says you passed an argument
 /// where none is wanted, the other that you passed none where one is.
-class CobaltNotParameterizedError extends CobaltError {
+final class CobaltNotParameterizedError extends CobaltError {
   /// Creates an error for [key], which is registered but not with a parameter.
   CobaltNotParameterizedError(this.key)
     : super(

@@ -2,7 +2,7 @@ import 'package:cobalt/src/errors/cobalt_error.dart';
 import 'package:cobalt/src/key/cobalt_key.dart';
 
 /// Thrown when a decorator cannot wrap what it was registered for.
-class CobaltDecoratorError extends CobaltError {
+final class CobaltDecoratorError extends CobaltError {
   /// A decorator registered after [key] was already handed out in
   /// [scopeName], so earlier holders would keep the undecorated instance.
   CobaltDecoratorError.late(this.key, this.scopeName)

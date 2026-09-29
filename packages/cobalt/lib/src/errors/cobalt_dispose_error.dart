@@ -11,7 +11,7 @@ import 'package:cobalt/src/errors/cobalt_error.dart';
 ///
 /// Steps that timed out were abandoned, not cancelled — Dart cannot cancel a
 /// future — which is the main reason this is reported rather than swallowed.
-class CobaltDisposeError extends CobaltError {
+final class CobaltDisposeError extends CobaltError {
   /// Creates an error describing every [failures] entry from [scopeName].
   CobaltDisposeError(this.scopeName, this.failures)
     : super(_describe(scopeName, failures));

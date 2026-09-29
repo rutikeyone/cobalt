@@ -27,6 +27,11 @@ jobs:
       - name: Overrides are current
         run: python3 tool/overrides.py --check
 
+      # A class modifier is API that dart_apitool does not see; the file makes
+      # a change to one a reviewed line. See RELEASING, "What breaks".
+      - name: Class modifiers are recorded
+        run: python3 tool/modifiers.py --check
+
       # Existence only. Whether a translation still says what the English says
       # is not checkable by machine — that is a line in the RELEASING checklist.
       - name: Translations are present

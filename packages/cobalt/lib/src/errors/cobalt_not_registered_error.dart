@@ -6,7 +6,7 @@ import 'package:cobalt/src/key/cobalt_key.dart';
 ///
 /// A common cause is asking a parent for something only a child registered:
 /// resolution walks upwards, never down.
-class CobaltNotRegisteredError extends CobaltError {
+final class CobaltNotRegisteredError extends CobaltError {
   /// Creates an error for the missing [key], reported from [scopeName].
   ///
   /// [resolving] is what was being built when the key was asked for, outermost

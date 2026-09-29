@@ -7,7 +7,7 @@ import 'package:cobalt/src/key/cobalt_key.dart';
 /// A lazy async singleton is built by the first `getAsync`, not by `init()`,
 /// so a synchronous `get` has nothing to hand back until then. Once it is
 /// built, `get` returns it like any other singleton.
-class CobaltLazyAsyncError extends CobaltError {
+final class CobaltLazyAsyncError extends CobaltError {
   /// Creates an error for the unbuilt [key].
   ///
   /// [resolving] is what was being built when the key was asked for, outermost

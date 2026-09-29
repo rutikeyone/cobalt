@@ -159,7 +159,8 @@ CI 的 `verify` job 在 Flutter 3.38.9 上运行全部检查，`forward` 则在 
   （`onInstanceBuilt` 就是这样加入的）。你*实现*的东西——工厂、装饰器、日志接收器、`Disposable`——
   只会在主版本中新增成员。
 
-`tool/api.sh` 会报告每个包相对 pub.dev 上版本的变化。
+`tool/api.sh` 会报告每个包相对 pub.dev 上版本的变化；`tool/class_modifiers.txt` 记录每个公开类型的类修饰符——
+这正是该工具看不到的变化——修饰符改了却没记录时 CI 会失败。
 
 ## 性能
 
@@ -328,6 +329,7 @@ cd examples/gallery && flutter run
 ./tool/get.sh
 dart analyze --fatal-infos .
 dart format --output=none --set-exit-if-changed .
+python3 tool/modifiers.py --check
 ./tool/test.sh
 (cd examples/codegen_basics && dart run build_runner build)
 (cd examples/notes_app && dart run build_runner build)

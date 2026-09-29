@@ -4,7 +4,7 @@ import 'package:cobalt/src/errors/cobalt_error.dart';
 ///
 /// Registering into, resolving from, or pushing a child onto a disposed scope
 /// all raise this rather than silently working against torn-down state.
-class CobaltScopeStateError extends CobaltError {
+final class CobaltScopeStateError extends CobaltError {
   /// Creates an error describing the illegal use.
   CobaltScopeStateError(super.message);
 }

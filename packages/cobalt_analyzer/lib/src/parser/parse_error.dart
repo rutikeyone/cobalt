@@ -4,7 +4,7 @@ import 'package:analyzer/dart/element/element.dart';
 ///
 /// Carries the offending [element] so the generator can point `build_runner`
 /// at the exact source location.
-class CobaltParseError implements Exception {
+final class CobaltParseError implements Exception {
   CobaltParseError(this.message, this.element);
 
   final String message;

@@ -6,7 +6,7 @@ import 'package:cobalt/src/key/cobalt_key.dart';
 /// Its factory returns a `Future` and builds a new instance on every call, so
 /// unlike a lazy async singleton there is never a built instance for `get` to
 /// hand back. `getAsync` awaits the build.
-class CobaltAsyncTransientError extends CobaltError {
+final class CobaltAsyncTransientError extends CobaltError {
   /// Creates an error for the async transient [key].
   ///
   /// [resolving] is what was being built when the key was asked for, outermost

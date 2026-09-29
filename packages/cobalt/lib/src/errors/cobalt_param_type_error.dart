@@ -13,7 +13,7 @@ import 'package:cobalt/src/key/cobalt_key.dart';
 /// neither the generator nor the lint plugin knows they exist. This message is
 /// also the only way to discover what a registration expects — a scope reports
 /// its keys, never the parameter behind one.
-class CobaltParamTypeError extends CobaltError {
+final class CobaltParamTypeError extends CobaltError {
   /// Creates an error for [key], which takes [expected] but was given
   /// [actual].
   CobaltParamTypeError(this.key, this.expected, this.actual)

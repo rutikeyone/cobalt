@@ -9,8 +9,10 @@
 # is a report, not a gate: before 1.0 every release is a minor step anyway,
 # and the tool cannot see everything — it did not flag CobaltResolver turning
 # from an interface into a base class, which is breaking for anyone who
-# implemented it. Breaking changes are still written into the changelog by
-# hand; this catches the ones nobody noticed.
+# implemented it. That gap is tool/modifiers.py's: every public type's
+# modifiers are kept in tool/class_modifiers.txt, checked in CI. Breaking
+# changes are still written into the changelog by hand; this catches the ones
+# nobody noticed.
 set -eu
 cd "$(dirname "$0")/.."
 command -v dart-apitool > /dev/null || dart pub global activate dart_apitool > /dev/null

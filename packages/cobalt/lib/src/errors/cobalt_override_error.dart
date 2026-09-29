@@ -10,7 +10,7 @@ import 'package:cobalt/src/key/cobalt_key.dart';
 /// replacement written outside a list, `FakeClock` instead of `Clock`. Or the
 /// key belongs to an ancestor, and an override here would only shadow it for
 /// this scope while every factory up there kept the real one.
-class CobaltOverrideError extends CobaltError {
+final class CobaltOverrideError extends CobaltError {
   /// Creates an error for the unclaimed [key] in [scopeName].
   ///
   /// [owner] is the ancestor that registers [key], when one does.

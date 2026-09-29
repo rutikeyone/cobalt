@@ -7,7 +7,7 @@ import 'package:cobalt/src/key/cobalt_key.dart';
 /// async registration. Naming anything else used to be accepted and silently
 /// dropped, which left the declaration reading as an ordering guarantee that
 /// was never in force.
-class CobaltDependsOnError extends CobaltError {
+final class CobaltDependsOnError extends CobaltError {
   /// Creates an error for [dependency], declared by [dependent].
   CobaltDependsOnError(this.dependent, this.dependency, {required this.reason})
     : super(

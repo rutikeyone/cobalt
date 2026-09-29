@@ -127,7 +127,8 @@ users; this is the table they come from.
 
 | Public type | Users… | Kind of class | Adding a member | Also minor |
 |---|---|---|---|---|
-| `CobaltScope`, `CobaltKey`, `CobaltApplication`, records and errors | use / catch | `final` or concrete | minor | new optional parameter |
+| `CobaltScope`, `CobaltKey`, `CobaltApplication`, records | use | `final` | minor | new optional parameter |
+| errors: `CobaltError` and every error it has, in each package | catch | `CobaltError` `base`, the rest `final` | minor | new optional parameter |
 | `CobaltResolver` | use | `abstract base` — only `CobaltScope` | minor | — |
 | `CobaltObserver`, `CobaltRecordingObserver` | extend | `abstract base` | minor, with an empty body | — |
 | factories, `CobaltDecorator`, `CobaltScopeBuilder`, `CobaltBootstrapStep`, `CobaltLogSink`, `CobaltErrorSink`, `Disposable`, `AsyncDisposable`, `AsyncInitializable`, `CobaltInjectable` | implement | `interface` | **major** | — |
@@ -144,6 +145,13 @@ ships in lockstep.
 each change breaking or not. Treat it as a second pair of eyes, not the authority: it did not flag
 `CobaltResolver` turning from an interface into a base class. The changelog's **Breaking** list is
 still written by hand.
+
+That gap is covered separately. `tool/class_modifiers.txt` lists every public type, once, under the
+package that declares it, with its kind and modifiers; `python3 tool/modifiers.py` rewrites it and
+CI's `--check` fails while it is stale. So a changed modifier is always a changed line in the diff,
+and the table above says what it costs: `interface` → `base` breaks every `implements`, anything →
+`final` breaks every `extends`, and a new `sealed` or a dropped one changes what a `switch` must
+cover.
 
 ## Flutter and Dart versions
 

@@ -5,7 +5,7 @@ import 'package:cobalt/src/key/cobalt_key.dart';
 ///
 /// Its factory returns a `Future`, so `getWithParam` has nothing to hand back
 /// yet. `getAsyncWithParam` awaits the build.
-class CobaltAsyncParamError extends CobaltError {
+final class CobaltAsyncParamError extends CobaltError {
   /// Creates an error for the async parameterized [key].
   CobaltAsyncParamError(this.key)
     : super(

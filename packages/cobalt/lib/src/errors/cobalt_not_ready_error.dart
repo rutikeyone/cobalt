@@ -5,7 +5,7 @@ import 'package:cobalt/src/key/cobalt_key.dart';
 ///
 /// Cobalt reports this instead of returning a half-built object, so an ordering
 /// mistake surfaces at the point it happens.
-class CobaltNotReadyError extends CobaltError {
+final class CobaltNotReadyError extends CobaltError {
   /// Creates an error for the not-yet-initialized [key].
   ///
   /// [resolving] is what was being built when the key was asked for, outermost

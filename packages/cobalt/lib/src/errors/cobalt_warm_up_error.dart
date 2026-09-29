@@ -6,7 +6,7 @@ import 'package:cobalt/src/key/cobalt_key.dart';
 /// Every build runs to the end before this is thrown, so one failure does not
 /// hide another and the registrations that did build stay built. A failed
 /// build is not cached: the next `getAsync` of that key tries again.
-class CobaltWarmUpError extends CobaltError {
+final class CobaltWarmUpError extends CobaltError {
   /// Creates an error listing [failures] from [scopeName], with the stack
   /// trace of each in [stackTraces].
   CobaltWarmUpError(this.scopeName, this.failures, this.stackTraces)

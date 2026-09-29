@@ -5,7 +5,7 @@ import 'package:cobalt/src/key/cobalt_key.dart';
 ///
 /// The container has no value to pass, and inventing one would hand back an
 /// object built from something nobody chose.
-class CobaltParamRequiredError extends CobaltError {
+final class CobaltParamRequiredError extends CobaltError {
   /// Creates an error for the parameterized [key].
   ///
   /// [isAsync] names `getAsyncWithParam` instead of `getWithParam`, for a

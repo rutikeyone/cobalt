@@ -8,7 +8,7 @@ import 'package:cobalt/cobalt.dart';
 /// screen — so a widget that resolved fine in place throws the moment the same
 /// code runs on a pushed route. Read the scope where the push happens and pass
 /// it in, rather than reading it inside the pushed widget.
-class CobaltNoScopeError extends CobaltError {
+final class CobaltNoScopeError extends CobaltError {
   /// Creates the error.
   CobaltNoScopeError()
     : super(

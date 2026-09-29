@@ -4,7 +4,7 @@
 /// resolving at runtime, when a factory asks for something already being
 /// built further up the same chain. Either way the error names the path
 /// instead of deadlocking or overflowing the stack.
-class CobaltCycleError extends StateError {
+final class CobaltCycleError extends StateError {
   /// Creates an error describing [cycle].
   CobaltCycleError(this.cycle)
     : super('Dependency cycle detected: ${cycle.join(' -> ')}');

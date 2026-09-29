@@ -167,7 +167,9 @@
   `onInstanceBuilt`). Всё, что вы *реализуете*, — фабрики, декораторы, приёмники логов,
   `Disposable` — получает новые члены только в мажорном релизе.
 
-`tool/api.sh` показывает, что изменилось в каждом пакете относительно версии на pub.dev.
+`tool/api.sh` показывает, что изменилось в каждом пакете относительно версии на pub.dev, а
+`tool/class_modifiers.txt` хранит модификаторы классов всех публичных типов — то единственное, чего
+этот инструмент не видит, — и CI падает, пока изменённый модификатор не записан.
 
 ## Производительность
 
@@ -348,6 +350,7 @@ cd examples/gallery && flutter run
 ./tool/get.sh
 dart analyze --fatal-infos .
 dart format --output=none --set-exit-if-changed .
+python3 tool/modifiers.py --check
 ./tool/test.sh
 (cd examples/codegen_basics && dart run build_runner build)
 (cd examples/notes_app && dart run build_runner build)

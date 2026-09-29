@@ -164,7 +164,9 @@ Before 1.0 every minor release may break something, and its changelog says what 
   Anything you *implement* — factories, decorators, sinks, `Disposable` — gains members only in a
   major.
 
-`tool/api.sh` reports what changed in every package against the version on pub.dev.
+`tool/api.sh` reports what changed in every package against the version on pub.dev, and
+`tool/class_modifiers.txt` records every public type's class modifiers — the one change that tool
+cannot see — so CI fails until a changed modifier is written down.
 
 ## Performance
 
@@ -348,6 +350,7 @@ and why, and the [gallery's](examples/gallery/README.md) for how the examples ar
 ./tool/get.sh
 dart analyze --fatal-infos .
 dart format --output=none --set-exit-if-changed .
+python3 tool/modifiers.py --check
 ./tool/test.sh
 (cd examples/codegen_basics && dart run build_runner build)
 (cd examples/notes_app && dart run build_runner build)
