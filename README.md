@@ -166,6 +166,32 @@ Before 1.0 every minor release may break something, and its changelog says what 
 
 `tool/api.sh` reports what changed in every package against the version on pub.dev.
 
+## Performance
+
+Cobalt next to get_it, from [`benchmark/`](benchmark/README.md), which describes what each row does.
+Compiled AOT, on arm64 with Dart SDK 3.10.8 (stable) — a `macos_x64` build of the SDK, so the binary
+ran under Rosetta. Median of three runs; they agreed within a few percent.
+
+| | Cobalt | get_it | Cobalt / get_it |
+|---|---:|---:|---:|
+| get a built singleton | 155 ns | 822 ns | 0.19× |
+| build a transient with two dependencies | 727 ns | 2.42 µs | 0.30× |
+| register 200, then get each once | 201 µs | 645 µs | 0.31× |
+| start 20 async singletons | 33.9 µs | 41.1 µs | 0.82× |
+| the transient, with an empty observer | 718 ns | — | — |
+| the transient, with a recording observer | 1.55 µs | — | — |
+
+Below 1 in the last column, Cobalt took less time. The absolute numbers belong to this machine, and a
+translated binary is slower than a native one across the board; what carries over is the order of
+magnitude. A resolution costs well under a microsecond, a graph of 200 registrations a fraction of a
+millisecond, the async start of twenty singletons tens of microseconds — none of it registers against
+a 16 ms frame. An observer that turns every event into a record, which is what the log observers
+do, about doubles the cost of a build; one that overrides nothing costs next to nothing.
+
+```
+cd benchmark && dart compile exe bin/main.dart -o /tmp/cobalt_benchmark && /tmp/cobalt_benchmark
+```
+
 ## How it works
 
 ### Scopes own what they build
@@ -331,7 +357,10 @@ dart format --output=none --set-exit-if-changed .
 
 All of it on Flutter 3.38.9. `tool/get.sh` resolves the root and every member that `tool/members.sh`
 finds by its pubspec; after adding a package, or a dependency on a sibling, `python3
-tool/overrides.py` rewrites the overrides, and CI fails while they are stale.
+tool/overrides.py` rewrites the overrides, and CI fails while they are stale. `benchmark/` is a
+member like the rest: its test, run by `tool/test.sh`, checks that every scenario runs and that both
+containers do what the row says; the numbers under **Performance** come from its `bin/main.dart`,
+compiled AOT.
 
 `tool/coverage.sh` measures line coverage of the publishable packages that have tests, prints them
 worst-first, and fails under a floor on the **total** — 85%. The current figure is what the script

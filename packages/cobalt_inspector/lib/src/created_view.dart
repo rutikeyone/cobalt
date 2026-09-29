@@ -38,10 +38,12 @@ enum CreatedGrouping {
 /// exactly like one that is built — so only a creation event proves an object
 /// exists.
 ///
-/// One thing it will never show: an eager singleton. That instance is built by
-/// whoever called `registerSingleton` and handed over already made, so the
-/// scope has nothing to report constructing. It appears in the tree, with its
-/// lifetime, and never here.
+/// One thing it will never show: a value handed over already made — by
+/// `registerSingleton` or `CobaltOverride.value`. Whoever built it did so
+/// before the scope saw it, so the scope has nothing to report constructing.
+/// It appears in the tree, with its lifetime, and never here. An eager
+/// singleton is different: `registerEagerSingleton` builds it through its
+/// factory on the spot, and that build is reported like any other.
 class CreatedView extends StatefulWidget {
   /// Reads from [log].
   const CreatedView({required this.log, super.key});

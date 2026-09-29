@@ -287,6 +287,20 @@ picture.
 The Mac builds with its own Flutter, which may be newer than 3.38.9: fine for a
 picture, and the reason a screenshot is never evidence that the floor works.
 
+## Performance numbers
+
+The table under **Performance** in the three READMEs is a measurement, and goes stale like one.
+Retake it when a release changes how a scope resolves, builds or starts — not for every release:
+
+```
+mac-sim bench flutter/cobalt-workspace/cobalt/benchmark bin/main.dart aot
+```
+
+Three runs, the median of each cell. AOT only: `dart run` is the JIT, whose numbers depend on how far
+it has warmed up. The architecture and Dart version in the paragraph above the table are copied from
+the first line `mac-sim bench` prints, not written from memory — on the current Mac that line says
+an x64 SDK on arm64, which is why the README says Rosetta.
+
 ## After publishing
 
 **Tag the commit the archives were built from**, and do it before anything else

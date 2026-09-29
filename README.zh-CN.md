@@ -161,6 +161,30 @@ CI 的 `verify` job 在 Flutter 3.38.9 上运行全部检查，`forward` 则在 
 
 `tool/api.sh` 会报告每个包相对 pub.dev 上版本的变化。
 
+## 性能
+
+Cobalt 与 get_it 的对比，来自 [`benchmark/`](benchmark/README.md)，每一行做了什么在那里有说明。
+AOT 编译，arm64，Dart SDK 3.10.8（stable）——SDK 是 `macos_x64` 构建，因此二进制在 Rosetta 下运行。
+取三次运行的中位数；三次结果相差在几个百分点以内。
+
+| | Cobalt | get_it | Cobalt / get_it |
+|---|---:|---:|---:|
+| get 已构建的单例 | 155 ns | 822 ns | 0.19× |
+| 构建带两个依赖的 transient | 727 ns | 2.42 µs | 0.30× |
+| 注册 200 个，再各 get 一次 | 201 µs | 645 µs | 0.31× |
+| 启动 20 个异步单例 | 33.9 µs | 41.1 µs | 0.82× |
+| 同一 transient，带空观察者 | 718 ns | — | — |
+| 同一 transient，带记录型观察者 | 1.55 µs | — | — |
+
+最后一列小于 1，表示 Cobalt 用时更少。绝对数值只属于这台机器，且经过转译的二进制在各方面都比原生的慢；
+能迁移的是数量级。一次解析远低于一微秒，200 个注册的图不到一毫秒，二十个单例的异步启动在几十微秒——
+与 16 ms 的一帧相比都微不足道。把每个事件转成记录的观察者（日志观察者正是如此）大约让一次构建的开销
+翻倍；什么都不覆盖的观察者几乎没有开销。
+
+```
+cd benchmark && dart compile exe bin/main.dart -o /tmp/cobalt_benchmark && /tmp/cobalt_benchmark
+```
+
 ## 它如何工作
 
 ### 作用域拥有它构建的东西
@@ -311,9 +335,11 @@ dart format --output=none --set-exit-if-changed .
 ./tool/coverage.sh
 ```
 
-以上全部在 Flutter 3.38.9 上运行。`tool/get.sh` 解析根目录以及 `tool/members.sh` 按 pubspec
-找到的每个成员；新增包或新增对同仓库包的依赖后，运行 `python3 tool/overrides.py` 重写 overrides，
-overrides 过期时 CI 会失败。
+以上全部在 Flutter 3.38.9 上运行。`tool/get.sh` 解析根目录以及 `tool/members.sh` 按 pubspec 找到的每个成员；
+新增包或新增对同仓库包的依赖后，运行 `python3 tool/overrides.py` 重写 overrides，
+overrides 过期时 CI 会失败。`benchmark/` 也是普通成员：它的测试由 `tool/test.sh` 运行，
+检查每个场景都能运行、两个容器都做了该行所述的事；**性能**一节的数字来自它的 `bin/main.dart`，
+以 AOT 编译。
 
 `tool/coverage.sh` 统计有测试的可发布包的行覆盖率，从最低往高打印，并在**总和**低于下限时失败——85%。
 当前数字以脚本打印的为准，这里不再重复：一个每次提交都会变的数字写进散文里就会过时，
