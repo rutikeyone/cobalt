@@ -23,7 +23,7 @@ apart.
 |---|---|
 | `cobalt-scope` | a scope was pushed, is disposing, or is gone |
 | `cobalt-startup` | bootstrap steps and async initialization |
-| `cobalt-instance` | an instance was built or released — off unless `verbose` |
+| `cobalt-instance` | an instance was built, with how long it took, or released — off unless `verbose` |
 | `cobalt-failure` | init failed, teardown could not release something, a bootstrap step broke |
 
 ## `verbose` is off on purpose

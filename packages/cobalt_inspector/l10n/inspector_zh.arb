@@ -23,6 +23,7 @@
   "groupingFlat": "平铺",
   "groupingByScope": "按作用域",
   "groupingByLifetime": "按生命周期",
+  "groupingSlowest": "最慢优先",
   "builtEmpty": "尚未构建任何实例",
   "builtWhere": "在 “{scope}” · {ownership}",
   "@builtWhere": {
@@ -57,6 +58,7 @@
   "factReplaced": "替换",
   "replacedByOverride": "被覆盖替换——真实注册已跳过",
   "factDecoratedBy": "装饰器",
+  "factBuildTime": "上次构建耗时",
   "factTornDown": "随作用域一起释放",
   "tornDownYes": "是",
   "tornDownNo": "否，由调用方持有",

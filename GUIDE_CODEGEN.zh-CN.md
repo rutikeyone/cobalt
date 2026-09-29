@@ -960,6 +960,8 @@ final scope = await CobaltApplication.start(
 回调收到的是 `CobaltScopeRef` 和 `CobaltKey`——描述符，不是活对象——
 而回调里抛出的异常会被吞掉：观察不能有能力破坏被观察者。
 解析不会被上报：命中缓存是热路径，值得看见的是实例**被构建**这件事。
+每次构建都会计时：`onInstanceCreated` 之后紧跟 `onInstanceBuilt`，带上它耗费的时间——从调用工厂起的全部耗时，
+包含途中解析的其他构建和每一次 `await`——日志观察者会把它写进同一行。
 
 | 包 | 形态 |
 |---|---|
@@ -1007,7 +1009,7 @@ final log = CobaltInspectorLog();
 CobaltInspectorScreen(log: log, scope: context.cobaltScope)
 ```
 
-三个标签页：带生命周期与归属的实时作用域树；实际已经构建出来的东西；
+三个标签页：带生命周期与归属的实时作用域树；实际已经构建出来的东西，附每次构建的耗时并标出慢的；
 以及上报过的一切，可搜索、可暂停。打开树不会构建任何东西——
 为了显示而去实例化一个懒汉单例，就等于改变了你本来要看的东西。
 

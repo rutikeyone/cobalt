@@ -69,19 +69,33 @@ final class CobaltTalkerObserver extends CobaltObserver {
     ),
   );
 
+  /// Logged from [onInstanceBuilt], which follows for the same build and
+  /// carries its time — one line per build.
   @override
   void onInstanceCreated(
     CobaltScopeRef scope,
     CobaltKey key, {
     required CobaltRegistrationKind kind,
     required bool retained,
+  }) {}
+
+  @override
+  void onInstanceBuilt(
+    CobaltScopeRef scope,
+    CobaltKey key, {
+    required CobaltRegistrationKind kind,
+    required bool retained,
+    required Duration took,
   }) {
     if (!verbose) return;
+    final time = took.inMilliseconds >= 1
+        ? '${took.inMilliseconds}ms'
+        : '${took.inMicroseconds}µs';
     talker.logCustom(
       CobaltInstanceLog(
         retained
-            ? 'built $key in "$scope" as ${kind.name}'
-            : 'built $key in "$scope" as ${kind.name} (loose)',
+            ? 'built $key in "$scope" as ${kind.name} in $time'
+            : 'built $key in "$scope" as ${kind.name} (loose) in $time',
       ),
     );
   }

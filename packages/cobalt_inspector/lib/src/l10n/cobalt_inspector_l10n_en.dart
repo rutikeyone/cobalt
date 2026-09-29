@@ -78,6 +78,9 @@ class CobaltInspectorL10nEn extends CobaltInspectorL10n {
   String get groupingByLifetime => 'by lifetime';
 
   @override
+  String get groupingSlowest => 'slowest first';
+
+  @override
   String get builtEmpty => 'Nothing built yet';
 
   @override
@@ -151,6 +154,9 @@ class CobaltInspectorL10nEn extends CobaltInspectorL10n {
 
   @override
   String get factDecoratedBy => 'Decorated by';
+
+  @override
+  String get factBuildTime => 'Last build took';
 
   @override
   String get factTornDown => 'Torn down with the scope';

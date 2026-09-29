@@ -1,4 +1,6 @@
 import 'package:cobalt_flutter/cobalt_flutter.dart';
+import 'package:cobalt_inspector/src/build_time.dart';
+import 'package:cobalt_inspector/src/cobalt_inspector_log.dart';
 import 'package:cobalt_inspector/src/l10n/inspector_strings.dart';
 import 'package:cobalt_inspector/src/registration_view.dart';
 import 'package:cobalt_inspector/src/theme/cobalt_inspector_theme.dart';
@@ -18,6 +20,7 @@ class RegistrationDetailSheet extends StatefulWidget {
   const RegistrationDetailSheet({
     required this.scope,
     required this.registration,
+    this.log,
     super.key,
   });
 
@@ -27,6 +30,9 @@ class RegistrationDetailSheet extends StatefulWidget {
   /// The registration to describe.
   final RegistrationView registration;
 
+  /// Where the last build of [registration] is looked up, for its time.
+  final CobaltInspectorLog? log;
+
   @override
   State<RegistrationDetailSheet> createState() =>
       _RegistrationDetailSheetState();
@@ -35,6 +41,22 @@ class RegistrationDetailSheet extends StatefulWidget {
 class _RegistrationDetailSheetState extends State<RegistrationDetailSheet> {
   String? _built;
   String? _failed;
+
+  /// How long the most recent build of this registration took, from the
+  /// log — its own key, built by the scope that owns it.
+  Duration? _lastBuild() {
+    final log = widget.log;
+    if (log == null) return null;
+    final registration = widget.registration;
+    for (final entry in log.entries.reversed) {
+      final record = entry.record;
+      if (record.kind != CobaltEventKind.instanceCreated) continue;
+      if (record.key != registration.key) continue;
+      if (record.scope?.name != registration.owner.name) continue;
+      return record.took;
+    }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,6 +104,12 @@ class _RegistrationDetailSheetState extends State<RegistrationDetailSheet> {
               key: const Key('decorated-fact'),
               label: strings.factDecoratedBy,
               value: registration.decorators.join(' → '),
+            ),
+          if (_lastBuild() case final took?)
+            _Fact(
+              key: const Key('build-time-fact'),
+              label: strings.factBuildTime,
+              value: formatBuildTime(took),
             ),
           _Fact(
             label: strings.factTornDown,

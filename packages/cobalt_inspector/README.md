@@ -57,7 +57,9 @@ with — the annotated class when the container is generated. Both come from `ov
 
 **Built** comes from creation events, and has to. A scope's registrations are what was *declared* —
 a lazy singleton nobody resolved looks there exactly like one that is built — so only an event
-proves an object exists.
+proves an object exists. Each row carries how long its build took, and a build of at least
+`slowBuild` — one 60 Hz frame, 16 ms, by default in `CobaltInspectorThemeData` — is marked. A
+registration's sheet shows how long its last build took.
 
 **Log** is everything, filterable by event kind.
 
@@ -173,7 +175,8 @@ belongs to somebody else.
 node. Reading it builds nothing: a lazy singleton nobody asked for is still unbuilt after you have
 looked at it.
 
-**Built** comes from creation events, grouped by scope, by lifetime, or not at all.
+**Built** comes from creation events, grouped by scope, by lifetime, or not at all — or sorted
+slowest first, each row with its build time.
 
 **Log** is the event stream, newest first, searchable, filtered by family, each row carrying its
 time and the gap since the one before. Tapping opens the record whole — error, stack and the

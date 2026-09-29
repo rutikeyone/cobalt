@@ -64,7 +64,12 @@ void main() {
       root.get<Marker>();
 
       expect(titles(), contains('cobalt-instance'));
-      expect(messages().join('\n'), contains('built Marker in "app"'));
+      expect(
+        messages().join('\n'),
+        matches(
+          RegExp(r'built Marker in "app" as lazySingleton in \d+(µs|ms)'),
+        ),
+      );
     });
 
     test('a teardown failure becomes an cobalt-failure entry', () async {

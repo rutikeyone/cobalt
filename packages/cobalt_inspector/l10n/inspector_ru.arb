@@ -23,6 +23,7 @@
   "groupingFlat": "списком",
   "groupingByScope": "по скоупам",
   "groupingByLifetime": "по времени жизни",
+  "groupingSlowest": "сначала медленные",
   "builtEmpty": "Пока ничего не создано",
   "builtWhere": "в «{scope}» · {ownership}",
   "@builtWhere": {
@@ -57,6 +58,7 @@
   "factReplaced": "Подмена",
   "replacedByOverride": "override — настоящая регистрация пропущена",
   "factDecoratedBy": "Декораторы",
+  "factBuildTime": "Последняя сборка заняла",
   "factTornDown": "Разбирается вместе со скоупом",
   "tornDownYes": "да",
   "tornDownNo": "нет, владеет вызывающий",

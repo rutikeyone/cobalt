@@ -78,6 +78,9 @@ class CobaltInspectorL10nRu extends CobaltInspectorL10n {
   String get groupingByLifetime => 'по времени жизни';
 
   @override
+  String get groupingSlowest => 'сначала медленные';
+
+  @override
   String get builtEmpty => 'Пока ничего не создано';
 
   @override
@@ -150,6 +153,9 @@ class CobaltInspectorL10nRu extends CobaltInspectorL10n {
 
   @override
   String get factDecoratedBy => 'Декораторы';
+
+  @override
+  String get factBuildTime => 'Последняя сборка заняла';
 
   @override
   String get factTornDown => 'Разбирается вместе со скоупом';

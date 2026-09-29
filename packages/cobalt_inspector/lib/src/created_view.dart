@@ -1,4 +1,5 @@
 import 'package:cobalt_flutter/cobalt_flutter.dart';
+import 'package:cobalt_inspector/src/build_time.dart';
 import 'package:cobalt_inspector/src/cobalt_inspector_log.dart';
 import 'package:cobalt_inspector/src/l10n/cobalt_inspector_l10n.dart';
 import 'package:cobalt_inspector/src/l10n/inspector_strings.dart';
@@ -16,13 +17,17 @@ enum CreatedGrouping {
   byScope,
 
   /// Gathered by how long they live.
-  byLifetime;
+  byLifetime,
+
+  /// One flat list, the longest build first.
+  slowest;
 
   /// What the switch shows for this option, in [strings]' language.
   String label(CobaltInspectorL10n strings) => switch (this) {
     CreatedGrouping.flat => strings.groupingFlat,
     CreatedGrouping.byScope => strings.groupingByScope,
     CreatedGrouping.byLifetime => strings.groupingByLifetime,
+    CreatedGrouping.slowest => strings.groupingSlowest,
   };
 }
 
@@ -98,6 +103,17 @@ class _CreatedViewState extends State<CreatedView> {
     if (_grouping == CreatedGrouping.flat) {
       return [
         for (final entry in created) _CreatedTile(entry: entry, theme: t),
+      ];
+    }
+    if (_grouping == CreatedGrouping.slowest) {
+      final slowest = [...created]
+        ..sort(
+          (a, b) => (b.record.took ?? Duration.zero).compareTo(
+            a.record.took ?? Duration.zero,
+          ),
+        );
+      return [
+        for (final entry in slowest) _CreatedTile(entry: entry, theme: t),
       ];
     }
 
@@ -234,6 +250,23 @@ class _CreatedTile extends StatelessWidget {
               ],
             ),
           ),
+          if (record.took case final took?) ...[
+            const SizedBox(width: 8),
+            Text(
+              formatBuildTime(took),
+              key: Key('took-${record.key}'),
+              style: (theme.monospace ?? const TextStyle(fontSize: 11))
+                  .copyWith(
+                    fontSize: 11,
+                    color: took >= theme.slowBuild
+                        ? theme.warning
+                        : theme.muted,
+                    fontWeight: took >= theme.slowBuild
+                        ? FontWeight.w600
+                        : FontWeight.normal,
+                  ),
+            ),
+          ],
           const SizedBox(width: 8),
           LifetimeBadge(kind: record.registrationKind, theme: theme),
         ],

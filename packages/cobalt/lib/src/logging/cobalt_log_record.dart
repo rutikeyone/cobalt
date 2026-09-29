@@ -22,6 +22,7 @@ final class CobaltLogRecord {
     this.key,
     this.registrationKind,
     this.retained,
+    this.took,
     this.error,
     this.stackTrace,
   });
@@ -56,6 +57,12 @@ final class CobaltLogRecord {
   /// not the same question: one is how long it lives, the other who closes it.
   final bool? retained;
 
+  /// How long the build took, for a creation event — see
+  /// `CobaltObserver.onInstanceBuilt` for what it includes.
+  ///
+  /// Null for every other kind.
+  final Duration? took;
+
   /// The failure, for warnings and errors.
   final Object? error;
 
@@ -85,6 +92,7 @@ final class CobaltLogRecord {
     if (key != null) 'key': key.toString(),
     if (registrationKind != null) 'lifetime': registrationKind!.name,
     if (retained != null) 'retained': retained,
+    if (took != null) 'took_us': took!.inMicroseconds,
     if (error != null) 'error': error.toString(),
     if (stackTrace != null) 'stack_trace': stackTrace.toString(),
   };

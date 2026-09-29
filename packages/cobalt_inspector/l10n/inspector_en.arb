@@ -92,6 +92,10 @@
   "@groupingByLifetime": {
     "description": "Gather built instances by how long they live."
   },
+  "groupingSlowest": "slowest first",
+  "@groupingSlowest": {
+    "description": "Grouping option: every built instance in one list, the longest build first."
+  },
   "builtEmpty": "Nothing built yet",
   "@builtEmpty": {
     "description": "Shown when the graph has constructed nothing."
@@ -197,6 +201,10 @@
   "factDecoratedBy": "Decorated by",
   "@factDecoratedBy": {
     "description": "Fact label: the decorators wrapping the registration, innermost first."
+  },
+  "factBuildTime": "Last build took",
+  "@factBuildTime": {
+    "description": "Label for how long the most recent build of this registration took."
   },
   "factTornDown": "Torn down with the scope",
   "@factTornDown": {

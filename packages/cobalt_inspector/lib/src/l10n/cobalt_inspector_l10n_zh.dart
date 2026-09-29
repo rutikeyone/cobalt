@@ -78,6 +78,9 @@ class CobaltInspectorL10nZh extends CobaltInspectorL10n {
   String get groupingByLifetime => '按生命周期';
 
   @override
+  String get groupingSlowest => '最慢优先';
+
+  @override
   String get builtEmpty => '尚未构建任何实例';
 
   @override
@@ -150,6 +153,9 @@ class CobaltInspectorL10nZh extends CobaltInspectorL10n {
 
   @override
   String get factDecoratedBy => '装饰器';
+
+  @override
+  String get factBuildTime => '上次构建耗时';
 
   @override
   String get factTornDown => '随作用域一起释放';

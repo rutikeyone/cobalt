@@ -54,6 +54,7 @@ class CobaltInspectorThemeData {
     this.selectedTintAlpha = 0.22,
     this.idleTintAlpha = 0.06,
     this.borderAlpha = 0.4,
+    this.slowBuild = const Duration(milliseconds: 16),
   });
 
   /// Derives a palette from the application's own theme.
@@ -162,6 +163,12 @@ class CobaltInspectorThemeData {
   /// How strongly a chip's border is drawn.
   final double borderAlpha;
 
+  /// A build at least this long is marked slow in the list of what was built.
+  ///
+  /// One frame at 60 Hz by default: a build that long on the path to a screen
+  /// is a dropped frame.
+  final Duration slowBuild;
+
   /// The colour of one family.
   Color colorOfFamily(CobaltInspectorFamily family) => switch (family) {
     CobaltInspectorFamily.scope => scope,
@@ -238,10 +245,11 @@ class CobaltInspectorThemeData {
       other.tintAlpha == tintAlpha &&
       other.selectedTintAlpha == selectedTintAlpha &&
       other.idleTintAlpha == idleTintAlpha &&
-      other.borderAlpha == borderAlpha;
+      other.borderAlpha == borderAlpha &&
+      other.slowBuild == slowBuild;
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     background,
     surface,
     onSurface,
@@ -262,7 +270,8 @@ class CobaltInspectorThemeData {
     selectedTintAlpha,
     idleTintAlpha,
     borderAlpha,
-  );
+    slowBuild,
+  ]);
 
   /// A map's hash, independent of the order its entries were written in.
   static int _hashOf(Map<Object, Object?>? map) => map == null
@@ -297,6 +306,7 @@ class CobaltInspectorThemeData {
     double? selectedTintAlpha,
     double? idleTintAlpha,
     double? borderAlpha,
+    Duration? slowBuild,
   }) => CobaltInspectorThemeData(
     background: background ?? this.background,
     surface: surface ?? this.surface,
@@ -318,5 +328,6 @@ class CobaltInspectorThemeData {
     selectedTintAlpha: selectedTintAlpha ?? this.selectedTintAlpha,
     idleTintAlpha: idleTintAlpha ?? this.idleTintAlpha,
     borderAlpha: borderAlpha ?? this.borderAlpha,
+    slowBuild: slowBuild ?? this.slowBuild,
   );
 }

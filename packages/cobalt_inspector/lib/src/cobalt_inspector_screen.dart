@@ -122,7 +122,7 @@ class CobaltInspectorScreen extends StatelessWidget {
             children: [
               _Reactive(
                 log: log,
-                child: ScopeTreeView(root: root),
+                child: ScopeTreeView(root: root, log: log),
               ),
               CreatedView(log: log),
               EventLogView(log: log),

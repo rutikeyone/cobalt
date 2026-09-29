@@ -826,6 +826,9 @@ adds more for one subtree.
 Callbacks get `CobaltScopeRef` and `CobaltKey` — descriptions, not live objects — and an exception
 thrown from one is swallowed: watching must not be able to break what it watches. Resolution is not
 reported; a cache hit is the hot path, and what is worth seeing is an instance being *built*.
+Each build is timed: `onInstanceBuilt` follows `onInstanceCreated` with how long it took — the whole
+wall time, the builds it resolved and every `await` included — and the log observers write it into the
+same line.
 
 ### Sending it somewhere
 
@@ -877,7 +880,7 @@ CobaltInspectorScreen(log: log, scope: context.cobaltScope)
 ```
 
 Three tabs: the live scope tree with each registration's lifetime and who owns it, what has actually
-been built, and everything reported, searchable and pausable. Opening the tree builds nothing —
+been built — with how long each build took, the slow ones marked — and everything reported, searchable and pausable. Opening the tree builds nothing —
 materialising a lazy singleton to display it would change what you came to look at.
 
 ---

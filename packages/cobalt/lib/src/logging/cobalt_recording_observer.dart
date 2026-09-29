@@ -31,6 +31,7 @@ abstract base class CobaltRecordingObserver extends CobaltObserver {
     CobaltKey? key,
     CobaltRegistrationKind? registrationKind,
     bool? retained,
+    Duration? took,
     Object? error,
     StackTrace? stackTrace,
   }) => onRecord(
@@ -42,6 +43,7 @@ abstract base class CobaltRecordingObserver extends CobaltObserver {
       key: key,
       registrationKind: registrationKind,
       retained: retained,
+      took: took,
       error: error,
       stackTrace: stackTrace,
     ),
@@ -94,23 +96,42 @@ abstract base class CobaltRecordingObserver extends CobaltObserver {
     stackTrace: stackTrace,
   );
 
+  /// The creation record is written from [onInstanceBuilt], which follows
+  /// this for the same build and also knows how long it took — one record per
+  /// build, as before, now with its time.
   @override
   void onInstanceCreated(
     CobaltScopeRef scope,
     CobaltKey key, {
     required CobaltRegistrationKind kind,
     required bool retained,
+  }) {}
+
+  @override
+  void onInstanceBuilt(
+    CobaltScopeRef scope,
+    CobaltKey key, {
+    required CobaltRegistrationKind kind,
+    required bool retained,
+    required Duration took,
   }) => _emit(
     CobaltEventKind.instanceCreated,
     CobaltLogLevel.trace,
     retained
-        ? 'built $key in "$scope" as ${kind.name}'
-        : 'built $key in "$scope" as ${kind.name}, not retained',
+        ? 'built $key in "$scope" as ${kind.name} in ${_duration(took)}'
+        : 'built $key in "$scope" as ${kind.name}, not retained, in '
+              '${_duration(took)}',
     scope: scope,
     key: key,
     registrationKind: kind,
     retained: retained,
+    took: took,
   );
+
+  /// Milliseconds, or microseconds below one — most builds are.
+  static String _duration(Duration took) => took.inMilliseconds >= 1
+      ? '${took.inMilliseconds}ms'
+      : '${took.inMicroseconds}µs';
 
   @override
   void onInstanceDisposed(CobaltScopeRef scope, String label) => _emit(

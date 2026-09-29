@@ -68,6 +68,30 @@ abstract base class CobaltObserver {
     required bool retained,
   }) {}
 
+  /// The instance [onInstanceCreated] just reported took [took] to build.
+  ///
+  /// Called right after [onInstanceCreated], for the same build and in the
+  /// same order, and only for builds that event reports. [took] is the whole
+  /// wall time from calling the factory to the instance being ready: the
+  /// builds it resolved on the way are inside it, and so is every `await` of
+  /// an async factory — a lazy singleton waiting for a slow dependency is slow
+  /// to build, which is what a reader of this number wants to learn. Filling
+  /// `@injected` fields is part of it too.
+  ///
+  /// [kind] and [retained] repeat what [onInstanceCreated] said, so an
+  /// observer that wants the whole build in one place — a log line with its
+  /// time — needs no state between the two events.
+  ///
+  /// A separate event rather than a parameter of [onInstanceCreated], so an
+  /// observer written before it existed keeps compiling.
+  void onInstanceBuilt(
+    CobaltScopeRef scope,
+    CobaltKey key, {
+    required CobaltRegistrationKind kind,
+    required bool retained,
+    required Duration took,
+  }) {}
+
   /// An owned instance was disposed without error. [label] is its type.
   void onInstanceDisposed(CobaltScopeRef scope, String label) {}
 

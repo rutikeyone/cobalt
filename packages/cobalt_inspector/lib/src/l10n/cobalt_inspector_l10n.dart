@@ -238,6 +238,12 @@ abstract class CobaltInspectorL10n {
   /// **'by lifetime'**
   String get groupingByLifetime;
 
+  /// Grouping option: every built instance in one list, the longest build first.
+  ///
+  /// In en, this message translates to:
+  /// **'slowest first'**
+  String get groupingSlowest;
+
   /// Shown when the graph has constructed nothing.
   ///
   /// In en, this message translates to:
@@ -381,6 +387,12 @@ abstract class CobaltInspectorL10n {
   /// In en, this message translates to:
   /// **'Decorated by'**
   String get factDecoratedBy;
+
+  /// Label for how long the most recent build of this registration took.
+  ///
+  /// In en, this message translates to:
+  /// **'Last build took'**
+  String get factBuildTime;
 
   /// Fact label: whether the scope releases the instance.
   ///

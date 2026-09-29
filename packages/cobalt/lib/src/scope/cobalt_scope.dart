@@ -260,11 +260,13 @@ final class CobaltScope implements CobaltResolver {
       );
     }
     return found.scope._tracker.guard(key, () {
+      final watch = Stopwatch()..start();
       final instance = registration.factory.create(found.scope, param);
       found.scope._afterCreate(
         instance,
         key,
         kind: CobaltRegistrationKind.parameterized,
+        watch: watch,
         retain: false,
       );
       return found.scope._serveFresh(key, instance);
@@ -512,11 +514,13 @@ final class CobaltScope implements CobaltResolver {
     final order = _order++;
     final teardown = _teardownOf(dispose);
     final instance = _tracker.guard(key, () {
+      final watch = Stopwatch()..start();
       final built = factory.create(this);
       _afterCreate(
         built,
         key,
         kind: CobaltRegistrationKind.singleton,
+        watch: watch,
         retain: true,
         teardown: teardown,
       );
@@ -837,11 +841,13 @@ final class CobaltScope implements CobaltResolver {
       );
     }
     return found.scope._tracker.guard(key, () {
+      final watch = Stopwatch()..start();
       final instance = registration.factory.create(found.scope, param);
       found.scope._afterCreate(
         instance,
         key,
         kind: CobaltRegistrationKind.parameterized,
+        watch: watch,
         retain: false,
       );
       return found.scope._serveFresh(key, instance) as T;
@@ -1263,11 +1269,13 @@ final class CobaltScope implements CobaltResolver {
 
       case TransientRegistration():
         return _tracker.guard(registration.key, () {
+          final watch = Stopwatch()..start();
           final instance = registration.factory.create(this);
           _afterCreate(
             instance,
             registration.key,
             kind: CobaltRegistrationKind.transient,
+            watch: watch,
             retain: false,
           );
           return _serveFresh(registration.key, instance);
@@ -1277,12 +1285,14 @@ final class CobaltScope implements CobaltResolver {
         final existing =
             registration.instance ??
             _tracker.guard<Object>(registration.key, () {
+              final watch = Stopwatch()..start();
               final instance = registration.factory.create(this);
               registration.instance = instance;
               _afterCreate(
                 instance,
                 registration.key,
                 kind: CobaltRegistrationKind.lazySingleton,
+                watch: watch,
                 retain: true,
                 teardown: registration.teardown,
               );
@@ -1344,6 +1354,7 @@ final class CobaltScope implements CobaltResolver {
 
       case AsyncTransientRegistration():
         final key = registration.key;
+        final watch = Stopwatch()..start();
         final instance = await CobaltResolutionTracker.guardLazy(
           key,
           () => registration.factory.create(this),
@@ -1352,6 +1363,7 @@ final class CobaltScope implements CobaltResolver {
           instance,
           key,
           kind: CobaltRegistrationKind.asyncTransient,
+          watch: watch,
           retain: false,
         );
         return _serveFresh(key, instance);
@@ -1386,11 +1398,13 @@ final class CobaltScope implements CobaltResolver {
           );
         }
         return _tracker.guard(key, () {
+          final watch = Stopwatch()..start();
           final instance = registration.factory.create(this, param);
           _afterCreate(
             instance,
             key,
             kind: CobaltRegistrationKind.parameterized,
+            watch: watch,
             retain: false,
           );
           return _serveFresh(key, instance);
@@ -1404,6 +1418,7 @@ final class CobaltScope implements CobaltResolver {
             param.runtimeType,
           );
         }
+        final watch = Stopwatch()..start();
         final instance = await CobaltResolutionTracker.guardLazy(
           key,
           () => registration.factory.create(this, param),
@@ -1412,6 +1427,7 @@ final class CobaltScope implements CobaltResolver {
           instance,
           key,
           kind: CobaltRegistrationKind.asyncParameterized,
+          watch: watch,
           retain: false,
         );
         return _serveFresh(key, instance);
@@ -1468,6 +1484,7 @@ final class CobaltScope implements CobaltResolver {
     );
 
     CobaltResolutionTracker.guardLazy(registration.key, () async {
+      final watch = Stopwatch()..start();
       final instance = await registration.factory.create(this);
       if (_state == CobaltScopeState.disposing ||
           _state == CobaltScopeState.disposed) {
@@ -1486,6 +1503,7 @@ final class CobaltScope implements CobaltResolver {
         instance,
         registration.key,
         kind: CobaltRegistrationKind.lazyAsyncSingleton,
+        watch: watch,
         retain: true,
         teardown: registration.teardown,
       );
@@ -1529,6 +1547,7 @@ final class CobaltScope implements CobaltResolver {
 
   Future<void> _createAsync(AsyncSingletonRegistration registration) =>
       _tracker.guardAsync(registration.key, () async {
+        final watch = Stopwatch()..start();
         final instance = await CobaltResolutionTracker.inPhaseOne(
           this,
           () => registration.factory.create(this),
@@ -1539,6 +1558,7 @@ final class CobaltScope implements CobaltResolver {
           instance,
           registration.key,
           kind: CobaltRegistrationKind.asyncSingleton,
+          watch: watch,
           retain: true,
           teardown: registration.teardown,
         );
@@ -1573,18 +1593,31 @@ final class CobaltScope implements CobaltResolver {
     return current;
   }
 
+  /// [watch] was started just before the factory was called; it is read
+  /// after `@injected` fields are filled, which is part of the build.
   void _afterCreate(
     Object instance,
     CobaltKey key, {
     required CobaltRegistrationKind kind,
+    required Stopwatch watch,
     required bool retain,
     CobaltTeardown? teardown,
   }) {
     if (instance is CobaltInjectable) instance.onInject(this);
+    final took = watch.elapsed;
     if (retain) _own(instance, teardown: teardown);
     _notify(
       (observer) =>
           observer.onInstanceCreated(ref, key, kind: kind, retained: retain),
+    );
+    _notify(
+      (observer) => observer.onInstanceBuilt(
+        ref,
+        key,
+        kind: kind,
+        retained: retain,
+        took: took,
+      ),
     );
   }
 

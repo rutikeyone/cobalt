@@ -1,4 +1,5 @@
 import 'package:cobalt_flutter/cobalt_flutter.dart';
+import 'package:cobalt_inspector/src/cobalt_inspector_log.dart';
 import 'package:cobalt_inspector/src/registration_detail_sheet.dart';
 import 'package:cobalt_inspector/src/registration_view.dart';
 import 'package:cobalt_inspector/src/theme/cobalt_inspector_theme.dart';
@@ -20,10 +21,13 @@ import 'package:flutter/material.dart';
 /// to reach every node at once.
 class ScopeTreeView extends StatefulWidget {
   /// Shows the tree rooted at [root].
-  const ScopeTreeView({required this.root, super.key});
+  const ScopeTreeView({required this.root, this.log, super.key});
 
   /// The scope to render, along with everything under it.
   final CobaltScope root;
+
+  /// Where a registration's sheet looks up how long its last build took.
+  final CobaltInspectorLog? log;
 
   @override
   State<ScopeTreeView> createState() => _ScopeTreeViewState();
@@ -85,6 +89,7 @@ class _ScopeTreeViewState extends State<ScopeTreeView> {
                 for (final scope in nodes)
                   _ScopeNode(
                     scope: scope,
+                    log: widget.log,
                     theme: theme,
                     query: _query,
                     isCollapsed: _collapsed.contains(_id(scope)),
@@ -116,9 +121,11 @@ class _ScopeNode extends StatelessWidget {
     required this.query,
     required this.isCollapsed,
     required this.onToggle,
+    this.log,
   });
 
   final CobaltScope scope;
+  final CobaltInspectorLog? log;
   final CobaltInspectorThemeData theme;
   final String query;
   final bool isCollapsed;
@@ -183,6 +190,7 @@ class _ScopeNode extends StatelessWidget {
           if (!isCollapsed)
             for (final registration in shown)
               _RegistrationTile(
+                log: log,
                 scope: scope,
                 registration: registration,
                 theme: theme,
@@ -226,9 +234,11 @@ class _RegistrationTile extends StatelessWidget {
     required this.scope,
     required this.registration,
     required this.theme,
+    this.log,
   });
 
   final CobaltScope scope;
+  final CobaltInspectorLog? log;
   final RegistrationView registration;
   final CobaltInspectorThemeData theme;
 
@@ -243,6 +253,7 @@ class _RegistrationTile extends StatelessWidget {
         child: RegistrationDetailSheet(
           scope: scope,
           registration: registration,
+          log: log,
         ),
       ),
     ),
