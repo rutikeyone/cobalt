@@ -888,6 +888,26 @@ not, and becomes `scope.decorateAll<ApiClient>(...)`. It cannot be combined with
 least one registration of the type wherever it is active, and competes for `order:` with the
 decorators of each registration it wraps.
 
+
+**Hooks.** `@cobaltHookAll` on a class that implements `CobaltHook<T>` adds it to the generated root
+scope — `scope.hookAll<T>(...)`, emitted before every registration so an eager one already passes
+through it. It runs on every `T` the graph builds, whichever registration built it, and cannot
+replace it (see Manual Mode, section 3, for why a decorator cannot do that). The class needs a
+constructor without required parameters — hooks are added before anything is built, so there is
+nothing to inject yet; it resolves what it needs from the `resolver` its `onBuilt` receives. Several
+are added by `order:`, then by class name; `@CobaltEnvironment` restricts one like any registration.
+
+```dart
+@cobaltHookAll
+class JoinRegistry implements CobaltHook<Loggable> {
+  const JoinRegistry();
+
+  @override
+  void onBuilt(Loggable instance, CobaltResolver resolver) =>
+      resolver.get<LogRegistry>().add(instance);
+}
+```
+
 ---
 
 ## 15. One graph, several builds

@@ -7,12 +7,14 @@ import 'package:matcher/expect.dart' show fail;
 
 /// What [scope] and the scopes below it register, as text.
 ///
-/// One block per scope, nested as the tree is; inside each, the keys that
-/// scope registers itself, sorted, with their kind, whether an override
-/// stands in for them and what decorates them, innermost first:
+/// One block per scope, nested as the tree is; inside each, the hooks added
+/// to it, when there are any, then the keys that scope registers itself,
+/// sorted, with their kind, whether an override stands in for them and what
+/// decorates them, innermost first:
 ///
 /// ```text
 /// scope "app"
+///   hooks: JoinRegistry on Loggable
 ///   ApiClient — lazySingleton, decorated: Retrying → Logging
 ///   Clock — singleton, overridden
 ///   scope "session"
@@ -30,6 +32,9 @@ String describeGraph(CobaltScope scope) {
   final lines = <String>[];
   void describe(CobaltScope scope, String indent) {
     lines.add('${indent}scope "${scope.name}"');
+    if (scope.debugHooks case final hooks when hooks.isNotEmpty) {
+      lines.add('$indent  hooks: ${hooks.join(', ')}');
+    }
     final keys = scope.keys.toList()..sort((a, b) => '$a'.compareTo('$b'));
     for (final key in keys) {
       final facts = [

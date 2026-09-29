@@ -144,19 +144,40 @@ CobaltDecoratorClass decorator(
   ],
 );
 
+/// An `@CobaltHookAll` class implementing `CobaltHook<target>`.
+CobaltHookClass hook(
+  String type,
+  String target, {
+  int order = 0,
+  Set<String> environments = const {},
+}) => CobaltHookClass(
+  type: ref(type),
+  target: ref(target),
+  order: order,
+  environments: environments,
+);
+
 String generate(
   List<CobaltInjectableClass> injectables, {
   List<CobaltBootstrapStepClass> bootstrap = const [],
   List<CobaltScopeRootClass> scopeRoots = const [],
   List<CobaltDecoratorClass> decorators = const [],
+  List<CobaltHookClass> hooks = const [],
 }) => const ContainerSourceEmitter().emit(
   CobaltLibraryDeclarations(
     injectables: injectables,
     bootstrapSteps: bootstrap,
     scopeRoots: scopeRoots,
     decorators: decorators,
+    hooks: hooks,
   ),
 );
+
+/// Every `scope.hookAll` statement, each joined onto one line.
+List<String> hooksOf(String source) => [
+  for (final match in RegExp(r'scope\.hookAll<[^;]*;').allMatches(source))
+    match.group(0)!.replaceAll(RegExp(r'\s+'), ' ').replaceAll('( ', '('),
+];
 
 /// Every `scope.decorate` and `scope.decorateAll` statement, each joined onto
 /// one line however the formatter wrapped it.

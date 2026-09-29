@@ -5,6 +5,7 @@ import 'package:cobalt/src/decorator/cobalt_decorator.dart';
 import 'package:cobalt/src/errors/cobalt_async_param_error.dart';
 import 'package:cobalt/src/errors/cobalt_async_transient_error.dart';
 import 'package:cobalt/src/errors/cobalt_decorator_error.dart';
+import 'package:cobalt/src/errors/cobalt_hook_error.dart';
 import 'package:cobalt/src/errors/cobalt_depends_on_error.dart';
 import 'package:cobalt/src/errors/cobalt_dispose_error.dart';
 import 'package:cobalt/src/errors/cobalt_dispose_failure.dart';
@@ -24,6 +25,7 @@ import 'package:cobalt/src/factory/cobalt_async_param_factory.dart';
 import 'package:cobalt/src/factory/cobalt_factory.dart';
 import 'package:cobalt/src/factory/cobalt_param_factory.dart';
 import 'package:cobalt/src/graph/topological_sort.dart';
+import 'package:cobalt/src/hook/cobalt_hook.dart';
 import 'package:cobalt/src/key/cobalt_key.dart';
 import 'package:cobalt/src/lifecycle/cobalt_injectable.dart';
 import 'package:cobalt/src/lifecycle/cobalt_resolver.dart';
@@ -114,6 +116,14 @@ final class CobaltScope extends CobaltResolver {
 
   final _decorators = <CobaltKey, List<_Decoration>>{};
   final _typeDecorators = <Type, List<_Decoration>>{};
+
+  /// Hooks added here, in the order they were added. Every scope below runs
+  /// them too, after its ancestors' and before its own.
+  final _hooks = <_Hook>[];
+
+  /// Whether this scope has built anything, so a hook added now would have
+  /// missed it.
+  var _hasBuilt = false;
   var _decorationOrder = 0;
   final _decorated = <CobaltKey, Object>{};
   final _served = <CobaltKey>{};
@@ -205,6 +215,15 @@ final class CobaltScope extends CobaltResolver {
     for (final decoration
         in _lookup(key)?.scope._decorationsOf(key) ?? const <_Decoration>[])
       decoration.label,
+  ];
+
+  /// The hooks added to this scope itself, in the order they run, each as
+  /// `Label on Type`; empty when none were.
+  ///
+  /// A scope below runs these too, after its ancestors' and before its own,
+  /// so the whole set for a scope is its ancestors' lists and then this one.
+  List<String> get debugHooks => [
+    for (final hook in _hooks) '${hook.label} on ${hook.type}',
   ];
 
   /// Resolves [key] without naming its type, or null when nothing registers it.
@@ -434,6 +453,52 @@ final class CobaltScope extends CobaltResolver {
         _decorationOrder++,
       ),
     );
+  }
+
+  /// Runs [hook] on every [T] this scope — or any scope below it — builds,
+  /// and hands the instance on unchanged.
+  ///
+  /// For what belongs to a supertype rather than to a registration: every
+  /// `Loggable` joining a registry, every `Metered` getting its meter. A
+  /// decorator cannot do that: it must return what the registration promised,
+  /// and a wrapper of `Loggable` is not the `Api` the `Api` registration
+  /// promised. So a hook gets the instance and returns nothing.
+  ///
+  /// It sees what a factory built — every kind of registration, the
+  /// instance before any decorator wraps it — and not a value handed over
+  /// ready-made with [registerSingleton]. Hooks run once the instance is
+  /// built and taken, before anyone receives it: an ancestor's before this
+  /// scope's, each scope's in the order they were added. One that throws
+  /// fails the call that asked, as a throwing `@injected` field does: the
+  /// instance has been built, and a singleton stays built.
+  ///
+  /// Throws [CobaltHookError] once this scope or one below it has built
+  /// anything, since those instances would never pass through it. Add hooks
+  /// where the scope is composed.
+  void hookAll<T extends Object>(CobaltHook<T> hook, {String? debugLabel}) {
+    _assertUsable();
+    if (_builtInSubtree) throw CobaltHookError.late(T, name);
+    _hooks.add(
+      _Hook(
+        debugLabel ?? '${hook.runtimeType}',
+        T,
+        (instance) => instance is T,
+        (instance, resolver) => hook.onBuilt(instance as T, resolver),
+      ),
+    );
+  }
+
+  bool get _builtInSubtree =>
+      _hasBuilt || _children.any((child) => child._builtInSubtree);
+
+  /// Runs the hooks of [scope] and its ancestors, outermost first, on
+  /// [instance], which this scope built.
+  void _runHooks(CobaltScope scope, Object instance) {
+    final parent = scope.parent;
+    if (parent != null) _runHooks(parent, instance);
+    for (final hook in scope._hooks) {
+      if (hook.matches(instance)) hook.run(instance, this);
+    }
   }
 
   /// What wraps [key] in this scope, innermost first: the decorators added
@@ -1200,6 +1265,7 @@ final class CobaltScope extends CobaltResolver {
     _registrations.clear();
     _decorators.clear();
     _typeDecorators.clear();
+    _hooks.clear();
     _decorated.clear();
     _initFuture = null;
     parent?._children.remove(this);
@@ -1619,6 +1685,8 @@ final class CobaltScope extends CobaltResolver {
         took: took,
       ),
     );
+    _hasBuilt = true;
+    _runHooks(this, instance);
   }
 
   /// Erases the caller's typed callback down to what a registration can hold.
@@ -1730,6 +1798,21 @@ final class CobaltScope extends CobaltResolver {
 
   @override
   String toString() => 'CobaltScope($name, $_state)';
+}
+
+/// A hook with its type erased to what a scope can store.
+class _Hook {
+  _Hook(this.label, this.type, this.matches, this.run);
+
+  final String label;
+
+  /// What it runs on.
+  final Type type;
+
+  /// Whether an instance is of the hook's type.
+  final bool Function(Object instance) matches;
+
+  final void Function(Object instance, CobaltResolver resolver) run;
 }
 
 /// A decorator with its type erased to what a scope can store.

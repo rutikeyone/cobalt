@@ -110,6 +110,11 @@ What the build checks:
 type wherever it is active, and competes for `order:` with the decorators of each registration it
 wraps.
 
+`@cobaltHookAll` on a class that implements `CobaltHook<T>` is emitted as `scope.hookAll<T>(...)` in the
+root scope, ahead of every registration so an eager one passes through it too. The class needs a
+constructor without required parameters — nothing is built yet when hooks are added — and resolves
+what it needs in `onBuilt`. Several are added by `order:`, then by class name.
+
 An async class that resolves a decorated registration during phase 1 also waits for the async
 dependencies of the decorator — the generator adds them to that class's `dependsOn`. The wait sits
 on the consumer rather than the target, so an override of the target does not take it away.

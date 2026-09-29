@@ -73,6 +73,7 @@ graph.
 | **Optional dependencies** | `Foo?` resolves through `getOrNull` and injects null instead of failing the build |
 | **Modules** | register types you did not write — a client from another package, a value the SDK hands you |
 | **Decorators** | wrap what a registration hands out — logging, retries, a cache — without touching its class, by hand or with `@CobaltDecorates`; one registration or every registration of a type |
+| **Hooks** | see every instance of a supertype the graph builds — each `Loggable` joining a registry — whichever registration built it, by hand or with `@cobaltHookAll`; unlike a decorator, it cannot replace the instance |
 | **Environments** | one abstraction, a different implementation per build, with overlaps rejected at build time |
 | **Named and multi-injection** | `@Named` qualifiers and `getAll<T>()` over every registration of a type |
 | **Observability** | typed events, not strings — logging, structured intake and crash reports with a trail |

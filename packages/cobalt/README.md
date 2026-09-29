@@ -301,6 +301,17 @@ ancestor that owns it. `debugDecoratorsOf(key)` lists what wraps a key, innermos
 including one registered later. It shares one order with `decorate` — whatever wraps a key applies
 in the order it was added — and is refused in the same situations.
 
+## Hooks
+
+A decorator has to return what its registration promised, so it cannot reach everything that is a
+`Loggable`. A hook can: `hookAll<Loggable>(hook)` runs `hook.onBuilt(instance, resolver)` on every
+`Loggable` the scope, or any scope below it, builds — whichever registration built it — and hands the
+instance on unchanged. It sees what the factory made, before decorators, for every kind of
+registration; not a value handed over with `registerSingleton`. Ancestors' hooks run first, then the
+scope's own in the order added. Adding one after the scope, or a scope below, has built anything
+throws `CobaltHookError`. `debugHooks` lists a scope's own; `@cobaltHookAll` in `cobalt_generator`
+writes the call from an annotation.
+
 ## Optional dependencies
 
 `scope.getOrNull<T>()` returns null when nothing is registered for `T`, instead of throwing. It is

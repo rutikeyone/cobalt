@@ -17,6 +17,7 @@ export 'package:cobalt_annotations/cobalt_annotations.dart' show CobaltLifetime;
 
 export 'package:cobalt_analyzer/src/model/bootstrap_step_class.dart';
 export 'package:cobalt_analyzer/src/model/decorator_class.dart';
+export 'package:cobalt_analyzer/src/model/hook_class.dart';
 export 'package:cobalt_analyzer/src/model/function_ref.dart';
 export 'package:cobalt_analyzer/src/model/injectable_class.dart';
 export 'package:cobalt_analyzer/src/model/injected_property.dart';
@@ -31,6 +32,7 @@ export 'package:cobalt_analyzer/src/parser/annotation_matcher.dart';
 export 'package:cobalt_analyzer/src/parser/bootstrap_parser.dart';
 export 'package:cobalt_analyzer/src/parser/dart_object_reader.dart';
 export 'package:cobalt_analyzer/src/parser/decorator_parser.dart';
+export 'package:cobalt_analyzer/src/parser/hook_parser.dart';
 export 'package:cobalt_analyzer/src/parser/injectable_parser.dart';
 export 'package:cobalt_analyzer/src/parser/module_parser.dart';
 export 'package:cobalt_analyzer/src/parser/parse_error.dart';

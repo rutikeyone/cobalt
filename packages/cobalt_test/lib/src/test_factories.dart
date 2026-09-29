@@ -89,3 +89,18 @@ class FnDecorator<T extends Object> implements CobaltDecorator<T> {
   @override
   T decorate(T inner, CobaltResolver resolver) => wrap(inner, resolver);
 }
+
+/// A [CobaltHook] built from a function.
+///
+/// The sibling of [FnDecorator] for `CobaltScope.hookAll`, so a test that
+/// only wants to see what gets built need not declare a class for it.
+class FnHook<T extends Object> implements CobaltHook<T> {
+  /// Creates a hook that calls [see].
+  const FnHook(this.see);
+
+  /// Called with every instance of [T] the scope builds.
+  final void Function(T instance, CobaltResolver resolver) see;
+
+  @override
+  void onBuilt(T instance, CobaltResolver resolver) => see(instance, resolver);
+}

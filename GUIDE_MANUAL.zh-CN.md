@@ -272,6 +272,30 @@ scope.decorateAll<ApiClient>(const LoggingApi());
 不论是为这个键添加的还是为它的类型添加的。它在同样两种情况下被拒绝——该类型的某个键已经被解析过，
 或者作用域根本没有注册该类型的任何键。
 
+
+装饰器必须交回它的注册所承诺的东西，因此它够不到"一切是 `Loggable` 的东西"：包装 `Loggable` 的对象并不是
+`Api` 注册向调用方承诺的那个 `Api`。为此有钩子（hook）。它能看到作用域——或它下面的任何作用域——构建的
+每一个该类型的实例，不论由哪条注册构建，并原样交出：
+
+```dart
+class JoinRegistry implements CobaltHook<Loggable> {
+  const JoinRegistry();
+
+  @override
+  void onBuilt(Loggable instance, CobaltResolver resolver) =>
+      resolver.get<LogRegistry>().add(instance);
+}
+
+scope.hookAll<Loggable>(const JoinRegistry());
+```
+
+它在实例构建完成并被作用域接管之后、任何人拿到之前运行，看到的是工厂造出的对象——在装饰器包装之前——并且
+适用于各种注册，包括 eager 和异步的；用 `registerSingleton` 交进来的值不是在这里构建的，不会经过钩子。
+祖先的钩子先于作用域自己的运行，同一作用域内按添加顺序，`resolver` 是构建该实例的作用域。抛出异常的钩子
+会让请求它的那次调用失败，就像抛出异常的 `@injected` 字段一样。在作用域或其下面的作用域已经构建过东西之后
+再添加钩子会被 `CobaltHookError` 拒绝——它会漏掉那些实例——所以请在组装作用域的地方、在任何 eager 注册之前
+添加钩子。
+
 ## 4. 启动 Flutter 应用
 
 根作用域由 `CobaltAppScope` 持有：构建图、发布到 widget 树、卸载时销毁，

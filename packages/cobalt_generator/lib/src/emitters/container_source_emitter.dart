@@ -44,6 +44,14 @@ class ContainerSourceEmitter {
         return byTarget != 0 ? byTarget : a.type.name.compareTo(b.type.name);
       });
 
+    // Added first, before any eager registration builds something, and in a
+    // fixed order: by `order`, then by class name.
+    final hooks = [...declarations.hooks]
+      ..sort((a, b) {
+        final byOrder = a.order.compareTo(b.order);
+        return byOrder != 0 ? byOrder : a.type.name.compareTo(b.type.name);
+      });
+
     final keysByType = _keysByType(injectables, declarations.scopeRoots);
 
     _assertNoEnvironmentConflicts(injectables);
@@ -78,7 +86,8 @@ class ContainerSourceEmitter {
     final hasBootstrap = declarations.bootstrapSteps.isNotEmpty;
     final scopeUsesEnvironments =
         injectables.any((declaration) => declaration.environments.isNotEmpty) ||
-        decorators.any((decorator) => decorator.environments.isNotEmpty);
+        decorators.any((decorator) => decorator.environments.isNotEmpty) ||
+        hooks.any((hook) => hook.environments.isNotEmpty);
     final bootstrapUsesEnvironments = declarations.bootstrapSteps.any(
       (step) => step.environments.isNotEmpty,
     );
@@ -93,19 +102,22 @@ class ContainerSourceEmitter {
             _factories.emit(declaration, names, awaited: lazyKeys),
           for (final decorator in decorators)
             _decorators.emit(decorator, names),
-          if (ordered.isNotEmpty || decorators.isNotEmpty)
+          if (ordered.isNotEmpty || decorators.isNotEmpty || hooks.isNotEmpty)
             _rootScope.emit(
               _ordered(ordered, decorators, keysByType),
               names,
               usesEnvironments: scopeUsesEnvironments,
               decorators: decorators,
+              hooks: hooks,
             ),
           if (hasBootstrap)
             _bootstrap.emit(
               declarations.bootstrapSteps,
               usesEnvironments: bootstrapUsesEnvironments,
             ),
-          if (injectables.isNotEmpty || decorators.isNotEmpty) ...[
+          if (injectables.isNotEmpty ||
+              decorators.isNotEmpty ||
+              hooks.isNotEmpty) ...[
             _start.emitName(scopeName),
             _start.emitStart(
               hasBootstrap: hasBootstrap,

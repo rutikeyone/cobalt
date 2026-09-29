@@ -25,3 +25,4 @@ export 'package:cobalt_external_consumer/src/session_cache.dart';
 export 'package:cobalt_external_consumer/src/snapshot.dart';
 export 'package:cobalt_external_consumer/src/system_clock.dart';
 export 'package:cobalt_external_consumer/src/telemetry.dart';
+export 'package:cobalt_external_consumer/src/traced.dart';

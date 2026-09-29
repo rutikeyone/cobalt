@@ -26,6 +26,8 @@ cobalt  CobaltErrorReport  final class
 cobalt  CobaltErrorSink  abstract interface class
 cobalt  CobaltEventKind  enum
 cobalt  CobaltFactory  abstract interface class
+cobalt  CobaltHook  abstract interface class
+cobalt  CobaltHookError  final class
 cobalt  CobaltInjectable  abstract interface class
 cobalt  CobaltKey  final class
 cobalt  CobaltLazyAsyncError  final class
@@ -62,6 +64,8 @@ cobalt_analyzer  CobaltDartObject  extension
 cobalt_analyzer  CobaltDecoratorClass  class
 cobalt_analyzer  CobaltDecoratorParser  class
 cobalt_analyzer  CobaltFunctionRef  class
+cobalt_analyzer  CobaltHookClass  class
+cobalt_analyzer  CobaltHookParser  class
 cobalt_analyzer  CobaltInjectableClass  class
 cobalt_analyzer  CobaltInjectableParser  class
 cobalt_analyzer  CobaltInjectedProperty  class
@@ -77,6 +81,7 @@ cobalt_analyzer  CobaltTypeRef  class
 cobalt_annotations  CobaltBootstrap  class
 cobalt_annotations  CobaltDecorates  class
 cobalt_annotations  CobaltEnvironment  class
+cobalt_annotations  CobaltHookAll  class
 cobalt_annotations  CobaltInit  class
 cobalt_annotations  CobaltInject  class
 cobalt_annotations  CobaltLifetime  enum
@@ -144,5 +149,6 @@ cobalt_test  CobaltTestScope  extension
 cobalt_test  DisposeRecorder  class
 cobalt_test  FnDecorator  class
 cobalt_test  FnFactory  class
+cobalt_test  FnHook  class
 cobalt_test  FnParamFactory  class
 cobalt_test  ValueFactory  class

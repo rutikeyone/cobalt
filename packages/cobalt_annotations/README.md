@@ -19,6 +19,7 @@ re-exports everything here.
 | `@cobaltLazyInit` | class | shorthand for `@CobaltInit(lazy: true)` |
 | `@CobaltModule` / `@cobaltModule` | class | its annotated members register types you do not own |
 | `@CobaltDecorates` | class | wraps what the registration of its target hands out; `name` and `order` among several |
+| `@CobaltHookAll` / `@cobaltHookAll` | class | a `CobaltHook<T>` the root scope runs on every `T` it builds; `order` among several |
 | `@CobaltScopeRoot` | class | names the root scope; `provides` declares registrations made by hand |
 | `CobaltProvided` | inside `provides` | a hand-made registration that carries a `@Named` qualifier |
 | `@CobaltEnvironment` | class | optional — restricts the registration to an environment; repeat it for several |

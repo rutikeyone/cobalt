@@ -63,6 +63,21 @@ scope "app"
       expect(built, 0, reason: 'describing a graph builds nothing');
     });
 
+    test('shows the hooks each scope adds, above its keys', () {
+      final app = cobaltTestRoot(name: 'app')
+        ..hookAll<Api>(FnHook((_, _) {}), debugLabel: 'Audit')
+        ..registerLazySingleton<Api>(FnFactory((_) => RealApi()));
+      app.push('session').hookAll<Object>(const _NoHook<Object>());
+
+      expect(describeGraph(app), '''
+scope "app"
+  hooks: Audit on Api
+  Api — lazySingleton
+  scope "session"
+    hooks: _NoHook<Object> on Object
+''');
+    });
+
     test('an async registration is described without init', () {
       final app = cobaltTestRoot(name: 'app')
         ..registerAsyncSingleton<Clock>(
@@ -136,4 +151,11 @@ scope "app"
       expect(File(path).existsSync(), isFalse);
     });
   });
+}
+
+final class _NoHook<T extends Object> implements CobaltHook<T> {
+  const _NoHook();
+
+  @override
+  void onBuilt(T instance, CobaltResolver resolver) {}
 }

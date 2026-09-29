@@ -27,6 +27,7 @@ import 'package:cobalt_external_consumer/src/session_cache.dart' as _i995;
 import 'package:cobalt_external_consumer/src/snapshot.dart' as _i1062;
 import 'package:cobalt_external_consumer/src/system_clock.dart' as _i271;
 import 'package:cobalt_external_consumer/src/telemetry.dart' as _i186;
+import 'package:cobalt_external_consumer/src/traced.dart' as _i160;
 
 typedef $DocumentArgs = ({int id});
 typedef $NoteEditorArgs = ({int id, String title, bool draft});
@@ -265,6 +266,27 @@ final class _SnapshotFactory
   }
 }
 
+final class _BuiltLogFactory implements _i573.CobaltFactory<_i160.BuiltLog> {
+  const _BuiltLogFactory();
+
+  @override
+  _i160.BuiltLog create(_i573.CobaltResolver resolver) => _i160.BuiltLog();
+}
+
+final class _LedgerFactory implements _i573.CobaltFactory<_i160.Ledger> {
+  const _LedgerFactory();
+
+  @override
+  _i160.Ledger create(_i573.CobaltResolver resolver) => _i160.Ledger();
+}
+
+final class _ReceiptFactory implements _i573.CobaltFactory<_i160.Receipt> {
+  const _ReceiptFactory();
+
+  @override
+  _i160.Receipt create(_i573.CobaltResolver resolver) => _i160.Receipt();
+}
+
 final class _AuditedDatabaseDecorator
     implements _i573.CobaltDecorator<_i530.Database> {
   const _AuditedDatabaseDecorator();
@@ -292,6 +314,7 @@ final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
 
   @override
   void build(_i573.CobaltScope scope) {
+    scope.hookAll<_i160.Traced>(_i160.LogTraced(), debugLabel: 'LogTraced');
     scope.registerAsyncSingleton<_i604.AuditSink>(const _AuditSinkFactory());
     scope.registerLazySingleton<_i612.Clock>(const _SystemClockFactory());
     scope.registerEagerSingleton<_i1023.LicenseCheck>(
@@ -311,6 +334,9 @@ final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
       const _SessionCacheFactory(),
       dispose: _i995.closeSessionCache,
     );
+    scope.registerLazySingleton<_i160.BuiltLog>(const _BuiltLogFactory());
+    scope.registerLazySingleton<_i160.Ledger>(const _LedgerFactory());
+    scope.registerFactory<_i160.Receipt>(const _ReceiptFactory());
     scope.registerAsyncSingleton<_i720.AuditTrail>(
       const _AuditTrailFactory(),
       dependsOn: {const _i573.CobaltKey(_i604.AuditSink)},

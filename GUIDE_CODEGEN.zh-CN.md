@@ -841,6 +841,24 @@ class LoggingApi implements ApiClient {
 `scope.decorateAll<ApiClient>(...)`。它不能与 `name:` 一起用，在它生效的每处都至少要有该类型的一条注册，
 并与它所包装的每条注册的装饰器一起竞争 `order:`。
 
+
+**钩子。** 在实现 `CobaltHook<T>` 的类上加 `@cobaltHookAll`，会把它加进生成的根作用域——
+`scope.hookAll<T>(...)`，生成在所有注册之前，因此 eager 注册也会经过它。它在图构建的每一个 `T` 上运行，
+不论由哪条注册构建，而且不能替换实例（装饰器为什么做不到，见 Manual Mode 第 3 节）。这个类需要一个
+没有必填参数的构造函数：钩子在任何东西构建之前就被添加，还没有东西可注入；它需要的东西从 `onBuilt`
+收到的 `resolver` 中解析。多个钩子按 `order:` 添加，再按类名；`@CobaltEnvironment` 像限制任何注册一样限制它。
+
+```dart
+@cobaltHookAll
+class JoinRegistry implements CobaltHook<Loggable> {
+  const JoinRegistry();
+
+  @override
+  void onBuilt(Loggable instance, CobaltResolver resolver) =>
+      resolver.get<LogRegistry>().add(instance);
+}
+```
+
 ---
 
 ## 15. 一张图，多种构建

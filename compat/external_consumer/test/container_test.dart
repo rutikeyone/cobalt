@@ -335,6 +335,18 @@ void main() {
     });
   });
 
+  group('a hook generated outside the workspace', () {
+    test('sees every Traced build, whichever registration made it', () {
+      scope
+        ..get<Ledger>()
+        ..get<Ledger>()
+        ..get<Receipt>()
+        ..get<Receipt>();
+
+      expect(scope.get<BuiltLog>().entries, ['Ledger', 'Receipt', 'Receipt']);
+    });
+  });
+
   group('overrides handed to the generated start function', () {
     test('an eager singleton is built by the scope at startup', () {
       expect(scope.get<LicenseCheck>(), isNot(isA<_ValidLicense>()));

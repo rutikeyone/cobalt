@@ -12,3 +12,4 @@ const environmentMatcher = CobaltAnnotationMatcher('CobaltEnvironment');
 const scopeRootMatcher = CobaltAnnotationMatcher('CobaltScopeRoot');
 const moduleMatcher = CobaltAnnotationMatcher('CobaltModule');
 const decoratesMatcher = CobaltAnnotationMatcher('CobaltDecorates');
+const hookAllMatcher = CobaltAnnotationMatcher('CobaltHookAll');

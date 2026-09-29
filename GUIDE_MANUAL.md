@@ -278,6 +278,33 @@ It wraps the registrations of the type added before it and after it, and shares 
 or for its type. It is refused in the same two situations — a key of the type already resolved, or
 a scope that registers no key of the type at all.
 
+
+A decorator must hand back what its registration promised, so it cannot reach "everything that is a
+`Loggable`": a wrapper of `Loggable` is not the `Api` the `Api` registration promised its callers.
+For that there is a hook. It sees every instance of its type that the scope — or any scope below it —
+builds, whichever registration built it, and hands it on unchanged:
+
+```dart
+class JoinRegistry implements CobaltHook<Loggable> {
+  const JoinRegistry();
+
+  @override
+  void onBuilt(Loggable instance, CobaltResolver resolver) =>
+      resolver.get<LogRegistry>().add(instance);
+}
+
+scope.hookAll<Loggable>(const JoinRegistry());
+```
+
+It runs once the instance is built and taken, before anyone receives it, on what the factory made —
+before any decorator wraps it — and for every kind of registration, eager and async included; a value
+handed over with `registerSingleton` was not built here and does not pass through. An ancestor's hooks
+run before the scope's own, each scope's in the order they were added, and `resolver` is the scope
+that built the instance. One that throws fails the call that asked, as a throwing `@injected` field
+does. A hook added after the scope, or one below it, has built anything is refused with
+`CobaltHookError` — it would have missed those — so add hooks where the scope is composed, ahead of
+any eager registration.
+
 ## 4. Starting a Flutter app
 
 `CobaltAppScope` owns the root: it builds the graph, publishes it to the tree, disposes it on unmount,
