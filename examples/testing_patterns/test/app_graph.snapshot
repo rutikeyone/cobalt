@@ -1,0 +1,4 @@
+scope "app"
+  Clock — lazySingleton
+  Greeter — lazySingleton
+  GreetingStore — lazySingleton

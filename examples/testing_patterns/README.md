@@ -41,6 +41,16 @@ final scope = app.push('test')
 
 Rule of thumb: **override at or above the level you resolve from.**
 
+## Keeping the graph's shape
+
+`test/graph_snapshot_test.dart` compares the production graph with
+`test/app_graph.snapshot`. A registration added or a lifetime changed fails it
+with a diff, so the change is looked at in review. Accept one with:
+
+```bash
+COBALT_UPDATE_SNAPSHOTS=1 flutter test test/graph_snapshot_test.dart
+```
+
 ## Two more things worth knowing
 
 **Build the graph in `setUp`, not inside `testWidgets`.** `testWidgets` runs

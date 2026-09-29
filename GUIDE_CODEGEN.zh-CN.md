@@ -1089,6 +1089,31 @@ await expectGraphResolves(scope);
 await expectGraphResolves(scope, params: {CobaltKey(Greeting): (name: 'x', loud: false)});
 ```
 
+### 图的形状
+
+生成器保证图的完整；快照显示的是它形状的变化——一个 `@cobaltTransient` 变成了惰性单例，就是一行变化。
+`describeGraph` 列出每个作用域的注册——种类、覆盖、装饰器——而不构建任何东西，`expectGraphSnapshot`
+把它与测试旁的文件比较：
+
+```dart
+test('the graph keeps its shape', () async {
+  final app = await cobaltTestScope(root: const AppScope(), rootName: 'app');
+  expectGraphSnapshot(app, 'test/app_graph.snapshot');
+});
+```
+
+```text
+scope "app"
+  Clock — lazySingleton
+  Greeter — lazySingleton
+  GreetingStore — lazySingleton, decorated: Logging
+```
+
+新增一条注册、改变生命周期或加上装饰器，都会让测试失败并给出 diff，于是这类变化在代码评审时就被看到，
+而不是在设备上才被发现。接受它就是重写文件——`COBALT_UPDATE_SNAPSHOTS=1 flutter test` 或 `update: true`——
+然后提交。尚不存在的快照同样会让测试失败，而不是被悄悄写出并通过：在 CI 里那样什么也没检查。读写文件需要
+文件系统；在 Web 上，请把 `describeGraph(scope)` 与字符串比较。
+
 ### 测试替身
 
 ```dart

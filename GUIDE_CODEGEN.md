@@ -1149,6 +1149,33 @@ name as `unchecked` rather than skipped in silence — hand it a sample to cover
 await expectGraphResolves(scope, params: {CobaltKey(Greeting): (name: 'x', loud: false)});
 ```
 
+### Keeping the graph's shape
+
+The generator keeps the graph complete; a snapshot is what shows a change in its shape — a
+`@cobaltTransient` that became a lazy singleton reads as one changed line. `describeGraph` renders
+each scope's registrations — kind, overrides, decorators — without building anything, and
+`expectGraphSnapshot` compares that with a file kept next to the tests:
+
+```dart
+test('the graph keeps its shape', () async {
+  final app = await cobaltTestScope(root: const AppScope(), rootName: 'app');
+  expectGraphSnapshot(app, 'test/app_graph.snapshot');
+});
+```
+
+```text
+scope "app"
+  Clock — lazySingleton
+  Greeter — lazySingleton
+  GreetingStore — lazySingleton, decorated: Logging
+```
+
+A registration added, a lifetime changed or a decorator added fails the test with a diff, so the
+change is read in review instead of discovered on a device. Accept it by rewriting the file —
+`COBALT_UPDATE_SNAPSHOTS=1 flutter test`, or `update: true` — and commit it. A snapshot that does not
+exist yet fails too, rather than being written and passing: in CI that would check nothing. Reading
+and writing the file need a file system; on the web, compare `describeGraph(scope)` with a string.
+
 ### Fixtures
 
 ```dart

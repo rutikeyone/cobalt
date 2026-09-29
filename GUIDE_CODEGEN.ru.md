@@ -1149,6 +1149,33 @@ await expectGraphResolves(scope);
 await expectGraphResolves(scope, params: {CobaltKey(Greeting): (name: 'x', loud: false)});
 ```
 
+### Форма графа
+
+Полноту графа держит генератор; снимок показывает изменение его формы — `@cobaltTransient`, ставший
+ленивым синглтоном, читается как одна изменённая строка. `describeGraph` выводит регистрации каждого
+скоупа — вид, подмены, декораторы, — ничего не строя, а `expectGraphSnapshot` сравнивает это с файлом
+рядом с тестами:
+
+```dart
+test('the graph keeps its shape', () async {
+  final app = await cobaltTestScope(root: const AppScope(), rootName: 'app');
+  expectGraphSnapshot(app, 'test/app_graph.snapshot');
+});
+```
+
+```text
+scope "app"
+  Clock — lazySingleton
+  Greeter — lazySingleton
+  GreetingStore — lazySingleton, decorated: Logging
+```
+
+Добавленная регистрация, изменённое время жизни или новый декоратор роняют тест с диффом, так что
+изменение читается на ревью, а не обнаруживается на устройстве. Принять его — значит перезаписать
+файл (`COBALT_UPDATE_SNAPSHOTS=1 flutter test` или `update: true`) и закоммитить. Снимок, которого
+ещё нет, тоже роняет тест, а не создаётся молча: в CI такой тест ничего бы не проверял. Чтению и
+записи файла нужна файловая система; в вебе сравнивайте `describeGraph(scope)` со строкой.
+
 ### Фикстуры
 
 ```dart

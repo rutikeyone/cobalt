@@ -80,6 +80,31 @@ Two things it cannot resolve, and says so rather than passing over them:
 Transients are built and disposed here, since the scope does not retain them. Async singletons have
 their owning scope initialised first.
 
+## Keeping the graph's shape
+
+`describeGraph(scope)` renders what each scope registers — kind, overrides, decorators — and builds
+nothing, so unlike `checkGraph` it is safe anywhere in a test. `expectGraphSnapshot` compares it with
+a file kept next to the tests:
+
+```dart
+test('the graph keeps its shape', () async {
+  final app = await cobaltTestScope(root: const AppScope(), rootName: 'app');
+  expectGraphSnapshot(app, 'test/app_graph.snapshot');
+});
+```
+
+```text
+scope "app"
+  Clock — lazySingleton
+  Greeter — lazySingleton
+  GreetingStore — lazySingleton, decorated: Logging
+```
+
+A change fails with a line diff. Rewrite the file with `COBALT_UPDATE_SNAPSHOTS=1` (or
+`update: true`) and commit it. A missing snapshot fails too, rather than being written and passing.
+The file part needs `dart:io` and is imported only where it exists, so the package keeps its web and
+WebAssembly support; there, compare `describeGraph` with a string.
+
 ## The rest
 
 - `DisposeRecorder` — records teardown order. **Its log belongs to the recorder, not to the

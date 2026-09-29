@@ -923,6 +923,32 @@ await expectGraphResolves(scope, params: {CobaltKey(Counter): 'alice'});
 Make this test part of the suite from the first day of a Manual Mode graph. It is what the other mode
 gets from the compiler.
 
+### Keeping the graph's shape
+
+Completeness says the graph resolves; a snapshot says it still looks the way it did.
+`describeGraph` renders each scope's registrations — kind, overrides, decorators — without building
+anything, and `expectGraphSnapshot` compares that with a file kept next to the tests:
+
+```dart
+test('the graph keeps its shape', () async {
+  final app = await cobaltTestScope(root: const AppScope(), rootName: 'app');
+  expectGraphSnapshot(app, 'test/app_graph.snapshot');
+});
+```
+
+```text
+scope "app"
+  Clock — lazySingleton
+  Greeter — lazySingleton
+  GreetingStore — lazySingleton, decorated: Logging
+```
+
+A registration added, a lifetime changed or a decorator added fails the test with a diff, so the
+change is read in review instead of discovered on a device. Accept it by rewriting the file —
+`COBALT_UPDATE_SNAPSHOTS=1 flutter test`, or `update: true` — and commit it. A snapshot that does not
+exist yet fails too, rather than being written and passing: in CI that would check nothing. Reading
+and writing the file need a file system; on the web, compare `describeGraph(scope)` with a string.
+
 ### Overriding
 
 Hand the replacement to the scope that owns the key. An override is registered first, when the scope

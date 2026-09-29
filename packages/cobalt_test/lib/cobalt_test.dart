@@ -10,5 +10,6 @@ export 'package:cobalt_test/src/cobalt_graph_report.dart';
 export 'package:cobalt_test/src/capturing_observer.dart';
 export 'package:cobalt_test/src/check_graph.dart';
 export 'package:cobalt_test/src/dispose_recorder.dart';
+export 'package:cobalt_test/src/graph_snapshot.dart';
 export 'package:cobalt_test/src/test_factories.dart';
 export 'package:cobalt_test/src/test_scopes.dart';

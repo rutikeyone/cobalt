@@ -888,6 +888,30 @@ await expectGraphResolves(scope, params: {CobaltKey(Counter): 'alice'});
 
 从 Manual Mode 图的第一天起就把这个测试放进测试集。它就是另一个模式从编译器那里免费得到的东西。
 
+### 图的形状
+
+完整性说明图能解析；快照说明它仍然是原来的样子。`describeGraph` 列出每个作用域的注册——种类、覆盖、装饰器——
+而不构建任何东西，`expectGraphSnapshot` 把它与测试旁的文件比较：
+
+```dart
+test('the graph keeps its shape', () async {
+  final app = await cobaltTestScope(root: const AppScope(), rootName: 'app');
+  expectGraphSnapshot(app, 'test/app_graph.snapshot');
+});
+```
+
+```text
+scope "app"
+  Clock — lazySingleton
+  Greeter — lazySingleton
+  GreetingStore — lazySingleton, decorated: Logging
+```
+
+新增一条注册、改变生命周期或加上装饰器，都会让测试失败并给出 diff，于是这类变化在代码评审时就被看到，
+而不是在设备上才被发现。接受它就是重写文件——`COBALT_UPDATE_SNAPSHOTS=1 flutter test` 或 `update: true`——
+然后提交。尚不存在的快照同样会让测试失败，而不是被悄悄写出并通过：在 CI 里那样什么也没检查。读写文件需要
+文件系统；在 Web 上，请把 `describeGraph(scope)` 与字符串比较。
+
 ### 覆盖依赖
 
 把替换交给拥有这个键的作用域。覆盖在作用域创建时最先注册，

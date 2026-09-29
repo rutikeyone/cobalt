@@ -928,6 +928,32 @@ await expectGraphResolves(scope, params: {CobaltKey(Counter): 'alice'});
 Заводите этот тест с первого дня графа в Manual Mode. Это то, что другой режим получает от
 компилятора.
 
+### Форма графа
+
+Полнота говорит, что граф резолвится; снимок — что он выглядит так же, как раньше. `describeGraph`
+выводит регистрации каждого скоупа — вид, подмены, декораторы, — ничего не строя, а
+`expectGraphSnapshot` сравнивает это с файлом рядом с тестами:
+
+```dart
+test('the graph keeps its shape', () async {
+  final app = await cobaltTestScope(root: const AppScope(), rootName: 'app');
+  expectGraphSnapshot(app, 'test/app_graph.snapshot');
+});
+```
+
+```text
+scope "app"
+  Clock — lazySingleton
+  Greeter — lazySingleton
+  GreetingStore — lazySingleton, decorated: Logging
+```
+
+Добавленная регистрация, изменённое время жизни или новый декоратор роняют тест с диффом, так что
+изменение читается на ревью, а не обнаруживается на устройстве. Принять его — значит перезаписать
+файл (`COBALT_UPDATE_SNAPSHOTS=1 flutter test` или `update: true`) и закоммитить. Снимок, которого
+ещё нет, тоже роняет тест, а не создаётся молча: в CI такой тест ничего бы не проверял. Чтению и
+записи файла нужна файловая система; в вебе сравнивайте `describeGraph(scope)` со строкой.
+
 ### Подмена
 
 Отдайте замену скоупу, которому принадлежит ключ. Override регистрируется первым, в момент создания
