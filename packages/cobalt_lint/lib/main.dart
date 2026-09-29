@@ -4,6 +4,7 @@
 /// generator uses, so the IDE and the build agree on what a declaration means.
 library;
 
+import 'package:cobalt_lint/src/rules/async_transient_read_synchronously.dart';
 import 'package:cobalt_lint/src/rules/bootstrap_requires_run_method.dart';
 import 'package:cobalt_lint/src/rules/bootstrap_step_cannot_inject.dart';
 import 'package:cobalt_lint/src/rules/dependency_cycle.dart';
@@ -36,6 +37,7 @@ class _CobaltPlugin extends Plugin {
 
   @override
   void register(PluginRegistry registry) {
+    registry.registerWarningRule(AsyncTransientReadSynchronously());
     registry.registerWarningRule(BootstrapRequiresRunMethod());
     registry.registerWarningRule(BootstrapStepCannotInject());
     registry.registerWarningRule(DependencyCycle());

@@ -31,6 +31,7 @@ class CobaltRegistrationIndex {
     this.ambiguous,
     this.cycle,
     this.lazy,
+    this.asyncTransients,
   );
 
   /// Every type name something in the package registers.
@@ -77,6 +78,14 @@ class CobaltRegistrationIndex {
   /// for injecting something that may not be lazy at all.
   final Set<String> lazy;
 
+  /// Names registered as async transients — built anew by every `getAsync`,
+  /// so a synchronous read of one always throws. A subset of [lazy].
+  ///
+  /// A class taking an `@CobaltParam` is left out: it is built by
+  /// `getAsyncWithParam`, and says so in an error of its own. Names in
+  /// [ambiguous] are left out for the same reason as in [lazy].
+  final Set<String> asyncTransients;
+
   bool contains(String typeName) => names.contains(typeName);
 
   /// Reads [files], or returns null when any of them will not parse.
@@ -107,6 +116,7 @@ class _IndexBuilder {
   final edges = <String, Set<String>>{};
   final ambiguous = <String>{};
   final lazy = <String>{};
+  final asyncTransients = <String>{};
 
   /// What decorators of each registered name ask for.
   ///
@@ -160,6 +170,7 @@ class _IndexBuilder {
       ambiguous,
       cycle,
       lazy.difference(ambiguous),
+      asyncTransients.difference(ambiguous),
     );
   }
 
@@ -232,6 +243,12 @@ class _IndexBuilder {
         _addInjectedFields(declaration, wanted);
         _link(node, wanted);
         if (isLazy || (isAsync && isTransient)) lazy.add(node);
+        if (isAsync &&
+            isTransient &&
+            !isLazy &&
+            !_takesCallSiteValues(declaration)) {
+          asyncTransients.add(node);
+        }
       }
       if (isModule) _collectMembers(declaration);
     }
@@ -264,10 +281,11 @@ class _IndexBuilder {
             // module registering `Channel` and an unrelated `Channel` class
             // elsewhere in the package read as one node.
             _claims[node] = (_claims[node] ?? 0) + 1;
-            if (_isTrue(_namedArgument(annotation, 'lazyInit')) ||
-                (_isFuture(member.returnType) && _isTransient(annotation))) {
-              lazy.add(node);
-            }
+            final lazyInit = _isTrue(_namedArgument(annotation, 'lazyInit'));
+            final asyncTransient =
+                _isFuture(member.returnType) && _isTransient(annotation);
+            if (lazyInit || asyncTransient) lazy.add(node);
+            if (asyncTransient && !lazyInit) asyncTransients.add(node);
 
             final wanted = <String>{};
             for (final parameter
@@ -293,6 +311,18 @@ class _IndexBuilder {
   ///
   /// `this.field` carries no type of its own, so the field declarations are
   /// read first to give it one.
+  /// Whether the first public generative constructor takes an `@CobaltParam`
+  /// — the constructor the generator reads.
+  static bool _takesCallSiteValues(ClassDeclaration node) {
+    for (final member in membersOf(node)) {
+      if (member is! ConstructorDeclaration) continue;
+      if (member.factoryKeyword != null) continue;
+      if (member.name?.lexeme.startsWith('_') ?? false) continue;
+      return member.parameters.parameters.any(_isCallSiteValue);
+    }
+    return false;
+  }
+
   void _addConstructorParameters(ClassDeclaration node, Set<String> out) {
     final fieldTypes = <String, String>{};
     for (final member in membersOf(node)) {

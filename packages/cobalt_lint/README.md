@@ -75,6 +75,7 @@ The overrides above are gone from this repository's own copy now that `cobalt_li
 | `cobalt_registration_is_never_released` | a registered class with a `dispose()` or `close()` the scope cannot see |
 | `cobalt_resource_is_never_closed` | A registration holds something closeable and offers no way to close it. |
 | `cobalt_lazy_registration_injected_synchronously` | a lazy async registration injected where nothing can wait for it — a synchronous or eager constructor, an `@injected` field, or a decorator |
+| `cobalt_async_transient_read_synchronously` | `get`, `getOrNull`, `getAll` or `context.cobalt` on an async transient, which always throws — resolve it with `getAsync` |
 | `cobalt_depends_on_lazy_registration` | `@CobaltInit(dependsOn: [...])` naming a lazy async registration, which `init()` never builds |
 | `cobalt_override_needs_type_argument` | a `CobaltOverride` or `CobaltParamOverride` with no type argument, so Dart infers the key it replaces |
 
@@ -95,10 +96,10 @@ registration are not retained. It also stays quiet when a `Disposable` from some
 the supertypes, because it matches by name rather than by library — a rule that cannot see the
 whole graph should fail towards silence.
 
-Twelve of the sixteen rules answer a question about one declaration or one expression. The other
-four — `cobalt_dependency_is_not_registered`, `cobalt_dependency_cycle`,
-`cobalt_lazy_registration_injected_synchronously` and `cobalt_depends_on_lazy_registration` —
-answer one about the whole package, and the
+Twelve of the seventeen rules answer a question about one declaration or one expression. The
+other five — `cobalt_dependency_is_not_registered`, `cobalt_dependency_cycle`,
+`cobalt_lazy_registration_injected_synchronously`, `cobalt_depends_on_lazy_registration` and
+`cobalt_async_transient_read_synchronously` — answer one about the whole package, and the
 analysis server does not offer that view: it hands a rule one library at a time,
 and the only synchronous window onto the others is their **parsed**, unresolved source.
 

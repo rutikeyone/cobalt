@@ -1018,7 +1018,7 @@ class AppScope implements CobaltScopeBuilder {
 
 - **完整性在构建期被检查**，而不是靠测试期的 `expectGraphResolves`；
 - **属性注入**，让已经长到五个以上协作对象的构造函数清空；
-- **十六条 lint 规则**，在编辑器里就抓住 §14 里的那些错误。
+- **十七条 lint 规则**，在编辑器里就抓住 §14 里的那些错误。
 
 保持原样不变的部分：作用域、销毁、两个阶段、参数化注册、可观测性、测试。
 [GUIDE_CODEGEN.zh-CN.md](GUIDE_CODEGEN.zh-CN.md) 从这里接着讲，

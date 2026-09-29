@@ -4,6 +4,7 @@
 // root, and a copy of this package taken out of the tree cannot reach it.
 // ignore_for_file: non_constant_identifier_names
 
+import 'package:cobalt_lint/src/rules/async_transient_read_synchronously.dart';
 import 'package:cobalt_lint/src/rules/bootstrap_requires_run_method.dart';
 import 'package:cobalt_lint/src/rules/bootstrap_step_cannot_inject.dart';
 import 'package:cobalt_lint/src/rules/dependency_cycle.dart';
@@ -28,6 +29,7 @@ import 'support.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(AsyncTransientReadSynchronouslyIsQuiet);
     defineReflectiveTests(BootstrapRequiresRunMethodIsQuiet);
     defineReflectiveTests(BootstrapStepCannotInjectIsQuiet);
     defineReflectiveTests(DependencyCycleIsQuiet);
@@ -57,7 +59,7 @@ void main() {
 ///
 /// It answers the half of "does a clean lint mean the build will pass" that
 /// can be answered. It cannot mean that — thirty build-time refusals against
-/// sixteen rules, deliberately — but the reverse has to hold: nothing here
+/// seventeen rules, deliberately — but the reverse has to hold: nothing here
 /// may report code the generator is happy with.
 abstract class _QuietTest extends AnalysisRuleTest {
   AnalysisRule makeRule();
@@ -65,7 +67,7 @@ abstract class _QuietTest extends AnalysisRuleTest {
   /// One package touching every shape the generator accepts: a plain
   /// injectable, a named one, `exposeAs`, an async init with `dependsOn`, a
   /// bootstrap step, a module, a call-site value, property injection, a
-  /// transient, and a class that says how it closes.
+  /// transient, an async transient, and a class that says how it closes.
   static const _graph =
       '''
 $cobaltImport
@@ -169,6 +171,16 @@ class Archive {
   Future<void> init() async {}
 }
 
+@cobaltTransient
+@cobaltInit
+class Snapshot {
+  Snapshot(this.config);
+
+  final Config config;
+
+  Future<void> init() async {}
+}
+
 @cobaltLazyInit
 class ArchiveIndex {
   ArchiveIndex(this.archive);
@@ -195,6 +207,12 @@ class AppScope {
   void test_isQuietOnAGraphTheBuildAccepts() async {
     await assertNoDiagnostics(_graph);
   }
+}
+
+@reflectiveTest
+class AsyncTransientReadSynchronouslyIsQuiet extends _QuietTest {
+  @override
+  AnalysisRule makeRule() => AsyncTransientReadSynchronously();
 }
 
 @reflectiveTest
