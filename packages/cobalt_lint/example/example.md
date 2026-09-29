@@ -5,7 +5,7 @@ package or workspace:
 
 ```yaml
 plugins:
-  cobalt_lint: ^0.5.0
+  cobalt_lint: ^0.6.0
 ```
 
 Then `dart analyze` and the IDE report Cobalt mistakes where you make them,

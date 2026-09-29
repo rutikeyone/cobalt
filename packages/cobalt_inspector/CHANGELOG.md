@@ -1,3 +1,11 @@
+## 0.6.0
+
+- Build times. The Built tab shows how long each build took and marks one of
+  at least `CobaltInspectorThemeData.slowBuild` — 16 ms, one 60 Hz frame, by
+  default — in the warning colour; a new grouping sorts slowest first; a
+  registration's sheet shows how long its last build took. `ScopeTreeView`
+  takes the log for that, and `CobaltInspectorScreen` passes it.
+
 ## 0.5.0
 
 - An async transient is shown as not torn down, in the instance colour.

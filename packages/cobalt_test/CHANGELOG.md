@@ -1,3 +1,14 @@
+## 0.6.0
+
+- A snapshot of the graph. `describeGraph(scope)` renders what each scope
+  registers — kind, overrides, decorators, child scopes nested — and builds
+  nothing, unlike `checkGraph`. `expectGraphSnapshot(scope, path)` compares
+  it with a file kept next to the tests: a change fails with a line diff,
+  `COBALT_UPDATE_SNAPSHOTS=1` or `update: true` rewrites the file, and a
+  snapshot that does not exist yet fails rather than being written and
+  passing. The file part is imported only where `dart:io` exists, so the
+  package keeps its web and WebAssembly support.
+
 ## 0.5.0
 
 - `checkGraph` builds an async transient through `getAsync` and disposes it

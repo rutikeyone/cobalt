@@ -1,3 +1,19 @@
+## 0.6.0
+
+- Build times. `CobaltObserver.onInstanceBuilt(scope, key, {kind, retained,
+  took})` is called right after `onInstanceCreated` for the same build.
+  `took` is the whole wall time from calling the factory to the instance
+  being ready: the builds it resolved on the way, every `await` of an async
+  factory and filling `@injected` fields are all in it. A separate event, so
+  an observer written before it keeps compiling.
+- `CobaltLogRecord.took`, and `took_us` in `toStructured()`.
+- `CobaltRecordingObserver` writes its creation record from
+  `onInstanceBuilt`, and its `onInstanceCreated` is now empty: still one
+  record per build, in the same order, with a message that now ends with the
+  build time — `built Api in "app" as lazySingleton in 340µs`. A subclass
+  that overrode `onInstanceCreated` and called `super` for the record should
+  move to `onInstanceBuilt`.
+
 ## 0.5.0
 
 - Async transients. `registerAsyncFactory<T>(factory)` registers something

@@ -1,3 +1,8 @@
+## 0.6.0
+
+- Verbose instance lines carry the build time, logged from
+  `onInstanceBuilt`.
+
 ## 0.5.0
 
 - No code changes in this package. Republished in lockstep with 0.5.0, which

@@ -1,3 +1,12 @@
+## 0.6.0
+
+- New rule, `cobalt_async_transient_read_synchronously`: `get`, `getOrNull`
+  or `getAll` on a `CobaltResolver` or `CobaltScope`, or `context.cobalt` /
+  `cobaltAll`, reading an async transient — which always throws
+  `CobaltAsyncTransientError`. The type argument may be written or inferred.
+  Async transients only: a lazy async singleton is read with `get`
+  legitimately once `getAsync` or `warmUp` has built it. Seventeen rules.
+
 ## 0.5.0
 
 - `cobalt_lazy_registration_injected_synchronously` and

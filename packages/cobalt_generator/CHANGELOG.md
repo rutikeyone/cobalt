@@ -1,3 +1,9 @@
+## 0.6.0
+
+- No code changes in this package. Republished in lockstep with 0.6.0, which
+  adds build times to observers and the inspector, a graph snapshot in
+  `cobalt_test` and a lint rule — see `cobalt`'s changelog.
+
 ## 0.5.0
 
 - Async transients: a transient `@CobaltInit` class, or a transient module
