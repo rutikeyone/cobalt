@@ -119,3 +119,33 @@ jobs:
 
       - name: Test every member
         run: ./tool/test.sh
+
+  # cobalt_analyzer, cobalt_generator and cobalt_lint accept analyzer 10 to 14,
+  # and its API breaks between 12 and 13. `verify` only ever resolves the
+  # floor's 12.1.0 and `forward` the newest, so each row is tested here, with
+  # the companions tool/matrix.sh pins for it. 13 and 14 need Dart 3.11, so
+  # those rows run on a pinned newer Flutter rather than on moving `stable`.
+  analyzer:
+    name: analyzer ${{ matrix.analyzer }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - analyzer: 10.0.1
+            flutter: 3.38.9
+          - analyzer: 12.1.0
+            flutter: 3.38.9
+          - analyzer: 13.3.0
+            flutter: 3.47.1
+          - analyzer: 14.4.0
+            flutter: 3.47.1
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ matrix.flutter }}
+
+      - name: Test the analyzer-facing packages
+        run: ./tool/matrix.sh ${{ matrix.analyzer }}

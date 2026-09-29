@@ -44,12 +44,14 @@ wait for the previous group to appear on pub.dev — the index is not instant.
 - [ ] `repository:` and `issue_tracker:` point at a repository that actually
       exists and has the code pushed. They are currently
       `github.com/rutikeyone/cobalt`.
-- [ ] CI is green on that repository — **both** jobs, not only `verify`.
+- [ ] CI is green on that repository — **every** job, not only `verify`.
       `forward` on `stable` is the only place fresh dependencies are resolved:
       the lock files on a floor checkout hold analyzer 12 at most, so a
       deprecation that arrives with analyzer 13 is invisible locally. It kept
       `forward` red for three releases unnoticed. `tool/forward.sh` runs the
-      same thing on whatever newer Flutter is on PATH.
+      same thing on whatever newer Flutter is on PATH. The four `analyzer`
+      jobs test the toolchain packages on each row of the table below;
+      `tool/matrix.sh <version>` runs one row locally.
 - [ ] Translations updated. `README.ru.md`, `README.zh-CN.md`, the four
       translated guides, `MIGRATION.ru.md` and `MIGRATION.zh-CN.md` track the
       English originals; a test checks that all four sets exist and link to each
@@ -174,12 +176,14 @@ Things that were measured rather than assumed:
   API is identical across the range, `cobalt_analyzer` reads only the element
   model, and `cobalt_generator` does not import the analyzer at all.
 
-To check a new analyzer before admitting it, copy the three toolchain packages
-out of the repository, set their `analyzer` constraint to that exact version,
-and run `dart analyze` and `dart test` in each: the constraint, not
-`dependency_overrides`, has to choose the version, or pub keeps whatever
-`analysis_server_plugin` and `dart_style` the old analyzer had and the result
-says nothing.
+`tool/matrix.sh <version>` checks one row: it copies the three toolchain
+packages out of the repository, sets their `analyzer` constraint to that exact
+version and runs their tests. The constraint, not `dependency_overrides`, has
+to choose the version, or pub keeps whatever `analysis_server_plugin` and
+`dart_style` another row had and the result says nothing — an override-based
+run of the 13.3.0 row tested `analysis_server_plugin` 0.3.23, where a consumer
+gets 0.3.18. CI's `analyzer` job runs all four rows. To admit a new analyzer,
+add its row to the `case` in `tool/matrix.sh` and to that job.
 
 **The repository is developed on the floor.** It is not a pub workspace, because
 a workspace is one resolution and this one cannot exist on 3.38: `flutter_test`
@@ -228,6 +232,27 @@ is simply re-run.
   commit that adds `publish.yml` — that commit changes only `.github/` and this file, so every
   package archive is byte-for-byte the same as from b9838a1. Moving a tag after a publish is
   otherwise still forbidden.
+
+## Screenshots
+
+The six images under `assets/screenshots/` are the gallery on an iPhone 16 Pro,
+in English, dark appearance, 552×1200. When a release changes a screen one of
+them shows, retake that one from a container with `mac-sim` (see the workspace
+note on the iOS Simulator) — it needs Remote Login on in the Mac's sharing
+settings:
+
+```
+repo=flutter/cobalt-workspace/cobalt   # relative to the shared projects directory
+mac-sim locale en_US "iPhone 16 Pro"
+mac-sim appearance dark "iPhone 16 Pro"
+mac-sim run $repo/examples/gallery "iPhone 16 Pro"
+mac-sim screenshot $repo/assets/screenshots/hub.png "iPhone 16 Pro" 552x1200
+```
+
+The gateway has no taps, so only the screen the app opens on — the hub — can be
+shot unattended; the others need the screen opened by hand first. The Mac builds
+with its own Flutter, which may be newer than 3.38.9: fine for a picture, and
+the reason a screenshot is never evidence that the floor works.
 
 ## After publishing
 
