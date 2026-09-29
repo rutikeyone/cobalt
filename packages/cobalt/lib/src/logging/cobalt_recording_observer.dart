@@ -20,13 +20,24 @@ abstract base class CobaltRecordingObserver extends CobaltObserver {
   /// Creates the base.
   const CobaltRecordingObserver();
 
-  /// Receives every event, already turned into a record.
+  /// Receives every event [accepts] lets through, already turned into a
+  /// record.
   void onRecord(CobaltLogRecord record);
+
+  /// Whether a record at [level] is wanted at all.
+  ///
+  /// Asked before the record is made, so an event nobody wants costs no
+  /// formatting. `CobaltLogObserver` drops per-instance records by default;
+  /// without this, every build would still spell out its message only for it
+  /// to be thrown away — which doubled the cost of a build with a log
+  /// attached. Every level by default, and [onRecord] never sees a record
+  /// this turned down.
+  bool accepts(CobaltLogLevel level) => true;
 
   void _emit(
     CobaltEventKind kind,
     CobaltLogLevel level,
-    String message, {
+    String Function() message, {
     CobaltScopeRef? scope,
     CobaltKey? key,
     CobaltRegistrationKind? registrationKind,
@@ -34,26 +45,29 @@ abstract base class CobaltRecordingObserver extends CobaltObserver {
     Duration? took,
     Object? error,
     StackTrace? stackTrace,
-  }) => onRecord(
-    CobaltLogRecord(
-      kind: kind,
-      level: level,
-      message: message,
-      scope: scope,
-      key: key,
-      registrationKind: registrationKind,
-      retained: retained,
-      took: took,
-      error: error,
-      stackTrace: stackTrace,
-    ),
-  );
+  }) {
+    if (!accepts(level)) return;
+    onRecord(
+      CobaltLogRecord(
+        kind: kind,
+        level: level,
+        message: message(),
+        scope: scope,
+        key: key,
+        registrationKind: registrationKind,
+        retained: retained,
+        took: took,
+        error: error,
+        stackTrace: stackTrace,
+      ),
+    );
+  }
 
   @override
   void onScopePushed(CobaltScopeRef scope) => _emit(
     CobaltEventKind.scopePushed,
     CobaltLogLevel.debug,
-    'scope "$scope" pushed',
+    () => 'scope "$scope" pushed',
     scope: scope,
   );
 
@@ -61,7 +75,7 @@ abstract base class CobaltRecordingObserver extends CobaltObserver {
   void onRegistrationOverridden(CobaltScopeRef scope, CobaltKey key) => _emit(
     CobaltEventKind.registrationOverridden,
     CobaltLogLevel.info,
-    'registration of $key in "$scope" replaced by an override',
+    () => 'registration of $key in "$scope" replaced by an override',
     scope: scope,
     key: key,
   );
@@ -70,7 +84,7 @@ abstract base class CobaltRecordingObserver extends CobaltObserver {
   void onScopeInitStarted(CobaltScopeRef scope, int levels) => _emit(
     CobaltEventKind.scopeInitStarted,
     CobaltLogLevel.debug,
-    'scope "$scope" initializing, $levels level(s)',
+    () => 'scope "$scope" initializing, $levels level(s)',
     scope: scope,
   );
 
@@ -78,7 +92,7 @@ abstract base class CobaltRecordingObserver extends CobaltObserver {
   void onScopeInitCompleted(CobaltScopeRef scope, Duration took) => _emit(
     CobaltEventKind.scopeInitCompleted,
     CobaltLogLevel.info,
-    'scope "$scope" ready in ${took.inMilliseconds}ms',
+    () => 'scope "$scope" ready in ${took.inMilliseconds}ms',
     scope: scope,
   );
 
@@ -90,7 +104,7 @@ abstract base class CobaltRecordingObserver extends CobaltObserver {
   ) => _emit(
     CobaltEventKind.scopeInitFailed,
     CobaltLogLevel.error,
-    'scope "$scope" failed to initialize',
+    () => 'scope "$scope" failed to initialize',
     scope: scope,
     error: error,
     stackTrace: stackTrace,
@@ -117,7 +131,7 @@ abstract base class CobaltRecordingObserver extends CobaltObserver {
   }) => _emit(
     CobaltEventKind.instanceCreated,
     CobaltLogLevel.trace,
-    retained
+    () => retained
         ? 'built $key in "$scope" as ${kind.name} in ${_duration(took)}'
         : 'built $key in "$scope" as ${kind.name}, not retained, in '
               '${_duration(took)}',
@@ -137,7 +151,7 @@ abstract base class CobaltRecordingObserver extends CobaltObserver {
   void onInstanceDisposed(CobaltScopeRef scope, String label) => _emit(
     CobaltEventKind.instanceDisposed,
     CobaltLogLevel.trace,
-    'released $label in "$scope"',
+    () => 'released $label in "$scope"',
     scope: scope,
   );
 
@@ -145,7 +159,7 @@ abstract base class CobaltRecordingObserver extends CobaltObserver {
   void onScopeDisposeStarted(CobaltScopeRef scope) => _emit(
     CobaltEventKind.scopeDisposeStarted,
     CobaltLogLevel.debug,
-    'scope "$scope" disposing',
+    () => 'scope "$scope" disposing',
     scope: scope,
   );
 
@@ -159,7 +173,7 @@ abstract base class CobaltRecordingObserver extends CobaltObserver {
       _emit(
         CobaltEventKind.scopeDisposed,
         CobaltLogLevel.debug,
-        'scope "$scope" disposed in ${took.inMilliseconds}ms',
+        () => 'scope "$scope" disposed in ${took.inMilliseconds}ms',
         scope: scope,
       );
       return;
@@ -171,7 +185,7 @@ abstract base class CobaltRecordingObserver extends CobaltObserver {
       _emit(
         CobaltEventKind.scopeDisposeFailed,
         CobaltLogLevel.warning,
-        'scope "$scope" could not release ${failure.label}',
+        () => 'scope "$scope" could not release ${failure.label}',
         scope: scope,
         error: failure.error,
         stackTrace: failure.stackTrace,
@@ -183,14 +197,14 @@ abstract base class CobaltRecordingObserver extends CobaltObserver {
   void onBootstrapStepStarted(String step) => _emit(
     CobaltEventKind.bootstrapStepStarted,
     CobaltLogLevel.debug,
-    'bootstrap "$step" started',
+    () => 'bootstrap "$step" started',
   );
 
   @override
   void onBootstrapStepCompleted(String step, Duration took) => _emit(
     CobaltEventKind.bootstrapStepCompleted,
     CobaltLogLevel.info,
-    'bootstrap "$step" done in ${took.inMilliseconds}ms',
+    () => 'bootstrap "$step" done in ${took.inMilliseconds}ms',
   );
 
   @override
@@ -201,7 +215,7 @@ abstract base class CobaltRecordingObserver extends CobaltObserver {
   ) => _emit(
     CobaltEventKind.bootstrapStepFailed,
     CobaltLogLevel.error,
-    'bootstrap "$step" failed',
+    () => 'bootstrap "$step" failed',
     error: error,
     stackTrace: stackTrace,
   );
@@ -214,7 +228,7 @@ abstract base class CobaltRecordingObserver extends CobaltObserver {
   ) => _emit(
     CobaltEventKind.bootstrapStepReleaseFailed,
     CobaltLogLevel.warning,
-    'bootstrap "$step" could not be released while rolling startup back',
+    () => 'bootstrap "$step" could not be released while rolling startup back',
     error: error,
     stackTrace: stackTrace,
   );

@@ -9,7 +9,7 @@ Future<void> main(List<String> args) async {
   final millis = args.contains('--quick') ? 20 : 2000;
 
   print(
-    '${'scenario'.padRight(44)}${'cobalt'.padLeft(12)}'
+    '${'scenario'.padRight(58)}${'cobalt'.padLeft(12)}'
     '${'get_it'.padLeft(12)}${'cobalt/get_it'.padLeft(16)}',
   );
   for (final scenario in scenarios) {
@@ -22,7 +22,7 @@ Future<void> main(List<String> args) async {
         ? null
         : await nanosPerOp(scenario.getIt!, scenario.ops, millis: millis);
     print(
-      '${scenario.name.padRight(44)}${formatNanos(cobalt).padLeft(12)}'
+      '${scenario.name.padRight(58)}${formatNanos(cobalt).padLeft(12)}'
       '${(getIt == null ? '—' : formatNanos(getIt)).padLeft(12)}'
       '${(getIt == null ? '—' : '${(cobalt / getIt).toStringAsFixed(2)}×').padLeft(16)}',
     );

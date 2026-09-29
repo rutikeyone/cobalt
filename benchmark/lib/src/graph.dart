@@ -154,3 +154,6 @@ final class DiscardingObserver extends CobaltRecordingObserver {
   @override
   void onRecord(CobaltLogRecord record) {}
 }
+
+/// A sink that writes nothing, so a log observer is measured without I/O.
+final silentSink = CobaltLogSink.from((_) {});

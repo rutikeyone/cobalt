@@ -76,6 +76,13 @@ final scenarios = <Scenario>[
       () => cobaltScope(observers: const [DiscardingObserver()]),
     ),
   ),
+  Scenario(
+    'the transient, with a log observer at its default level',
+    ops: 1000,
+    cobalt: _buildReports(
+      () => cobaltScope(observers: [CobaltLogObserver(silentSink)]),
+    ),
+  ),
 ];
 
 /// Resolves [Report] — built anew each time — from the scope [scopeOf] makes.

@@ -830,6 +830,12 @@ Each build is timed: `onInstanceBuilt` follows `onInstanceCreated` with how long
 wall time, the builds it resolved and every `await` included — and the log observers write it into the
 same line.
 
+`CobaltLogObserver` keeps `debug` and above unless told otherwise (`minimumLevel`); per-instance
+records are `trace`, so a large graph does not flood the log. What it drops is never formatted — the
+level is asked before the record is made — so an attached log costs next to nothing per build until
+the level comes down. A `CobaltRecordingObserver` of your own gets the same by overriding
+`accepts(level)`.
+
 ### Sending it somewhere
 
 | Package | Shape |

@@ -15,8 +15,9 @@ import 'package:cobalt/src/logging/cobalt_recording_observer.dart';
 /// );
 /// ```
 ///
-/// [minimumLevel] drops anything quieter. The default keeps per-instance
-/// records out, since a large graph builds a lot of them.
+/// [minimumLevel] drops anything quieter — before it is formatted, so what is
+/// dropped costs next to nothing. The default keeps per-instance records out,
+/// since a large graph builds a lot of them.
 final class CobaltLogObserver extends CobaltRecordingObserver {
   /// Sends records to [sink], keeping those at [minimumLevel] or above.
   const CobaltLogObserver(
@@ -30,9 +31,10 @@ final class CobaltLogObserver extends CobaltRecordingObserver {
   /// The quietest level that still reaches [sink].
   final CobaltLogLevel minimumLevel;
 
+  /// Below [minimumLevel] the record is never made, not made and dropped.
   @override
-  void onRecord(CobaltLogRecord record) {
-    if (record.level.index < minimumLevel.index) return;
-    sink.write(record);
-  }
+  bool accepts(CobaltLogLevel level) => level.index >= minimumLevel.index;
+
+  @override
+  void onRecord(CobaltLogRecord record) => sink.write(record);
 }

@@ -95,5 +95,76 @@ void main() {
         contains(CobaltEventKind.instanceCreated),
       );
     });
+
+    test('its accepts answers exactly the levels it keeps', () {
+      for (final minimum in CobaltLogLevel.values) {
+        final observer = CobaltLogObserver(
+          _Collecting(),
+          minimumLevel: minimum,
+        );
+        expect(
+          CobaltLogLevel.values.where(observer.accepts),
+          CobaltLogLevel.values.skip(minimum.index),
+          reason: 'minimum $minimum',
+        );
+      }
+    });
   });
+
+  /// `accepts` exists so a record nobody wants is never made — its message
+  /// is never formatted. The benchmark shows the cost; these pin the contract.
+  group('what a recording observer accepts', () {
+    test('is asked with every event, and onRecord sees only what it took', () {
+      final observer = _Picky({CobaltLogLevel.info});
+      final scope = cobaltTestRoot(name: 'app', observers: [observer])
+        ..registerLazySingleton<Marker>(const _Fn());
+
+      scope
+        ..push('session')
+        ..get<Marker>();
+
+      expect(
+        observer.asked,
+        containsAll([CobaltLogLevel.debug, CobaltLogLevel.trace]),
+      );
+      expect(
+        observer.records,
+        everyElement(
+          isA<CobaltLogRecord>().having(
+            (r) => r.level,
+            'level',
+            CobaltLogLevel.info,
+          ),
+        ),
+      );
+      expect(
+        observer.records.map((record) => record.kind),
+        isNot(contains(CobaltEventKind.instanceCreated)),
+      );
+    });
+
+    test('is every level unless a subclass says otherwise', () {
+      final observer = _Picky(null);
+      expect(CobaltLogLevel.values.every(observer.accepts), isTrue);
+    });
+  });
+}
+
+/// Takes only [levels] — or, given null, whatever the base class takes — and
+/// remembers every level it was asked about.
+final class _Picky extends CobaltRecordingObserver {
+  _Picky(this.levels);
+
+  final Set<CobaltLogLevel>? levels;
+  final asked = <CobaltLogLevel>[];
+  final records = <CobaltLogRecord>[];
+
+  @override
+  bool accepts(CobaltLogLevel level) {
+    asked.add(level);
+    return levels?.contains(level) ?? super.accepts(level);
+  }
+
+  @override
+  void onRecord(CobaltLogRecord record) => records.add(record);
 }

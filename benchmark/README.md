@@ -21,10 +21,13 @@ compiler has warmed up and are not what an app ships.
 | start 20 async singletons | start | `registerAsyncSingleton` ×20 + `init()` | `registerSingletonAsync` ×20 + `allReady()` |
 | the transient, with an empty observer | `get` | a `CobaltObserver` that overrides nothing | — |
 | the transient, with a recording observer | `get` | a `CobaltRecordingObserver` that drops each record | — |
+| the transient, with a log observer at its default level | `get` | `CobaltLogObserver` with its default `minimumLevel` and a sink that writes nothing — what an app that logs has | — |
 
-The last two have no get_it column because get_it has no observers; compare them with the
-plain transient row. The recording observer is what `CobaltLogObserver` and the talker and
-inspector observers are built on, so its row is the price of having a log at all.
+The last three have no get_it column because get_it has no observers; compare them with the
+plain transient row. The recording observer is what `CobaltLogObserver` and the inspector's log
+are built on, and it keeps every record, so its row is the price of a log that writes everything. The
+last row is what an app that logs usually has: at its default level the log observer asks
+`accepts(level)` before making a record, and the per-instance ones it would drop are never made.
 
 Both sides are registered the same way (`lib/src/graph.dart`). Cobalt takes factories as
 objects, so a closure is wrapped in one — the same single closure call get_it makes. Code
