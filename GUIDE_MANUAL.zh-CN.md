@@ -49,7 +49,7 @@ environment:
   sdk: ^3.10.0
 
 dependencies:
-  cobalt: ^0.6.0
+  cobalt: ^0.7.0
 ```
 
 Flutter 应用再加上绑定包，它会重新导出整个运行时，所以你永远不需要同时导入两个：
@@ -60,12 +60,12 @@ environment:
   flutter: ">=3.38.0"
 
 dependencies:
-  cobalt: ^0.6.0
-  cobalt_flutter: ^0.6.0
+  cobalt: ^0.7.0
+  cobalt_flutter: ^0.7.0
 
 dev_dependencies:
-  cobalt_test: ^0.6.0
-  cobalt_test_flutter: ^0.6.0
+  cobalt_test: ^0.7.0
+  cobalt_test_flutter: ^0.7.0
 ```
 
 **从这里出发不会走进死胡同。** 下限是 Dart `^3.10.0` / Flutter `>=3.38.0`，

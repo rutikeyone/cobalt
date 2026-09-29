@@ -1,3 +1,10 @@
+## 0.7.0
+
+- `checkGraph` asks `CobaltRegistrationKind`'s getters instead of switching
+  over the kinds. No behaviour change.
+- With `CobaltResolver` a base class in `cobalt` 0.7.0, a resolver can no
+  longer be mocked; `cobaltTestRoot` is the replacement.
+
 ## 0.6.0
 
 - A snapshot of the graph. `describeGraph(scope)` renders what each scope

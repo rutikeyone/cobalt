@@ -1,3 +1,10 @@
+## 0.7.0
+
+- No code changes in this package. Republished in lockstep with 0.7.0, which
+  makes `CobaltResolver` a base class (breaking), adds getters to
+  `CobaltRegistrationKind` and lets the inspector open on a chosen tab — see
+  `cobalt`'s changelog.
+
 ## 0.6.0
 
 - New rule, `cobalt_async_transient_read_synchronously`: `get`, `getOrNull`

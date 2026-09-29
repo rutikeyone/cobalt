@@ -61,15 +61,15 @@ environment:
   flutter: ">=3.38.0"
 
 dependencies:
-  cobalt: ^0.6.0
-  cobalt_flutter: ^0.6.0
+  cobalt: ^0.7.0
+  cobalt_flutter: ^0.7.0
 
 dev_dependencies:
-  cobalt_generator: ^0.6.0
+  cobalt_generator: ^0.7.0
   build_runner: ^2.15.0
-  cobalt_lint: ^0.6.0
-  cobalt_test: ^0.6.0
-  cobalt_test_flutter: ^0.6.0
+  cobalt_lint: ^0.7.0
+  cobalt_test: ^0.7.0
+  cobalt_test_flutter: ^0.7.0
 ```
 
 **Пол здесь тот же, что и в другом режиме**, поэтому приложение на Flutter 3.38 может начинать
@@ -952,7 +952,7 @@ Bootstrap-шаги тоже принимают окружения. Когда х
 ```yaml
 # analysis_options.yaml
 plugins:
-  cobalt_lint: ^0.6.0
+  cobalt_lint: ^0.7.0
 ```
 
 | Правило | Что ловит |

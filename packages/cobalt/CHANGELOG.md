@@ -1,3 +1,17 @@
+## 0.7.0
+
+- **Breaking:** `CobaltResolver` is an `abstract base class`, and
+  `CobaltScope` extends it. It can no longer be implemented or mocked outside
+  Cobalt — which is what lets a new way of resolving arrive in a minor
+  release from 1.0 on. A test that mocked the resolver builds a real scope
+  instead: `cobaltTestRoot` from `cobalt_test` (see MIGRATION).
+- `CobaltRegistrationKind.isRetained`, `takesParam`, `isAsync` and
+  `isBuiltByInit` — the questions a tool asks of every kind, including kinds
+  that do not exist yet. From 1.0 a new kind is a minor change: ask the
+  getters rather than switching over the values.
+- The README has a Compatibility section — what breaks from 1.0 on and what
+  does not — and a Performance section, measured next to get_it.
+
 ## 0.6.0
 
 - Build times. `CobaltObserver.onInstanceBuilt(scope, key, {kind, retained,

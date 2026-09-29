@@ -11,11 +11,11 @@ environment:
 
 
 dependencies:
-  cobalt: ^0.6.0
-  cobalt_flutter: ^0.6.0
-  cobalt_go_router: ^0.6.0
-  cobalt_inspector: ^0.6.0
-  cobalt_talker: ^0.6.0
+  cobalt: ^0.7.0
+  cobalt_flutter: ^0.7.0
+  cobalt_go_router: ^0.7.0
+  cobalt_inspector: ^0.7.0
+  cobalt_talker: ^0.7.0
   flutter:
     sdk: flutter
   flutter_localizations:

@@ -1,3 +1,14 @@
+## 0.7.0
+
+- `CobaltInspectorScreen(initialTab:)` and `CobaltInspectorTab` (`tree`,
+  `built`, `log`): open the inspector straight on a tab — the log, say, from
+  a debug-menu entry that is about what happened.
+- Its own classification of registration kinds — what can be built from the
+  tree, what is torn down with the scope, the lifetime colour — asks
+  `CobaltRegistrationKind`'s getters. No behaviour change.
+- `CreatedView`'s documentation no longer claims an eager singleton never
+  appears: only a value handed over already made does.
+
 ## 0.6.0
 
 - Build times. The Built tab shows how long each build took and marks one of
