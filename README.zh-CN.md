@@ -148,8 +148,8 @@ CI 的 `verify` job 在 Flutter 3.38.9 上运行全部检查，`forward` 则在 
 
 ## 兼容性
 
-1.0 之前，任何次版本都可能带来破坏性变更，其 CHANGELOG 会在 **Breaking** 下列出。从 1.0 起，只有主版本
-才会破坏兼容，具体有三条规则：
+只有主版本才会破坏兼容，其 CHANGELOG 会在 **Breaking** 下列出。在 0.x 阶段任何次版本都可能带来破坏性变更；
+自 1.0 起不再如此。具体有三条规则：
 
 - **公开枚举新增取值属于次版本变更。** `CobaltRegistrationKind` 已在三个版本中增长，以后还会增长。请使用
   它的属性——`isRetained`、`takesParam`、`isAsync`、`isBuiltByInit`——而不是对取值做 `switch`；

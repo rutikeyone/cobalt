@@ -234,6 +234,11 @@ scope.debugDescribeTree();   // the tree as text
 the scope that owns *its own* registration, not on the one you asked. Knowing which scope owns a key
 is what tells you whether an override will be seen — see [§13](#13-tests).
 
+Everything named `debug…` — `debugDescribeTree` here, and `debugKindOf`, `debugDecoratorsOf` and the
+rest that the inspector and `cobalt_test` read — is `@experimental`: outside semver, so it may change
+in a minor release, and newer analyzers flag each use with `experimental_member_use`. Fine in a
+diagnostics screen or a test; not something to build on.
+
 ---
 
 ### Wrapping a registration

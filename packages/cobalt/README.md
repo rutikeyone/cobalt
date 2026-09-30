@@ -339,6 +339,10 @@ Four read-only members, for diagnostics and tests:
 on the scope that owns *its* registration, not the scope you asked from, so a key alone cannot tell
 you what an override will reach.
 
+`debugDescribeTree` — like every `debug…` member, `debugKindOf` and `debugDecoratorsOf` among them —
+is `@experimental`: outside semver, it may change in a minor release, and newer analyzers flag its
+use from another package with `experimental_member_use`.
+
 None of them throws on a scope that is being torn down, so a diagnostics screen keeps working
 during teardown.
 

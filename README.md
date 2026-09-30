@@ -151,8 +151,8 @@ to find what is coming, rather than a matrix of past releases.
 
 ## Compatibility
 
-Before 1.0 every minor release may break something, and its changelog says what under
-**Breaking**. From 1.0 on, only a major release breaks, with three rules about what that covers:
+Only a major release breaks, and its changelog says what under **Breaking**. Through the 0.x
+releases any minor could; since 1.0 none does. Three rules say what that covers:
 
 - **A new value in a public enum is a minor change.** `CobaltRegistrationKind` has grown in three
   releases and will again. Ask its getters — `isRetained`, `takesParam`, `isAsync`,

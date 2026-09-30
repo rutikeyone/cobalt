@@ -233,6 +233,10 @@ scope.debugDescribeTree();   // 以文本形式呈现的树
 `visibleKeys` 是 map 而不是 set，原因值得尽早记住：工厂运行在拥有**它自身那条注册**的作用域上，
 而不是你发问的那个。知道哪个作用域持有某个键，才知道一次覆盖会不会被看到——见 [§13](#13-测试)。
 
+所有名为 `debug…` 的成员——这里的 `debugDescribeTree`，以及检查器和 `cobalt_test` 读取的 `debugKindOf`、`debugDecoratorsOf`
+等——都标注了 `@experimental`：不受 semver 约束，可能在次版本中变化，较新的分析器会在每次使用时报告
+`experimental_member_use`。用于诊断页面或测试没问题；不要在其上构建。
+
 ---
 
 ### 包装一条注册
