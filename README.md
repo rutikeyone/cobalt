@@ -79,7 +79,7 @@ graph.
 | **Observability** | typed events, not strings — logging, structured intake and crash reports with a trail |
 | **In-app inspector** | the live scope tree, what was built and with what lifetime, and everything reported |
 | **Navigation flows** | a scope whose lifetime is a go_router flow, without anything mirroring the router |
-| **Lint plugin** | seventeen rules on the same parsing layer the generator uses |
+| **Lint plugin** | eighteen rules on the same parsing layer the generator uses |
 | **Overrides** | replace a registration where it is owned, so every consumer sees the double — in a test, a flavour or a debug menu |
 | **Test helpers** | scopes that dispose with the test, overrides that work the way production ones do |
 | **No global container** | nothing is ambient, so tests run in parallel and two graphs in one process are unrelated |
@@ -281,7 +281,7 @@ package README.
 
 ## Lint rules
 
-`cobalt_lint` is an `analysis_server_plugin`, not a `custom_lint` plugin. It ships seventeen warning
+`cobalt_lint` is an `analysis_server_plugin`, not a `custom_lint` plugin. It ships eighteen warning
 rules, all built on the same `cobalt_analyzer` parsing layer the generator uses, so a mistake surfaces
 in the IDE instead of only when `build_runner` runs:
 
@@ -304,6 +304,7 @@ in the IDE instead of only when `build_runner` runs:
 | `cobalt_async_transient_read_synchronously` | `get`, `getOrNull`, `getAll` or `context.cobalt` on an async transient, which always throws — resolve it with `getAsync` |
 | `cobalt_depends_on_lazy_registration` | `@CobaltInit(dependsOn: [...])` naming a lazy async registration, which `init()` never builds |
 | `cobalt_override_needs_type_argument` | a `CobaltOverride` or `CobaltParamOverride` with no type argument, so Dart infers the key it replaces |
+| `cobalt_hook_added_too_late` | `hookAll` after an eager registration or a `get` on the same scope — in one cascade or earlier in the block — which the scope refuses with `CobaltHookError`; add hooks before anything is built |
 
 `custom_lint` is not used: its latest release (0.8.1) is pinned to `analyzer ^8.0.0` and cannot
 coexist with a modern analyzer. `riverpod_lint` migrated off it to the first-party

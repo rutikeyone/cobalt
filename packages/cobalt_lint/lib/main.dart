@@ -11,6 +11,7 @@ import 'package:cobalt_lint/src/rules/dependency_cycle.dart';
 import 'package:cobalt_lint/src/rules/dependency_is_not_registered.dart';
 import 'package:cobalt_lint/src/rules/depends_on_lazy_registration.dart';
 import 'package:cobalt_lint/src/rules/environment_needs_a_registration.dart';
+import 'package:cobalt_lint/src/rules/hook_added_too_late.dart';
 import 'package:cobalt_lint/src/rules/init_requires_init_method.dart';
 import 'package:cobalt_lint/src/rules/injected_field_needs_an_injectable.dart';
 import 'package:cobalt_lint/src/rules/injectable_must_be_constructible.dart';
@@ -44,6 +45,7 @@ class _CobaltPlugin extends Plugin {
     registry.registerWarningRule(DependencyIsNotRegistered());
     registry.registerWarningRule(DependsOnLazyRegistration());
     registry.registerWarningRule(EnvironmentNeedsARegistration());
+    registry.registerWarningRule(HookAddedTooLate());
     registry.registerWarningRule(InitRequiresInitMethod());
     registry.registerWarningRule(InjectableMustBeConstructible());
     registry.registerWarningRule(InjectedFieldMustBeLateFinal());

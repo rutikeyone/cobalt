@@ -1175,7 +1175,7 @@ Three things are worth the build step when the graph gets big:
 
 - **completeness checked at build time** rather than by `expectGraphResolves` at test time;
 - **property injection**, which empties constructors that have grown to five or more collaborators;
-- **seventeen lint rules** that catch the mistakes in §14 in the editor.
+- **eighteen lint rules** that catch the mistakes in §14 in the editor.
 
 What stays exactly as it is: scopes, teardown, the two phases, parameterized registrations,
 observability, the tests. [GUIDE_CODEGEN.md](GUIDE_CODEGEN.md) picks up from here, and

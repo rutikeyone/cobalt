@@ -78,6 +78,7 @@ The overrides above are gone from this repository's own copy now that `cobalt_li
 | `cobalt_async_transient_read_synchronously` | `get`, `getOrNull`, `getAll` or `context.cobalt` on an async transient, which always throws — resolve it with `getAsync` |
 | `cobalt_depends_on_lazy_registration` | `@CobaltInit(dependsOn: [...])` naming a lazy async registration, which `init()` never builds |
 | `cobalt_override_needs_type_argument` | a `CobaltOverride` or `CobaltParamOverride` with no type argument, so Dart infers the key it replaces |
+| `cobalt_hook_added_too_late` | `hookAll` after an eager registration or a `get` on the same scope — in one cascade or earlier in the block — which the scope refuses with `CobaltHookError`; add hooks before anything is built |
 
 All rules are warnings, so they are on by default. Every rule reads annotations through
 `cobalt_analyzer`, the same layer the generator uses.
@@ -96,7 +97,7 @@ registration are not retained. It also stays quiet when a `Disposable` from some
 the supertypes, because it matches by name rather than by library — a rule that cannot see the
 whole graph should fail towards silence.
 
-Twelve of the seventeen rules answer a question about one declaration or one expression. The
+Thirteen of the eighteen rules answer a question about one declaration or one expression. The
 other five — `cobalt_dependency_is_not_registered`, `cobalt_dependency_cycle`,
 `cobalt_lazy_registration_injected_synchronously`, `cobalt_depends_on_lazy_registration` and
 `cobalt_async_transient_read_synchronously` — answer one about the whole package, and the

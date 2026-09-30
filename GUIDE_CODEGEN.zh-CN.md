@@ -18,7 +18,7 @@
 - **图在构建期被检查**——没有人注册的依赖会让构建失败，并一次性点出所有缺口，
   而不是等到某个界面第一个解析到它时才失败；
 - **属性注入**——`late final` 字段由生成的 mixin 填充，于是有五个协作对象的类拥有一个空构造函数；
-- **十七条 lint 规则**，在编辑器里抓住其余的问题。
+- **十八条 lint 规则**，在编辑器里抓住其余的问题。
 
 如果这些你都不需要，或者你正在逐步迁移一个已有的容器，那么不用生成器一切照样能跑：
 [GUIDE_MANUAL.zh-CN.md](GUIDE_MANUAL.zh-CN.md)。
@@ -916,7 +916,7 @@ bootstrap 步骤同样接受环境。只要其中任何一个用到，`$cobaltBo
 
 ## 16. lint 插件
 
-十七条规则，建立在生成器所用的同一套解析层之上，
+十八条规则，建立在生成器所用的同一套解析层之上，
 因此错误会在编辑器里出现，而不是非等到 `build_runner` 跑完。
 
 ```yaml
@@ -944,6 +944,7 @@ plugins:
 | `cobalt_async_transient_read_synchronously` | 对异步瞬态调用 `get`、`getOrNull`、`getAll` 或 `context.cobalt`——必然抛出；应改用 `getAsync` |
 | `cobalt_depends_on_lazy_registration` | `@CobaltInit(dependsOn: [...])` 指向惰性异步注册，而 `init()` 从不构建它 |
 | `cobalt_override_needs_type_argument` | `CobaltOverride` 或 `CobaltParamOverride` 没写类型参数，替换哪个键就由 Dart 推断 |
+| `cobalt_hook_added_too_late` | 在同一作用域上、同一级联或同一代码块中较早处已有 eager 注册或 `get` 之后才调用 `hookAll`——作用域会以 `CobaltHookError` 拒绝；请在任何构建之前添加钩子 |
 
 配置它有两件事会实打实地耗掉你的时间：
 
