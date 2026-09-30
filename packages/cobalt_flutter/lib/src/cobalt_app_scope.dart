@@ -56,6 +56,7 @@ class CobaltAppScope extends StatefulWidget {
     this.loading,
     this.errorBuilder,
     this.disposeOnExitRequest = false,
+    this.restartOnGraphChange = true,
     super.key,
   }) : start = null;
 
@@ -78,7 +79,8 @@ class CobaltAppScope extends StatefulWidget {
        rootName = 'root',
        observers = const [],
        overrides = null,
-       initTimeout = null;
+       initTimeout = null,
+       restartOnGraphChange = false;
 
   /// Declares what the root scope contains. Null only for [CobaltAppScope.start].
   final CobaltScopeBuilder? root;
@@ -177,6 +179,24 @@ class CobaltAppScope extends StatefulWidget {
   /// [CobaltAppScopeController.restart].
   final bool disposeOnExitRequest;
 
+  /// Whether a hot reload that changed what [root] registers restarts the
+  /// graph.
+  ///
+  /// A hot reload patches code but does not run `build()` again, so a
+  /// registration added, removed or given another lifetime would otherwise
+  /// wait for a hot restart — and until then the app resolves against the
+  /// old graph. On each reload this runs [root] again without building
+  /// anything (`CobaltScope.debugRegistrationsOf`) and compares its
+  /// registrations with the live root's; only when they differ does it call
+  /// [CobaltAppScopeController.restart], and say what changed in the debug
+  /// console. A reload that touched only widgets or factory bodies keeps the
+  /// graph, and everything below it, as it was.
+  ///
+  /// Debug builds only, since that is the only place a hot reload happens.
+  /// Changes to [bootstrap] are not compared. Not available to
+  /// [CobaltAppScope.start], which has no builder to run.
+  final bool restartOnGraphChange;
+
   /// An [CobaltAppScope] shaped for [MaterialApp.builder] and its siblings.
   ///
   /// Putting the scope there instead of above the app is what lets [loading]
@@ -214,6 +234,7 @@ class CobaltAppScope extends StatefulWidget {
     Widget Function(BuildContext context, Object error, VoidCallback retry)?
     errorBuilder,
     bool disposeOnExitRequest = false,
+    bool restartOnGraphChange = true,
   }) => (BuildContext context, Widget? child) {
     assert(
       child != null,
@@ -232,6 +253,7 @@ class CobaltAppScope extends StatefulWidget {
       loading: loading,
       errorBuilder: errorBuilder,
       disposeOnExitRequest: disposeOnExitRequest,
+      restartOnGraphChange: restartOnGraphChange,
       child: child!,
     );
   };
@@ -335,6 +357,58 @@ class _CobaltAppScopeState extends State<CobaltAppScope>
       await _release(scope, 'the root scope owned by CobaltAppScope');
     }
     await _start();
+  }
+
+  @override
+  void reassemble() {
+    super.reassemble();
+    final root = widget.root;
+    final scope = _scope;
+    if (!widget.restartOnGraphChange || root == null || scope == null) return;
+    String? change;
+    try {
+      change = _changeIn(CobaltScope.debugRegistrationsOf(root), scope);
+    } catch (error) {
+      // A builder that no longer runs: restarting shows it the usual way,
+      // through errorBuilder.
+      change = 'the root builder now throws ($error)';
+    }
+    if (change == null) return;
+    debugPrint('CobaltAppScope: $change — restarting the graph.');
+    unawaited(restart());
+  }
+
+  /// What differs between the registrations [now] and those of [live], in
+  /// words, or null when nothing does.
+  ///
+  /// A key an override stands in for is compared by presence only: the
+  /// override is free to register it with another lifetime.
+  static String? _changeIn(
+    Map<CobaltKey, CobaltRegistrationKind> now,
+    CobaltScope live,
+  ) {
+    final before = live.keys;
+    final added = [
+      for (final key in now.keys)
+        if (!before.contains(key)) key,
+    ];
+    final removed = [
+      for (final key in before)
+        if (!now.containsKey(key)) key,
+    ];
+    final relived = [
+      for (final MapEntry(:key, :value) in now.entries)
+        if (before.contains(key) &&
+            !live.overriddenKeys.contains(key) &&
+            live.debugKindOf(key) != value)
+          key,
+    ];
+    if (added.isEmpty && removed.isEmpty && relived.isEmpty) return null;
+    return [
+      if (added.isNotEmpty) 'added ${added.join(', ')}',
+      if (removed.isNotEmpty) 'removed ${removed.join(', ')}',
+      if (relived.isNotEmpty) 'changed the lifetime of ${relived.join(', ')}',
+    ].join('; ');
   }
 
   Future<AppExitResponse> _onExitRequested() async {

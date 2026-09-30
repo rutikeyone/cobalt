@@ -219,6 +219,33 @@ final class CobaltScope extends CobaltResolver {
       decoration.label,
   ];
 
+  /// The registrations [builder] makes and how long each lives, without
+  /// starting anything.
+  ///
+  /// [builder] runs against a scope of its own that records an eager
+  /// registration instead of building it, and is dropped afterwards — nothing
+  /// is initialized, disposed or handed out. What a builder does besides
+  /// registering, such as constructing a value for `registerSingleton`, it
+  /// still does. `CobaltAppScope` compares this with the live root on a hot
+  /// reload, to restart the graph only when its registrations changed.
+  ///
+  /// Throws what [runBuilder] throws for a builder that cannot run.
+  static Map<CobaltKey, CobaltRegistrationKind> debugRegistrationsOf(
+    CobaltScopeBuilder builder,
+  ) {
+    final probe = CobaltScope._(
+      'dry run',
+      null,
+      CobaltResolutionTracker(),
+      const [],
+    ).._dryRun = true;
+    probe.runBuilder(builder);
+    return {for (final key in probe.keys) key: probe.debugKindOf(key)!};
+  }
+
+  /// Set on the scope [debugRegistrationsOf] runs a builder against.
+  var _dryRun = false;
+
   /// The class the registration of [key] builds, when its factory says —
   /// see [CobaltDescribedFactory]; null when it does not, or when nothing
   /// registers [key].
@@ -611,6 +638,16 @@ final class CobaltScope extends CobaltResolver {
     final key = CobaltKey(T, name: name);
     if (!_admit(key)) return;
     final order = _order++;
+    if (_dryRun) {
+      // Recorded, not built: see debugRegistrationsOf.
+      _registrations[key] = SingletonRegistration(
+        key: key,
+        order: order,
+        value: const Object(),
+        implementation: _implementationOf(factory),
+      );
+      return;
+    }
     final teardown = _teardownOf(dispose);
     final instance = _tracker.guard(key, () {
       final watch = Stopwatch()..start();

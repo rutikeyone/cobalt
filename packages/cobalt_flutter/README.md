@@ -127,6 +127,10 @@ void main() => runApp(
 with a `CobaltInitTimeoutError` naming the async singletons that never finished — instead of a
 `loading` screen that stays up forever.
 
+A hot reload that adds, removes or re-lifetimes a registration in `root` restarts the graph and says
+what changed in the debug console; any other reload keeps it, and the screens below, as they were.
+`restartOnGraphChange: false` opts out.
+
 In Code-Gen Mode the three generated names go straight in — no wrapper function in between:
 
 ```dart

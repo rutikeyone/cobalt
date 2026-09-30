@@ -193,6 +193,64 @@ void main() {
     });
   });
 
+  group('a hot reload', () {
+    testWidgets('that changed the registrations restarts the graph', (
+      tester,
+    ) async {
+      final shape = _Shape();
+      await tester.pumpWidget(
+        CobaltAppScope(root: _Growing(shape, disposeLog), child: const Probe()),
+      );
+      await tester.pumpAndSettle();
+      final before = rendered();
+
+      shape.extra = true;
+      unawaited(tester.binding.reassembleApplication());
+      await tester.pumpAndSettle();
+
+      expect(rendered(), isNot(before), reason: 'a new graph, a new Marker');
+      expect(disposeLog, ['root'], reason: 'the old graph was released');
+    });
+
+    testWidgets('that left the registrations alone keeps the graph', (
+      tester,
+    ) async {
+      final shape = _Shape();
+      await tester.pumpWidget(
+        CobaltAppScope(root: _Growing(shape, disposeLog), child: const Probe()),
+      );
+      await tester.pumpAndSettle();
+      final before = rendered();
+
+      unawaited(tester.binding.reassembleApplication());
+      await tester.pumpAndSettle();
+
+      expect(rendered(), before);
+      expect(disposeLog, isEmpty);
+    });
+
+    testWidgets('keeps the graph when restartOnGraphChange is off', (
+      tester,
+    ) async {
+      final shape = _Shape();
+      await tester.pumpWidget(
+        CobaltAppScope(
+          root: _Growing(shape, disposeLog),
+          restartOnGraphChange: false,
+          child: const Probe(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final before = rendered();
+
+      shape.extra = true;
+      unawaited(tester.binding.reassembleApplication());
+      await tester.pumpAndSettle();
+
+      expect(rendered(), before);
+    });
+  });
+
   group('a failed start', () {
     testWidgets('reaches errorBuilder instead of killing the app', (
       tester,
@@ -520,6 +578,29 @@ void main() {
 /// Watches teardown rather than creation: [RootBuilder] registers an
 /// already-built value, and `onInstanceCreated` only fires when the scope
 /// itself constructs something.
+/// What [_Growing] registers — flipped by a test to stand in for an edit
+/// that a hot reload brings in.
+class _Shape {
+  var extra = false;
+}
+
+/// A root whose registrations follow [shape]: a Marker, and a String too
+/// once [_Shape.extra] is set.
+final class _Growing implements CobaltScopeBuilder {
+  const _Growing(this.shape, this.log);
+
+  final _Shape shape;
+  final List<String> log;
+
+  @override
+  void build(CobaltScope scope) {
+    scope.registerSingleton<Marker>(Marker('root', log));
+    if (shape.extra) {
+      scope.registerLazySingleton<String>(const _NameFactory());
+    }
+  }
+}
+
 /// A root whose one async singleton never finishes building.
 final class _Hanging implements CobaltScopeBuilder {
   const _Hanging();

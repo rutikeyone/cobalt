@@ -345,6 +345,11 @@ builder: (context, child) => CobaltAppScope(
 所以它不在乎上面或下面注册了什么。`registerSingleton` 是**当场**构建的，它解析的东西必须已经注册。
 把手写的 builder 组合在生成的 builder 之上时就会遇到：把饿汉式的放在容器之后，或者改成懒汉式。
 
+**改变了图的热重载会重启它。** 热重载会替换代码，但不会再次运行 `build()`，所以刚加上的注册原本要等到热重启才生效。
+每次重载时，`CobaltAppScope` 会在不构建任何东西的前提下再运行一次 `root`，把它的注册与当前根作用域比较——只有当某个键被
+添加、删除或换了生命周期时——才调用 `restart()`，并打印变化内容。只改动了 widget 或工厂函数体的重载，会让图和页面状态保持原样。
+`restartOnGraphChange: false` 可关闭此行为；`CobaltAppScope.start` 没有可比较的构建器，`bootstrap` 列表也不参与比较。
+
 ## 5. 在 widget 中读取依赖
 
 ```dart

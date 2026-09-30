@@ -359,6 +359,14 @@ below it. A `registerSingleton` builds *now*, and anything it resolves has to be
 Composing a hand-written builder on top of a generated one is where this shows up — put the eager
 ones after the container, or make them lazy.
 
+**A hot reload that changes the graph restarts it.** A reload patches code but does not run `build()`
+again, so a registration you just added would otherwise wait for a hot restart. On every reload
+`CobaltAppScope` runs `root` once more without building anything, compares its registrations with the
+live root's, and — only if a key was added, removed or given another lifetime — calls `restart()`,
+printing what changed. A reload that touched widgets or a factory's body leaves the graph and the
+screen state alone. `restartOnGraphChange: false` turns it off; `CobaltAppScope.start` has no builder
+to compare, and the `bootstrap` list is not compared.
+
 ## 5. Reading from the graph in a widget
 
 ```dart

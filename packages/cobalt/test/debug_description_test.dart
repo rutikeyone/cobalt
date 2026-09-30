@@ -59,6 +59,48 @@ void main() {
     });
   });
 
+  group('debugRegistrationsOf', () {
+    test('lists every key with its kind, and builds nothing', () {
+      var built = 0;
+      final registrations = CobaltScope.debugRegistrationsOf(
+        _Graph(
+          (scope) => scope
+            ..registerEagerSingleton<Api>(
+              FnFactory((_) {
+                built++;
+                return LiveApi();
+              }),
+            )
+            ..registerLazySingleton<Api>(
+              FnFactory((_) {
+                built++;
+                return LiveApi();
+              }),
+              name: 'lazy',
+            )
+            ..registerFactory<Step>(FnFactory((_) => Step())),
+        ),
+      );
+
+      expect(registrations, {
+        const CobaltKey(Api): CobaltRegistrationKind.singleton,
+        const CobaltKey(Api, name: 'lazy'):
+            CobaltRegistrationKind.lazySingleton,
+        const CobaltKey(Step): CobaltRegistrationKind.transient,
+      });
+      expect(built, 0, reason: 'an eager registration is recorded, not built');
+    });
+
+    test('throws what the builder throws', () {
+      expect(
+        () => CobaltScope.debugRegistrationsOf(
+          _Graph((scope) => throw StateError('broken builder')),
+        ),
+        throwsStateError,
+      );
+    });
+  });
+
   test('debugAdopted lists what was adopted, in order, by type', () {
     final scope = cobaltTestRoot()
       ..adopt(Step())
@@ -66,4 +108,12 @@ void main() {
 
     expect(scope.debugAdopted, ['Step', 'LiveApi']);
   });
+}
+
+final class _Graph implements CobaltScopeBuilder {
+  const _Graph(this.build_);
+  final void Function(CobaltScope scope) build_;
+
+  @override
+  void build(CobaltScope scope) => build_(scope);
 }
