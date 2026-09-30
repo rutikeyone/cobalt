@@ -1,3 +1,27 @@
+## 0.8.0
+
+- **Breaking:** `CobaltError` is a `base class` and every error —
+  `CobaltNotRegisteredError`, `CobaltCycleError` and the rest — is `final`.
+  Catch them; don't implement or extend them. What it buys: a new field on
+  an error is a minor change from 1.0 on.
+- Hooks. `CobaltHook<T>` and `CobaltScope.hookAll<T>(hook, debugLabel:)` run
+  on every `T` the scope, or any scope below it, builds — whichever
+  registration built it — and hand the instance on unchanged: what a
+  decorator cannot do for a supertype, since a wrapper of `Loggable` is not
+  the `Api` the registration promised. A hook sees what the factory made,
+  before decorators, for every kind of registration, and not a value handed
+  over with `registerSingleton`; ancestors' hooks run first; one that throws
+  fails the call. Adding one after the scope, or one below, has built
+  anything throws the new `CobaltHookError`. `debugHooks` lists a scope's
+  own.
+- `CobaltRecordingObserver.accepts(level)`, asked before a record is made:
+  `onRecord` never sees a record it turned down, and its message is never
+  formatted. `CobaltLogObserver` answers it from `minimumLevel`, so the
+  per-instance records it drops by default cost nothing — a build with a log
+  attached at the default level went from 1.61 µs to 817 ns, what an
+  observer that overrides nothing costs. A subclass that filtered in
+  `onRecord` keeps working; overriding `accepts` makes it cheaper.
+
 ## 0.7.0
 
 - **Breaking:** `CobaltResolver` is an `abstract base class`, and

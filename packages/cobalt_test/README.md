@@ -8,7 +8,7 @@ under `dart test` and `flutter test`.
 
 ```yaml
 dev_dependencies:
-  cobalt_test: ^0.7.0
+  cobalt_test: ^0.8.0
 ```
 
 ## Building a graph

@@ -1,3 +1,10 @@
+## 0.8.0
+
+- Reads `@CobaltHookAll` classes: `CobaltHookClass`, `CobaltHookParser` and
+  `CobaltLibraryDeclarations.hooks`. The class implements `CobaltHook<T>` for
+  one `T` and has a constructor without required parameters.
+- `CobaltParseError` is `final`.
+
 ## 0.7.0
 
 - No code changes in this package. Republished in lockstep with 0.7.0, which

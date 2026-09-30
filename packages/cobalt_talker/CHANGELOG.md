@@ -1,3 +1,10 @@
+## 0.8.0
+
+- No code changes in this package. Republished in lockstep with 0.8.0, which
+  adds hooks on a supertype, makes every Cobalt error `final` (breaking) and
+  stops a log observer from formatting the records it drops — see `cobalt`'s
+  changelog.
+
 ## 0.7.0
 
 - No code changes in this package. Republished in lockstep with 0.7.0, which

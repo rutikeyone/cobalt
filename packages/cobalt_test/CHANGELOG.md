@@ -1,3 +1,10 @@
+## 0.8.0
+
+- `describeGraph` shows the hooks each scope adds, as `hooks: Label on Type`
+  above its keys. A graph without hooks reads exactly as before, so existing
+  snapshots stay valid.
+- `FnHook`, the sibling of `FnDecorator` for `CobaltScope.hookAll`.
+
 ## 0.7.0
 
 - `checkGraph` asks `CobaltRegistrationKind`'s getters instead of switching

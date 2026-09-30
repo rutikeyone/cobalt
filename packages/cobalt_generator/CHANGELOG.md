@@ -1,3 +1,11 @@
+## 0.8.0
+
+- Emits `scope.hookAll<T>(...)` for every `@cobaltHookAll` class, first in
+  the root scope — ahead of every registration, so an eager one passes
+  through it — by `order`, then class name, and guarded by
+  `@CobaltEnvironment` like any registration.
+- `CobaltGenerationError` is `final`.
+
 ## 0.7.0
 
 - No code changes in this package. Republished in lockstep with 0.7.0, which

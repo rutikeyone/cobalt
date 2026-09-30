@@ -1,3 +1,9 @@
+## 0.8.0
+
+- **Breaking:** `CobaltNoScopeError` and `CobaltNoAppScopeError` are `final`,
+  like every error in `cobalt` 0.8.0: catch them, don't implement or extend
+  them.
+
 ## 0.7.0
 
 - No code changes in this package. Republished in lockstep with 0.7.0, which

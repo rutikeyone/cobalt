@@ -1,3 +1,8 @@
+## 0.8.0
+
+- `@CobaltHookAll` / `@cobaltHookAll`: adds the annotated `CobaltHook<T>` to
+  the generated root scope, with `order` among several.
+
 ## 0.7.0
 
 - No code changes in this package. Republished in lockstep with 0.7.0, which
