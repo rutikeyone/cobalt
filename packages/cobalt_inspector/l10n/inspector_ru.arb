@@ -66,6 +66,7 @@
   "factReplaced": "Подмена",
   "replacedByOverride": "override — настоящая регистрация пропущена",
   "factDecoratedBy": "Декораторы",
+  "factImplementation": "Строит",
   "factBuildTime": "Последняя сборка заняла",
   "factTornDown": "Разбирается вместе со скоупом",
   "tornDownYes": "да",

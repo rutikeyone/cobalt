@@ -161,6 +161,9 @@ class CobaltInspectorL10nEn extends CobaltInspectorL10n {
   String get factDecoratedBy => 'Decorated by';
 
   @override
+  String get factImplementation => 'Builds';
+
+  @override
   String get factBuildTime => 'Last build took';
 
   @override

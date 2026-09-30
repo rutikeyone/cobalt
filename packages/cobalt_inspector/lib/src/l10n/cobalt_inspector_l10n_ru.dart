@@ -160,6 +160,9 @@ class CobaltInspectorL10nRu extends CobaltInspectorL10n {
   String get factDecoratedBy => 'Декораторы';
 
   @override
+  String get factImplementation => 'Строит';
+
+  @override
   String get factBuildTime => 'Последняя сборка заняла';
 
   @override

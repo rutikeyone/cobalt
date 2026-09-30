@@ -1,8 +1,10 @@
 ## 1.0.0
 
 - The API is stable: from here on, only a major release breaks it — see
-  Compatibility in the README. No code changes in this package since 0.9.0;
-  coming from an older 0.x, MIGRATION lists what to change.
+  Compatibility in the README.
+- A registration's sheet says the class it builds when that is not the
+  key's own type and its factory says — `Builds: LiveApiClient` behind
+  `ApiClient`; generated factories always say. In three languages.
 
 ## 0.9.0
 

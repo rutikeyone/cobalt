@@ -160,6 +160,9 @@ class CobaltInspectorL10nZh extends CobaltInspectorL10n {
   String get factDecoratedBy => '装饰器';
 
   @override
+  String get factImplementation => '构建';
+
+  @override
   String get factBuildTime => '上次构建耗时';
 
   @override

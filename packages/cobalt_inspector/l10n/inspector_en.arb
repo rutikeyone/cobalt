@@ -212,6 +212,10 @@
   "@factDecoratedBy": {
     "description": "Fact label: the decorators wrapping the registration, innermost first."
   },
+  "factImplementation": "Builds",
+  "@factImplementation": {
+    "description": "Fact label: the class the registration builds, when its factory says and it is not the key's own type."
+  },
   "factBuildTime": "Last build took",
   "@factBuildTime": {
     "description": "Label for how long the most recent build of this registration took."

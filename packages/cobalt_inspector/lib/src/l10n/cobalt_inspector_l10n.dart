@@ -394,6 +394,12 @@ abstract class CobaltInspectorL10n {
   /// **'Decorated by'**
   String get factDecoratedBy;
 
+  /// Fact label: the class the registration builds, when its factory says and it is not the key's own type.
+  ///
+  /// In en, this message translates to:
+  /// **'Builds'**
+  String get factImplementation;
+
   /// Label for how long the most recent build of this registration took.
   ///
   /// In en, this message translates to:

@@ -104,6 +104,12 @@ class _RegistrationDetailSheetState extends State<RegistrationDetailSheet> {
               label: strings.factReplaced,
               value: strings.replacedByOverride,
             ),
+          if (registration.implementation case final implementation?)
+            _Fact(
+              key: const Key('implementation-fact'),
+              label: strings.factImplementation,
+              value: implementation,
+            ),
           if (registration.decorators.isNotEmpty)
             _Fact(
               key: const Key('decorated-fact'),

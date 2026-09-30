@@ -21,6 +21,7 @@ class RegistrationView {
     required this.isInherited,
     this.isOverridden = false,
     this.decorators = const [],
+    this.implementation,
   });
 
   /// Everything [scope] can resolve, its own registrations first.
@@ -39,6 +40,10 @@ class RegistrationView {
           isInherited: !own.contains(entry.key),
           isOverridden: entry.value.overriddenKeys.contains(entry.key),
           decorators: scope.debugDecoratorsOf(entry.key),
+          implementation: switch (scope.debugImplementationOf(entry.key)) {
+            final built? when built != '${entry.key.type}' => built,
+            _ => null,
+          },
         ),
     ]..sort((a, b) {
       if (a.isInherited != b.isInherited) return a.isInherited ? 1 : -1;
@@ -63,6 +68,10 @@ class RegistrationView {
 
   /// What wraps it, innermost first; empty when nothing does.
   final List<String> decorators;
+
+  /// The class it builds, when its factory says and that is not the key's
+  /// own type — `LiveApiClient` behind `ApiClient`; null otherwise.
+  final String? implementation;
 
   /// Whether it can be built without a value from the caller.
   bool get isBuildable => kind?.takesParam == false;

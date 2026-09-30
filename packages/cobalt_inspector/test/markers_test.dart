@@ -78,6 +78,32 @@ void main() {
     expect(find.byKey(const Key('decorated-fact')), findsNothing);
   });
 
+  testWidgets('the detail sheet names the class a registration builds', (
+    tester,
+  ) async {
+    final described = cobaltTestRoot(name: 'described')
+      ..registerLazySingleton<Clock>(const _LiveClockFactory());
+
+    await tester.pumpWidget(inspectorUnderTest(described, log));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('registration-Clock')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('implementation-fact')), findsOneWidget);
+    expect(find.text('LiveClock'), findsOneWidget);
+  });
+
+  testWidgets('a factory that does not say shows no builds fact', (
+    tester,
+  ) async {
+    await tester.pumpWidget(inspectorUnderTest(scope, log));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('registration-Api')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('implementation-fact')), findsNothing);
+  });
+
   testWidgets('a scope with hooks lists them under its name', (tester) async {
     final hooked = cobaltTestRoot(name: 'hooked')
       ..hookAll<Api>(FnHook((_, _) {}), debugLabel: 'Audit')
@@ -109,4 +135,16 @@ void main() {
       reason: 'the override belongs to the owner, and every node shows it',
     );
   });
+}
+
+/// A factory that names what it builds, as generated ones do.
+final class _LiveClockFactory
+    implements CobaltFactory<Clock>, CobaltDescribedFactory {
+  const _LiveClockFactory();
+
+  @override
+  String get implementation => 'LiveClock';
+
+  @override
+  Clock create(CobaltResolver resolver) => const Clock();
 }
