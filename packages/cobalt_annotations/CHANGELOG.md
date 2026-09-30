@@ -1,3 +1,8 @@
+## 0.9.0
+
+- No code changes. `@CobaltHookAll`'s documentation shows a hook as
+  `final class … extends CobaltHook<T>`, as `cobalt` 0.9.0 requires.
+
 ## 0.8.0
 
 - `@CobaltHookAll` / `@cobaltHookAll`: adds the annotated `CobaltHook<T>` to

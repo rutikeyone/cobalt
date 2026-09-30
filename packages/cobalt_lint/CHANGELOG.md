@@ -1,3 +1,12 @@
+## 0.9.0
+
+- New rule, `cobalt_hook_added_too_late`: `hookAll` after something that
+  builds on the same scope — an eager registration, `get` and the other
+  reads, `init`, `warmUp` — in an earlier section of the same cascade or an
+  earlier statement of the same block on the same variable. The scope
+  refuses it at runtime with `CobaltHookError`; the rule moves that into the
+  editor. Eighteen rules.
+
 ## 0.8.0
 
 - No code changes in this package. Republished in lockstep with 0.8.0, which

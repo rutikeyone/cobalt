@@ -174,17 +174,17 @@ cannot see — so CI fails until a changed modifier is written down.
 
 Cobalt next to get_it, from [`benchmark/`](benchmark/README.md), which describes what each row does.
 Compiled AOT, on arm64 with Dart SDK 3.10.8 (stable) — a `macos_x64` build of the SDK, so the binary
-ran under Rosetta. Median of three runs; they agreed within fifteen percent.
+ran under Rosetta. Median of three runs; they agreed within twenty percent.
 
 | | Cobalt | get_it | Cobalt / get_it |
 |---|---:|---:|---:|
-| get a built singleton | 168 ns | 878 ns | 0.19× |
-| build a transient with two dependencies | 769 ns | 2.61 µs | 0.29× |
-| register 200, then get each once | 227 µs | 684 µs | 0.33× |
-| start 20 async singletons | 36.8 µs | 47.7 µs | 0.77× |
-| the transient, with an empty observer | 813 ns | — | — |
-| the transient, with a recording observer | 1.66 µs | — | — |
-| the transient, with a log observer at its default level | 817 ns | — | — |
+| get a built singleton | 163 ns | 866 ns | 0.19× |
+| build a transient with two dependencies | 730 ns | 2.55 µs | 0.29× |
+| register 200, then get each once | 215 µs | 687 µs | 0.31× |
+| start 20 async singletons | 38.4 µs | 44.6 µs | 0.86× |
+| the transient, with an empty observer | 744 ns | — | — |
+| the transient, with a recording observer | 1.64 µs | — | — |
+| the transient, with a log observer at its default level | 751 ns | — | — |
 
 Below 1 in the last column, Cobalt took less time. The absolute numbers belong to this machine, and a
 translated binary is slower than a native one across the board; what carries over is the order of

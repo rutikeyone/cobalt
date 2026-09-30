@@ -1,3 +1,12 @@
+## 0.9.0
+
+- No code changes in this package. Republished in lockstep with 0.9.0 — the
+  last release before 1.0 — which makes `CobaltHook` a base class with
+  `onReleased` (breaking), adds a timeout to `init`, a snapshot per
+  environment and a Mermaid picture of the graph, a lint for a hook added too
+  late, and a graph that restarts on a hot reload that changed it — see
+  `cobalt`'s changelog.
+
 ## 0.8.0
 
 - No code changes in this package. Republished in lockstep with 0.8.0, which

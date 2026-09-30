@@ -1,3 +1,8 @@
+## 0.9.0
+
+- The scope tree lists the hooks a scope adds under its name —
+  `hooks: JoinRegistry on Loggable` — in all three languages.
+
 ## 0.8.0
 
 - No code changes in this package. Republished in lockstep with 0.8.0, which

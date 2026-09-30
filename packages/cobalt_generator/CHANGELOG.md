@@ -1,3 +1,13 @@
+## 0.9.0
+
+- `$startCobalt(initTimeout:)`, passed through to
+  `CobaltApplication.start`.
+- Every generated factory implements `CobaltDescribedFactory`, naming the
+  class it builds, so `describeGraph` shows it — `ApiClient — lazySingleton,
+  as LiveApiClient`. The generated file changes accordingly.
+- A hook class is `final class … extends CobaltHook<T>` now that
+  `CobaltHook` is a base class.
+
 ## 0.8.0
 
 - Emits `scope.hookAll<T>(...)` for every `@cobaltHookAll` class, first in

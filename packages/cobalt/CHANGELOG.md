@@ -1,3 +1,30 @@
+## 0.9.0
+
+The last release before 1.0: what could not change after it without a major
+release is settled here.
+
+- **Breaking:** `CobaltHook<T>` is an `abstract base class` with empty
+  methods, as `CobaltObserver` is. A hook is `final class … extends
+  CobaltHook<T>` and overrides what it needs; a new method is a minor change
+  from 1.0 on.
+- `CobaltHook.onReleased(instance)`: when the scope is disposed, every
+  instance it kept comes back through the hooks it passed — innermost first,
+  in the reverse of the order they were built, before the instance is
+  closed — so what joined a registry can leave it. A transient never comes
+  back. A throw is a teardown failure. A graph without hooks pays nothing.
+- `init(timeout:)` and `CobaltApplication.start(initTimeout:)`: past the
+  budget, init throws `CobaltInitTimeoutError` naming every async singleton
+  not yet built, observers hear `onScopeInitFailed`, and `start` disposes the
+  root. Builds in flight run to the end and are closed as they arrive; no
+  later level starts. Without a timeout nothing changes.
+- `CobaltDescribedFactory`, a factory that names the class it builds;
+  `CobaltScope.debugImplementationOf(key)` and `debugAdopted` — what
+  `describeGraph` needs to tell `FakeApiClient` from `LiveApiClient` behind
+  one `ApiClient`, and to list the bootstrap steps a start ran.
+- `CobaltScope.debugRegistrationsOf(builder)`: the keys a builder registers
+  and their lifetimes, run without building anything — an eager
+  registration is recorded, not built.
+
 ## 0.8.0
 
 - **Breaking:** `CobaltError` is a `base class` and every error —

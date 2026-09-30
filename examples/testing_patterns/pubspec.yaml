@@ -9,13 +9,13 @@ environment:
 
 
 dependencies:
-  cobalt: ^0.8.0
-  cobalt_flutter: ^0.8.0
+  cobalt: ^0.9.0
+  cobalt_flutter: ^0.9.0
   flutter:
     sdk: flutter
 
 dev_dependencies:
   lints: ^6.0.0
-  cobalt_test: ^0.8.0
+  cobalt_test: ^0.9.0
   flutter_test:
     sdk: flutter

@@ -1,3 +1,17 @@
+## 0.9.0
+
+- `expectGraphSnapshots(graphOf, environments:, directory:)`: one snapshot
+  per environment, every one checked before failing, the failure naming
+  each that moved.
+- `describeGraph` shows the class a key builds when its factory says and it
+  is not the key's own type — `as LiveApiClient` — and what a scope adopted,
+  the bootstrap steps a start ran. A hand-written graph without either reads
+  as before; a generated one gains those lines, since the generator's
+  factories now say.
+- `describeGraphMermaid(scope)`: the same facts as a Mermaid flowchart.
+- `FnHook` is a base class extending `CobaltHook`, with an optional
+  `release` callback.
+
 ## 0.8.0
 
 - `describeGraph` shows the hooks each scope adds, as `hooks: Label on Type`

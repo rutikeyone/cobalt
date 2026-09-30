@@ -1,3 +1,8 @@
+## 0.9.0
+
+- An `@cobaltHookAll` class extends `CobaltHook<T>`, now a base class; the
+  parser's message says so.
+
 ## 0.8.0
 
 - Reads `@CobaltHookAll` classes: `CobaltHookClass`, `CobaltHookParser` and

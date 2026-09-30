@@ -1,3 +1,16 @@
+## 0.9.0
+
+- A hot reload that changes the graph restarts it.
+  `CobaltAppScope(restartOnGraphChange:)`, on by default and on the builder
+  too, runs `root` again without building on every reload and compares its
+  registrations with the live root's: a key added, removed or given another
+  lifetime calls `restart()` and says what changed in the debug console; any
+  other reload keeps the graph and everything below it. Not for
+  `CobaltAppScope.start`, and `bootstrap` is not compared.
+- `CobaltAppScope(initTimeout:)` and its builder: a start that hangs becomes
+  the `errorBuilder` screen with a `CobaltInitTimeoutError` naming what never
+  finished.
+
 ## 0.8.0
 
 - **Breaking:** `CobaltNoScopeError` and `CobaltNoAppScopeError` are `final`,
