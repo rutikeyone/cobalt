@@ -144,9 +144,16 @@ its one `switch` in the repository is the inspector sorting events into its own 
 ships in lockstep.
 
 `tool/api.sh` — the `api` job in CI — runs `dart_apitool` against the version on pub.dev and names
-each change breaking or not. Treat it as a second pair of eyes, not the authority: it did not flag
-`CobaltResolver` turning from an interface into a base class. The changelog's **Breaking** list is
-still written by hand.
+each change breaking or not, and it is a gate: a breaking change fails the job unless the checkout's
+version is a major step past the published one. So a breaking change reaches `main` only as part of
+a major release. When the job fails, there are three ways out, in the order to try them: make the
+change non-breaking (a new optional parameter, a new member with a default); if what changed is not
+meant to be stable API, mark it `@experimental` — the tool treats changes there as non-breaking, and
+the README says such members may change in a minor release; or ship it in a major. `cobalt_analyzer`
+is reported and never gated, being internal.
+
+It is still a second pair of eyes, not the authority: it did not flag `CobaltResolver` turning from
+an interface into a base class. The changelog's **Breaking** list is written by hand.
 
 That gap is covered separately. `tool/class_modifiers.txt` lists every public type, once, under the
 package that declares it, with its kind and modifiers; `python3 tool/modifiers.py` rewrites it and

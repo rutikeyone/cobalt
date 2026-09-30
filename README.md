@@ -168,7 +168,8 @@ Before 1.0 every minor release may break something, and its changelog says what 
 
 Two things are outside these rules on purpose. `CobaltScope`'s `debug*` members — what the inspector
 and `cobalt_test` read the graph through — are marked `@experimental` and may change in a minor
-release. And `cobalt_analyzer` is internal to the generator and the lint plugin: its API follows
+release; newer analyzers flag each use from your code with `experimental_member_use`, which is the
+point — ignore it where you mean it. And `cobalt_analyzer` is internal to the generator and the lint plugin: its API follows
 what they need, not semver; depend on them rather than on it.
 
 `tool/api.sh` reports what changed in every package against the version on pub.dev, and

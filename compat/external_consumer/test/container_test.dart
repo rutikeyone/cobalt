@@ -1,3 +1,8 @@
+// CobaltScope's debug* members are @experimental — outside semver, which newer
+// analyzers flag on every use from another package. Reading the graph through
+// them is what this file is for.
+// ignore_for_file: experimental_member_use
+
 import 'package:cobalt/cobalt.dart';
 import 'package:cobalt_external_consumer/cobalt_external_consumer.dart';
 import 'package:cobalt_test/cobalt_test.dart';

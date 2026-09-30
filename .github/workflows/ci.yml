@@ -155,13 +155,12 @@ jobs:
       - name: Test the analyzer-facing packages
         run: ./tool/matrix.sh ${{ matrix.analyzer }}
 
-  # What changed in each package's public API since the release on pub.dev,
-  # with the version step dart_apitool thinks it needs. Informational until
-  # 1.0: every 0.x release is a minor step, and the tool misses class-modifier
-  # changes — breaking changes are still written into the changelog by hand.
+  # What changed in each package's public API since the release on pub.dev.
+  # A gate: a breaking change fails unless the version is a major step past
+  # the published one. @experimental members and cobalt_analyzer are reported,
+  # not gated; class modifiers are the verify job's (tool/modifiers.py).
   api:
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v5
 
@@ -172,6 +171,6 @@ jobs:
       - name: Resolve every member
         run: ./tool/get.sh
 
-      - name: Report API changes
+      - name: No breaking change without a major version
         run: ./tool/api.sh
 
