@@ -16,8 +16,13 @@ import 'package:codegen_basics/tracked_repository.dart' as _i421;
 typedef $GreetingArgs = ({String name, bool loud});
 
 final class _PlatformModuleEventsFactory
-    implements _i573.CobaltFactory<_i687.StreamController<String>> {
+    implements
+        _i573.CobaltFactory<_i687.StreamController<String>>,
+        _i573.CobaltDescribedFactory {
   const _PlatformModuleEventsFactory();
+
+  @override
+  String get implementation => 'StreamController';
 
   @override
   _i687.StreamController<String> create(_i573.CobaltResolver resolver) =>
@@ -25,8 +30,11 @@ final class _PlatformModuleEventsFactory
 }
 
 final class _PlatformModuleRandomFactory
-    implements _i573.CobaltFactory<_i407.Random> {
+    implements _i573.CobaltFactory<_i407.Random>, _i573.CobaltDescribedFactory {
   const _PlatformModuleRandomFactory();
+
+  @override
+  String get implementation => 'Random';
 
   @override
   _i407.Random create(_i573.CobaltResolver resolver) =>
@@ -34,8 +42,13 @@ final class _PlatformModuleRandomFactory
 }
 
 final class _CounterBlocFactory
-    implements _i573.CobaltFactory<_i1015.CounterBloc> {
+    implements
+        _i573.CobaltFactory<_i1015.CounterBloc>,
+        _i573.CobaltDescribedFactory {
   const _CounterBlocFactory();
+
+  @override
+  String get implementation => 'CounterBloc';
 
   @override
   _i1015.CounterBloc create(_i573.CobaltResolver resolver) =>
@@ -43,8 +56,13 @@ final class _CounterBlocFactory
 }
 
 final class _GreetingFactory
-    implements _i573.CobaltParamFactory<_i767.Greeting, $GreetingArgs> {
+    implements
+        _i573.CobaltParamFactory<_i767.Greeting, $GreetingArgs>,
+        _i573.CobaltDescribedFactory {
   const _GreetingFactory();
+
+  @override
+  String get implementation => 'Greeting';
 
   @override
   _i767.Greeting create(_i573.CobaltResolver resolver, $GreetingArgs args) =>
@@ -56,8 +74,13 @@ final class _GreetingFactory
 }
 
 final class _LeaderboardFactory
-    implements _i573.CobaltAsyncFactory<_i761.Leaderboard> {
+    implements
+        _i573.CobaltAsyncFactory<_i761.Leaderboard>,
+        _i573.CobaltDescribedFactory {
   const _LeaderboardFactory();
+
+  @override
+  String get implementation => 'Leaderboard';
 
   @override
   _i687.Future<_i761.Leaderboard> create(_i573.CobaltResolver resolver) async {
@@ -67,24 +90,39 @@ final class _LeaderboardFactory
   }
 }
 
-final class _ConfigFactory implements _i573.CobaltFactory<_i700.Config> {
+final class _ConfigFactory
+    implements _i573.CobaltFactory<_i700.Config>, _i573.CobaltDescribedFactory {
   const _ConfigFactory();
+
+  @override
+  String get implementation => 'Config';
 
   @override
   _i700.Config create(_i573.CobaltResolver resolver) => _i700.Config();
 }
 
 final class _RepositoryFactory
-    implements _i573.CobaltFactory<_i700.Repository> {
+    implements
+        _i573.CobaltFactory<_i700.Repository>,
+        _i573.CobaltDescribedFactory {
   const _RepositoryFactory();
+
+  @override
+  String get implementation => 'Repository';
 
   @override
   _i700.Repository create(_i573.CobaltResolver resolver) =>
       _i700.Repository(resolver.get<_i700.Config>());
 }
 
-final class _TelemetryFactory implements _i573.CobaltFactory<_i700.Telemetry> {
+final class _TelemetryFactory
+    implements
+        _i573.CobaltFactory<_i700.Telemetry>,
+        _i573.CobaltDescribedFactory {
   const _TelemetryFactory();
+
+  @override
+  String get implementation => 'Telemetry';
 
   @override
   _i700.Telemetry create(_i573.CobaltResolver resolver) => _i700.Telemetry();

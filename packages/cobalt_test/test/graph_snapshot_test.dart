@@ -151,6 +151,120 @@ scope "app"
       expect(File(path).existsSync(), isFalse);
     });
   });
+
+  group('expectGraphSnapshots', () {
+    late Directory dir;
+
+    setUp(() => dir = Directory.systemTemp.createTempSync('cobalt_snapshots'));
+    tearDown(() => dir.deleteSync(recursive: true));
+
+    final environments = {CobaltEnvironment.dev, CobaltEnvironment.prod};
+
+    /// The graph for [environment]; with [drift], prod gains a registration.
+    CobaltScope graphFor(CobaltEnvironment environment, {bool drift = false}) {
+      final app = cobaltTestRoot(name: 'app')
+        ..registerSingleton<Clock>(const Clock());
+      if (environment == CobaltEnvironment.dev) {
+        app.registerLazySingleton<Api>(FnFactory((_) => RealApi()));
+      }
+      if (drift && environment == CobaltEnvironment.prod) {
+        app.registerLazySingleton<Cart>(FnFactory((_) => Cart()));
+      }
+      return app;
+    }
+
+    test('writes one file per environment, then each matches', () async {
+      await expectGraphSnapshots(
+        graphFor,
+        environments: environments,
+        directory: dir.path,
+        update: true,
+      );
+
+      expect(
+        File('${dir.path}/dev.txt').readAsStringSync(),
+        contains('Api — lazySingleton'),
+      );
+      expect(
+        File('${dir.path}/prod.txt').readAsStringSync(),
+        isNot(contains('Api')),
+      );
+      await expectGraphSnapshots(
+        graphFor,
+        environments: environments,
+        directory: dir.path,
+      );
+    });
+
+    test(
+      'names each environment that moved, having checked them all',
+      () async {
+        await expectGraphSnapshots(
+          graphFor,
+          environments: environments,
+          directory: dir.path,
+          update: true,
+        );
+
+        await expectLater(
+          expectGraphSnapshots(
+            (environment) => graphFor(environment, drift: true),
+            environments: environments,
+            directory: dir.path,
+          ),
+          throwsA(
+            isA<TestFailure>().having(
+              (e) => e.message,
+              'message',
+              allOf(
+                contains('environment "prod"'),
+                contains('+   Cart — lazySingleton'),
+                isNot(contains('environment "dev"')),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  });
+
+  group('describeGraphMermaid', () {
+    test('draws scopes as nested subgraphs, facts under each key', () {
+      final app = cobaltTestRoot(name: 'app')
+        ..hookAll<Api>(FnHook((_, _) {}), debugLabel: 'Audit')
+        ..registerLazySingleton<Api>(FnFactory((_) => RealApi()))
+        ..decorate<Api>(_named('Logging'), debugLabel: 'Logging')
+        ..registerLazySingleton<List<String>>(FnFactory((_) => []));
+      app.push('session');
+
+      expect(describeGraphMermaid(app), '''
+flowchart TD
+  subgraph s0["scope #quot;app#quot;"]
+    direction TB
+    s0_hooks(["hooks: Audit on Api"])
+    s0_k0["Api<br/>lazySingleton<br/>decorated: Logging"]
+    s0_k1["List#lt;String#gt;<br/>lazySingleton"]
+    subgraph s1["scope #quot;session#quot;"]
+      direction TB
+      s1_empty["nothing registered"]
+    end
+  end
+''');
+    });
+
+    test('says what describeGraph says', () {
+      final app = cobaltTestRoot(
+        name: 'app',
+        overrides: [CobaltOverride<Clock>.value(const Clock())],
+      )..registerLazySingleton<Clock>(FnFactory((_) => const Clock()));
+
+      expect(describeGraph(app), contains('Clock — singleton, overridden'));
+      expect(
+        describeGraphMermaid(app),
+        contains('Clock<br/>singleton<br/>overridden'),
+      );
+    });
+  });
 }
 
 final class _NoHook<T extends Object> extends CobaltHook<T> {

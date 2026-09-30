@@ -1,21 +1,28 @@
+import 'dart:async';
+
 import 'package:cobalt/cobalt.dart';
+import 'package:cobalt_test/src/graph_facts.dart';
 // A file system only where there is one: importing dart:io unconditionally
 // would cost this package every platform without it, WebAssembly included.
 import 'package:cobalt_test/src/snapshot_file.dart'
     if (dart.library.io) 'package:cobalt_test/src/snapshot_file_io.dart';
 import 'package:matcher/expect.dart' show fail;
+import 'package:test_api/hooks.dart' show TestFailure;
 
 /// What [scope] and the scopes below it register, as text.
 ///
 /// One block per scope, nested as the tree is; inside each, the hooks added
-/// to it, when there are any, then the keys that scope registers itself,
-/// sorted, with their kind, whether an override stands in for them and what
-/// decorates them, innermost first:
+/// to it and what it adopted — the bootstrap steps a start ran — when there
+/// are any, then the keys that scope registers itself, sorted, with their
+/// kind, the class they build when their factory says and it is not the key's
+/// own type, whether an override stands in for them and what decorates them,
+/// innermost first:
 ///
 /// ```text
 /// scope "app"
 ///   hooks: JoinRegistry on Loggable
-///   ApiClient — lazySingleton, decorated: Retrying → Logging
+///   adopted: BindPlatform, ReportCrashes
+///   ApiClient — lazySingleton, as LiveApiClient, decorated: Retrying → Logging
 ///   Clock — singleton, overridden
 ///   scope "session"
 ///     Cart — lazySingleton
@@ -35,16 +42,11 @@ String describeGraph(CobaltScope scope) {
     if (scope.debugHooks case final hooks when hooks.isNotEmpty) {
       lines.add('$indent  hooks: ${hooks.join(', ')}');
     }
-    final keys = scope.keys.toList()..sort((a, b) => '$a'.compareTo('$b'));
-    for (final key in keys) {
-      final facts = [
-        scope.debugKindOf(key)?.name ?? 'unknown',
-        if (scope.overriddenKeys.contains(key)) 'overridden',
-        if (scope.debugDecoratorsOf(key) case final decorators
-            when decorators.isNotEmpty)
-          'decorated: ${decorators.join(' → ')}',
-      ];
-      lines.add('$indent  $key — ${facts.join(', ')}');
+    if (scope.debugAdopted case final adopted when adopted.isNotEmpty) {
+      lines.add('$indent  adopted: ${adopted.join(', ')}');
+    }
+    for (final key in describedKeysOf(scope)) {
+      lines.add('$indent  $key — ${factsOf(scope, key).join(', ')}');
     }
     for (final child in scope.children) {
       describe(child, '$indent  ');
@@ -140,4 +142,38 @@ String _diff(List<String> before, List<String> after) {
     out.removeLast();
   }
   return out.join('\n');
+}
+
+/// [expectGraphSnapshot] for each of [environments], one file each:
+/// `<directory>/<environment name>.txt`.
+///
+/// [graphOf] builds the graph for one environment — typically the generated
+/// root scope given that environment, in a test scope. Every environment is
+/// checked before anything fails, and the failure names each one that
+/// differs, so a review sees at once how `dev` and `prod` moved apart. Each
+/// graph is disposed once it is described.
+///
+/// [update] and `COBALT_UPDATE_SNAPSHOTS=1` rewrite every file, as for one.
+Future<void> expectGraphSnapshots(
+  FutureOr<CobaltScope> Function(CobaltEnvironment environment) graphOf, {
+  required Iterable<CobaltEnvironment> environments,
+  required String directory,
+  bool? update,
+}) async {
+  final failures = <String>[];
+  for (final environment in environments) {
+    final scope = await graphOf(environment);
+    try {
+      expectGraphSnapshot(
+        scope,
+        '$directory/${environment.name}.txt',
+        update: update,
+      );
+    } on TestFailure catch (failure) {
+      failures.add('environment "${environment.name}": ${failure.message}');
+    } finally {
+      await scope.dispose();
+    }
+  }
+  if (failures.isNotEmpty) fail(failures.join('\n\n'));
 }

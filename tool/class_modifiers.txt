@@ -15,6 +15,7 @@ cobalt  CobaltDecorator  abstract interface class
 cobalt  CobaltDecoratorError  final class
 cobalt  CobaltDependenciesOf  typedef
 cobalt  CobaltDependsOnError  final class
+cobalt  CobaltDescribedFactory  abstract interface class
 cobalt  CobaltDeveloperLogSink  final class
 cobalt  CobaltDisposeError  final class
 cobalt  CobaltDisposeFailure  final class

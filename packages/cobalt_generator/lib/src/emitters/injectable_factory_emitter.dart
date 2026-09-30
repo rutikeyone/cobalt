@@ -55,7 +55,21 @@ class InjectableFactoryEmitter {
                   exposed,
                 ),
         )
+        // Says what it builds, so a description of the graph can tell one
+        // implementation behind an interface from another.
+        ..implements.add(cobaltRef('CobaltDescribedFactory'))
         ..constructors.add(Constructor((c) => c..constant = true))
+        ..methods.add(
+          Method(
+            (m) => m
+              ..name = 'implementation'
+              ..type = MethodType.getter
+              ..annotations.add(refer('override'))
+              ..returns = refer('String', 'dart:core')
+              ..lambda = true
+              ..body = literalString(declaration.type.name).code,
+          ),
+        )
         ..methods.add(switch ((args, declaration.isAsyncInit, provider)) {
           (final Reference args, true, _) => _asyncParamCreate(
             exposed,

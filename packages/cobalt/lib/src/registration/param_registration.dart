@@ -4,6 +4,7 @@ final class ParamRegistration extends CobaltRegistration {
   ParamRegistration({
     required super.key,
     required super.order,
+    super.implementation,
     required this.factory,
     required this.paramType,
     required this.accepts,

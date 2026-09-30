@@ -1137,6 +1137,30 @@ scope "app"
 然后提交。尚不存在的快照同样会让测试失败，而不是被悄悄写出并通过：在 CI 里那样什么也没检查。读写文件需要
 文件系统；在 Web 上，请把 `describeGraph(scope)` 与字符串比较。
 
+键可能掩盖它构建的是什么：`ApiClient` 在一个构建里是 `FakeApiClient`，在另一个里是 `LiveApiClient`。只要工厂告知，
+快照就会显示出来——`ApiClient — lazySingleton, as LiveApiClient`——并列出作用域接收（adopt）的对象，也就是启动时运行的
+引导步骤——`adopted: BindPlatform, ReportCrashes`。每个环境一份快照，评审时就能看出各构建的差别：
+
+```dart
+test('each environment keeps its shape', () async {
+  await expectGraphSnapshots(
+    (environment) => cobaltTestScope(
+      root: $CobaltRootScope(environment: environment),
+      bootstrap: $cobaltBootstrap(environment),
+      rootName: $cobaltRootScopeName,
+    ),
+    environments: {CobaltEnvironment.dev, CobaltEnvironment.prod},
+    directory: 'test/snapshots',
+  );
+});
+```
+
+每个环境一个文件——`test/snapshots/dev.txt`、`prod.txt`——所有环境都检查完才会失败，失败信息会点名每个发生变化的环境。
+`examples/notes_app` 保留了四份。
+
+`describeGraphMermaid(scope)` 把同样的事实画成 Mermaid 流程图——作用域是嵌套的子图，注册是方框——放进 `mermaid`
+代码块，GitHub 会在 README 或拉取请求里直接渲染。
+
 ### 测试替身
 
 ```dart

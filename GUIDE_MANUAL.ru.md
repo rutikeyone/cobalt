@@ -1012,6 +1012,36 @@ scope "app"
 ещё нет, тоже роняет тест, а не создаётся молча: в CI такой тест ничего бы не проверял. Чтению и
 записи файла нужна файловая система; в вебе сравнивайте `describeGraph(scope)` со строкой.
 
+Ключ может скрывать, что он строит: `ApiClient` — это `FakeApiClient` в одной сборке и `LiveApiClient`
+в другой. Снимок показывает это, если фабрика сообщает, — `ApiClient — lazySingleton, as
+LiveApiClient`, — и перечисляет, что скоуп принял, то есть шаги бутстрапа, которые выполнил старт, —
+`adopted: BindPlatform, ReportCrashes`. С одним снимком на окружение в ревью видно, чем сборки
+отличаются:
+
+```dart
+test('each environment keeps its shape', () async {
+  await expectGraphSnapshots(
+    (environment) => cobaltTestScope(
+      root: $CobaltRootScope(environment: environment),
+      bootstrap: $cobaltBootstrap(environment),
+      rootName: $cobaltRootScopeName,
+    ),
+    environments: {CobaltEnvironment.dev, CobaltEnvironment.prod},
+    directory: 'test/snapshots',
+  );
+});
+```
+
+По файлу на окружение — `test/snapshots/dev.txt`, `prod.txt`; все окружения проверяются до того,
+как что-то упадёт, и ошибка называет каждое, которое изменилось. В `examples/notes_app` их четыре.
+
+`describeGraphMermaid(scope)` рисует те же факты как диаграмму Mermaid — скоупы вложенными
+подграфами, регистрации прямоугольниками — для блока `mermaid`, который GitHub отображает в README
+или пул-реквесте.
+
+Сгенерированные фабрики всегда сообщают, что строят. Написанная руками сообщает, реализовав
+`CobaltDescribedFactory`; без этого строка выглядит как раньше.
+
 ### Подмена
 
 Отдайте замену скоупу, которому принадлежит ключ. Override регистрируется первым, в момент создания

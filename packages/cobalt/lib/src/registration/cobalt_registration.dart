@@ -22,8 +22,16 @@ part 'transient_registration.dart';
 typedef CobaltTeardown = FutureOr<void> Function(Object instance);
 
 sealed class CobaltRegistration {
-  CobaltRegistration({required this.key, required this.order});
+  CobaltRegistration({
+    required this.key,
+    required this.order,
+    this.implementation,
+  });
 
   final CobaltKey key;
   final int order;
+
+  /// What the factory says it builds, when it says — see
+  /// `CobaltDescribedFactory`.
+  final String? implementation;
 }

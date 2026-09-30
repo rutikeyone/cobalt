@@ -105,6 +105,12 @@ A change fails with a line diff. Rewrite the file with `COBALT_UPDATE_SNAPSHOTS=
 The file part needs `dart:io` and is imported only where it exists, so the package keeps its web and
 WebAssembly support; there, compare `describeGraph` with a string.
 
+`expectGraphSnapshots(graphOf, environments: {...}, directory: ...)` keeps one snapshot per
+environment and names each that moved. A line shows the class a key builds when its factory says —
+`ApiClient — lazySingleton, as LiveApiClient`; the generator's factories always do — and a scope
+lists what it adopted, the bootstrap steps a start ran. `describeGraphMermaid(scope)` draws the same
+facts as a Mermaid flowchart for a README or a pull request.
+
 ## The rest
 
 - `DisposeRecorder` — records teardown order. **Its log belongs to the recorder, not to the

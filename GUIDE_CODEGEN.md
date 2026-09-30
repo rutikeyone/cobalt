@@ -1202,6 +1202,33 @@ change is read in review instead of discovered on a device. Accept it by rewriti
 exist yet fails too, rather than being written and passing: in CI that would check nothing. Reading
 and writing the file need a file system; on the web, compare `describeGraph(scope)` with a string.
 
+A key can hide what it builds — `ApiClient` is `FakeApiClient` in one build and `LiveApiClient` in
+another. The snapshot shows it when the factory says, as `ApiClient — lazySingleton, as
+LiveApiClient`, and lists what the scope adopted — the bootstrap steps a start ran — as
+`adopted: BindPlatform, ReportCrashes`. With one snapshot per environment, a review sees how the
+builds differ:
+
+```dart
+test('each environment keeps its shape', () async {
+  await expectGraphSnapshots(
+    (environment) => cobaltTestScope(
+      root: $CobaltRootScope(environment: environment),
+      bootstrap: $cobaltBootstrap(environment),
+      rootName: $cobaltRootScopeName,
+    ),
+    environments: {CobaltEnvironment.dev, CobaltEnvironment.prod},
+    directory: 'test/snapshots',
+  );
+});
+```
+
+One file each — `test/snapshots/dev.txt`, `prod.txt` — every environment checked before anything
+fails, and the failure names each one that moved. `examples/notes_app` keeps four.
+
+`describeGraphMermaid(scope)` draws the same facts as a Mermaid flowchart — scopes as nested
+subgraphs, registrations as boxes — for a fenced `mermaid` block that GitHub renders in a README or a
+pull request.
+
 ### Fixtures
 
 ```dart

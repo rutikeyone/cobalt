@@ -23,6 +23,7 @@ import 'package:cobalt/src/errors/cobalt_scope_state_error.dart';
 import 'package:cobalt/src/errors/cobalt_warm_up_error.dart';
 import 'package:cobalt/src/factory/cobalt_async_factory.dart';
 import 'package:cobalt/src/factory/cobalt_async_param_factory.dart';
+import 'package:cobalt/src/factory/cobalt_described_factory.dart';
 import 'package:cobalt/src/factory/cobalt_factory.dart';
 import 'package:cobalt/src/factory/cobalt_param_factory.dart';
 import 'package:cobalt/src/graph/topological_sort.dart';
@@ -217,6 +218,25 @@ final class CobaltScope extends CobaltResolver {
         in _lookup(key)?.scope._decorationsOf(key) ?? const <_Decoration>[])
       decoration.label,
   ];
+
+  /// The class the registration of [key] builds, when its factory says —
+  /// see [CobaltDescribedFactory]; null when it does not, or when nothing
+  /// registers [key].
+  ///
+  /// Answered for the scope that owns [key]. The generator's factories always
+  /// say, which is how `describeGraph` can tell `FakeApiClient` from
+  /// `LiveApiClient` behind one `ApiClient`.
+  String? debugImplementationOf(CobaltKey key) =>
+      _lookup(key)?.registration.implementation;
+
+  /// What [adopt] handed to this scope, in the order it was adopted, each by
+  /// its type — the bootstrap steps a start ran, in the common case.
+  List<String> get debugAdopted => List.unmodifiable(_adopted);
+
+  final _adopted = <String>[];
+
+  static String? _implementationOf(Object factory) =>
+      factory is CobaltDescribedFactory ? factory.implementation : null;
 
   /// The hooks added to this scope itself, in the order they run, each as
   /// `Label on Type`; empty when none were.
@@ -537,6 +557,7 @@ final class CobaltScope extends CobaltResolver {
         key: CobaltKey(T, name: name),
         order: _order++,
         factory: factory,
+        implementation: _implementationOf(factory),
       ),
     );
   }
@@ -608,6 +629,7 @@ final class CobaltScope extends CobaltResolver {
       key: key,
       order: order,
       value: instance,
+      implementation: _implementationOf(factory),
     );
   }
 
@@ -628,6 +650,7 @@ final class CobaltScope extends CobaltResolver {
         key: CobaltKey(T, name: name),
         order: _order++,
         factory: factory,
+        implementation: _implementationOf(factory),
         teardown: _teardownOf(dispose),
       ),
     );
@@ -655,6 +678,7 @@ final class CobaltScope extends CobaltResolver {
         key: CobaltKey(T, name: name),
         order: _order++,
         factory: factory,
+        implementation: _implementationOf(factory),
         dependsOn: dependsOn,
         teardown: _teardownOf(dispose),
       ),
@@ -685,6 +709,7 @@ final class CobaltScope extends CobaltResolver {
         key: CobaltKey(T, name: name),
         order: _order++,
         factory: factory,
+        implementation: _implementationOf(factory),
         teardown: _teardownOf(dispose),
       ),
     );
@@ -711,6 +736,7 @@ final class CobaltScope extends CobaltResolver {
         key: CobaltKey(T, name: name),
         order: _order++,
         factory: factory,
+        implementation: _implementationOf(factory),
       ),
     );
   }
@@ -750,6 +776,7 @@ final class CobaltScope extends CobaltResolver {
         key: CobaltKey(T, name: name),
         order: _order++,
         factory: factory,
+        implementation: _implementationOf(factory),
         paramType: P,
         accepts: (value) => value is P,
       ),
@@ -771,6 +798,7 @@ final class CobaltScope extends CobaltResolver {
         key: CobaltKey(T, name: name),
         order: _order++,
         factory: factory,
+        implementation: _implementationOf(factory),
         paramType: P,
         accepts: (value) => value is P,
       ),
@@ -1127,6 +1155,7 @@ final class CobaltScope extends CobaltResolver {
   }) {
     _assertUsable();
     _own(instance, teardown: _teardownOf(dispose));
+    _adopted.add('${instance.runtimeType}');
     return instance;
   }
 
@@ -1318,6 +1347,7 @@ final class CobaltScope extends CobaltResolver {
     _decorators.clear();
     _typeDecorators.clear();
     _hooks.clear();
+    _adopted.clear();
     _decorated.clear();
     _initFuture = null;
     parent?._children.remove(this);

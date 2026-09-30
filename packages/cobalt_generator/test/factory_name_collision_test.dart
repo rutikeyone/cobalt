@@ -73,10 +73,13 @@ void main() {
       declareIn(_feature, 'Reporter'),
     ]);
 
-    expect(source, contains('final class _TelemetryFactory implements'));
     expect(
       source,
-      contains('final class _ReporterFactory implements'),
+      matches(RegExp(r'final class _TelemetryFactory\s+implements')),
+    );
+    expect(
+      source,
+      matches(RegExp(r'final class _ReporterFactory\s+implements')),
       reason: 'adding a second class must not rename anything else',
     );
   });

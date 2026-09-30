@@ -32,8 +32,14 @@ import 'package:cobalt_external_consumer/src/traced.dart' as _i160;
 typedef $DocumentArgs = ({int id});
 typedef $NoteEditorArgs = ({int id, String title, bool draft});
 
-final class _ArchiveFactory implements _i573.CobaltAsyncFactory<_i768.Archive> {
+final class _ArchiveFactory
+    implements
+        _i573.CobaltAsyncFactory<_i768.Archive>,
+        _i573.CobaltDescribedFactory {
   const _ArchiveFactory();
+
+  @override
+  String get implementation => 'Archive';
 
   @override
   _i687.Future<_i768.Archive> create(_i573.CobaltResolver resolver) async {
@@ -44,8 +50,13 @@ final class _ArchiveFactory implements _i573.CobaltAsyncFactory<_i768.Archive> {
 }
 
 final class _ArchiveIndexFactory
-    implements _i573.CobaltAsyncFactory<_i768.ArchiveIndex> {
+    implements
+        _i573.CobaltAsyncFactory<_i768.ArchiveIndex>,
+        _i573.CobaltDescribedFactory {
   const _ArchiveIndexFactory();
+
+  @override
+  String get implementation => 'ArchiveIndex';
 
   @override
   _i687.Future<_i768.ArchiveIndex> create(_i573.CobaltResolver resolver) async {
@@ -58,8 +69,13 @@ final class _ArchiveIndexFactory
 }
 
 final class _AuditSinkFactory
-    implements _i573.CobaltAsyncFactory<_i604.AuditSink> {
+    implements
+        _i573.CobaltAsyncFactory<_i604.AuditSink>,
+        _i573.CobaltDescribedFactory {
   const _AuditSinkFactory();
+
+  @override
+  String get implementation => 'AuditSink';
 
   @override
   _i687.Future<_i604.AuditSink> create(_i573.CobaltResolver resolver) async {
@@ -70,8 +86,13 @@ final class _AuditSinkFactory
 }
 
 final class _AuditTrailFactory
-    implements _i573.CobaltAsyncFactory<_i720.AuditTrail> {
+    implements
+        _i573.CobaltAsyncFactory<_i720.AuditTrail>,
+        _i573.CobaltDescribedFactory {
   const _AuditTrailFactory();
+
+  @override
+  String get implementation => 'AuditTrail';
 
   @override
   _i687.Future<_i720.AuditTrail> create(_i573.CobaltResolver resolver) async {
@@ -81,16 +102,25 @@ final class _AuditTrailFactory
   }
 }
 
-final class _SystemClockFactory implements _i573.CobaltFactory<_i612.Clock> {
+final class _SystemClockFactory
+    implements _i573.CobaltFactory<_i612.Clock>, _i573.CobaltDescribedFactory {
   const _SystemClockFactory();
+
+  @override
+  String get implementation => 'SystemClock';
 
   @override
   _i612.Clock create(_i573.CobaltResolver resolver) => _i271.SystemClock();
 }
 
 final class _DatabaseFactory
-    implements _i573.CobaltAsyncFactory<_i530.Database> {
+    implements
+        _i573.CobaltAsyncFactory<_i530.Database>,
+        _i573.CobaltDescribedFactory {
   const _DatabaseFactory();
+
+  @override
+  String get implementation => 'Database';
 
   @override
   _i687.Future<_i530.Database> create(_i573.CobaltResolver resolver) async {
@@ -101,8 +131,13 @@ final class _DatabaseFactory
 }
 
 final class _DiagnosticsFactory
-    implements _i573.CobaltFactory<_i862.Diagnostics> {
+    implements
+        _i573.CobaltFactory<_i862.Diagnostics>,
+        _i573.CobaltDescribedFactory {
   const _DiagnosticsFactory();
+
+  @override
+  String get implementation => 'Diagnostics';
 
   @override
   _i862.Diagnostics create(_i573.CobaltResolver resolver) => _i862.Diagnostics(
@@ -112,8 +147,13 @@ final class _DiagnosticsFactory
 }
 
 final class _DocumentFactory
-    implements _i573.CobaltAsyncParamFactory<_i601.Document, $DocumentArgs> {
+    implements
+        _i573.CobaltAsyncParamFactory<_i601.Document, $DocumentArgs>,
+        _i573.CobaltDescribedFactory {
   const _DocumentFactory();
+
+  @override
+  String get implementation => 'Document';
 
   @override
   _i687.Future<_i601.Document> create(
@@ -130,24 +170,39 @@ final class _DocumentFactory
 }
 
 final class _ApiEndpointApiFactory
-    implements _i573.CobaltFactory<_i416.Endpoint> {
+    implements
+        _i573.CobaltFactory<_i416.Endpoint>,
+        _i573.CobaltDescribedFactory {
   const _ApiEndpointApiFactory();
+
+  @override
+  String get implementation => 'ApiEndpoint';
 
   @override
   _i416.Endpoint create(_i573.CobaltResolver resolver) => _i416.ApiEndpoint();
 }
 
 final class _CdnEndpointCdnFactory
-    implements _i573.CobaltFactory<_i416.Endpoint> {
+    implements
+        _i573.CobaltFactory<_i416.Endpoint>,
+        _i573.CobaltDescribedFactory {
   const _CdnEndpointCdnFactory();
+
+  @override
+  String get implementation => 'CdnEndpoint';
 
   @override
   _i416.Endpoint create(_i573.CobaltResolver resolver) => _i416.CdnEndpoint();
 }
 
 final class _LicenseCheckFactory
-    implements _i573.CobaltFactory<_i1023.LicenseCheck> {
+    implements
+        _i573.CobaltFactory<_i1023.LicenseCheck>,
+        _i573.CobaltDescribedFactory {
   const _LicenseCheckFactory();
+
+  @override
+  String get implementation => 'LicenseCheck';
 
   @override
   _i1023.LicenseCheck create(_i573.CobaltResolver resolver) =>
@@ -155,8 +210,13 @@ final class _LicenseCheckFactory
 }
 
 final class _NoteEditorFactory
-    implements _i573.CobaltParamFactory<_i59.NoteEditor, $NoteEditorArgs> {
+    implements
+        _i573.CobaltParamFactory<_i59.NoteEditor, $NoteEditorArgs>,
+        _i573.CobaltDescribedFactory {
   const _NoteEditorFactory();
+
+  @override
+  String get implementation => 'NoteEditor';
 
   @override
   _i59.NoteEditor create(_i573.CobaltResolver resolver, $NoteEditorArgs args) =>
@@ -169,8 +229,13 @@ final class _NoteEditorFactory
 }
 
 final class _PlatformModuleChannelFactory
-    implements _i573.CobaltFactory<_i455.Channel> {
+    implements
+        _i573.CobaltFactory<_i455.Channel>,
+        _i573.CobaltDescribedFactory {
   const _PlatformModuleChannelFactory();
+
+  @override
+  String get implementation => 'Channel';
 
   @override
   _i455.Channel create(_i573.CobaltResolver resolver) =>
@@ -178,8 +243,13 @@ final class _PlatformModuleChannelFactory
 }
 
 final class _PlatformModuleEnvelopeFactory
-    implements _i573.CobaltAsyncFactory<_i455.Envelope> {
+    implements
+        _i573.CobaltAsyncFactory<_i455.Envelope>,
+        _i573.CobaltDescribedFactory {
   const _PlatformModuleEnvelopeFactory();
+
+  @override
+  String get implementation => 'Envelope';
 
   @override
   _i687.Future<_i455.Envelope> create(_i573.CobaltResolver resolver) async =>
@@ -188,15 +258,27 @@ final class _PlatformModuleEnvelopeFactory
       );
 }
 
-final class _ReportFactory implements _i573.CobaltFactory<_i1031.Report> {
+final class _ReportFactory
+    implements
+        _i573.CobaltFactory<_i1031.Report>,
+        _i573.CobaltDescribedFactory {
   const _ReportFactory();
+
+  @override
+  String get implementation => 'Report';
 
   @override
   _i1031.Report create(_i573.CobaltResolver resolver) => _i1031.Report();
 }
 
-final class _ReporterFactory implements _i573.CobaltFactory<_i879.Reporter> {
+final class _ReporterFactory
+    implements
+        _i573.CobaltFactory<_i879.Reporter>,
+        _i573.CobaltDescribedFactory {
   const _ReporterFactory();
+
+  @override
+  String get implementation => 'Reporter';
 
   @override
   _i879.Reporter create(_i573.CobaltResolver resolver) => _i879.Reporter(
@@ -205,8 +287,14 @@ final class _ReporterFactory implements _i573.CobaltFactory<_i879.Reporter> {
   );
 }
 
-final class _CatalogFactory implements _i573.CobaltFactory<_i242.Catalog> {
+final class _CatalogFactory
+    implements
+        _i573.CobaltFactory<_i242.Catalog>,
+        _i573.CobaltDescribedFactory {
   const _CatalogFactory();
+
+  @override
+  String get implementation => 'Catalog';
 
   @override
   _i242.Catalog create(_i573.CobaltResolver resolver) => _i242.Catalog(
@@ -216,8 +304,13 @@ final class _CatalogFactory implements _i573.CobaltFactory<_i242.Catalog> {
 }
 
 final class _OrderRepositoryFactory
-    implements _i573.CobaltFactory<_i242.Repository<_i242.Order>> {
+    implements
+        _i573.CobaltFactory<_i242.Repository<_i242.Order>>,
+        _i573.CobaltDescribedFactory {
   const _OrderRepositoryFactory();
+
+  @override
+  String get implementation => 'OrderRepository';
 
   @override
   _i242.Repository<_i242.Order> create(_i573.CobaltResolver resolver) =>
@@ -225,8 +318,13 @@ final class _OrderRepositoryFactory
 }
 
 final class _UserRepositoryFactory
-    implements _i573.CobaltFactory<_i242.Repository<_i242.User>> {
+    implements
+        _i573.CobaltFactory<_i242.Repository<_i242.User>>,
+        _i573.CobaltDescribedFactory {
   const _UserRepositoryFactory();
+
+  @override
+  String get implementation => 'UserRepository';
 
   @override
   _i242.Repository<_i242.User> create(_i573.CobaltResolver resolver) =>
@@ -234,8 +332,13 @@ final class _UserRepositoryFactory
 }
 
 final class _SearchIndexFactory
-    implements _i573.CobaltAsyncFactory<_i375.SearchIndex> {
+    implements
+        _i573.CobaltAsyncFactory<_i375.SearchIndex>,
+        _i573.CobaltDescribedFactory {
   const _SearchIndexFactory();
+
+  @override
+  String get implementation => 'SearchIndex';
 
   @override
   _i687.Future<_i375.SearchIndex> create(_i573.CobaltResolver resolver) async {
@@ -246,8 +349,13 @@ final class _SearchIndexFactory
 }
 
 final class _SessionCacheFactory
-    implements _i573.CobaltFactory<_i995.SessionCache> {
+    implements
+        _i573.CobaltFactory<_i995.SessionCache>,
+        _i573.CobaltDescribedFactory {
   const _SessionCacheFactory();
+
+  @override
+  String get implementation => 'SessionCache';
 
   @override
   _i995.SessionCache create(_i573.CobaltResolver resolver) =>
@@ -255,8 +363,13 @@ final class _SessionCacheFactory
 }
 
 final class _SnapshotFactory
-    implements _i573.CobaltAsyncFactory<_i1062.Snapshot> {
+    implements
+        _i573.CobaltAsyncFactory<_i1062.Snapshot>,
+        _i573.CobaltDescribedFactory {
   const _SnapshotFactory();
+
+  @override
+  String get implementation => 'Snapshot';
 
   @override
   _i687.Future<_i1062.Snapshot> create(_i573.CobaltResolver resolver) async {
@@ -266,22 +379,38 @@ final class _SnapshotFactory
   }
 }
 
-final class _BuiltLogFactory implements _i573.CobaltFactory<_i160.BuiltLog> {
+final class _BuiltLogFactory
+    implements
+        _i573.CobaltFactory<_i160.BuiltLog>,
+        _i573.CobaltDescribedFactory {
   const _BuiltLogFactory();
+
+  @override
+  String get implementation => 'BuiltLog';
 
   @override
   _i160.BuiltLog create(_i573.CobaltResolver resolver) => _i160.BuiltLog();
 }
 
-final class _LedgerFactory implements _i573.CobaltFactory<_i160.Ledger> {
+final class _LedgerFactory
+    implements _i573.CobaltFactory<_i160.Ledger>, _i573.CobaltDescribedFactory {
   const _LedgerFactory();
+
+  @override
+  String get implementation => 'Ledger';
 
   @override
   _i160.Ledger create(_i573.CobaltResolver resolver) => _i160.Ledger();
 }
 
-final class _ReceiptFactory implements _i573.CobaltFactory<_i160.Receipt> {
+final class _ReceiptFactory
+    implements
+        _i573.CobaltFactory<_i160.Receipt>,
+        _i573.CobaltDescribedFactory {
   const _ReceiptFactory();
+
+  @override
+  String get implementation => 'Receipt';
 
   @override
   _i160.Receipt create(_i573.CobaltResolver resolver) => _i160.Receipt();

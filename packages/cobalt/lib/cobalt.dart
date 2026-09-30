@@ -38,6 +38,7 @@ export 'package:cobalt/src/errors/cobalt_scope_state_error.dart';
 export 'package:cobalt/src/errors/cobalt_warm_up_error.dart';
 export 'package:cobalt/src/factory/cobalt_async_factory.dart';
 export 'package:cobalt/src/factory/cobalt_async_param_factory.dart';
+export 'package:cobalt/src/factory/cobalt_described_factory.dart';
 export 'package:cobalt/src/factory/cobalt_factory.dart';
 export 'package:cobalt/src/factory/cobalt_param_factory.dart';
 export 'package:cobalt/src/graph/cobalt_cycle_error.dart';

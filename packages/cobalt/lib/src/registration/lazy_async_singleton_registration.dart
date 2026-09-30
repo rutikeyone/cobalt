@@ -4,6 +4,7 @@ final class LazyAsyncSingletonRegistration extends CobaltRegistration {
   LazyAsyncSingletonRegistration({
     required super.key,
     required super.order,
+    super.implementation,
     required this.factory,
     this.teardown,
   });

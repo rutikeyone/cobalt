@@ -1,0 +1,16 @@
+scope "app"
+  adopted: BindPlatform, LoadRemoteConfig, WarmFonts, ReportCrashes
+  ApiClient — lazySingleton, as LiveApiClient
+  AppConfig — singleton
+  Clock — lazySingleton
+  CobaltEnvironment — singleton
+  EventLog — lazySingleton
+  NoteDatabase — asyncSingleton
+  NoteFormatter(markdown) — lazySingleton, as MarkdownFormatter
+  NoteFormatter(plain) — lazySingleton, as PlainFormatter
+  NoteFormatter(shouting) — lazySingleton, as ShoutingFormatter
+  NoteStore — lazySingleton, as NoteRepository
+  NotesController — transient
+  SearchIndex — asyncSingleton
+  SessionManager — singleton
+  Telemetry — asyncSingleton

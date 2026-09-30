@@ -4,6 +4,7 @@ final class AsyncParamRegistration extends CobaltRegistration {
   AsyncParamRegistration({
     required super.key,
     required super.order,
+    super.implementation,
     required this.factory,
     required this.paramType,
     required this.accepts,
