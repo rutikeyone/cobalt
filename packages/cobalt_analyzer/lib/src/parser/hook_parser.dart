@@ -51,7 +51,7 @@ class CobaltHookParser {
     if (hooks.length != 1 || hooks.single.typeArguments.length != 1) {
       throw CobaltParseError(
         '${clazz.displayName} is annotated with @CobaltHookAll but does not '
-        'implement CobaltHook<T> for one T — which says what it runs on.',
+        'extend CobaltHook<T> for one T — which says what it runs on.',
         clazz,
       );
     }

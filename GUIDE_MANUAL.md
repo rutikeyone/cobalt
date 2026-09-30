@@ -285,7 +285,7 @@ For that there is a hook. It sees every instance of its type that the scope — 
 builds, whichever registration built it, and hands it on unchanged:
 
 ```dart
-class JoinRegistry implements CobaltHook<Loggable> {
+final class JoinRegistry extends CobaltHook<Loggable> {
   const JoinRegistry();
 
   @override
@@ -304,6 +304,11 @@ that built the instance. One that throws fails the call that asked, as a throwin
 does. A hook added after the scope, or one below it, has built anything is refused with
 `CobaltHookError` — it would have missed those — so add hooks where the scope is composed, ahead of
 any eager registration.
+
+A hook is a base class with two methods, both empty until overridden. The second, `onReleased`, is
+the undo of the first: when the scope is disposed, every instance it kept comes back through the
+hooks it passed, innermost first and before it is closed, so what joined a registry can leave it
+while it still works. A transient never comes back — it was the caller's, not the scope's.
 
 ## 4. Starting a Flutter app
 

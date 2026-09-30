@@ -69,6 +69,11 @@ class CobaltInspectorL10nZh extends CobaltInspectorL10n {
   String get treeNoMatch => '没有匹配项';
 
   @override
+  String treeHooks(String hooks) {
+    return '钩子：$hooks';
+  }
+
+  @override
   String get groupingFlat => '平铺';
 
   @override

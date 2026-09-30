@@ -15,6 +15,14 @@ class Session implements Loggable {
   final String id;
 }
 
+class Closing implements Loggable, Disposable {
+  Closing(this.events);
+  final List<String> events;
+
+  @override
+  void dispose() => events.add('Closing closed');
+}
+
 class Tag {
   const Tag(this.name);
   final String name;
@@ -44,7 +52,7 @@ final class _SessionFactory implements CobaltParamFactory<Session, String> {
 }
 
 /// Records what it saw, labelled, into a shared list.
-final class _Seen<T extends Object> implements CobaltHook<T> {
+final class _Seen<T extends Object> extends CobaltHook<T> {
   _Seen(this.label, this.log);
   final String label;
   final List<(String, Object)> log;
@@ -225,6 +233,87 @@ void main() {
     });
   });
 
+  group('when the scope lets go', () {
+    test('a kept instance comes back before it is closed', () async {
+      final events = <String>[];
+      final scope = cobaltTestRoot()
+        ..hookAll<Loggable>(_Released('hook', events))
+        ..registerLazySingleton<Closing>(_Fn((_) => Closing(events)));
+
+      scope.get<Closing>();
+      await scope.dispose();
+
+      expect(events, ['hook released Closing', 'Closing closed']);
+    });
+
+    test('in the reverse of the build order, innermost hook first', () async {
+      final events = <String>[];
+      final root = cobaltTestRoot()
+        ..hookAll<Loggable>(_Released('root', events));
+      final child = root.push('child')
+        ..hookAll<Loggable>(_Released('child', events))
+        ..registerLazySingleton<Api>(_Fn((_) => Api()))
+        ..registerLazySingleton<Cache>(_Fn((_) => Cache()));
+
+      child
+        ..get<Api>()
+        ..get<Cache>();
+      await child.dispose();
+
+      expect(events, [
+        'child released Cache',
+        'root released Cache',
+        'child released Api',
+        'root released Api',
+      ]);
+    });
+
+    test('even one with nothing to close', () async {
+      final events = <String>[];
+      final scope = cobaltTestRoot()
+        ..hookAll<Loggable>(_Released('hook', events))
+        ..registerLazySingleton<Api>(_Fn((_) => Api()));
+
+      scope.get<Api>();
+      await scope.dispose();
+
+      expect(events, ['hook released Api']);
+    });
+
+    test('never a transient, which was never the scope\'s', () async {
+      final events = <String>[];
+      final scope = cobaltTestRoot()
+        ..hookAll<Loggable>(_Released('hook', events))
+        ..registerFactory<Cache>(_Fn((_) => Cache()));
+
+      scope.get<Cache>();
+      await scope.dispose();
+
+      expect(events, isEmpty);
+    });
+
+    test('a throw is a teardown failure, and the rest still runs', () async {
+      final events = <String>[];
+      final scope = cobaltTestRoot()
+        ..hookAll<Loggable>(const _ThrowsOnRelease())
+        ..registerLazySingleton<Closing>(_Fn((_) => Closing(events)));
+
+      scope.get<Closing>();
+
+      await expectLater(
+        scope.dispose(),
+        throwsA(
+          isA<CobaltDisposeError>().having(
+            (e) => e.failures.single.label,
+            'label',
+            contains('onReleased(Closing)'),
+          ),
+        ),
+      );
+      expect(events, ['Closing closed']);
+    });
+  });
+
   test('a hook that throws fails the call that asked', () {
     final scope = cobaltTestRoot()
       ..hookAll<Loggable>(const _Throwing())
@@ -234,7 +323,7 @@ void main() {
   });
 }
 
-final class _TagReader implements CobaltHook<Loggable> {
+final class _TagReader extends CobaltHook<Loggable> {
   _TagReader(this.tags);
   final List<String> tags;
 
@@ -243,10 +332,28 @@ final class _TagReader implements CobaltHook<Loggable> {
       tags.add(resolver.get<Tag>().name);
 }
 
-final class _Throwing implements CobaltHook<Loggable> {
+final class _Throwing extends CobaltHook<Loggable> {
   const _Throwing();
 
   @override
   void onBuilt(Loggable instance, CobaltResolver resolver) =>
       throw StateError('hook failed');
+}
+
+/// Overrides only [onReleased]: [onBuilt] keeps its empty default.
+final class _Released extends CobaltHook<Loggable> {
+  _Released(this.label, this.events);
+  final String label;
+  final List<String> events;
+
+  @override
+  void onReleased(Loggable instance) =>
+      events.add('$label released ${instance.runtimeType}');
+}
+
+final class _ThrowsOnRelease extends CobaltHook<Loggable> {
+  const _ThrowsOnRelease();
+
+  @override
+  void onReleased(Loggable instance) => throw StateError('release failed');
 }

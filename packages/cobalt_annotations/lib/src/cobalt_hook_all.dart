@@ -10,7 +10,7 @@ import 'package:meta/meta_meta.dart';
 ///
 /// ```dart
 /// @cobaltHookAll
-/// class JoinRegistry implements CobaltHook<Loggable> {
+/// final class JoinRegistry extends CobaltHook<Loggable> {
 ///   const JoinRegistry();
 ///
 ///   @override

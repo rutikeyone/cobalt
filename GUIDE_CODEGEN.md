@@ -889,7 +889,7 @@ least one registration of the type wherever it is active, and competes for `orde
 decorators of each registration it wraps.
 
 
-**Hooks.** `@cobaltHookAll` on a class that implements `CobaltHook<T>` adds it to the generated root
+**Hooks.** `@cobaltHookAll` on a class that extends `CobaltHook<T>` adds it to the generated root
 scope — `scope.hookAll<T>(...)`, emitted before every registration so an eager one already passes
 through it. It runs on every `T` the graph builds, whichever registration built it, and cannot
 replace it (see Manual Mode, section 3, for why a decorator cannot do that). The class needs a
@@ -899,7 +899,7 @@ are added by `order:`, then by class name; `@CobaltEnvironment` restricts one li
 
 ```dart
 @cobaltHookAll
-class JoinRegistry implements CobaltHook<Loggable> {
+final class JoinRegistry extends CobaltHook<Loggable> {
   const JoinRegistry();
 
   @override

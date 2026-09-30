@@ -157,7 +157,7 @@ CI 的 `verify` job 在 Flutter 3.38.9 上运行全部检查，`forward` 则在 
 - **`CobaltResolver` 不能在 Cobalt 之外实现。** 它是 `base` 类，所以新的解析方式可以在次版本中加入。
   测试里请构建真实的作用域——`cobalt_test` 的 `cobaltTestRoot`——而不是 mock。
 - **新增观察者钩子属于次版本变更。** `CobaltObserver` 是带空钩子的基类，针对旧版本写的观察者依然能编译
-  （`onInstanceBuilt` 就是这样加入的）。你*实现*的东西——工厂、装饰器、日志接收器、`Disposable`——
+  （`onInstanceBuilt` 就是这样加入的；`CobaltHook` 也是这样设计的）。你*实现*的东西——工厂、装饰器、日志接收器、`Disposable`——
   只会在主版本中新增成员。
 
 `tool/api.sh` 会报告每个包相对 pub.dev 上版本的变化；`tool/class_modifiers.txt` 记录每个公开类型的类修饰符——

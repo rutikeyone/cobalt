@@ -24,7 +24,7 @@ abstract interface class Loggable {}
       final hook = await parse('''
 $runtime
 @cobaltHookAll
-class Join implements CobaltHook<Loggable> {
+final class Join extends CobaltHook<Loggable> {
   const Join();
   @override
   void onBuilt(Loggable instance, CobaltResolver resolver) {}
@@ -42,7 +42,7 @@ class Join implements CobaltHook<Loggable> {
 $runtime
 @CobaltHookAll(order: -2)
 @CobaltEnvironment.dev
-class Join implements CobaltHook<Loggable> {
+final class Join extends CobaltHook<Loggable> {
   Join({this.verbose = false});
   final bool verbose;
   @override
@@ -58,7 +58,7 @@ class Join implements CobaltHook<Loggable> {
       final hook = await parse('''
 $runtime
 @cobaltHookAll
-class Join implements CobaltHook<Loggable> {
+final class Join extends CobaltHook<Loggable> {
   @override
   void onBuilt(Loggable instance, CobaltResolver resolver) {}
 }
@@ -80,7 +80,7 @@ $runtime
 @cobaltHookAll
 class Join {}
 '''),
-        rejects(contains('does not implement CobaltHook<T>')),
+        rejects(contains('does not extend CobaltHook<T>')),
       );
     });
 
@@ -90,7 +90,7 @@ class Join {}
 $runtime
 class Registry {}
 @cobaltHookAll
-class Join implements CobaltHook<Loggable> {
+final class Join extends CobaltHook<Loggable> {
   Join(this.registry);
   final Registry registry;
   @override
@@ -107,7 +107,7 @@ class Join implements CobaltHook<Loggable> {
 $runtime
 @cobaltHookAll
 @cobaltInject
-class Join implements CobaltHook<Loggable> {
+final class Join extends CobaltHook<Loggable> {
   @override
   void onBuilt(Loggable instance, CobaltResolver resolver) {}
 }
@@ -121,7 +121,7 @@ class Join implements CobaltHook<Loggable> {
         parse('''
 $runtime
 @cobaltHookAll
-abstract class Join implements CobaltHook<Loggable> {}
+abstract base class Join extends CobaltHook<Loggable> {}
 '''),
         rejects(contains('abstract')),
       );

@@ -472,6 +472,11 @@ final class CobaltScope extends CobaltResolver {
   /// fails the call that asked, as a throwing `@injected` field does: the
   /// instance has been built, and a singleton stays built.
   ///
+  /// What the scope keeps comes back through `CobaltHook.onReleased` when the
+  /// scope is disposed, before it is closed: innermost hook first, instances
+  /// in the reverse of the order they were built, as teardown runs. A
+  /// transient is never released by the scope, so never comes back.
+  ///
   /// Throws [CobaltHookError] once this scope or one below it has built
   /// anything, since those instances would never pass through it. Add hooks
   /// where the scope is composed.
@@ -484,6 +489,7 @@ final class CobaltScope extends CobaltResolver {
         T,
         (instance) => instance is T,
         (instance, resolver) => hook.onBuilt(instance as T, resolver),
+        (instance) => hook.onReleased(instance as T),
       ),
     );
   }
@@ -491,14 +497,20 @@ final class CobaltScope extends CobaltResolver {
   bool get _builtInSubtree =>
       _hasBuilt || _children.any((child) => child._builtInSubtree);
 
-  /// Runs the hooks of [scope] and its ancestors, outermost first, on
-  /// [instance], which this scope built.
-  void _runHooks(CobaltScope scope, Object instance) {
+  /// The hooks of [scope] and its ancestors that [instance] is for,
+  /// outermost first, added to [into] — or null when none are, so a graph
+  /// without hooks allocates nothing per build.
+  static List<_Hook>? _hooksFor(
+    CobaltScope scope,
+    Object instance, [
+    List<_Hook>? into,
+  ]) {
     final parent = scope.parent;
-    if (parent != null) _runHooks(parent, instance);
+    var found = parent == null ? into : _hooksFor(parent, instance, into);
     for (final hook in scope._hooks) {
-      if (hook.matches(instance)) hook.run(instance, this);
+      if (hook.matches(instance)) (found ??= []).add(hook);
     }
+    return found;
   }
 
   /// What wraps [key] in this scope, innermost first: the decorators added
@@ -1225,6 +1237,25 @@ final class CobaltScope extends CobaltResolver {
       final instance = owned.instance;
       final label = '${instance.runtimeType}.dispose';
 
+      // Innermost first — the reverse of the order they saw it built — and
+      // while the instance is still open, so a registry can let go of it.
+      final hooks = owned.hooks;
+      if (hooks != null) {
+        for (final hook in hooks.reversed) {
+          try {
+            hook.release(instance);
+          } catch (error, stackTrace) {
+            failures.add(
+              CobaltDisposeFailure(
+                '${hook.label}.onReleased(${instance.runtimeType})',
+                error,
+                stackTrace,
+              ),
+            );
+          }
+        }
+      }
+
       final teardown = owned.teardown;
       if (teardown != null) {
         final before = failures.length;
@@ -1671,7 +1702,8 @@ final class CobaltScope extends CobaltResolver {
   }) {
     if (instance is CobaltInjectable) instance.onInject(this);
     final took = watch.elapsed;
-    if (retain) _own(instance, teardown: teardown);
+    final hooks = _hooksFor(this, instance);
+    if (retain) _own(instance, teardown: teardown, hooks: hooks);
     _notify(
       (observer) =>
           observer.onInstanceCreated(ref, key, kind: kind, retained: retain),
@@ -1686,7 +1718,11 @@ final class CobaltScope extends CobaltResolver {
       ),
     );
     _hasBuilt = true;
-    _runHooks(this, instance);
+    if (hooks != null) {
+      for (final hook in hooks) {
+        hook.run(instance, this);
+      }
+    }
   }
 
   /// Erases the caller's typed callback down to what a registration can hold.
@@ -1697,11 +1733,14 @@ final class CobaltScope extends CobaltResolver {
     FutureOr<void> Function(T instance)? dispose,
   ) => dispose == null ? null : (instance) => dispose(instance as T);
 
-  void _own(Object instance, {CobaltTeardown? teardown}) {
+  /// Keeps [instance] for teardown when there is anything to do then: close
+  /// it, or tell [hooks] it is going.
+  void _own(Object instance, {CobaltTeardown? teardown, List<_Hook>? hooks}) {
     if (teardown != null ||
+        hooks != null ||
         instance is Disposable ||
         instance is AsyncDisposable) {
-      _owned.add(_OwnedInstance(instance, teardown));
+      _owned.add(_OwnedInstance(instance, teardown, hooks));
     }
   }
 
@@ -1802,7 +1841,7 @@ final class CobaltScope extends CobaltResolver {
 
 /// A hook with its type erased to what a scope can store.
 class _Hook {
-  _Hook(this.label, this.type, this.matches, this.run);
+  _Hook(this.label, this.type, this.matches, this.run, this.release);
 
   final String label;
 
@@ -1813,6 +1852,8 @@ class _Hook {
   final bool Function(Object instance) matches;
 
   final void Function(Object instance, CobaltResolver resolver) run;
+
+  final void Function(Object instance) release;
 }
 
 /// A decorator with its type erased to what a scope can store.
@@ -1832,8 +1873,12 @@ class _Decoration {
 /// [teardown] is null for the common case, where the instance says how to
 /// close itself by implementing [Disposable] or [AsyncDisposable].
 class _OwnedInstance {
-  _OwnedInstance(this.instance, this.teardown);
+  _OwnedInstance(this.instance, this.teardown, this.hooks);
 
   final Object instance;
   final CobaltTeardown? teardown;
+
+  /// The hooks it passed through when it was built, outermost first; told
+  /// before it is closed. Null when none did.
+  final List<_Hook>? hooks;
 }

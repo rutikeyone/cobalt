@@ -153,7 +153,7 @@ scope "app"
   });
 }
 
-final class _NoHook<T extends Object> implements CobaltHook<T> {
+final class _NoHook<T extends Object> extends CobaltHook<T> {
   const _NoHook();
 
   @override

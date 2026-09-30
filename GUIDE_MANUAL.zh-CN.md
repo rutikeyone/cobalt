@@ -278,7 +278,7 @@ scope.decorateAll<ApiClient>(const LoggingApi());
 每一个该类型的实例，不论由哪条注册构建，并原样交出：
 
 ```dart
-class JoinRegistry implements CobaltHook<Loggable> {
+final class JoinRegistry extends CobaltHook<Loggable> {
   const JoinRegistry();
 
   @override
@@ -295,6 +295,10 @@ scope.hookAll<Loggable>(const JoinRegistry());
 会让请求它的那次调用失败，就像抛出异常的 `@injected` 字段一样。在作用域或其下面的作用域已经构建过东西之后
 再添加钩子会被 `CobaltHookError` 拒绝——它会漏掉那些实例——所以请在组装作用域的地方、在任何 eager 注册之前
 添加钩子。
+
+钩子是一个带两个方法的基类，两个方法在被覆盖前都是空的。第二个方法 `onReleased` 是第一个的撤销：作用域被释放时，
+它保留的每个实例都会经过当初经过的钩子回来——由内向外，并且在实例被关闭之前——这样加入注册表的东西可以趁还能用时离开。
+transient 永远不会回来：它属于调用方，不属于作用域。
 
 ## 4. 启动 Flutter 应用
 

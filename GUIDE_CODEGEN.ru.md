@@ -887,7 +887,7 @@ class LoggingApi implements ApiClient {
 регистрации, которую оборачивает.
 
 
-**Хуки.** `@cobaltHookAll` на классе, реализующем `CobaltHook<T>`, добавляет его в сгенерированный
+**Хуки.** `@cobaltHookAll` на классе, наследующем `CobaltHook<T>`, добавляет его в сгенерированный
 корневой скоуп — `scope.hookAll<T>(...)`, раньше всех регистраций, так что через него проходит и
 eager-регистрация. Он срабатывает на каждом `T`, который строит граф, какой бы регистрацией тот ни
 был построен, и подменить его не может (почему этого не может декоратор — в Manual Mode, раздел 3).
@@ -898,7 +898,7 @@ eager-регистрация. Он срабатывает на каждом `T`,
 
 ```dart
 @cobaltHookAll
-class JoinRegistry implements CobaltHook<Loggable> {
+final class JoinRegistry extends CobaltHook<Loggable> {
   const JoinRegistry();
 
   @override

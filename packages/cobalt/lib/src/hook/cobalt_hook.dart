@@ -10,9 +10,23 @@ import 'package:cobalt/src/lifecycle/cobalt_resolver.dart';
 /// `Api` registration promised its callers — so it gets the instance and
 /// returns nothing.
 ///
-/// Implement it; new members are a major change.
-abstract interface class CobaltHook<T extends Object> {
+/// Extend it and override what you need; both methods do nothing by default.
+/// It is a base class, as `CobaltObserver` is, so a new method arrives with an
+/// empty body and a hook written against an older release keeps compiling.
+abstract base class CobaltHook<T extends Object> {
+  /// Creates the base.
+  const CobaltHook();
+
   /// Called with [instance] once the scope has built and taken it, before
   /// anyone receives it. [resolver] is the scope that built it.
-  void onBuilt(T instance, CobaltResolver resolver);
+  void onBuilt(T instance, CobaltResolver resolver) {}
+
+  /// Called when the scope releases [instance], before it is closed.
+  ///
+  /// Only for what the scope keeps — singletons of every kind — since those
+  /// are the instances it releases; a transient is the caller's and never
+  /// comes back. The undo of [onBuilt]: what joined a registry leaves it here,
+  /// while the instance is still usable. A throw is reported with the scope's
+  /// other teardown failures and does not stop the rest.
+  void onReleased(T instance) {}
 }

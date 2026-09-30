@@ -220,6 +220,12 @@ abstract class CobaltInspectorL10n {
   /// **'nothing matches'**
   String get treeNoMatch;
 
+  /// Under a scope's header: the hooks added to it, each as 'Label on Type', comma-separated.
+  ///
+  /// In en, this message translates to:
+  /// **'hooks: {hooks}'**
+  String treeHooks(String hooks);
+
   /// Show built instances as one list, newest first.
   ///
   /// In en, this message translates to:

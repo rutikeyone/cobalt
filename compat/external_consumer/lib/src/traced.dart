@@ -20,7 +20,7 @@ class Receipt implements Traced {}
 
 /// Writes every [Traced] the graph builds into the [BuiltLog].
 @cobaltHookAll
-class LogTraced implements CobaltHook<Traced> {
+final class LogTraced extends CobaltHook<Traced> {
   const LogTraced();
 
   @override

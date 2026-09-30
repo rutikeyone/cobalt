@@ -20,6 +20,14 @@
   "expandAll": "全部展开",
   "treeNothingRegistered": "没有注册项",
   "treeNoMatch": "没有匹配项",
+  "treeHooks": "钩子：{hooks}",
+  "@treeHooks": {
+    "placeholders": {
+      "hooks": {
+        "type": "String"
+      }
+    }
+  },
   "groupingFlat": "平铺",
   "groupingByScope": "按作用域",
   "groupingByLifetime": "按生命周期",

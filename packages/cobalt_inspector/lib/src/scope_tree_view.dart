@@ -187,6 +187,15 @@ class _ScopeNode extends StatelessWidget {
               ),
             ),
           ),
+          if (!isCollapsed && scope.debugHooks.isNotEmpty)
+            Padding(
+              key: Key('hooks-${scope.name}-${scope.depth}'),
+              padding: const EdgeInsets.fromLTRB(38, 0, 12, 8),
+              child: Text(
+                strings.treeHooks(scope.debugHooks.join(', ')),
+                style: TextStyle(color: theme.muted, fontSize: 12),
+              ),
+            ),
           if (!isCollapsed)
             for (final registration in shown)
               _RegistrationTile(

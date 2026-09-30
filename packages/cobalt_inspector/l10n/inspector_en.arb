@@ -80,6 +80,16 @@
   "@treeNoMatch": {
     "description": "Shown under a scope when the search excludes all of its registrations."
   },
+  "treeHooks": "hooks: {hooks}",
+  "@treeHooks": {
+    "description": "Under a scope's header: the hooks added to it, each as 'Label on Type', comma-separated.",
+    "placeholders": {
+      "hooks": {
+        "type": "String",
+        "example": "JoinRegistry on Loggable"
+      }
+    }
+  },
   "groupingFlat": "flat",
   "@groupingFlat": {
     "description": "Show built instances as one list, newest first."

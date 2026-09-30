@@ -78,6 +78,25 @@ void main() {
     expect(find.byKey(const Key('decorated-fact')), findsNothing);
   });
 
+  testWidgets('a scope with hooks lists them under its name', (tester) async {
+    final hooked = cobaltTestRoot(name: 'hooked')
+      ..hookAll<Api>(FnHook((_, _) {}), debugLabel: 'Audit')
+      ..registerLazySingleton<Clock>(FnFactory((_) => const Clock()));
+
+    await tester.pumpWidget(inspectorUnderTest(hooked, log));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('hooks-hooked-0')), findsOneWidget);
+    expect(find.text('hooks: Audit on Api'), findsOneWidget);
+  });
+
+  testWidgets('a scope without hooks shows no hooks line', (tester) async {
+    await tester.pumpWidget(inspectorUnderTest(scope, log));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('hooks-app-0')), findsNothing);
+  });
+
   testWidgets('a child sees the markers of what it inherits', (tester) async {
     final child = scope.pushForTest('session');
 

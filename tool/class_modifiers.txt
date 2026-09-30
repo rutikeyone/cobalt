@@ -26,7 +26,7 @@ cobalt  CobaltErrorReport  final class
 cobalt  CobaltErrorSink  abstract interface class
 cobalt  CobaltEventKind  enum
 cobalt  CobaltFactory  abstract interface class
-cobalt  CobaltHook  abstract interface class
+cobalt  CobaltHook  abstract base class
 cobalt  CobaltHookError  final class
 cobalt  CobaltInjectable  abstract interface class
 cobalt  CobaltKey  final class
@@ -149,6 +149,6 @@ cobalt_test  CobaltTestScope  extension
 cobalt_test  DisposeRecorder  class
 cobalt_test  FnDecorator  class
 cobalt_test  FnFactory  class
-cobalt_test  FnHook  class
+cobalt_test  FnHook  base class
 cobalt_test  FnParamFactory  class
 cobalt_test  ValueFactory  class

@@ -310,7 +310,9 @@ instance on unchanged. It sees what the factory made, before decorators, for eve
 registration; not a value handed over with `registerSingleton`. Ancestors' hooks run first, then the
 scope's own in the order added. Adding one after the scope, or a scope below, has built anything
 throws `CobaltHookError`. `debugHooks` lists a scope's own; `@cobaltHookAll` in `cobalt_generator`
-writes the call from an annotation.
+writes the call from an annotation. `onReleased` is the undo: when the scope is disposed, each
+instance it kept passes back through its hooks, innermost first, before it is closed; a transient,
+never the scope's, does not.
 
 ## Optional dependencies
 

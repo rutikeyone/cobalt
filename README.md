@@ -161,7 +161,8 @@ Before 1.0 every minor release may break something, and its changelog says what 
   resolving arrives in a minor release. A test builds a real scope — `cobaltTestRoot` from
   `cobalt_test` — rather than a mock.
 - **A new observer hook is a minor change.** `CobaltObserver` is a base class with empty hooks, so an
-  observer written against an older release keeps compiling (`onInstanceBuilt` arrived that way).
+  observer written against an older release keeps compiling (`onInstanceBuilt` arrived that way). `CobaltHook`
+  is built the same way.
   Anything you *implement* — factories, decorators, sinks, `Disposable` — gains members only in a
   major.
 

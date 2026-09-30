@@ -69,6 +69,11 @@ class CobaltInspectorL10nRu extends CobaltInspectorL10n {
   String get treeNoMatch => 'ничего не совпало';
 
   @override
+  String treeHooks(String hooks) {
+    return 'хуки: $hooks';
+  }
+
+  @override
   String get groupingFlat => 'списком';
 
   @override

@@ -842,7 +842,7 @@ class LoggingApi implements ApiClient {
 并与它所包装的每条注册的装饰器一起竞争 `order:`。
 
 
-**钩子。** 在实现 `CobaltHook<T>` 的类上加 `@cobaltHookAll`，会把它加进生成的根作用域——
+**钩子。** 在继承 `CobaltHook<T>` 的类上加 `@cobaltHookAll`，会把它加进生成的根作用域——
 `scope.hookAll<T>(...)`，生成在所有注册之前，因此 eager 注册也会经过它。它在图构建的每一个 `T` 上运行，
 不论由哪条注册构建，而且不能替换实例（装饰器为什么做不到，见 Manual Mode 第 3 节）。这个类需要一个
 没有必填参数的构造函数：钩子在任何东西构建之前就被添加，还没有东西可注入；它需要的东西从 `onBuilt`
@@ -850,7 +850,7 @@ class LoggingApi implements ApiClient {
 
 ```dart
 @cobaltHookAll
-class JoinRegistry implements CobaltHook<Loggable> {
+final class JoinRegistry extends CobaltHook<Loggable> {
   const JoinRegistry();
 
   @override

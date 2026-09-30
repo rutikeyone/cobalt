@@ -20,6 +20,14 @@
   "expandAll": "развернуть всё",
   "treeNothingRegistered": "ничего не зарегистрировано",
   "treeNoMatch": "ничего не совпало",
+  "treeHooks": "хуки: {hooks}",
+  "@treeHooks": {
+    "placeholders": {
+      "hooks": {
+        "type": "String"
+      }
+    }
+  },
   "groupingFlat": "списком",
   "groupingByScope": "по скоупам",
   "groupingByLifetime": "по времени жизни",
