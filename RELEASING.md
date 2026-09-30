@@ -315,8 +315,9 @@ mac-sim bench flutter/cobalt-workspace/cobalt/benchmark bin/main.dart aot
 
 Three runs, the median of each cell. AOT only: `dart run` is the JIT, whose numbers depend on how far
 it has warmed up. The architecture and Dart version in the paragraph above the table are copied from
-the first line `mac-sim bench` prints, not written from memory — on the current Mac that line says
-an x64 SDK on arm64, which is why the README says Rosetta.
+the first line `mac-sim bench` prints, not written from memory. Until 1.0 the Mac's SDK was an x64
+build and the numbers carried a Rosetta caveat; since 1.0 it is native arm64, and should that ever
+change, the first line says so and the paragraph has to follow.
 
 ## After publishing
 

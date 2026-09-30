@@ -182,21 +182,20 @@ cannot see — so CI fails until a changed modifier is written down.
 ## Performance
 
 Cobalt next to get_it, from [`benchmark/`](benchmark/README.md), which describes what each row does.
-Compiled AOT, on arm64 with Dart SDK 3.10.8 (stable) — a `macos_x64` build of the SDK, so the binary
-ran under Rosetta. Median of three runs; they agreed within twenty percent.
+Compiled AOT, on arm64 with Dart SDK 3.10.8 (stable, `macos_arm64`). Median of three runs; they agreed
+within ten percent.
 
 | | Cobalt | get_it | Cobalt / get_it |
 |---|---:|---:|---:|
-| get a built singleton | 163 ns | 866 ns | 0.19× |
-| build a transient with two dependencies | 730 ns | 2.55 µs | 0.29× |
-| register 200, then get each once | 215 µs | 687 µs | 0.31× |
-| start 20 async singletons | 38.4 µs | 44.6 µs | 0.86× |
-| the transient, with an empty observer | 744 ns | — | — |
-| the transient, with a recording observer | 1.64 µs | — | — |
-| the transient, with a log observer at its default level | 751 ns | — | — |
+| get a built singleton | 81 ns | 425 ns | 0.19× |
+| build a transient with two dependencies | 356 ns | 1.22 µs | 0.29× |
+| register 200, then get each once | 137 µs | 386 µs | 0.35× |
+| start 20 async singletons | 24.7 µs | 28.1 µs | 0.88× |
+| the transient, with an empty observer | 374 ns | — | — |
+| the transient, with a recording observer | 860 ns | — | — |
+| the transient, with a log observer at its default level | 385 ns | — | — |
 
-Below 1 in the last column, Cobalt took less time. The absolute numbers belong to this machine, and a
-translated binary is slower than a native one across the board; what carries over is the order of
+Below 1 in the last column, Cobalt took less time. The absolute numbers belong to this machine; what carries over is the order of
 magnitude. A resolution costs well under a microsecond, a graph of 200 registrations a fraction of a
 millisecond, the async start of twenty singletons tens of microseconds — none of it registers against
 a 16 ms frame. An observer that turns every event into a record about doubles the cost of a build; the log
