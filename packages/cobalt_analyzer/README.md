@@ -8,5 +8,8 @@ implementation rather than two that drift apart. It depends on `analyzer` but de
 `build` or on the plugin API, so the lint plugin does not pull the build system into the analysis
 server.
 
-This is an internal package. Depend on it only if you are building your own tooling on top of
-Cobalt's annotations.
+This is an internal package, and its API is **not covered by semantic versioning**: its models and
+parsers change whenever the generator or the lint plugin needs them to, in any release. It is
+published because those two depend on it, and its version moves in lockstep with theirs. Depend on
+`cobalt_generator` or `cobalt_lint`; if you build your own tooling on Cobalt's annotations on top of
+this package, pin an exact version.

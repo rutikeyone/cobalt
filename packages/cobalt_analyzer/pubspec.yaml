@@ -1,5 +1,5 @@
 name: cobalt_analyzer
-description: Shared static analysis layer for Cobalt. Parses Cobalt annotations once for both the generator and the lint plugin.
+description: Internal analysis layer of cobalt_generator and cobalt_lint — parses Cobalt annotations once for both. Not covered by semver; depend on those packages instead.
 version: 0.9.0
 repository: https://github.com/rutikeyone/cobalt
 issue_tracker: https://github.com/rutikeyone/cobalt/issues

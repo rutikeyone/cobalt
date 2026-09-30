@@ -134,6 +134,8 @@ users; this is the table they come from.
 | factories, `CobaltDecorator`, `CobaltScopeBuilder`, `CobaltBootstrapStep`, `CobaltLogSink`, `CobaltErrorSink`, `Disposable`, `AsyncDisposable`, `AsyncInitializable`, `CobaltInjectable` | implement | `interface` | **major** | — |
 | `CobaltOverride` and its subtypes | construct | `interface` / `final` | major | new named constructor |
 | `CobaltRegistrationKind`, `CobaltEventKind`, `CobaltDisposeStage`, `CobaltLogLevel`, `CobaltScopeState` | read | `enum` | **minor** — a new value | new getter |
+| `CobaltScope.debug*` members | read (inspector, `cobalt_test`) | `@experimental` | anything — not covered | — |
+| everything in `cobalt_analyzer` | the generator and the lint plugin | internal package | anything — not covered | — |
 
 A new enum value breaks an exhaustive `switch` in user code; it is minor anyway, because the
 alternative freezes the set of registration kinds for a whole major, and `CobaltRegistrationKind`

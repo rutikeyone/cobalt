@@ -160,6 +160,10 @@ CI 的 `verify` job 在 Flutter 3.38.9 上运行全部检查，`forward` 则在 
   （`onInstanceBuilt` 就是这样加入的；`CobaltHook` 也是这样设计的）。你*实现*的东西——工厂、装饰器、日志接收器、`Disposable`——
   只会在主版本中新增成员。
 
+有两样东西被有意排除在这些规则之外。`CobaltScope` 的 `debug*` 成员——检查器和 `cobalt_test` 读取图的途径——标注了
+`@experimental`，可能在次版本中变化。`cobalt_analyzer` 是生成器和 lint 插件的内部包：它的 API 跟随二者的需要，而不是
+semver；请依赖它们，而不是它。
+
 `tool/api.sh` 会报告每个包相对 pub.dev 上版本的变化；`tool/class_modifiers.txt` 记录每个公开类型的类修饰符——
 这正是该工具看不到的变化——修饰符改了却没记录时 CI 会失败。
 

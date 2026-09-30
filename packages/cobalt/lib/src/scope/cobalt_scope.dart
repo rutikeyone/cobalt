@@ -40,6 +40,7 @@ import 'package:cobalt/src/registration/cobalt_registration.dart';
 import 'package:cobalt/src/scope/cobalt_registration_kind.dart';
 import 'package:cobalt/src/scope/cobalt_scope_state.dart';
 import 'package:cobalt/src/scope/resolution_tracker.dart';
+import 'package:meta/meta.dart';
 
 /// A container of registrations with a lifetime of its own.
 ///
@@ -193,6 +194,10 @@ final class CobaltScope extends CobaltResolver {
   /// For tools. It exists because the alternative — telling a parameterized
   /// registration apart from a broken one by reading an exception message — is
   /// parsing prose.
+  ///
+  /// Experimental: not covered by semantic versioning, so it may change
+  /// in a minor release — see Compatibility in the README.
+  @experimental
   CobaltRegistrationKind? debugKindOf(CobaltKey key) =>
       switch (_lookup(key)?.registration) {
         SingletonRegistration() => CobaltRegistrationKind.singleton,
@@ -213,6 +218,10 @@ final class CobaltScope extends CobaltResolver {
   /// Each is named by the `debugLabel` it was added with, or by its type.
   /// Answered for the scope that owns [key], the only one whose decorators
   /// can apply to it — those of the key and those of its whole type alike.
+  ///
+  /// Experimental: not covered by semantic versioning, so it may change
+  /// in a minor release — see Compatibility in the README.
+  @experimental
   List<String> debugDecoratorsOf(CobaltKey key) => [
     for (final decoration
         in _lookup(key)?.scope._decorationsOf(key) ?? const <_Decoration>[])
@@ -230,6 +239,10 @@ final class CobaltScope extends CobaltResolver {
   /// reload, to restart the graph only when its registrations changed.
   ///
   /// Throws what [runBuilder] throws for a builder that cannot run.
+  ///
+  /// Experimental: not covered by semantic versioning, so it may change
+  /// in a minor release — see Compatibility in the README.
+  @experimental
   static Map<CobaltKey, CobaltRegistrationKind> debugRegistrationsOf(
     CobaltScopeBuilder builder,
   ) {
@@ -253,11 +266,19 @@ final class CobaltScope extends CobaltResolver {
   /// Answered for the scope that owns [key]. The generator's factories always
   /// say, which is how `describeGraph` can tell `FakeApiClient` from
   /// `LiveApiClient` behind one `ApiClient`.
+  ///
+  /// Experimental: not covered by semantic versioning, so it may change
+  /// in a minor release — see Compatibility in the README.
+  @experimental
   String? debugImplementationOf(CobaltKey key) =>
       _lookup(key)?.registration.implementation;
 
   /// What [adopt] handed to this scope, in the order it was adopted, each by
   /// its type — the bootstrap steps a start ran, in the common case.
+  ///
+  /// Experimental: not covered by semantic versioning, so it may change
+  /// in a minor release — see Compatibility in the README.
+  @experimental
   List<String> get debugAdopted => List.unmodifiable(_adopted);
 
   final _adopted = <String>[];
@@ -270,6 +291,10 @@ final class CobaltScope extends CobaltResolver {
   ///
   /// A scope below runs these too, after its ancestors' and before its own,
   /// so the whole set for a scope is its ancestors' lists and then this one.
+  ///
+  /// Experimental: not covered by semantic versioning, so it may change
+  /// in a minor release — see Compatibility in the README.
+  @experimental
   List<String> get debugHooks => [
     for (final hook in _hooks) '${hook.label} on ${hook.type}',
   ];
@@ -284,6 +309,10 @@ final class CobaltScope extends CobaltResolver {
   /// raises `CobaltNotReadyError`, a parameterized registration raises
   /// `CobaltError`, a cycle raises `CobaltCycleError`. Check [debugKindOf] first
   /// rather than reading those apart afterwards.
+  ///
+  /// Experimental: not covered by semantic versioning, so it may change
+  /// in a minor release — see Compatibility in the README.
+  @experimental
   Object? debugResolve(CobaltKey key) {
     _assertUsable();
     final found = _lookup(key);
@@ -293,6 +322,10 @@ final class CobaltScope extends CobaltResolver {
 
   /// [debugResolve] by way of [getAsync]: builds a lazy async registration
   /// that is not built yet, and waits for an `init()` still in progress.
+  ///
+  /// Experimental: not covered by semantic versioning, so it may change
+  /// in a minor release — see Compatibility in the README.
+  @experimental
   Future<Object?> debugResolveAsync(CobaltKey key) async {
     _assertUsable();
     final found = _lookup(key);
@@ -308,6 +341,10 @@ final class CobaltScope extends CobaltResolver {
   /// Returns null when nothing registers [key]. Throws `CobaltError` when the
   /// registration is not parameterized, and `CobaltParamTypeError` when [param]
   /// is not what its factory takes.
+  ///
+  /// Experimental: not covered by semantic versioning, so it may change
+  /// in a minor release — see Compatibility in the README.
+  @experimental
   Object? debugResolveWithParam(CobaltKey key, Object param) {
     _assertUsable();
     final found = _lookup(key);
@@ -344,6 +381,10 @@ final class CobaltScope extends CobaltResolver {
   /// parameterized registration from [param] and waits for it.
   ///
   /// Returns null when nothing registers [key].
+  ///
+  /// Experimental: not covered by semantic versioning, so it may change
+  /// in a minor release — see Compatibility in the README.
+  @experimental
   Future<Object?> debugResolveWithParamAsync(CobaltKey key, Object param) {
     _assertUsable();
     final found = _lookup(key);
@@ -354,6 +395,10 @@ final class CobaltScope extends CobaltResolver {
   /// Renders this scope and everything under it, one line per scope.
   ///
   /// For diagnostics and test failures. The shape is not a contract.
+  ///
+  /// Experimental: not covered by semantic versioning, so it may change
+  /// in a minor release — see Compatibility in the README.
+  @experimental
   String debugDescribeTree() => _describe(0).join('\n');
 
   List<String> _describe(int indent) => [
