@@ -123,6 +123,10 @@ void main() => runApp(
 );
 ```
 
+`initTimeout: const Duration(seconds: 15)` turns a start that hangs into that `errorBuilder` screen,
+with a `CobaltInitTimeoutError` naming the async singletons that never finished — instead of a
+`loading` screen that stays up forever.
+
 In Code-Gen Mode the three generated names go straight in — no wrapper function in between:
 
 ```dart

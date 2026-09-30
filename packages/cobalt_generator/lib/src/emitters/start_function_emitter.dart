@@ -69,6 +69,17 @@ class StartFunctionEmitter {
               )
               ..defaultTo = literalConstList(const []).code,
           ),
+          Parameter(
+            (p) => p
+              ..name = 'initTimeout'
+              ..named = true
+              ..type = TypeReference(
+                (b) => b
+                  ..symbol = 'Duration'
+                  ..url = 'dart:core'
+                  ..isNullable = true,
+              ),
+          ),
         ])
         ..returns = TypeReference(
           (b) => b
@@ -91,6 +102,7 @@ class StartFunctionEmitter {
                   : refer(r'$cobaltBootstrap'),
             'rootName': refer(r'$cobaltRootScopeName'),
             'overrides': refer('overrides'),
+            'initTimeout': refer('initTimeout'),
           },
         ).code,
     );

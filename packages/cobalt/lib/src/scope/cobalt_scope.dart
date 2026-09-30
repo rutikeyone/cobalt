@@ -6,6 +6,7 @@ import 'package:cobalt/src/errors/cobalt_async_param_error.dart';
 import 'package:cobalt/src/errors/cobalt_async_transient_error.dart';
 import 'package:cobalt/src/errors/cobalt_decorator_error.dart';
 import 'package:cobalt/src/errors/cobalt_hook_error.dart';
+import 'package:cobalt/src/errors/cobalt_init_timeout_error.dart';
 import 'package:cobalt/src/errors/cobalt_depends_on_error.dart';
 import 'package:cobalt/src/errors/cobalt_dispose_error.dart';
 import 'package:cobalt/src/errors/cobalt_dispose_failure.dart';
@@ -978,13 +979,23 @@ final class CobaltScope extends CobaltResolver {
   ///
   /// If it throws, the scope stays usable enough to be disposed, and whatever
   /// was built before the failure is still torn down.
-  Future<void> init() {
+  ///
+  /// [timeout] bounds the whole of it. Past it, init throws
+  /// [CobaltInitTimeoutError] naming every async singleton not yet built,
+  /// and observers hear `onScopeInitFailed` as for an initializer that threw.
+  /// A future cannot be cancelled, so builds in flight run to the end; each
+  /// is released the moment it arrives, and no later level starts. Only the
+  /// call that starts init sets it — a second caller awaits the same run.
+  Future<void> init({Duration? timeout}) {
     final pending = _initFuture;
     if (pending != null) return pending;
     if (_state == CobaltScopeState.active) return Future<void>.value();
     _assertUsable();
-    return _initFuture = _run();
+    return _initFuture = _run(timeout);
   }
+
+  /// Set once init() has given up on the builds still in flight.
+  var _initAbandoned = false;
 
   /// Rejects a `dependsOn` that names something phase 1 cannot wait for.
   ///
@@ -1047,7 +1058,7 @@ final class CobaltScope extends CobaltResolver {
     }
   }
 
-  Future<void> _run() async {
+  Future<void> _run(Duration? timeout) async {
     _state = CobaltScopeState.initializing;
 
     final pending =
@@ -1066,9 +1077,19 @@ final class CobaltScope extends CobaltResolver {
       final building = Stopwatch()..start();
       _notify((observer) => observer.onScopeInitStarted(ref, levels.length));
       try {
-        for (final level in levels) {
-          await Future.wait([for (final r in level) _createAsync(r)]);
-        }
+        final levelsBuilt = _buildLevels(levels);
+        await (timeout == null
+            ? levelsBuilt
+            : levelsBuilt.timeout(
+                timeout,
+                onTimeout: () {
+                  _initAbandoned = true;
+                  throw CobaltInitTimeoutError(name, timeout, [
+                    for (final registration in pending)
+                      if (!registration.isReady) registration.key,
+                  ]);
+                },
+              ));
       } catch (error, stackTrace) {
         _notify(
           (observer) => observer.onScopeInitFailed(ref, error, stackTrace),
@@ -1642,6 +1663,17 @@ final class CobaltScope extends CobaltResolver {
     ..._tracker.chain,
   ];
 
+  /// Builds [levels] one after another, each level's registrations at once,
+  /// and stops before a level once init() has given up.
+  Future<void> _buildLevels(
+    List<List<AsyncSingletonRegistration>> levels,
+  ) async {
+    for (final level in levels) {
+      if (_initAbandoned) return;
+      await Future.wait([for (final r in level) _createAsync(r)]);
+    }
+  }
+
   Future<void> _createAsync(AsyncSingletonRegistration registration) =>
       _tracker.guardAsync(registration.key, () async {
         final watch = Stopwatch()..start();
@@ -1649,6 +1681,16 @@ final class CobaltScope extends CobaltResolver {
           this,
           () => registration.factory.create(this),
         );
+        if (_initAbandoned) {
+          // init() already failed for want of this: nobody will be handed
+          // it, and the scope is being or has been torn down without it.
+          try {
+            await _releaseLate(instance, registration.teardown);
+          } catch (error, stackTrace) {
+            Zone.current.handleUncaughtError(error, stackTrace);
+          }
+          return;
+        }
         registration.instance = instance;
         registration.isReady = true;
         _afterCreate(

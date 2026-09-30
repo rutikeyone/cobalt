@@ -210,6 +210,23 @@ void main() {
       expect(find.textContaining('startup failed'), findsOneWidget);
     });
 
+    testWidgets('past initTimeout, names what never finished', (tester) async {
+      await tester.pumpWidget(
+        CobaltAppScope(
+          root: const _Hanging(),
+          initTimeout: const Duration(seconds: 1),
+          errorBuilder: (context, error, retry) =>
+              Text('failed: $error', textDirection: TextDirection.ltr),
+          child: const Probe(),
+        ),
+      );
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pump();
+
+      expect(find.textContaining('did not finish init()'), findsOneWidget);
+      expect(find.textContaining('Marker'), findsOneWidget);
+    });
+
     testWidgets('is rethrown in build when there is no errorBuilder', (
       tester,
     ) async {
@@ -503,6 +520,22 @@ void main() {
 /// Watches teardown rather than creation: [RootBuilder] registers an
 /// already-built value, and `onInstanceCreated` only fires when the scope
 /// itself constructs something.
+/// A root whose one async singleton never finishes building.
+final class _Hanging implements CobaltScopeBuilder {
+  const _Hanging();
+
+  @override
+  void build(CobaltScope scope) =>
+      scope.registerAsyncSingleton<Marker>(const _NeverFactory());
+}
+
+final class _NeverFactory implements CobaltAsyncFactory<Marker> {
+  const _NeverFactory();
+
+  @override
+  Future<Marker> create(CobaltResolver resolver) => Completer<Marker>().future;
+}
+
 final class RecordingObserver extends CobaltObserver {
   final disposed = <String>[];
 

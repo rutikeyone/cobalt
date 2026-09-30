@@ -606,6 +606,20 @@ scope
 所以往一个已经激活的作用域里再注册一个是错误，而不是悄悄永远不构建。
 请改为压入一个子作用域并初始化它。
 
+一个在等永远不回应的 socket 的初始化器，会让应用永远停在启动画面。给阶段 1 一个时限，它就会改为失败，并说明它在等什么：
+
+```dart
+final app = await CobaltApplication.start(
+  root: const AppScope(),
+  initTimeout: const Duration(seconds: 15),
+);
+```
+
+超时后，`init` 抛出 `CobaltInitTimeoutError`，列出所有尚未构建完成的异步单例，根作用域会像其他启动失败的作用域一样被释放。
+future 无法取消，所以仍在进行中的构建会跑完——每一个在完成时立即被关闭，下一层不会开始。对你自己初始化的作用域，
+`scope.init(timeout:)` 起同样作用；`CobaltAppScope(initTimeout:)` 则把它变成 `errorBuilder` 页面。不设时限时，
+init 会像以前一样一直等下去。
+
 ### 第一次被请求时才构建
 
 阶段 1 在启动时构建所有东西。对于一个开销很大、与应用同寿、却只有少数界面需要的对象，

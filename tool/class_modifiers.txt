@@ -28,6 +28,7 @@ cobalt  CobaltEventKind  enum
 cobalt  CobaltFactory  abstract interface class
 cobalt  CobaltHook  abstract base class
 cobalt  CobaltHookError  final class
+cobalt  CobaltInitTimeoutError  final class
 cobalt  CobaltInjectable  abstract interface class
 cobalt  CobaltKey  final class
 cobalt  CobaltLazyAsyncError  final class

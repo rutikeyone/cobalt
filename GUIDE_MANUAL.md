@@ -627,6 +627,22 @@ Async registrations have to exist before `init()` runs. It takes the ones it fin
 runs once, so registering another into a scope that is already active is an error rather than
 something that quietly never gets built. Push a child scope and initialize that instead.
 
+An initializer waiting on a socket that never answers holds the app on its splash screen forever.
+Give phase 1 a budget and it fails instead, saying what it was waiting for:
+
+```dart
+final app = await CobaltApplication.start(
+  root: const AppScope(),
+  initTimeout: const Duration(seconds: 15),
+);
+```
+
+Past it, `init` throws `CobaltInitTimeoutError` listing every async singleton not yet built, and the
+root is disposed like any other that failed to start. A future cannot be cancelled, so builds in
+flight run to the end — each is closed as it arrives, and no later level starts. `scope.init(timeout:)`
+does the same for a scope you initialize yourself, and `CobaltAppScope(initTimeout:)` turns it into
+an `errorBuilder` screen. Without a timeout, init waits as long as it takes, as before.
+
 ### Built when first asked for
 
 Phase 1 builds everything at startup. For something expensive that lives as long as the app but is

@@ -51,6 +51,7 @@ class CobaltAppScope extends StatefulWidget {
     this.rootName = 'root',
     this.observers = const [],
     this.overrides,
+    this.initTimeout,
     this.warmUp = const [],
     this.loading,
     this.errorBuilder,
@@ -76,7 +77,8 @@ class CobaltAppScope extends StatefulWidget {
        bootstrap = null,
        rootName = 'root',
        observers = const [],
-       overrides = null;
+       overrides = null,
+       initTimeout = null;
 
   /// Declares what the root scope contains. Null only for [CobaltAppScope.start].
   final CobaltScopeBuilder? root;
@@ -112,6 +114,13 @@ class CobaltAppScope extends StatefulWidget {
   /// observers are told each time a registration is skipped for one. See
   /// [CobaltOverride].
   final List<CobaltOverride<Object>> Function()? overrides;
+
+  /// How long the graph may take to start before [errorBuilder] shows a
+  /// `CobaltInitTimeoutError` naming what had not been built — the difference
+  /// between a splash screen that hangs and one that says why. Null waits as
+  /// long as it takes. Not used by [CobaltAppScope.start], whose function
+  /// starts the graph itself.
+  final Duration? initTimeout;
 
   /// Lazy async registrations to start building as soon as the graph is up.
   ///
@@ -199,6 +208,7 @@ class CobaltAppScope extends StatefulWidget {
     String rootName = 'root',
     List<CobaltObserver> observers = const [],
     List<CobaltOverride<Object>> Function()? overrides,
+    Duration? initTimeout,
     List<CobaltKey> warmUp = const [],
     Widget? loading,
     Widget Function(BuildContext context, Object error, VoidCallback retry)?
@@ -217,6 +227,7 @@ class CobaltAppScope extends StatefulWidget {
       rootName: rootName,
       observers: observers,
       overrides: overrides,
+      initTimeout: initTimeout,
       warmUp: warmUp,
       loading: loading,
       errorBuilder: errorBuilder,
@@ -246,6 +257,7 @@ class CobaltAppScope extends StatefulWidget {
       rootName: rootName,
       observers: observers,
       overrides: overrides?.call() ?? const [],
+      initTimeout: initTimeout,
     );
   }
 

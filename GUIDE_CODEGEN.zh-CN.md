@@ -362,6 +362,9 @@ void main() => runApp(
 
 在 Flutter 之外，全部内容就是 `await $startCobalt()`。
 
+`$startCobalt(initTimeout: ...)` 为阶段 1 设定时限——超时后启动以 `CobaltInitTimeoutError` 失败，并列出尚未构建完成的项。
+详见 Manual Mode 第 8 节。
+
 ---
 
 ## 8. 在 widget 中读取依赖

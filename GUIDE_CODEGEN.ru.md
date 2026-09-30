@@ -373,6 +373,9 @@ void main() => runApp(
 
 Вне Flutter всё сводится к `await $startCobalt()`.
 
+`$startCobalt(initTimeout: ...)` ограничивает фазу 1 — по истечении старт падает с
+`CobaltInitTimeoutError`, где названо, что не успело построиться. Подробности — в Manual Mode, раздел 8.
+
 ---
 
 ## 8. Чтение из графа в виджете

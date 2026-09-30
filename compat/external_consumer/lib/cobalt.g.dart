@@ -390,9 +390,11 @@ List<_i573.CobaltBootstrapStep> get $cobaltBootstrap => [_i366.BindPlatform()];
 const String $cobaltRootScopeName = 'consumer';
 _i687.Future<_i573.CobaltScope> $startCobalt({
   List<_i573.CobaltOverride<Object>> overrides = const [],
+  Duration? initTimeout,
 }) => _i573.CobaltApplication.start(
   root: const $CobaltRootScope(),
   bootstrap: $cobaltBootstrap,
   rootName: $cobaltRootScopeName,
   overrides: overrides,
+  initTimeout: initTimeout,
 );

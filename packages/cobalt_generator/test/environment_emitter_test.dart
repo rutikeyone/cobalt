@@ -17,7 +17,7 @@ void main() {
         matches(
           RegExp(
             r'\$startCobalt\(\{\s*List<_i\d+\.CobaltOverride<Object>> '
-            r'overrides = const \[\],?\s*\}\) =>',
+            r'overrides = const \[\],\s*Duration\? initTimeout,?\s*\}\) =>',
           ),
         ),
       );
@@ -58,7 +58,8 @@ void main() {
           RegExp(
             r'\$startCobalt\(\{\s*_i\d+\.CobaltEnvironment environment\s*=\s*'
             r'_i\d+\.CobaltEnvironment\.defaultEnvironment,\s*'
-            r'List<_i\d+\.CobaltOverride<Object>> overrides = const \[\],?\s*\}\)',
+            r'List<_i\d+\.CobaltOverride<Object>> overrides = const \[\],\s*'
+            r'Duration\? initTimeout,?\s*\}\)',
           ),
         ),
         reason: 'environments are opt-in, so startup still works without one',

@@ -224,9 +224,11 @@ _i687.Future<_i573.CobaltScope> $startCobalt({
   _i573.CobaltEnvironment environment =
       _i573.CobaltEnvironment.defaultEnvironment,
   List<_i573.CobaltOverride<Object>> overrides = const [],
+  Duration? initTimeout,
 }) => _i573.CobaltApplication.start(
   root: $CobaltRootScope(environment: environment),
   bootstrap: $cobaltBootstrap(environment),
   rootName: $cobaltRootScopeName,
   overrides: overrides,
+  initTimeout: initTimeout,
 );

@@ -373,6 +373,9 @@ a getter for the same reason: steps hold resources, and a restart has to get new
 
 Outside Flutter, `await $startCobalt()` is the whole of it.
 
+`$startCobalt(initTimeout: ...)` bounds phase 1 — past it the start fails with `CobaltInitTimeoutError`
+naming what had not been built. Manual Mode, section 8, has the details.
+
 ---
 
 ## 8. Reading from the graph in a widget

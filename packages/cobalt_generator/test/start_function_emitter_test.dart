@@ -28,6 +28,8 @@ void main() {
 
       expect(source, contains(r'$startCobalt({'));
       expect(source, contains('overrides: overrides'));
+      expect(source, contains('Duration? initTimeout'));
+      expect(source, contains('initTimeout: initTimeout'));
       expect(source, contains(r'root: const $CobaltRootScope()'));
       expect(source, contains(r'rootName: $cobaltRootScopeName'));
     });

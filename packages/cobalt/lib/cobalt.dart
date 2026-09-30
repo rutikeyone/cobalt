@@ -26,6 +26,7 @@ export 'package:cobalt/src/errors/cobalt_dispose_stage.dart';
 export 'package:cobalt/src/errors/cobalt_duplicate_registration_error.dart';
 export 'package:cobalt/src/errors/cobalt_error.dart';
 export 'package:cobalt/src/errors/cobalt_hook_error.dart';
+export 'package:cobalt/src/errors/cobalt_init_timeout_error.dart';
 export 'package:cobalt/src/errors/cobalt_lazy_async_error.dart';
 export 'package:cobalt/src/errors/cobalt_not_parameterized_error.dart';
 export 'package:cobalt/src/errors/cobalt_not_ready_error.dart';

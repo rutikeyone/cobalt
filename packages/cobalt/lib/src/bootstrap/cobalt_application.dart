@@ -38,6 +38,11 @@ final class CobaltApplication {
   /// [overrides] replace registrations [root] makes; each is checked to have
   /// replaced something once [root] has run. See [CobaltOverride].
   ///
+  /// [initTimeout] bounds phase 1: past it the root's `init` throws
+  /// `CobaltInitTimeoutError`, naming what had not been built, and the root is
+  /// disposed like any other that failed to start. Null — the default — waits
+  /// as long as it takes.
+  ///
   /// The caller owns the returned scope and must dispose it. In Code-Gen Mode
   /// the generated `$startCobalt()` is this call with the generated container,
   /// bootstrap list and root name already filled in.
@@ -47,6 +52,7 @@ final class CobaltApplication {
     String rootName = 'root',
     List<CobaltObserver> observers = const [],
     List<CobaltOverride<Object>> overrides = const [],
+    Duration? initTimeout,
   }) async {
     final completed = <CobaltBootstrapStep>[];
 
@@ -86,7 +92,7 @@ final class CobaltApplication {
 
     try {
       scope.runBuilder(root);
-      await scope.init();
+      await scope.init(timeout: initTimeout);
     } catch (_) {
       await _abandon(scope);
       rethrow;
