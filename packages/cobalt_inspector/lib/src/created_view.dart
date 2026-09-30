@@ -149,8 +149,11 @@ class _GroupingSwitch extends StatelessWidget {
   final CobaltInspectorL10n strings;
   final ValueChanged<CreatedGrouping> onChanged;
 
+  // Scrolls sideways, like the log's filters: four labels do not fit a phone
+  // in every language — Russian ran well past the edge.
   @override
-  Widget build(BuildContext context) => Padding(
+  Widget build(BuildContext context) => SingleChildScrollView(
+    scrollDirection: Axis.horizontal,
     padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
     child: Row(
       children: [

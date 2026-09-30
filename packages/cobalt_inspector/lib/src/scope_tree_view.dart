@@ -167,12 +167,19 @@ class _ScopeNode extends StatelessWidget {
                     color: theme.muted,
                   ),
                   const SizedBox(width: 6),
-                  Text(
-                    scope.name,
-                    style: TextStyle(
-                      color: theme.onSurface,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                  // Name and counts give way, with an ellipsis, rather than
+                  // run past the edge: Russian counts are long, and a phone
+                  // is narrow.
+                  Flexible(
+                    child: Text(
+                      scope.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: theme.onSurface,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -183,10 +190,15 @@ class _ScopeNode extends StatelessWidget {
                         : theme.muted,
                     theme: theme,
                   ),
-                  const Spacer(),
-                  Text(
-                    strings.nodeCounts(own, scope.children.length),
-                    style: TextStyle(color: theme.muted, fontSize: 11),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      strings.nodeCounts(own, scope.children.length),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.end,
+                      style: TextStyle(color: theme.muted, fontSize: 11),
+                    ),
                   ),
                 ],
               ),

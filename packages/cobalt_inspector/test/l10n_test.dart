@@ -50,6 +50,41 @@ void main() {
     expect(find.text('фильтр регистраций'), findsOneWidget);
   });
 
+  // The grouping switch on the Built tab holds four labels; Russian ones are
+  // the longest, and on a phone they ran past the edge (reported from a
+  // Simulator screenshot, RIGHT OVERFLOWED BY). Every tab, every language.
+  for (final locale in const [Locale('en'), Locale('ru'), Locale('zh')]) {
+    for (final tab in CobaltInspectorTab.values) {
+      testWidgets('the ${tab.name} tab fits a phone in $locale', (
+        tester,
+      ) async {
+        tester.view
+          ..physicalSize = const Size(360 * 3, 800 * 3)
+          ..devicePixelRatio = 3;
+        addTearDown(tester.view.reset);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            locale: locale,
+            localizationsDelegates: [
+              CobaltInspectorL10n.delegate,
+              ...GlobalMaterialLocalizations.delegates,
+            ],
+            supportedLocales: const [Locale('en'), Locale('ru'), Locale('zh')],
+            home: CobaltInspectorScreen(
+              log: log,
+              scope: scope,
+              initialTab: tab,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+      });
+    }
+  }
+
   testWidgets('Chinese is a translation, not a fallback', (tester) async {
     await tester.pumpWidget(inspectorIn(const Locale('zh'), scope, log));
     await tester.pump();

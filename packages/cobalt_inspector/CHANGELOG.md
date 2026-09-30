@@ -5,6 +5,11 @@
 - A registration's sheet says the class it builds when that is not the
   key's own type and its factory says — `Builds: LiveApiClient` behind
   `ApiClient`; generated factories always say. In three languages.
+- Fits a phone in every language. On the Built tab the grouping switch
+  scrolls sideways, as the log's filters do — in Russian it ran past the
+  edge — and in the scope tree a long scope name or count line ends in an
+  ellipsis instead of overflowing. Each tab is checked at phone width in
+  English, Russian and Chinese.
 
 ## 0.9.0
 
