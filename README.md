@@ -172,6 +172,9 @@ release; newer analyzers flag each use from your code with `experimental_member_
 point — ignore it where you mean it. And `cobalt_analyzer` is internal to the generator and the lint plugin: its API follows
 what they need, not semver; depend on them rather than on it.
 
+Coming from an older 0.x release: [MIGRATION](MIGRATION.md#from-cobalt-0x-to-10) lists every change
+that stops code compiling, and what to do about it.
+
 `tool/api.sh` reports what changed in every package against the version on pub.dev, and
 `tool/class_modifiers.txt` records every public type's class modifiers — the one change that tool
 cannot see — so CI fails until a changed modifier is written down.

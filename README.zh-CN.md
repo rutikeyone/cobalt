@@ -165,6 +165,8 @@ CI 的 `verify` job 在 Flutter 3.38.9 上运行全部检查，`forward` 则在 
 在有意使用的地方忽略即可。`cobalt_analyzer` 是生成器和 lint 插件的内部包：它的 API 跟随二者的需要，而不是
 semver；请依赖它们，而不是它。
 
+从更早的 0.x 升级：[MIGRATION](MIGRATION.zh-CN.md#从-cobalt-0x-到-10) 列出了每个会让代码无法编译的变化，以及如何处理。
+
 `tool/api.sh` 会报告每个包相对 pub.dev 上版本的变化；`tool/class_modifiers.txt` 记录每个公开类型的类修饰符——
 这正是该工具看不到的变化——修饰符改了却没记录时 CI 会失败。
 

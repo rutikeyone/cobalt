@@ -10,7 +10,7 @@ everything the graph reported — on a screen inside your app, with nothing atta
 
 ```yaml
 dev_dependencies:
-  cobalt_inspector: ^0.9.0
+  cobalt_inspector: ^1.0.0
 ```
 
 ## Wiring

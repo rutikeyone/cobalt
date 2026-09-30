@@ -1,3 +1,16 @@
+## 1.0.0
+
+The API is stable: from here on, only a major release breaks it. The README's
+Compatibility section says what that covers; coming from an older 0.x,
+MIGRATION lists every change that stops code compiling.
+
+- `CobaltScope`'s `debug*` members — `debugKindOf`, `debugDecoratorsOf`,
+  `debugRegistrationsOf`, `debugImplementationOf`, `debugAdopted`,
+  `debugHooks`, `debugResolve` and its three siblings, `debugDescribeTree` —
+  are `@experimental`: they are how the inspector and `cobalt_test` read the
+  graph, and they may change in a minor release. Newer analyzers report
+  `experimental_member_use` where code in another package calls them.
+
 ## 0.9.0
 
 The last release before 1.0: what could not change after it without a major

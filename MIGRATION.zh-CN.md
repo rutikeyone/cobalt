@@ -11,6 +11,8 @@
 
 本指南分为两半：什么能一一对应，以及什么根本对不上。有用的是后一半。
 
+已经在用 Cobalt 0.x？文末的[从 Cobalt 0.x 到 1.0](#从-cobalt-0x-到-10)列出了需要修改的地方。
+
 ## 让迁移能活下来的唯一原则
 
 **从叶子往里走。** 先注册那些没有任何东西依赖的对象，让 Cobalt 和你原有的容器共存，等根节点下面的一切
@@ -244,3 +246,27 @@ bloc，改为指定函数：`@CobaltInject(dispose: closeBloc)`。另外要用 `
 7. 到这时才考虑代码生成：加入 `cobalt_generator`，一次一个文件地把手写注册换成注解。
 
 第 7 步排在最后是有意的。生成只是运行时之上的便利，而那套运行时你应该早已信任。
+
+## 从 Cobalt 0.x 到 1.0
+
+从 0.9 升级无需任何修改：1.0 就是 API 冻结后的 0.9——它承诺了什么，见 README 的"兼容性"一节。从更早的 0.x 升级，
+下面是会让代码无法编译的变化，从旧到新；只需处理你所在版本之后的那些。
+
+| 自 | 变化 | 需要做的 |
+|---|---|---|
+| 0.2 | `CobaltRegistrationKind`、`CobaltDisposeStage` 和 `CobaltEventKind` 新增了取值；`CobaltResolver` 新增了两个方法 | 给穷尽式 `switch` 补上分支——更好的做法是使用种类的属性（见下）。 |
+| 0.4 | `CobaltRegistrationKind.asyncParameterized`；`CobaltResolver` 上的 `getAsyncWithParam` | 同上。 |
+| 0.5 | `CobaltRegistrationKind.asyncTransient` | 同上。自 0.7 起，`isRetained`、`takesParam`、`isAsync` 和 `isBuiltByInit` 回答了 `switch` 想问的问题，新增种类时也照样有效。 |
+| 0.6 | `CobaltRecordingObserver` 在 `onInstanceBuilt` 中写入创建记录 | 覆盖了 `onInstanceCreated` 并为记录调用 `super` 的子类，改为覆盖 `onInstanceBuilt`。 |
+| 0.7 | `CobaltResolver` 是 `base` 类 | 对它的 mock 或 fake 改为真实的作用域：`cobalt_test` 的 `cobaltTestRoot()`，替身通过注册或 overrides 传入。 |
+| 0.8 | `CobaltError` 是 `base` 类，所有包中的每个错误都是 `final` | 照常捕获。实现或继承了 Cobalt 错误的类，改为你自己的错误类型。 |
+| 0.9 | `CobaltHook` 是 `base` 类 | `class X implements CobaltHook<T>` 改为 `final class X extends CobaltHook<T>`；`@override` 保留。 |
+
+能编译、但值得看一眼的行为变化：
+
+- **0.8** — `CobaltLogObserver` 不再创建低于 `minimumLevel` 的记录。接收器本来就看不到它们；在 `onRecord` 中过滤的子类
+  依然可用，覆盖 `accepts` 会更省。
+- **0.9** — 生成的图的快照会多出 `as <实现>` 和 `adopted: …` 行。用 `COBALT_UPDATE_SNAPSHOTS=1` 重新运行，提交前读一遍 diff。
+- **0.9** — 在 debug 构建中，`CobaltAppScope` 会在改变了注册的热重载时重启图。`restartOnGraphChange: false` 恢复旧行为。
+- **1.0** — `CobaltScope` 的 `debug*` 成员标注了 `@experimental`；较新的分析器会在你的代码调用处报告
+  `experimental_member_use`。它们可能在次版本中变化——在有意使用的地方忽略该警告即可。

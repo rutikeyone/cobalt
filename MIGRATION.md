@@ -11,6 +11,9 @@ for a framework. You are here because you already have `get_it`, or
 This guide is in two halves: what maps onto what, and what does not map at all.
 The second half is the useful one.
 
+Already on a Cobalt 0.x release? [From Cobalt 0.x to 1.0](#from-cobalt-0x-to-10), at the end, lists
+what to change.
+
 ## The one rule that makes migration survivable
 
 **Move from the leaves inward.** Register the things nothing depends on first,
@@ -286,3 +289,32 @@ the whole change. Skip either and the object is built, used and never closed, qu
 
 Step 7 is last on purpose. Generation is a convenience over a runtime you
 should already trust.
+
+## From Cobalt 0.x to 1.0
+
+From 0.9 there is nothing to change: 1.0 is 0.9 with the API frozen — see Compatibility in the
+README for what that promises. From an older 0.x, these are the changes that stop code compiling,
+oldest first; apply the ones after the release you are on.
+
+| Since | What changed | What to do |
+|---|---|---|
+| 0.2 | `CobaltRegistrationKind`, `CobaltDisposeStage` and `CobaltEventKind` gained values; `CobaltResolver` gained two methods | Add the cases to an exhaustive `switch` — or, better, ask the kind's getters (below). |
+| 0.4 | `CobaltRegistrationKind.asyncParameterized`; `getAsyncWithParam` on `CobaltResolver` | The same. |
+| 0.5 | `CobaltRegistrationKind.asyncTransient` | The same. Since 0.7, `isRetained`, `takesParam`, `isAsync` and `isBuiltByInit` answer what a `switch` asked, and keep answering when a kind is added. |
+| 0.6 | `CobaltRecordingObserver` writes its creation record from `onInstanceBuilt` | A subclass that overrode `onInstanceCreated` and called `super` for the record overrides `onInstanceBuilt` instead. |
+| 0.7 | `CobaltResolver` is a `base` class | A mock or fake of it becomes a real scope: `cobaltTestRoot()` from `cobalt_test`, with the doubles registered or passed as overrides. |
+| 0.8 | `CobaltError` is a `base` class and every error in every package is `final` | Catch them as before. A class that implemented or extended one becomes an error of your own. |
+| 0.9 | `CobaltHook` is a `base` class | `class X implements CobaltHook<T>` becomes `final class X extends CobaltHook<T>`; the `@override`s stay. |
+
+Changes in behaviour that compile but are worth a look:
+
+- **0.8** — `CobaltLogObserver` no longer makes the records below its `minimumLevel`. A sink never
+  saw them; a subclass that filtered in `onRecord` still works, and overriding `accepts` makes it
+  cheaper.
+- **0.9** — a graph snapshot of a generated graph gains `as <Implementation>` and `adopted: …`
+  lines. Rerun with `COBALT_UPDATE_SNAPSHOTS=1` and read the diff before committing it.
+- **0.9** — `CobaltAppScope` restarts the graph on a hot reload that changed its registrations, in
+  debug builds. `restartOnGraphChange: false` keeps the old behaviour.
+- **1.0** — `CobaltScope`'s `debug*` members are `@experimental`; newer analyzers report
+  `experimental_member_use` where your code calls them. They may change in a minor release — ignore
+  the warning where you mean it.

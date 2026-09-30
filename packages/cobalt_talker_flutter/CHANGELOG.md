@@ -1,3 +1,9 @@
+## 1.0.0
+
+- The API is stable: from here on, only a major release breaks it — see
+  Compatibility in the README. No code changes in this package since 0.9.0;
+  coming from an older 0.x, MIGRATION lists what to change.
+
 ## 0.9.0
 
 - No code changes in this package. Republished in lockstep with 0.9.0 — the

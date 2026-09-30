@@ -48,7 +48,7 @@ environment:
   sdk: ^3.10.0
 
 dependencies:
-  cobalt: ^0.9.0
+  cobalt: ^1.0.0
 ```
 
 A Flutter app adds the bindings, which re-export the whole runtime, so you never import both:
@@ -59,12 +59,12 @@ environment:
   flutter: ">=3.38.0"
 
 dependencies:
-  cobalt: ^0.9.0
-  cobalt_flutter: ^0.9.0
+  cobalt: ^1.0.0
+  cobalt_flutter: ^1.0.0
 
 dev_dependencies:
-  cobalt_test: ^0.9.0
-  cobalt_test_flutter: ^0.9.0
+  cobalt_test: ^1.0.0
+  cobalt_test_flutter: ^1.0.0
 ```
 
 **Nothing here is a dead end.** The floor is Dart `^3.10.0` / Flutter `>=3.38.0`, the same one

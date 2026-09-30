@@ -45,6 +45,13 @@ for package in $packages; do
   if [ "$status" -ne 0 ]; then
     echo "   FAILED: a breaking change without a major version step (exit $status)"
     failed="$failed $package"
+    # Job logs need admin rights to download; an annotation is public, so the
+    # reason is readable from the check run by anyone.
+    if [ "${GITHUB_ACTIONS:-}" = true ]; then
+      why=$(printf '%s\n' "$report" | grep -i 'breaking' | head -20 |
+        sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
+      echo "::error title=api: $package::${why:-dart-apitool exited $status}"
+    fi
   fi
 done
 

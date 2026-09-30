@@ -59,15 +59,15 @@ environment:
   flutter: ">=3.38.0"
 
 dependencies:
-  cobalt: ^0.9.0
-  cobalt_flutter: ^0.9.0
+  cobalt: ^1.0.0
+  cobalt_flutter: ^1.0.0
 
 dev_dependencies:
-  cobalt_generator: ^0.9.0
+  cobalt_generator: ^1.0.0
   build_runner: ^2.15.0
-  cobalt_lint: ^0.9.0
-  cobalt_test: ^0.9.0
-  cobalt_test_flutter: ^0.9.0
+  cobalt_lint: ^1.0.0
+  cobalt_test: ^1.0.0
+  cobalt_test_flutter: ^1.0.0
 ```
 
 **这里的下限和另一个模式相同**，所以停在 Flutter 3.38 的应用可以直接从这里开始，
@@ -922,7 +922,7 @@ bootstrap 步骤同样接受环境。只要其中任何一个用到，`$cobaltBo
 ```yaml
 # analysis_options.yaml
 plugins:
-  cobalt_lint: ^0.9.0
+  cobalt_lint: ^1.0.0
 ```
 
 | 规则 | 捕捉什么 |

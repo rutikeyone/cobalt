@@ -1,3 +1,10 @@
+## 1.0.0
+
+- Internal to `cobalt_generator` and `cobalt_lint`, and now says so: its
+  models and parsers follow what those two need, not semantic versioning.
+  Depend on them rather than on this package. The version still moves in
+  lockstep.
+
 ## 0.9.0
 
 - An `@cobaltHookAll` class extends `CobaltHook<T>`, now a base class; the
