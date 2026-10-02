@@ -29,16 +29,18 @@ void main() {
     '../../README.md': 'the root README',
     '../../README.ru.md': 'the Russian README',
     '../../README.zh-CN.md': 'the Chinese README',
+    '../../README.ko.md': 'the Korean README',
     '../../GUIDE_CODEGEN.md': 'the Code-Gen guide',
     '../../GUIDE_CODEGEN.ru.md': 'the Russian Code-Gen guide',
     '../../GUIDE_CODEGEN.zh-CN.md': 'the Chinese Code-Gen guide',
+    '../../GUIDE_CODEGEN.ko.md': 'the Korean Code-Gen guide',
   };
 
   /// The first cell of every row of the rule table.
   ///
   /// Found by contents rather than by heading: these documents hold other
-  /// tables keyed the same way — packages, builders — and in three languages
-  /// the heading above them is three different strings. A table that lists a
+  /// tables keyed the same way — packages, builders — and in four languages
+  /// the heading above them is four different strings. A table that lists a
   /// rule is the rule table, whatever it is called.
   Set<String> tabulated(String path) {
     final rows = <String>{};

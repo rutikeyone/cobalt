@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="README.md">English</a> · <a href="README.ru.md">Русский</a> · <a href="README.zh-CN.md">中文</a>
+  <a href="README.md">English</a> · <a href="README.ru.md">Русский</a> · <a href="README.zh-CN.md">中文</a> · <a href="README.ko.md">한국어</a>
 </p>
 
 # Cobalt
@@ -347,7 +347,7 @@ there to show. The three entries with no UI (`Teardown`, `Manual mode`, `Testing
 their console output instead of a button, because a gallery that offered to "open" a CLI would be
 lying.
 
-The gallery is written in English, Russian and Chinese, switchable from the hub — and so is every
+The gallery is written in English, Russian, Chinese and Korean, switchable from the hub — and so is every
 screen it mounts. Each example package carries its own `l10n/*.arb` and generates its own delegate,
 which the gallery collects beside its own and the inspector's; that is what a multi-package Flutter
 app looks like.

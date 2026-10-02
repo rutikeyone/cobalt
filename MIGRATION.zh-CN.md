@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="MIGRATION.md">English</a> · <a href="MIGRATION.ru.md">Русский</a> · <a href="MIGRATION.zh-CN.md">中文</a>
+  <a href="MIGRATION.md">English</a> · <a href="MIGRATION.ru.md">Русский</a> · <a href="MIGRATION.zh-CN.md">中文</a> · <a href="MIGRATION.ko.md">한국어</a>
 </p>
 
 > 本文档译自 [MIGRATION.md](MIGRATION.md)。英文版为准：若有出入，以英文为准。

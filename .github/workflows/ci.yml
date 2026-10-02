@@ -36,10 +36,10 @@ jobs:
       # is not checkable by machine — that is a line in the RELEASING checklist.
       - name: Translations are present
         run: |
-          for f in README.ru.md README.zh-CN.md \
-                   GUIDE_MANUAL.md GUIDE_MANUAL.ru.md GUIDE_MANUAL.zh-CN.md \
-                   GUIDE_CODEGEN.md GUIDE_CODEGEN.ru.md GUIDE_CODEGEN.zh-CN.md \
-                   MIGRATION.md MIGRATION.ru.md MIGRATION.zh-CN.md; do
+          for f in README.ru.md README.zh-CN.md README.ko.md \
+                   GUIDE_MANUAL.md GUIDE_MANUAL.ru.md GUIDE_MANUAL.zh-CN.md GUIDE_MANUAL.ko.md \
+                   GUIDE_CODEGEN.md GUIDE_CODEGEN.ru.md GUIDE_CODEGEN.zh-CN.md GUIDE_CODEGEN.ko.md \
+                   MIGRATION.md MIGRATION.ru.md MIGRATION.zh-CN.md MIGRATION.ko.md; do
             test -s "$f" || { echo "missing or empty: $f"; exit 1; }
           done
 

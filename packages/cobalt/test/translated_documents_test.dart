@@ -5,7 +5,7 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 
-/// Every root document comes in three languages, and links to its siblings.
+/// Every root document comes in four languages, and links to its siblings.
 ///
 /// Splitting the README into a description and a guide, and then splitting the
 /// guide by mode, took the root documents from three files to twelve and
@@ -29,9 +29,10 @@ void main() {
     '$family.md',
     '$family.ru.md',
     '$family.zh-CN.md',
+    '$family.ko.md',
   ];
 
-  group('every root document exists in three languages', () {
+  group('every root document exists in four languages', () {
     for (final family in families) {
       for (final name in translationsOf(family)) {
         test(name, () {
@@ -47,12 +48,13 @@ void main() {
     }
   });
 
-  group('every translation offers the other two', () {
+  group('every translation offers the other three', () {
     for (final family in families) {
       final switcher =
           '  <a href="$family.md">English</a> · '
           '<a href="$family.ru.md">Русский</a> · '
-          '<a href="$family.zh-CN.md">中文</a>';
+          '<a href="$family.zh-CN.md">中文</a> · '
+          '<a href="$family.ko.md">한국어</a>';
 
       for (final name in translationsOf(family)) {
         test(name, () {
@@ -61,14 +63,14 @@ void main() {
           /// not — centred HTML costs three source lines per visual row, so
           /// that window is still the first screenful. What matters is that
           /// the switcher is there, is reachable without scrolling, and is
-          /// byte-identical in all three; a differing one makes a language a
+          /// byte-identical in all four; a differing one makes a language a
           /// dead end.
           expect(
             File(path(name)).readAsLinesSync().take(20),
             contains(switcher),
             reason:
                 'the switcher is the only way a reader moves between '
-                'languages, so it has to be identical in all three and near '
+                'languages, so it has to be identical in all four and near '
                 'enough to the top to be seen',
           );
         });

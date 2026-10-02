@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="GUIDE_MANUAL.md">English</a> · <a href="GUIDE_MANUAL.ru.md">Русский</a> · <a href="GUIDE_MANUAL.zh-CN.md">中文</a>
+  <a href="GUIDE_MANUAL.md">English</a> · <a href="GUIDE_MANUAL.ru.md">Русский</a> · <a href="GUIDE_MANUAL.zh-CN.md">中文</a> · <a href="GUIDE_MANUAL.ko.md">한국어</a>
 </p>
 
 # Manual Mode

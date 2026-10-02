@@ -56,7 +56,7 @@ void main() {
     ///
     /// Found by contents rather than by heading, because these documents hold
     /// other tables keyed the same way — the twelve lint rules are one — and
-    /// the heading above the right ones is in three languages. A table holding
+    /// the heading above the right ones is in four languages. A table holding
     /// a real package is a package table; the rules table holds none.
     Set<String> packageTable(String path) {
       final rows = <String>{};
@@ -77,7 +77,12 @@ void main() {
       return rows;
     }
 
-    for (final readme in ['README.md', 'README.ru.md', 'README.zh-CN.md']) {
+    for (final readme in [
+      'README.md',
+      'README.ru.md',
+      'README.zh-CN.md',
+      'README.ko.md',
+    ]) {
       test(readme, () {
         final listed = packageTable(readme);
         expect(shipped.difference(listed), isEmpty);
