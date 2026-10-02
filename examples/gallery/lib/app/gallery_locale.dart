@@ -30,7 +30,12 @@ class GalleryLocaleScope extends InheritedWidget {
   /// Endonyms rather than translations: a reader looking for their own
   /// language recognises it written the way they write it, and would not
   /// recognise it named in a language they cannot read.
-  static const endonyms = {'en': 'English', 'ru': 'Русский', 'zh': '中文'};
+  static const endonyms = {
+    'en': 'English',
+    'ru': 'Русский',
+    'zh': '中文',
+    'ko': '한국어',
+  };
 
   /// Switches the app to another language.
   final ValueChanged<Locale> select;

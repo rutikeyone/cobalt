@@ -41,6 +41,16 @@ void main() {
     expect(find.text('两阶段启动'), findsOneWidget);
   });
 
+  testWidgets('and in Korean, where Hangul has no case either', (tester) async {
+    await tester.pumpWidget(
+      galleryHarness(home: const HubScreen(), locale: const Locale('ko')),
+    );
+    await tester.pump();
+
+    expect(find.text('시작'), findsOneWidget);
+    expect(find.text('두 단계 시작'), findsOneWidget);
+  });
+
   testWidgets('choosing a language switches the whole app', (tester) async {
     await tester.pumpWidget(const GalleryApp());
     await tester.pumpAndSettle();
@@ -57,6 +67,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('两阶段启动'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('language-ko')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('두 단계 시작'), findsOneWidget);
   });
 
   testWidgets('the gallery installs the inspector delegate rather than '
@@ -357,7 +372,7 @@ void main() {
     final template = keysOf('gallery_en');
     expect(template, isNotEmpty);
 
-    for (final locale in ['ru', 'zh']) {
+    for (final locale in ['ru', 'zh', 'ko']) {
       expect(
         keysOf('gallery_$locale'),
         template,

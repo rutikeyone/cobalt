@@ -1,0 +1,30 @@
+{
+  "@@locale": "ko",
+
+  "appTitle": "Cobalt · 관측성",
+  "liveLog": "실시간 로그",
+
+  "everyEvent": "아래 이벤트는 모두 그래프가 스스로 보고한 것입니다",
+  "everyEventDetail": "CobaltTalkerObserver는 종류마다 별도의 제목으로 기록하므로, 로그 화면에서 종류별로 나누어 필터링할 수 있습니다.",
+
+  "openSession": "세션 스코프 열기",
+  "openSessionDetail": "푸시 1회, 비동기 초기화 1회, 인스턴스 몇 개",
+  "openBrokenSession": "닫히지 않는 스코프 열기",
+  "openBrokenSessionDetail": "해제할 때 일부러 예외를 던집니다",
+  "closeSession": "세션 닫기",
+  "nothingOpen": "열린 것이 없습니다",
+  "scopeNamed": "스코프 \"{name}\"",
+  "@scopeNamed": { "placeholders": { "name": { "type": "String" } } },
+
+  "eventsRecorded": "기록된 이벤트",
+
+  "noFailures": "보고된 실패가 없습니다",
+  "noFailuresDetail": "닫히지 않는 세션을 닫아 보세요",
+  "reportSummary": "{kind} · {count, plural, other{브레드크럼 {count}개}}",
+  "@reportSummary": {
+    "placeholders": {
+      "kind": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  }
+}

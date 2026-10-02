@@ -15,10 +15,10 @@ Three entries have no UI at all (`Teardown`, `Manual mode`, `Testing patterns`):
 console output instead of a button. A gallery that offered to "open" a command-line program would
 be lying about what happens next.
 
-## Three languages
+## Four languages
 
-English, Russian and Chinese, switched from the chips at the top of the hub. Every string the
-gallery owns — the catalog's titles, one-liners and bullet points, the section headings, the
+English, Russian, Chinese and Korean, switched from the chips at the top of the hub. Every string
+the gallery owns — the catalog's titles, one-liners and bullet points, the section headings, the
 chrome — comes from `l10n/gallery_*.arb`; `buildCatalog` takes a `GalleryL10n` and holds no prose
 of its own, which is what a test checks by building the catalog twice and insisting the two
 disagree.
@@ -57,10 +57,10 @@ same modern semi-geometric grotesque, with Cyrillic that was designed rather tha
 
 `GalleryFace.of(locale)` decides, `GalleryText.of(context)` hands out the scale, and the theme is
 rebuilt in `MaterialApp.builder` — below `Localizations`, which is the first place there is a
-language to ask about. Chinese needs no entry: no webfont worth downloading carries CJK, the
-platform's own face is what every Chinese interface is set in, and Latin beside it is the ordinary
-mixed-script pairing rather than an accident. The mono styles never move — JetBrains Mono covers
-Cyrillic, and what they set is code.
+language to ask about. Chinese and Korean need no entry: no webfont worth downloading carries CJK
+or Hangul, the platform's own face is what every Chinese and Korean interface is set in, and Latin
+beside it is the ordinary mixed-script pairing rather than an accident. The mono styles never
+move — JetBrains Mono covers Cyrillic, and what they set is code.
 
 A test mounts the hub in both languages and fails if any style still names Space Grotesk under
 Russian, because a missed call site shows up as a typeface change mid-sentence rather than as a

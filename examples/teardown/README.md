@@ -35,5 +35,5 @@ stuck resource.
 
 There are no screens here, and the language of a command-line teaching program is not worth
 dragging `intl` into a pure-Dart package for — the point of this example is that the runtime works
-without Flutter at all. Everything the gallery *shows* is translated into English, Russian and
-Chinese; see [`examples/gallery`](../gallery/README.md).
+without Flutter at all. Everything the gallery *shows* is translated into English, Russian,
+Chinese and Korean; see [`examples/gallery`](../gallery/README.md).

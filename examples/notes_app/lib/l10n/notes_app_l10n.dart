@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
 import 'notes_app_l10n_en.dart';
+import 'notes_app_l10n_ko.dart';
 import 'notes_app_l10n_ru.dart';
 import 'notes_app_l10n_zh.dart';
 
@@ -95,6 +96,7 @@ abstract class NotesL10n {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
+    Locale('ko'),
     Locale('ru'),
     Locale('zh'),
   ];
@@ -356,7 +358,7 @@ class _NotesL10nDelegate extends LocalizationsDelegate<NotesL10n> {
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['en', 'ru', 'zh'].contains(locale.languageCode);
+      <String>['en', 'ko', 'ru', 'zh'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_NotesL10nDelegate old) => false;
@@ -367,6 +369,8 @@ NotesL10n lookupNotesL10n(Locale locale) {
   switch (locale.languageCode) {
     case 'en':
       return NotesL10nEn();
+    case 'ko':
+      return NotesL10nKo();
     case 'ru':
       return NotesL10nRu();
     case 'zh':

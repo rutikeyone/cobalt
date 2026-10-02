@@ -19,7 +19,12 @@ Widget inspectorIn(
   CobaltScope scope,
   CobaltInspectorLog log, {
   bool installed = true,
-  List<Locale> supported = const [Locale('en'), Locale('ru'), Locale('zh')],
+  List<Locale> supported = const [
+    Locale('en'),
+    Locale('ru'),
+    Locale('zh'),
+    Locale('ko'),
+  ],
 }) => MaterialApp(
   locale: locale,
   localizationsDelegates: [
@@ -53,7 +58,12 @@ void main() {
   // The grouping switch on the Built tab holds four labels; Russian ones are
   // the longest, and on a phone they ran past the edge (reported from a
   // Simulator screenshot, RIGHT OVERFLOWED BY). Every tab, every language.
-  for (final locale in const [Locale('en'), Locale('ru'), Locale('zh')]) {
+  for (final locale in const [
+    Locale('en'),
+    Locale('ru'),
+    Locale('zh'),
+    Locale('ko'),
+  ]) {
     for (final tab in CobaltInspectorTab.values) {
       testWidgets('the ${tab.name} tab fits a phone in $locale', (
         tester,
@@ -70,7 +80,12 @@ void main() {
               CobaltInspectorL10n.delegate,
               ...GlobalMaterialLocalizations.delegates,
             ],
-            supportedLocales: const [Locale('en'), Locale('ru'), Locale('zh')],
+            supportedLocales: const [
+              Locale('en'),
+              Locale('ru'),
+              Locale('zh'),
+              Locale('ko'),
+            ],
             home: CobaltInspectorScreen(
               log: log,
               scope: scope,
@@ -91,6 +106,14 @@ void main() {
 
     expect(find.text('Cobalt · 检查器'), findsOneWidget);
     expect(find.text('作用域树'), findsOneWidget);
+  });
+
+  testWidgets('Korean is a translation, not a fallback', (tester) async {
+    await tester.pumpWidget(inspectorIn(const Locale('ko'), scope, log));
+    await tester.pump();
+
+    expect(find.text('Cobalt · 인스펙터'), findsOneWidget);
+    expect(find.text('등록 필터'), findsOneWidget);
   });
 
   testWidgets('a host that installed no delegate still gets its own language', (
@@ -164,7 +187,7 @@ void main() {
     final template = keysOf('inspector_en');
     expect(template, isNotEmpty);
 
-    for (final locale in ['ru', 'zh']) {
+    for (final locale in ['ru', 'zh', 'ko']) {
       expect(
         keysOf('inspector_$locale'),
         template,

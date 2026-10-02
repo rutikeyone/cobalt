@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
 import 'graph_events_l10n_en.dart';
+import 'graph_events_l10n_ko.dart';
 import 'graph_events_l10n_ru.dart';
 import 'graph_events_l10n_zh.dart';
 
@@ -96,6 +97,7 @@ abstract class GraphEventsL10n {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
+    Locale('ko'),
     Locale('ru'),
     Locale('zh'),
   ];
@@ -201,7 +203,7 @@ class _GraphEventsL10nDelegate extends LocalizationsDelegate<GraphEventsL10n> {
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['en', 'ru', 'zh'].contains(locale.languageCode);
+      <String>['en', 'ko', 'ru', 'zh'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_GraphEventsL10nDelegate old) => false;
@@ -212,6 +214,8 @@ GraphEventsL10n lookupGraphEventsL10n(Locale locale) {
   switch (locale.languageCode) {
     case 'en':
       return GraphEventsL10nEn();
+    case 'ko':
+      return GraphEventsL10nKo();
     case 'ru':
       return GraphEventsL10nRu();
     case 'zh':

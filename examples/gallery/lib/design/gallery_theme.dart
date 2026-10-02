@@ -35,10 +35,10 @@ abstract final class GalleryColors {
 /// language should not switch the app's personality: it is the same modern
 /// semi-geometric grotesque, and it covers Cyrillic properly.
 ///
-/// Chinese needs no entry. No webfont here can carry CJK at a size worth
-/// downloading, the platform's own face is what every Chinese interface is set
-/// in anyway, and Latin beside it is the ordinary mixed-script pairing rather
-/// than an accident.
+/// Chinese and Korean need no entry. No webfont here can carry CJK or Hangul
+/// at a size worth downloading, the platform's own face is what every Chinese
+/// and Korean interface is set in anyway, and Latin beside it is the ordinary
+/// mixed-script pairing rather than an accident.
 enum GalleryFace {
   /// Space Grotesk: the gallery's own face, for the scripts it can write.
   spaceGrotesk,
@@ -48,10 +48,11 @@ enum GalleryFace {
 
   /// Languages set in the house face.
   ///
-  /// Chinese is here despite not being Latin: no webfont worth downloading
-  /// carries CJK, so those glyphs come from the platform whichever face we
-  /// name, and the Latin beside them may as well be the gallery's own.
-  static const _houseFace = {'en', 'zh'};
+  /// Chinese and Korean are here despite not being Latin: no webfont worth
+  /// downloading carries CJK or Hangul, so those glyphs come from the platform
+  /// whichever face we name, and the Latin beside them may as well be the
+  /// gallery's own.
+  static const _houseFace = {'en', 'zh', 'ko'};
 
   /// The face [locale] needs.
   ///

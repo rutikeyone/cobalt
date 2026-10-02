@@ -19,7 +19,7 @@ void main() {
     final template = keysOf('en');
     expect(template, isNotEmpty);
 
-    for (final locale in ['ru', 'zh']) {
+    for (final locale in ['ru', 'zh', 'ko']) {
       expect(keysOf(locale), template);
     }
   });

@@ -129,8 +129,8 @@ light one.
 
 ## Speaking your users' language
 
-The chrome is translated into English, Russian and Chinese, and picks the language the host app is
-already in. Nothing is required for that — with no delegate installed, the inspector reads the
+The chrome is translated into English, Russian, Chinese and Korean, and picks the language the host
+app is already in. Nothing is required for that — with no delegate installed, the inspector reads the
 ambient `Localizations.localeOf` and falls back to English for a language it has no translation
 for. It is a screen you drop in to look at a graph, and asking for a `localizationsDelegates` edit
 before it renders at all would be the wrong trade.

@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
 import 'flow_scopes_l10n_en.dart';
+import 'flow_scopes_l10n_ko.dart';
 import 'flow_scopes_l10n_ru.dart';
 import 'flow_scopes_l10n_zh.dart';
 
@@ -96,6 +97,7 @@ abstract class FlowScopesL10n {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
+    Locale('ko'),
     Locale('ru'),
     Locale('zh'),
   ];
@@ -351,7 +353,7 @@ class _FlowScopesL10nDelegate extends LocalizationsDelegate<FlowScopesL10n> {
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['en', 'ru', 'zh'].contains(locale.languageCode);
+      <String>['en', 'ko', 'ru', 'zh'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_FlowScopesL10nDelegate old) => false;
@@ -362,6 +364,8 @@ FlowScopesL10n lookupFlowScopesL10n(Locale locale) {
   switch (locale.languageCode) {
     case 'en':
       return FlowScopesL10nEn();
+    case 'ko':
+      return FlowScopesL10nKo();
     case 'ru':
       return FlowScopesL10nRu();
     case 'zh':
