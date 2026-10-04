@@ -1,0 +1,76 @@
+{
+  "@@locale": "ko",
+
+  "appTitle": "Cobalt · 플로우 스코프",
+  "whatIsAlive": "지금 살아 있는 것",
+
+  "openAFlow": "플로우 열기",
+  "openAFlowDetail": "들어갈 때 스코프가 생성되고 나갈 때 해제됩니다",
+  "order": "주문 {id}",
+  "@order": { "placeholders": { "id": { "type": "String" } } },
+  "workspaceTabs": "워크스페이스 (탭)",
+  "workspaceTabsDetail": "셸 스코프 하나와 탭마다 스코프 하나",
+
+  "eventLog": "이벤트 로그",
+  "logEmpty": "아직 아무것도 없습니다",
+
+  "scopeBuilt": "{subject} 스코프 빌드됨",
+  "@scopeBuilt": { "placeholders": { "subject": { "type": "String" } } },
+  "scopeDisposed": "{subject} 스코프 해제됨",
+  "@scopeDisposed": { "placeholders": { "subject": { "type": "String" } } },
+  "draftCreated": "초안 {order} 생성됨",
+  "@draftCreated": { "placeholders": { "order": { "type": "String" } } },
+  "draftDisposed": "초안 {order} 해제됨",
+  "@draftDisposed": { "placeholders": { "order": { "type": "String" } } },
+
+  "scopeTree": "스코프 트리",
+  "scopeNode": "{state} · {count, plural, =0{하위 스코프 없음} other{하위 스코프 {count}개}}",
+  "@scopeNode": {
+    "placeholders": {
+      "state": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  },
+
+  "checkoutFlow": "주문 플로우",
+  "scopeLine": "스코프: {name}",
+  "@scopeLine": { "placeholders": { "name": { "type": "String" } } },
+  "draftLine": "주문 {order} · 인스턴스 {instance}",
+  "@draftLine": {
+    "placeholders": {
+      "order": { "type": "String" },
+      "instance": { "type": "String" }
+    }
+  },
+  "continueToPayment": "결제로 이동",
+  "continueToPaymentDetail": "같은 플로우이므로 초안이 유지되어야 합니다",
+  "switchToOrder": "주문 {other}(으)로 전환",
+  "@switchToOrder": { "placeholders": { "other": { "type": "String" } } },
+  "switchToOrderDetail": "identity가 바뀌어 새 스코프가 빌드됩니다",
+  "leaveFlow": "플로우 나가기",
+  "leaveFlowDetail": "스코프와 초안이 함께 사라집니다",
+
+  "workspace": "워크스페이스",
+  "shellScope": "셸 스코프: {name}",
+  "@shellScope": { "placeholders": { "name": { "type": "String" } } },
+  "markerLine": "{label} · 스코프 {name}",
+  "@markerLine": {
+    "placeholders": {
+      "label": { "type": "String" },
+      "name": { "type": "String" }
+    }
+  },
+  "tabsExplained": "탭을 바꿨다가 돌아와도 아무것도 다시 빌드되지 않습니다. 브랜치는 보이지 않아도 살아 있으므로, 그 스코프는 워크스페이스 전체가 닫힐 때까지 유지됩니다.",
+  "tabFeed": "피드",
+  "tabProfile": "프로필",
+  "openCart": "장바구니 → 주문서 → 결제",
+  "openCartDetail": "최상위 라우트 세 개, 스코프 하나",
+  "cartCreated": "장바구니 초안 생성됨",
+  "cartDisposed": "장바구니 초안 해제됨",
+  "stepCart": "장바구니",
+  "stepCheckout": "주문서",
+  "stepPayment": "결제",
+  "continueToCheckout": "주문서로 이동",
+  "cartNextDetail": "다른 최상위 라우트이므로 초안이 유지되어야 합니다",
+  "cartLine": "장바구니 초안 · 인스턴스 {instance}"
+}

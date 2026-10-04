@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="GUIDE_CODEGEN.md">English</a> · <a href="GUIDE_CODEGEN.ru.md">Русский</a> · <a href="GUIDE_CODEGEN.zh-CN.md">中文</a>
+  <a href="GUIDE_CODEGEN.md">English</a> · <a href="GUIDE_CODEGEN.ru.md">Русский</a> · <a href="GUIDE_CODEGEN.zh-CN.md">中文</a> · <a href="GUIDE_CODEGEN.ko.md">한국어</a>
 </p>
 
 > Перевод [GUIDE_CODEGEN.md](GUIDE_CODEGEN.md). Канонический текст — английский: при расхождении верен он.

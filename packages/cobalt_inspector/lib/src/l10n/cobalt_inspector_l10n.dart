@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
 import 'cobalt_inspector_l10n_en.dart';
+import 'cobalt_inspector_l10n_ko.dart';
 import 'cobalt_inspector_l10n_ru.dart';
 import 'cobalt_inspector_l10n_zh.dart';
 
@@ -96,6 +97,7 @@ abstract class CobaltInspectorL10n {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
+    Locale('ko'),
     Locale('ru'),
     Locale('zh'),
   ];
@@ -480,7 +482,7 @@ class _CobaltInspectorL10nDelegate
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['en', 'ru', 'zh'].contains(locale.languageCode);
+      <String>['en', 'ko', 'ru', 'zh'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_CobaltInspectorL10nDelegate old) => false;
@@ -491,6 +493,8 @@ CobaltInspectorL10n lookupCobaltInspectorL10n(Locale locale) {
   switch (locale.languageCode) {
     case 'en':
       return CobaltInspectorL10nEn();
+    case 'ko':
+      return CobaltInspectorL10nKo();
     case 'ru':
       return CobaltInspectorL10nRu();
     case 'zh':

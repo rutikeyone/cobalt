@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="GUIDE_MANUAL.md">English</a> · <a href="GUIDE_MANUAL.ru.md">Русский</a> · <a href="GUIDE_MANUAL.zh-CN.md">中文</a>
+  <a href="GUIDE_MANUAL.md">English</a> · <a href="GUIDE_MANUAL.ru.md">Русский</a> · <a href="GUIDE_MANUAL.zh-CN.md">中文</a> · <a href="GUIDE_MANUAL.ko.md">한국어</a>
 </p>
 
 > Перевод [GUIDE_MANUAL.md](GUIDE_MANUAL.md). Канонический текст — английский: при расхождении верен он.

@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="README.md">English</a> · <a href="README.ru.md">Русский</a> · <a href="README.zh-CN.md">中文</a>
+  <a href="README.md">English</a> · <a href="README.ru.md">Русский</a> · <a href="README.zh-CN.md">中文</a> · <a href="README.ko.md">한국어</a>
 </p>
 
 > 本文档译自 [README.md](README.md)。英文版为准：若有出入，以英文为准。
@@ -324,7 +324,7 @@ cd examples/gallery && flutter run
 三个没有界面的条目（`销毁`、`Manual Mode`、`测试范式`）展示的是控制台输出而不是一个按钮，
 因为一个声称能「打开」命令行程序的画廊是在说谎。
 
-画廊本身用英语、俄语和中文书写，可在首页切换——它挂载的每一个界面同样如此。
+画廊本身用英语、俄语、中文和韩语书写，可在首页切换——它挂载的每一个界面同样如此。
 每个示例包都带着自己的 `l10n/*.arb` 并生成自己的 delegate，
 由画廊连同自己的和检查器的一起收集；一个多包 Flutter 应用就是这个样子。
 

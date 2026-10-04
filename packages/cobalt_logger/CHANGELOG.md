@@ -1,3 +1,8 @@
+## 1.1.0
+
+- No code changes in this package. Republished in lockstep with 1.1.0, which
+  adds Korean to the inspector and to the documentation.
+
 ## 1.0.0
 
 - The API is stable: from here on, only a major release breaks it — see

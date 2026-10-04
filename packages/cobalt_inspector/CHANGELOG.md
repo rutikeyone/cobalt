@@ -1,3 +1,9 @@
+## 1.1.0
+
+- Korean: the inspector is translated into Korean as well, so it speaks English,
+  Russian, Chinese and Korean, chosen from the host app's locale. Each tab
+  is checked at phone width in Korean too.
+
 ## 1.0.0
 
 - The API is stable: from here on, only a major release breaks it — see

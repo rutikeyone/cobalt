@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="GUIDE_MANUAL.md">English</a> · <a href="GUIDE_MANUAL.ru.md">Русский</a> · <a href="GUIDE_MANUAL.zh-CN.md">中文</a>
+  <a href="GUIDE_MANUAL.md">English</a> · <a href="GUIDE_MANUAL.ru.md">Русский</a> · <a href="GUIDE_MANUAL.zh-CN.md">中文</a> · <a href="GUIDE_MANUAL.ko.md">한국어</a>
 </p>
 
 > 本文档译自 [GUIDE_MANUAL.md](GUIDE_MANUAL.md)。英文版为准：若有出入，以英文为准。

@@ -1,0 +1,72 @@
+{
+  "@@locale": "ko",
+
+  "twoPhaseStartup": "두 단계 시작",
+  "restartGraph": "앱 스코프를 해제하고 새로 시작",
+  "phaseZero": "0단계: @CobaltBootstrap",
+  "phaseZeroNote": "\"{scope}\" 스코프가 맡으며, 그 스코프가 해제될 때 함께 해제됩니다",
+  "@phaseZeroNote": { "placeholders": { "scope": { "type": "String" } } },
+  "phaseOne": "1단계: @CobaltInit",
+  "databaseOpen": "데이터베이스 열림",
+  "searchIndexBuilt": "검색 인덱스 빌드됨",
+  "telemetryStarted": "텔레메트리 시작됨",
+  "statusLine": "{label}: {value}",
+  "@statusLine": {
+    "placeholders": {
+      "label": { "type": "String" },
+      "value": { "type": "String" }
+    }
+  },
+  "apiLine": "api: {url}",
+  "@apiLine": { "placeholders": { "url": { "type": "String" } } },
+
+  "sessionScope": "세션 스코프",
+  "signedInAs": "로그인됨: {name}",
+  "@signedInAs": { "placeholders": { "name": { "type": "String" } } },
+  "signedOut": "로그아웃됨",
+  "scopeLine": "스코프: {name}",
+  "@scopeLine": { "placeholders": { "name": { "type": "String" } } },
+  "noScope": "없음",
+  "signIn": "로그인",
+  "signOut": "로그아웃",
+  "recordActivity": "활동 기록",
+  "activityCount": "활동: {count}",
+  "@activityCount": { "placeholders": { "count": { "type": "int" } } },
+  "sessionExplained": "로그아웃하면 세션 스코프가 해제됩니다. 그 안에서 빌드된 모든 것이 함께 사라집니다. reset()을 구현하는 리포지토리도, 세션을 구독하는 곳도 없습니다.",
+
+  "propertyInjection": "프로퍼티 주입",
+  "search": "검색",
+  "noteCount": "개수: {count}",
+  "@noteCount": { "placeholders": { "count": { "type": "int" } } },
+  "newNote": "메모 {number}",
+  "@newNote": { "placeholders": { "number": { "type": "int" } } },
+
+  "widgetOwnedScope": "위젯 소유 스코프",
+  "draft": "초안",
+  "untitled": "제목 없음",
+  "widgetScopeExplained": "이 화면은 자체 스코프를 선언합니다. 화면을 떠나면 스코프가 해제되므로, 다른 곳에서 따로 신경 쓸 필요가 없습니다.",
+
+  "scopeTree": "스코프 트리",
+
+  "namedAndMulti": "이름 지정 주입과 다중 주입",
+  "registrationCount": "{count, plural, other{등록 {count}개}}",
+  "@registrationCount": { "placeholders": { "count": { "type": "int" } } },
+  "sampleNote": "장보기 목록",
+
+  "environments": "환경",
+  "activeEnvironment": "현재 환경",
+  "apiClientLine": "{implementation} → {detail}",
+  "@apiClientLine": {
+    "placeholders": {
+      "implementation": { "type": "String" },
+      "detail": { "type": "String" }
+    }
+  },
+  "noNetwork": "네트워크 없음",
+  "nothingRegistered": "등록 없음: \"{environment}\" 환경을 선언한 구현이 없습니다",
+  "@nothingRegistered": { "placeholders": { "environment": { "type": "String" } } },
+  "crashReportingStep": "report-crashes 부트스트랩 작업",
+  "stepRan": "실행됨",
+  "stepSkipped": "이 환경에서는 건너뜀",
+  "environmentsExplained": "두 구현 모두 같은 exposeAs가 붙어 있습니다. 이 환경을 지정한 쪽만 등록되므로, 이를 쓰는 쪽은 어느 구현을 받았는지 알지 못합니다. 아무도 선언하지 않은 환경을 고르면 그 타입은 아예 없습니다. get<ApiClient>()는 잘못된 클래스를 돌려주는 대신 예외를 던집니다."
+}

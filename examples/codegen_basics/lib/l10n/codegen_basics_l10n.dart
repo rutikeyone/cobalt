@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
 import 'codegen_basics_l10n_en.dart';
+import 'codegen_basics_l10n_ko.dart';
 import 'codegen_basics_l10n_ru.dart';
 import 'codegen_basics_l10n_zh.dart';
 
@@ -96,6 +97,7 @@ abstract class CodegenBasicsL10n {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
+    Locale('ko'),
     Locale('ru'),
     Locale('zh'),
   ];
@@ -150,7 +152,7 @@ class _CodegenBasicsL10nDelegate
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['en', 'ru', 'zh'].contains(locale.languageCode);
+      <String>['en', 'ko', 'ru', 'zh'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_CodegenBasicsL10nDelegate old) => false;
@@ -161,6 +163,8 @@ CodegenBasicsL10n lookupCodegenBasicsL10n(Locale locale) {
   switch (locale.languageCode) {
     case 'en':
       return CodegenBasicsL10nEn();
+    case 'ko':
+      return CodegenBasicsL10nKo();
     case 'ru':
       return CodegenBasicsL10nRu();
     case 'zh':

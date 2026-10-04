@@ -1,3 +1,10 @@
+## 1.1.0
+
+- Korean documentation: README, both guides and MIGRATION are available in
+  Korean (`README.ko.md`, `GUIDE_MANUAL.ko.md`, `GUIDE_CODEGEN.ko.md`,
+  `MIGRATION.ko.md`) and link to the other languages. No code changes in this
+  package.
+
 ## 1.0.0
 
 The API is stable: from here on, only a major release breaks it. The README's

@@ -52,9 +52,9 @@ wait for the previous group to appear on pub.dev — the index is not instant.
       same thing on whatever newer Flutter is on PATH. The four `analyzer`
       jobs test the toolchain packages on each row of the table below;
       `tool/matrix.sh <version>` runs one row locally.
-- [ ] Translations updated. `README.ru.md`, `README.zh-CN.md`, the four
-      translated guides, `MIGRATION.ru.md` and `MIGRATION.zh-CN.md` track the
-      English originals; a test checks that all four sets exist and link to each
+- [ ] Translations updated. `README.ru.md`, `README.zh-CN.md`, `README.ko.md`,
+      the six translated guides, `MIGRATION.ru.md`, `MIGRATION.zh-CN.md` and
+      `MIGRATION.ko.md` track the English originals; a test checks that all four sets exist and link to each
       other, and CI checks they are not empty, but nothing checks that they still
       say the same thing — so this box is the only thing that does. English is
       authoritative: if a translation is stale, fix it or say so in it.
@@ -306,7 +306,7 @@ picture, and the reason a screenshot is never evidence that the floor works.
 
 ## Performance numbers
 
-The table under **Performance** in the three READMEs is a measurement, and goes stale like one.
+The table under **Performance** in the four READMEs is a measurement, and goes stale like one.
 Retake it when a release changes how a scope resolves, builds or starts — not for every release:
 
 ```
