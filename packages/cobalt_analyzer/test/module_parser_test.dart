@@ -182,6 +182,18 @@ class Module {
         rejects(contains('public const constructor taking no arguments')),
       );
     });
+
+    test('a module with type parameters is rejected', () async {
+      expect(
+        () => parse('''
+@cobaltModule
+class Module<T> {
+  const Module();
+}
+'''),
+        rejects(contains('declares type parameters')),
+      );
+    });
   });
 
   group('the member', () {
@@ -205,6 +217,13 @@ $member
       await expectRejected(
         '  @cobaltInject\n  static Dio dio() => Dio();',
         contains('is static'),
+      );
+    });
+
+    test('an abstract member is rejected', () async {
+      await expectRejected(
+        '  @cobaltInject\n  Dio dio();',
+        contains('no body to call'),
       );
     });
 

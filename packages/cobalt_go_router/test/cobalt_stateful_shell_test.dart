@@ -214,6 +214,59 @@ void main() {
       );
     });
 
+    /// The primary constructor's `identity`, `overrides` and `shell` — each
+    /// exercised above for `.indexedStack`, none yet for this one.
+    testWidgets('the primary constructor takes identity, overrides and a shell '
+        'too', (tester) async {
+      // `:id` cannot be the branch's default route — go_router asserts every
+      // branch has one unparameterized location to return to — so identity
+      // comes from a query parameter instead, as a shell route's can.
+      final router = GoRouter(
+        initialLocation: '/w/feed?id=7',
+        routes: [
+          CobaltStatefulShellRoute(
+            key: shellKey,
+            name: 'workspace',
+            identity: (state) => state.uri.queryParameters['id'],
+            scope: (_) => const TrackedScope('workspace'),
+            overrides: (_) => [
+              CobaltOverride<Tracked>.value(Tracked('overridden')),
+            ],
+            shell: (_, _, navigationShell) => Column(
+              children: [
+                const Text('tabs'),
+                Expanded(child: navigationShell),
+              ],
+            ),
+            navigatorContainerBuilder: (_, navigationShell, children) =>
+                IndexedStack(
+                  index: navigationShell.currentIndex,
+                  children: children,
+                ),
+            branches: [
+              // Empty, so `Probe` resolves `Tracked` from the shell scope —
+              // where `overrides` replaced it — rather than shadowing it with
+              // a branch registration of its own.
+              CobaltStatefulShellBranch(
+                name: 'feed',
+                scope: (_) => const _Empty(),
+                routes: [
+                  GoRoute(path: '/w/feed', builder: (_, _) => const Probe()),
+                ],
+              ),
+            ],
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+
+      await start(tester, router);
+
+      expect(find.text('tabs'), findsOneWidget);
+      expect(find.text('label:overridden'), findsOneWidget);
+      expect(root.children.single.name, 'workspace:7');
+    });
+
     /// `shell` is the wrapper the tab bar lives in; without it the shell route
     /// renders the navigation shell bare.
     testWidgets('the shell wrapper is rendered around the branches', (
@@ -254,5 +307,45 @@ void main() {
       expect(find.text('tabs'), findsOneWidget);
       expect(find.text('chain:feed<workspace<app'), findsOneWidget);
     });
+
+    testWidgets(
+      'identity names the shell scope, as it does for CobaltShellRoute',
+      (tester) async {
+        final router = GoRouter(
+          initialLocation: '/w/feed?id=7',
+          routes: [
+            CobaltStatefulShellRoute.indexedStack(
+              key: shellKey,
+              name: 'workspace',
+              identity: (state) => state.uri.queryParameters['id'],
+              scope: (_) => const TrackedScope('workspace'),
+              branches: [
+                CobaltStatefulShellBranch(
+                  name: 'feed',
+                  scope: (_) => const TrackedScope('feed'),
+                  routes: [
+                    GoRoute(path: '/w/feed', builder: (_, _) => const Probe()),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+        addTearDown(router.dispose);
+
+        await start(tester, router);
+
+        expect(root.children.single.name, 'workspace:7');
+      },
+    );
   });
+}
+
+/// A branch that owns no scope of its own, so a type it does not register
+/// resolves from whatever ancestor does.
+class _Empty implements CobaltScopeBuilder {
+  const _Empty();
+
+  @override
+  void build(CobaltScope scope) {}
 }

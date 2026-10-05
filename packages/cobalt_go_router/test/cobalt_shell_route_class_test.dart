@@ -83,6 +83,49 @@ void main() {
       expect(root.children.single.name, 'order:7');
     });
 
+    testWidgets('shell wraps the child the branches render into', (
+      tester,
+    ) async {
+      final flow = CobaltShellRoute(
+        name: 'order',
+        scope: (_) => const TrackedScope('order'),
+        shell: (_, _, child) => Column(
+          children: [
+            const Text('chrome'),
+            Expanded(child: child),
+          ],
+        ),
+        routes: [
+          GoRoute(
+            path: '/orders/:id/summary',
+            builder: (_, _) => const Probe(),
+          ),
+        ],
+      );
+
+      await run(tester, routerWith(flow));
+
+      expect(find.text('chrome'), findsOneWidget);
+      expect(find.text('scope:order'), findsOneWidget);
+    });
+
+    testWidgets('without shell the branches render bare', (tester) async {
+      final flow = CobaltShellRoute(
+        name: 'order',
+        scope: (_) => const TrackedScope('order'),
+        routes: [
+          GoRoute(
+            path: '/orders/:id/summary',
+            builder: (_, _) => const Probe(),
+          ),
+        ],
+      );
+
+      await run(tester, routerWith(flow));
+
+      expect(find.text('chrome'), findsNothing);
+    });
+
     testWidgets('a subclass keeps identity and teardown', (tester) async {
       final router = routerWith(OrderFlowRoute());
       await run(tester, router);

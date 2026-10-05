@@ -29,6 +29,42 @@ class Cache<T> {
     );
   });
 
+  test('a class with no public generative constructor is rejected', () async {
+    final clazz = await classNamed('Cache', '''
+@cobaltInject
+class Cache {
+  Cache._();
+  factory Cache.create() => Cache._();
+}
+''');
+
+    expect(
+      () => parser.parseClass(clazz),
+      throwsA(
+        isA<CobaltParseError>().having(
+          (error) => error.message,
+          'message',
+          contains('no public generative constructor'),
+        ),
+      ),
+    );
+  });
+
+  test('exposeAs is read from the annotation', () async {
+    final clazz = await classNamed('LiveApiClient', '''
+abstract interface class ApiClient {}
+
+@CobaltInject(exposeAs: ApiClient)
+class LiveApiClient implements ApiClient {
+  LiveApiClient();
+}
+''');
+
+    final parsed = parser.parseClass(clazz);
+
+    expect(parsed.exposeAs!.name, 'ApiClient');
+  });
+
   test('a generic dependency keeps its type arguments', () async {
     final clazz = await classNamed('Catalog', '''
 abstract interface class Repository<T> {}
@@ -132,5 +168,42 @@ class Ticket {
         );
       },
     );
+  });
+
+  group('async init', () {
+    test('@CobaltInit with no init() method is refused', () async {
+      final clazz = await classNamed('Cache', '''
+@CobaltInit()
+class Cache {
+  Cache();
+}
+''');
+
+      expect(
+        () => parser.parseClass(clazz),
+        throwsA(
+          isA<CobaltParseError>().having(
+            (error) => error.message,
+            'message',
+            allOf(contains('@CobaltInit'), contains("'Future<void> init()'")),
+          ),
+        ),
+      );
+    });
+
+    test('an init() inherited from a supertype counts', () async {
+      final clazz = await classNamed('Cache', '''
+abstract class Base {
+  Future<void> init() async {}
+}
+
+@CobaltInit()
+class Cache extends Base {
+  Cache();
+}
+''');
+
+      expect(() => parser.parseClass(clazz), returnsNormally);
+    });
   });
 }
