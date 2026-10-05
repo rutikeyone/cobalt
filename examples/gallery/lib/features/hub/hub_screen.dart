@@ -140,18 +140,23 @@ class _LanguageSwitch extends StatelessWidget {
 
     return Semantics(
       label: GalleryL10n.of(context).languageTooltip,
-      child: Row(
-        children: [
-          for (final locale in GalleryLocaleScope.supported)
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: _LanguageChip(
-                code: locale.languageCode,
-                isActive: locale.languageCode == active,
-                onTap: () => select(locale),
+      // Scrolls sideways: four languages, and a fifth some day, do not all
+      // fit a phone at once — Korean was the one that first ran past it.
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            for (final locale in GalleryLocaleScope.supported)
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: _LanguageChip(
+                  code: locale.languageCode,
+                  isActive: locale.languageCode == active,
+                  onTap: () => select(locale),
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
