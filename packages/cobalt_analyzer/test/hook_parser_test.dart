@@ -126,5 +126,35 @@ abstract base class Join extends CobaltHook<Loggable> {}
         rejects(contains('abstract')),
       );
     });
+
+    test('a class with type parameters', () async {
+      await expectLater(
+        parse('''
+$runtime
+@cobaltHookAll
+final class Join<T> extends CobaltHook<Loggable> {
+  @override
+  void onBuilt(Loggable instance, CobaltResolver resolver) {}
+}
+'''),
+        rejects(contains('declares type parameters')),
+      );
+    });
+
+    test('a class with no public generative constructor', () async {
+      await expectLater(
+        parse('''
+$runtime
+@cobaltHookAll
+final class Join extends CobaltHook<Loggable> {
+  Join._();
+  factory Join.create() => Join._();
+  @override
+  void onBuilt(Loggable instance, CobaltResolver resolver) {}
+}
+'''),
+        rejects(contains('no public generative constructor')),
+      );
+    });
   });
 }

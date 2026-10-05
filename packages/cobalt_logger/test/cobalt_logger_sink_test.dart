@@ -20,6 +20,14 @@ void main() {
   tearDown(() => pretty.Logger.removeLogListener(listener));
 
   group('CobaltLoggerSink', () {
+    test('without a logger it builds one of its own, reachable through '
+        '.logger', () {
+      final sink = CobaltLoggerSink();
+      addTearDown(sink.logger.close);
+
+      expect(sink.logger, isA<pretty.Logger>());
+    });
+
     test('every Cobalt level maps onto a real logger level', () {
       expect(
         CobaltLoggerSink.levelOf(CobaltLogLevel.trace),

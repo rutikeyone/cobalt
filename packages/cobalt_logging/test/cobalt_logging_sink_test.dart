@@ -18,6 +18,20 @@ void main() {
   });
 
   group('CobaltLoggingSink', () {
+    test('without a logger it builds one named "cobalt", reachable through '
+        '.logger', () {
+      final sink = CobaltLoggingSink();
+
+      expect(sink.logger, isA<logging.Logger>());
+      expect(sink.logger.fullName, 'cobalt');
+    });
+
+    test('a name picks which logger it builds', () {
+      final sink = CobaltLoggingSink(name: 'cobalt.network');
+
+      expect(sink.logger.fullName, 'cobalt.network');
+    });
+
     test('every Cobalt level maps onto a logging one', () {
       expect(
         CobaltLoggingSink.levelOf(CobaltLogLevel.trace),

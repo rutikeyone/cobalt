@@ -251,6 +251,22 @@ class Wrapper implements Api {
         rejects(contains('"late final"')),
       );
     });
+
+    test('an @injected field that is static', () async {
+      expect(
+        () => parse('''
+$api
+@CobaltDecorates(Api)
+class Wrapper implements Api {
+  Wrapper(this.inner);
+  final Api inner;
+  @injected
+  static late final Logger log;
+}
+'''),
+        rejects(contains('is static and cannot be injected')),
+      );
+    });
   });
 
   group('property injection', () {
