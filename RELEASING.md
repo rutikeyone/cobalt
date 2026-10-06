@@ -259,6 +259,16 @@ group by group in the order above, waiting for each group to appear on pub.dev a
 least 40 s between any two publishes. Versions already on pub.dev are skipped, so a failed run
 is simply re-run.
 
+Once every package is published, a second job creates the GitHub release on the tag, titled
+`Cobalt X.Y.Z`. Its body is built by `tool/release_notes.py X.Y.Z` from each package's
+`## X.Y.Z` CHANGELOG entry; packages with the same entry share one section, so the "no code
+changes" lines collapse into one. A version with a `-` suffix is marked as a pre-release. If
+the release already exists, the job skips it, so a re-run is safe.
+
+- Every package must have the `## X.Y.Z` entry: the publish job checks this before
+  publishing anything, so a missing entry stops the run while the tag can still be moved.
+  Run `python3 tool/release_notes.py X.Y.Z` before tagging to see the release text.
+
 - Auth is pub.dev automated publishing (GitHub OIDC) — there is no token anywhere. Each
   package's pub.dev admin page has: repository `rutikeyone/cobalt`, tag pattern `v{{version}}`,
   required environment `pub.dev`.
@@ -346,8 +356,8 @@ moving it makes that claim quietly false for everyone who already has the
 package. If the tagged commit turns out to be the wrong one after publishing,
 the answer is another version, not another tag.
 
-A GitHub release on that tag is optional and costs nothing — its body is the
-release's own CHANGELOG entry, which is written already.
+The GitHub release on that tag is created by the Publish workflow from the
+CHANGELOG entries — see "Publishing" above.
 
 `cobalt_lint` becomes installable the normal way — just the `plugins:` entry.
 Until then the analysis server cannot find it, because it resolves plugins from
