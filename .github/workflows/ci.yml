@@ -33,7 +33,8 @@ jobs:
         run: python3 tool/modifiers.py --check
 
       - name: Every CHANGELOG has an entry for the current version
-        run: python3 tool/release_notes.py "$(sed -n 's/^version: *//p' packages/cobalt/pubspec.yaml)" > /dev/null
+        run: |
+          python3 tool/release_notes.py "$(sed -n 's/^version: *//p' packages/cobalt/pubspec.yaml)" > /dev/null
 
       # Existence only. Whether a translation still says what the English says
       # is not checkable by machine — that is a line in the RELEASING checklist.
