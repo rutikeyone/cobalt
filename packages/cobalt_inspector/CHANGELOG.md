@@ -3,6 +3,8 @@
 - Korean: the inspector is translated into Korean as well, so it speaks English,
   Russian, Chinese and Korean, chosen from the host app's locale. Each tab
   is checked at phone width in Korean too.
+- The tree keeps every scope's counts at the right edge again. Since 1.0.0 a
+  short scope name left a gap after them, most visibly on a nested scope.
 
 ## 1.0.0
 

@@ -160,44 +160,51 @@ class _ScopeNode extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Icon(
-                    isCollapsed ? Icons.chevron_right : Icons.expand_more,
-                    size: 18,
-                    color: theme.muted,
-                  ),
-                  const SizedBox(width: 6),
-                  // Name and counts give way, with an ellipsis, rather than
-                  // run past the edge: Russian counts are long, and a phone
-                  // is narrow.
                   Flexible(
-                    child: Text(
-                      scope.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: theme.onSurface,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          isCollapsed ? Icons.chevron_right : Icons.expand_more,
+                          size: 18,
+                          color: theme.muted,
+                        ),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            scope.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: theme.onSurface,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        _Pill(
+                          text: scope.state.name,
+                          color: scope.state == CobaltScopeState.active
+                              ? theme.startup
+                              : theme.muted,
+                          theme: theme,
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  _Pill(
-                    text: scope.state.name,
-                    color: scope.state == CobaltScopeState.active
-                        ? theme.startup
-                        : theme.muted,
-                    theme: theme,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      strings.nodeCounts(own, scope.children.length),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.end,
-                      style: TextStyle(color: theme.muted, fontSize: 11),
+                  Flexible(
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: Text(
+                        strings.nodeCounts(own, scope.children.length),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.end,
+                        style: TextStyle(color: theme.muted, fontSize: 11),
+                      ),
                     ),
                   ),
                 ],
