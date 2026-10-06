@@ -63,6 +63,23 @@ void main() {
     /// The point of the whole design. `debugResolve` builds what it resolves,
     /// so an inspector that resolved rows in order to display them would
     /// create objects nobody asked for and log its own noise.
+    testWidgets('every scope keeps its counts at the right edge', (
+      tester,
+    ) async {
+      final child = scope.pushForTest('session');
+
+      await tester.pumpWidget(inspectorUnderTest(child, log));
+      await tester.pumpAndSettle();
+
+      final counts = find.textContaining(' reg · ');
+      expect(counts, findsNWidgets(2));
+      expect(
+        tester.getTopRight(counts.at(1)).dx,
+        moreOrLessEquals(tester.getTopRight(counts.at(0)).dx),
+        reason: 'a short scope name must not leave a gap after the counts',
+      );
+    });
+
     testWidgets('renders without building anything', (tester) async {
       await tester.pumpWidget(inspectorUnderTest(scope, log));
       await tester.pumpAndSettle();

@@ -18,7 +18,7 @@
 set -e
 cd "$(dirname "$0")/.."
 
-DEVICE=${DEVICE:-iPhone 16 Pro}
+DEVICE=${DEVICE:-$(mac-sim devices | awk 'NF{print $1; exit}')}
 SIZE=552x1200
 # mac-sim takes paths relative to the shared projects directory.
 REPO=${PWD#/workspace/ai/projects/}
