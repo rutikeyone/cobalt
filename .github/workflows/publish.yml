@@ -44,6 +44,9 @@ jobs:
           done
           exit $bad
 
+      - name: Every CHANGELOG has the entry the release notes are built from
+        run: python3 tool/release_notes.py "${GITHUB_REF_NAME#v}" > /dev/null
+
       - name: Resolve every member
         run: ./tool/get.sh
 
@@ -95,3 +98,27 @@ jobs:
               done
             done
           done <<< "$PUBLISH_ORDER"
+
+  release:
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: GitHub release from the CHANGELOG entries
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "release $GITHUB_REF_NAME already exists — skip"
+            exit 0
+          fi
+          python3 tool/release_notes.py "$version" > notes.md
+          prerelease=()
+          case "$version" in *-*) prerelease=(--prerelease) ;; esac
+          gh release create "$GITHUB_REF_NAME" --verify-tag \
+            --title "Cobalt $version" --notes-file notes.md "${prerelease[@]}"
