@@ -78,7 +78,7 @@ dev_dependencies:
 Вместе с ним приезжает одно следствие: на Flutter 3.38 ваш проект резолвит `analyzer 10.0.1` и
 `build_runner 2.15.1`, потому что Flutter там пиннит `meta 1.17.0`, а анализатор новее просит
 `^1.18.0`. На свежем Flutter резолвится 12.1.0, и сгенерированный код в обоих случаях один и тот же.
-Вся строка — в разделе **Требования** в [README.ru.md](README.ru.md).
+Вся строка — в разделе **Требования** в [docs/OVERVIEW.ru.md](docs/OVERVIEW.ru.md#требования).
 
 Пакет на чистом Dart — CLI, сервер, пакет без виджетов — выбрасывает `cobalt_flutter` и
 `cobalt_test_flutter`. Рантайму Flutter не нужен нигде.
@@ -1305,7 +1305,7 @@ git diff --exit-code
 
 - [GUIDE_MANUAL.ru.md](GUIDE_MANUAL.ru.md) — тот же рантайм без шага сборки и что с чем
   композируется.
-- [README.ru.md](README.ru.md) — что такое Cobalt и почему каждое решение принято именно так.
+- [docs/OVERVIEW.ru.md](docs/OVERVIEW.ru.md) — что такое Cobalt и почему каждое решение принято именно так.
 - [MIGRATION.ru.md](MIGRATION.ru.md) — с `get_it` и `injectable`, включая то, что не переводится.
 - `examples/codegen_basics` — наименьшая генерируемая обвязка, `examples/notes_app` — наибольшая.
   Оба запускаются из галереи: `cd examples/gallery && flutter run`.

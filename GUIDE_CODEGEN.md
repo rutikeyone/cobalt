@@ -76,7 +76,7 @@ rather than starting in [GUIDE_MANUAL.md](GUIDE_MANUAL.md) and migrating.
 One thing comes with it: on Flutter 3.38 your project resolves `analyzer 10.0.1` and
 `build_runner 2.15.1`, because Flutter pins `meta 1.17.0` there and a newer analyzer wants
 `^1.18.0`. On a newer Flutter it resolves 12.1.0 instead, and the generated code is the same either
-way. See **Requirements** in the [README](README.md) for the whole row.
+way. See **Requirements** in [docs/OVERVIEW.md](docs/OVERVIEW.md#requirements) for the whole row.
 
 A pure-Dart package — a CLI, a server, a package with no widgets — drops `cobalt_flutter` and
 `cobalt_test_flutter`. Nothing in the runtime needs Flutter.
@@ -1305,7 +1305,7 @@ Each of these was found the hard way, in this repository or in the applications 
 
 - [GUIDE_MANUAL.md](GUIDE_MANUAL.md) — the same runtime without the build step, and what composes
   with what.
-- [README.md](README.md) — what Cobalt is, and why each decision went the way it did.
+- [docs/OVERVIEW.md](docs/OVERVIEW.md) — what Cobalt is, and why each decision went the way it did.
 - [MIGRATION.md](MIGRATION.md) — from `get_it` and `injectable`, including what does not translate.
 - `examples/codegen_basics` is the smallest generated setup, and `examples/notes_app` the largest.
   Both run from the gallery: `cd examples/gallery && flutter run`.

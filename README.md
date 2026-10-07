@@ -16,75 +16,115 @@
 
 # Cobalt
 
-Dependency injection framework for Dart and Flutter. Dual-mode: declarative code generation and a
-pure-Dart manual API over the same runtime.
+Dependency injection for Flutter and Dart. Objects live in scopes — the app, a signed-in session, a
+checkout flow, a screen — and when a scope ends, everything built in it is closed with it.
 
-Status: **Phase 1 complete.** Runtime, Flutter bindings, annotations, analysis layer, both
-generators and the lint plugin are implemented and tested.
+## Quick start
 
-| | |
-|---|---|
-| **Using it without code generation** | [GUIDE_MANUAL.md](GUIDE_MANUAL.md) — you write the registrations |
-| **Using it with the generator** | [GUIDE_CODEGEN.md](GUIDE_CODEGEN.md) — annotations, and the graph checked at build time |
-| **Coming from `get_it` or `injectable`** | [MIGRATION.md](MIGRATION.md) — what maps, and what does not |
-| **See it running** | `cd examples/gallery && flutter run` |
+In a Flutter app — `flutter create my_app` makes one — add the packages:
+
+```bash
+flutter pub add cobalt cobalt_flutter dev:cobalt_generator dev:build_runner
+```
+
+Replace `lib/main.dart`:
+
+```dart
+import 'package:cobalt_flutter/cobalt_flutter.dart';
+import 'package:flutter/material.dart';
+
+import 'cobalt.g.dart';
+
+@cobaltInject
+class Clock {
+  Clock();
+
+  DateTime now() => DateTime.now();
+}
+
+@cobaltInject
+class Greeter {
+  Greeter(this.clock);
+
+  final Clock clock;
+
+  String greet(String name) =>
+      clock.now().hour < 12 ? 'Good morning, $name!' : 'Hello, $name!';
+}
+
+void main() => runApp(
+  MaterialApp(
+    builder: CobaltAppScope.builder(root: const $CobaltRootScope()),
+    home: const HomeScreen(),
+  ),
+);
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final greeter = context.cobalt<Greeter>();
+    return Scaffold(body: Center(child: Text(greeter.greet('Cobalt'))));
+  }
+}
+```
+
+Generate the wiring and run:
+
+```bash
+dart run build_runner build
+flutter run
+```
+
+`@cobaltInject` registers a class. `Greeter` asks for a `Clock` in its constructor, and the generator
+connects the two in `lib/cobalt.g.dart`. `CobaltAppScope` builds the graph when the app starts and
+closes it when the app goes; `context.cobalt<Greeter>()` reads from it. The same app, with a test
+that swaps the clock, is in [`examples/hello`](examples/hello).
+
+## Why Cobalt
+
+- **Scopes end, and take their objects with them.** Scopes form a tree. Sign-out is
+  `await session.dispose()`: everything the session built is closed, newest first. No `reset()`
+  methods, no listeners waiting for a logout event.
+- **Mistakes show up at build time.** A dependency nothing registers fails `build_runner` with a
+  message naming every gap at once. [Eighteen lint rules](packages/cobalt_lint/README.md) catch the
+  rest in the editor.
+- **The generated code is plain Dart.** It uses only the public API, so you can read it — or skip the
+  generator and write the same thing by hand. Both can live in one graph.
+- **Async startup in the right order.** Services that must be awaited before the first screen start
+  in dependency order, independent ones in parallel.
+- **Tests swap a dependency for everyone.** An override replaces a registration where it lives. There
+  is no global container, so tests run in parallel.
+- **You can see the graph.** `cobalt_inspector` shows the live scope tree and every event, inside the
+  running app.
 
 <p align="center">
-  <img src="assets/screenshots/hub.png" width="30%" alt="The example gallery">
   <img src="assets/screenshots/tree.png" width="30%" alt="The live scope tree">
+  <img src="assets/screenshots/flow.png" width="30%" alt="A scope owned by a navigation flow">
   <img src="assets/screenshots/log.png" width="30%" alt="Everything the graph reported">
 </p>
 
-<p align="center"><sub>The example gallery, the live scope tree with every registration's lifetime, and everything the graph reported — <code>cobalt_inspector</code>, inside the running app.</sub></p>
+<p align="center"><sub>The live scope tree, a checkout flow that owns a scope, and everything the graph reported — <code>cobalt_inspector</code>, inside the running app.</sub></p>
 
-<p align="center">
-  <img src="assets/screenshots/flow.png" width="30%" alt="A scope owned by a navigation flow">
-  <img src="assets/screenshots/flowlog.png" width="30%" alt="Each draft created and disposed with its flow">
-  <img src="assets/screenshots/env.png" width="30%" alt="One interface, a different implementation per build">
-</p>
-
-<p align="center"><sub>A checkout flow owning a scope — the draft survives navigation inside the flow and goes when the flow does — and an environment choosing which implementation is registered at all.</sub></p>
-
-## What it is
-
-A container that owns what it builds. Scopes form a tree rather than a stack, so a session, a
-checkout flow and a screen each get a lifetime of their own, and ending one takes everything built
-inside it with it — logout is `await scope.dispose()`, not nine subscriptions to a session stream
-and four `reset()` methods that leaked into domain interfaces.
-
-Code generation is a convenience over that runtime, never a second framework. The generator emits
-exactly what you would write by hand, using nothing but the public API of `cobalt`, which is what
-makes gradual migration possible: a generated container and a hand-written one compose in the same
-graph.
-
-## Features
+## Learn more
 
 | | |
 |---|---|
-| **Hierarchical scopes** | a tree, not a flat stack — two independent subtrees can coexist, which a stack cannot express |
-| **Ownership and teardown** | the scope releases what it built, LIFO by **creation** order, best-effort with one deadline for the whole tree |
-| **Two-phase startup** | `@CobaltBootstrap` before the container exists, `@CobaltInit` inside it, both awaited before `start` returns |
-| **Lazy async singletons** | built by the first `getAsync`, not at startup — for something expensive that lives as long as the app but few screens want |
-| **Async transients** | `registerAsyncFactory`, or `@cobaltTransient` on an `@CobaltInit` class: every `getAsync` builds and awaits a new instance the scope does not keep |
-| **Topological ordering** | async initializers are layered by Kahn's algorithm; independent branches run through `Future.wait`, a cycle fails the build naming the cycle |
-| **Property injection** | `late final` fields filled by a generated mixin, so a class with five collaborators has an empty constructor |
-| **Compile-time completeness** | a dependency nothing registers fails the build, naming every gap at once |
-| **Parameterized registrations** | `@CobaltParam` for what the call site supplies; the generator writes the argument type as a named record. On an `@CobaltInit` class the build is async, awaited with `getAsyncWithParam` |
-| **Optional dependencies** | `Foo?` resolves through `getOrNull` and injects null instead of failing the build |
-| **Modules** | register types you did not write — a client from another package, a value the SDK hands you |
-| **Decorators** | wrap what a registration hands out — logging, retries, a cache — without touching its class, by hand or with `@CobaltDecorates`; one registration or every registration of a type |
-| **Hooks** | see every instance of a supertype the graph builds — each `Loggable` joining a registry — whichever registration built it, by hand or with `@cobaltHookAll`; unlike a decorator, it cannot replace the instance |
-| **Environments** | one abstraction, a different implementation per build, with overlaps rejected at build time |
-| **Named and multi-injection** | `@Named` qualifiers and `getAll<T>()` over every registration of a type |
-| **Observability** | typed events, not strings — logging, structured intake and crash reports with a trail |
-| **In-app inspector** | the live scope tree, what was built and with what lifetime, and everything reported |
-| **Navigation flows** | a scope whose lifetime is a go_router flow, without anything mirroring the router |
-| **Lint plugin** | eighteen rules on the same parsing layer the generator uses |
-| **Overrides** | replace a registration where it is owned, so every consumer sees the double — in a test, a flavour or a debug menu |
-| **Test helpers** | scopes that dispose with the test, overrides that work the way production ones do |
-| **No global container** | nothing is ambient, so tests run in parallel and two graphs in one process are unrelated |
+| **Step by step, with the generator** | [GUIDE_CODEGEN.md](GUIDE_CODEGEN.md) |
+| **Step by step, without code generation** | [GUIDE_MANUAL.md](GUIDE_MANUAL.md) |
+| **Coming from get_it, injectable or provider** | [MIGRATION.md](MIGRATION.md) |
+| **Every feature, how it works, compatibility, performance** | [docs/OVERVIEW.md](docs/OVERVIEW.md) |
+| **Every feature in one app** | `cd examples/gallery && flutter run` |
+| **Working on Cobalt itself** | [CONTRIBUTING.md](CONTRIBUTING.md) |
 
 ## Packages
+
+For an app you need `cobalt` and `cobalt_flutter`, plus `cobalt_generator` and `build_runner` if you
+use code generation. Everything else is optional.
+
+<details>
+<summary>All fifteen packages</summary>
 
 | Package | Depends on | Ships to apps |
 |---|---|---|
@@ -104,307 +144,12 @@ graph.
 | `cobalt_inspector` | `cobalt_flutter`, `flutter` | dev_dependency only |
 | `cobalt_talker_flutter` | `cobalt_inspector`, `cobalt_talker`, `talker_flutter` | dev_dependency only |
 
-`cobalt_analyzer` exists so the generator and the lint plugin parse Cobalt declarations through one
-implementation instead of two that drift apart. It owns the IR and the topological sort, and depends
-on neither `build` nor the plugin API.
-
-**Project invariant:** generated code may only use the public API of `cobalt`. The moment generation
-needs something Manual Mode cannot express, these are two frameworks sharing a name.
+</details>
 
 ## Requirements
 
-**Every package requires Dart `^3.10.0`, and the ones that need Flutter say `>=3.38.0`.** All
-fifteen, including the generator and the lint plugin — an application still on Flutter 3.38 gets
-both modes, not just Manual Mode.
-
-Developed on Flutter 3.38.9 — the floor itself — and checked on the current `stable` and `beta`.
-
-The floor has a mechanism behind it worth knowing, because it is not the Dart version that binds.
-**Flutter 3.38 pins `meta 1.17.0`, and analyzer 10.0.2 wants `^1.18.0`** — so a Flutter application
-on 3.38 tops out at analyzer 10.0.1, whatever its SDK constraint says. A pure-Dart consumer is not
-bound by that and takes 12.1.0; 13.0.0 is out of reach for both, because it needs
-`_fe_analyzer_shared 100`, which needs Dart 3.11.
-
-So the three toolchain packages declare `analyzer: ">=10.0.1 <15.0.0"` rather than a single version,
-and the same source builds and passes its tests on every row of it. Every package that reads the
-analyzer pins it exactly, so which row you get is decided by your project rather than by us:
-
-| your project | analyzer | analyzer_plugin | analysis_server_plugin | analyzer_testing | dart_style |
-|---|---|---|---|---|---|
-| Flutter 3.38 | 10.0.1 | 0.14.1 | 0.3.7 | 0.1.9 | 3.1.7 |
-| anything newer, until something else needs analyzer 13 | 12.1.0 | 0.14.8 | 0.3.14 | 0.2.5 | 3.1.8 |
-| Flutter 3.49's `test`, `build` 4.0.8+, current `freezed` or `json_serializable` | 13.x – 14.x | 0.14.9 – 0.14.17 | 0.3.15 – 0.3.23 | 0.2.6 – 0.4.2 | 3.1.9 – 3.1.13 |
-
-The generator formats at a fixed language version, 3.10, rather than at whatever the resolved
-`dart_style` calls latest — so every row emits identical bytes, and a formatter release that adds
-style rules for a newer language version cannot change what is committed. That is checked rather
-than assumed: CI's `verify` job regenerates on Flutter 3.38.9, which puts `codegen_basics` on the
-10.0.1 row and the compatibility stand on 12.1.0, and diffs against what is committed; the `forward`
-job on `beta` resolves the newest row and diffs the same files.
-
-The repository is developed on that floor, and that is why it is not a pub workspace. A workspace is
-one resolution, and on Flutter 3.38 `flutter_test` pins `test_api 0.7.7`, which caps the `test`
-runner at 1.26.3 and the analyzer below 9, while `cobalt_analyzer` needs 10.0.1. So every package
-resolves on its own and takes its siblings from a `pubspec_overrides.yaml` that `tool/overrides.py`
-writes. CI's `verify` job runs everything on Flutter 3.38.9, and `forward` runs `stable` and `beta`
-to find what is coming, rather than a matrix of past releases.
-
-## Compatibility
-
-Only a major release breaks, and its changelog says what under **Breaking**. Through the 0.x
-releases any minor could; since 1.0 none does. Three rules say what that covers:
-
-- **A new value in a public enum is a minor change.** `CobaltRegistrationKind` has grown in three
-  releases and will again. Ask its getters — `isRetained`, `takesParam`, `isAsync`,
-  `isBuiltByInit` — instead of switching over the values; an exhaustive `switch` is yours to update.
-- **`CobaltResolver` cannot be implemented outside Cobalt.** It is a `base` class, so a new way of
-  resolving arrives in a minor release. A test builds a real scope — `cobaltTestRoot` from
-  `cobalt_test` — rather than a mock.
-- **A new observer hook is a minor change.** `CobaltObserver` is a base class with empty hooks, so an
-  observer written against an older release keeps compiling (`onInstanceBuilt` arrived that way). `CobaltHook`
-  is built the same way.
-  Anything you *implement* — factories, decorators, sinks, `Disposable` — gains members only in a
-  major.
-
-Two things are outside these rules on purpose. `CobaltScope`'s `debug*` members — what the inspector
-and `cobalt_test` read the graph through — are marked `@experimental` and may change in a minor
-release; newer analyzers flag each use from your code with `experimental_member_use`, which is the
-point — ignore it where you mean it. And `cobalt_analyzer` is internal to the generator and the lint plugin: its API follows
-what they need, not semver; depend on them rather than on it.
-
-Coming from an older 0.x release: [MIGRATION](MIGRATION.md#from-cobalt-0x-to-10) lists every change
-that stops code compiling, and what to do about it.
-
-`tool/api.sh` reports what changed in every package against the version on pub.dev, and
-`tool/class_modifiers.txt` records every public type's class modifiers — the one change that tool
-cannot see — so CI fails until a changed modifier is written down.
-
-## Performance
-
-Cobalt next to get_it, from [`benchmark/`](benchmark/README.md), which describes what each row does.
-Compiled AOT, on arm64 with Dart SDK 3.10.8 (stable, `macos_arm64`). Median of three runs; they agreed
-within ten percent.
-
-| | Cobalt | get_it | Cobalt / get_it |
-|---|---:|---:|---:|
-| get a built singleton | 81 ns | 425 ns | 0.19× |
-| build a transient with two dependencies | 356 ns | 1.22 µs | 0.29× |
-| register 200, then get each once | 137 µs | 386 µs | 0.35× |
-| start 20 async singletons | 24.7 µs | 28.1 µs | 0.88× |
-| the transient, with an empty observer | 374 ns | — | — |
-| the transient, with a recording observer | 860 ns | — | — |
-| the transient, with a log observer at its default level | 385 ns | — | — |
-
-Below 1 in the last column, Cobalt took less time. The absolute numbers belong to this machine; what carries over is the order of
-magnitude. A resolution costs well under a microsecond, a graph of 200 registrations a fraction of a
-millisecond, the async start of twenty singletons tens of microseconds — none of it registers against
-a 16 ms frame. An observer that turns every event into a record about doubles the cost of a build; the log
-observer at its default level does not, because the per-instance records it drops are never made —
-it costs what an observer that overrides nothing costs.
-
-```
-cd benchmark && dart compile exe bin/main.dart -o /tmp/cobalt_benchmark && /tmp/cobalt_benchmark
-```
-
-## How it works
-
-### Scopes own what they build
-
-A scope is a node with a parent, children and its own registrations. Resolution walks up, so a
-registration in a child shadows one above it — which is how a session's repository replaces the
-anonymous one in production. A factory runs on the scope that owns its registration, so a shadow
-reaches only what is resolved below it; to replace a dependency for everything, an override is handed
-to the scope that owns the key, and the real registration there is skipped.
-
-Teardown is LIFO by **creation** order, not declaration order. That distinction is the bug in most
-hand-written containers: a component declared first but created last is destroyed first, while
-something still depends on it. And it is best-effort — a `dispose` that throws is recorded and the
-rest still run, the whole tree shares one deadline, and what did not finish is listed in
-`CobaltDisposeError` rather than the first failure hiding the other nine.
-
-Parents hold children strongly. Weak references were considered and rejected: they would allow a
-child scope to be collected before `dispose()` ran, which means never running it, and they do not
-prevent leaks anyway because live objects inside hold themselves.
-
-### The graph is checked before it builds
-
-Code-Gen Mode rejects an incomplete graph at build time, naming every gap in one message:
-
-```
-Diagnostics requires DeviceInfo, which nothing registers. Annotate the class that
-provides it with @CobaltInject, or name it in @CobaltScopeRoot(provides: [...]) when
-something outside the generated container registers it.
-```
-
-Constructor parameters, `@injected` fields and `@CobaltInit(dependsOn:)` all count, a `@Named`
-qualifier is part of the key, and each environment is checked separately. Duplicate registrations,
-dependency cycles, two scope roots in one package, a generic injectable class and an abstract one are
-all build failures too.
-
-This is a Code-Gen guarantee, and the boundary is honest: a hand-written factory resolves inside
-`create`, so nothing static can see what it will ask for. Manual Mode graphs still fail at runtime —
-`cobalt_test` carries `expectGraphResolves` for exactly that gap.
-
-### Generated code is what you would have written
-
-Three builders: one writes property-injection mixins, one scans each library into IR, one aggregates
-the whole package into `lib/cobalt.g.dart`. The aggregation is two-phase because a single build step
-cannot see the whole program.
-
-The output is private const factory classes and a `$CobaltRootScope`, ordered by a compile-time
-topological sort — no closures, no reflection, no runtime scanning. `$cobaltBootstrap` is a getter
-rather than a stored list, so a restart gets fresh steps instead of the ones the previous start
-already consumed.
-
-Generic types work as dependencies and as `exposeAs` targets — `Repository<User>` and
-`Repository<Order>` are two registrations, because `CobaltKey` is built from `Type` and those are
-different types. The injectable class itself may not be generic: nothing tells the generator which
-instantiations to register.
-
-### Observability is typed events
-
-`CobaltObserver` reports what the graph does — scopes appearing, instances being built, startup
-finishing, teardown failing. Callbacks receive descriptions rather than live objects, because an
-observer that could resolve from a scope halfway through teardown is not watching any more, and an
-exception from a callback is swallowed: watching must not break what it watches.
-
-Records carry `kind` as a value, not a sentence, which is what lets a structured intake key on
-`CobaltEventKind.scopeInitFailed` without parsing prose. Log sinks are one callback, so no logger is
-locked out for want of an adapter package; crash reporting has a shape of its own, because what makes
-a report actionable is the trail of what the graph was doing beforehand.
-
-With no observers registered, the cost of every event is one empty-list check.
-
-### Navigation flows
-
-`cobalt_go_router` makes a scope's lifetime a navigation flow: created when the flow opens, disposed
-when it closes. It is an ordinary `ShellRoute` subclass, and the scope is owned by a widget inside
-it — nothing watches the router and mirrors it, because mirroring is where hand-rolled versions break
-on the back button, on deep links and on tab switches.
-
-A flow of top-level routes with no shared path — `/cart`, `/checkout`, `/payment` — is one shell
-too: a `ShellRoute` has no path of its own, so the URLs stay as declared. What stays out of reach is a
-route shared by two flows and a boundary decided at run time rather than by the route table; see the
-package README.
-
-## Lint rules
-
-`cobalt_lint` is an `analysis_server_plugin`, not a `custom_lint` plugin. It ships eighteen warning
-rules, all built on the same `cobalt_analyzer` parsing layer the generator uses, so a mistake surfaces
-in the IDE instead of only when `build_runner` runs:
-
-| Rule | Catches |
-|---|---|
-| `cobalt_missing_injection_mixin` | `@injected` fields without `with _$ClassName`, on a class the container registers or applies as a decorator |
-| `cobalt_injected_field_needs_an_injectable` | `@injected` fields on a class the container neither registers nor applies as a decorator |
-| `cobalt_param_needs_an_injectable` | `@CobaltParam` on a class the container never registers |
-| `cobalt_injected_field_must_be_late_final` | `@injected` on a mutable, non-late, or static field |
-| `cobalt_injectable_must_be_constructible` | `@CobaltInject` on an abstract class or one with no public generative constructor |
-| `cobalt_init_requires_init_method` | `@CobaltInit` on a class with no `init()` |
-| `cobalt_bootstrap_requires_run_method` | `@CobaltBootstrap` on a class with no `run()` |
-| `cobalt_bootstrap_step_cannot_inject` | a bootstrap step whose constructor takes required parameters |
-| `cobalt_environment_needs_a_registration` | `@CobaltEnvironment` on a class nothing registers, where it silently does nothing |
-| `cobalt_dependency_is_not_registered` | an injected dependency nothing in the package registers, or a decorator's target or dependency nothing registers |
-| `cobalt_dependency_cycle` | an injectable class that depends, eventually, on itself — including through a decorator of it |
-| `cobalt_registration_is_never_released` | a registered class with a `dispose()` or `close()` the scope cannot see |
-| `cobalt_resource_is_never_closed` | A registration holds something closeable and offers no way to close it |
-| `cobalt_lazy_registration_injected_synchronously` | a lazy async registration injected where nothing can wait for it — a synchronous or eager constructor, an `@injected` field, or a decorator |
-| `cobalt_async_transient_read_synchronously` | `get`, `getOrNull`, `getAll` or `context.cobalt` on an async transient, which always throws — resolve it with `getAsync` |
-| `cobalt_depends_on_lazy_registration` | `@CobaltInit(dependsOn: [...])` naming a lazy async registration, which `init()` never builds |
-| `cobalt_override_needs_type_argument` | a `CobaltOverride` or `CobaltParamOverride` with no type argument, so Dart infers the key it replaces |
-| `cobalt_hook_added_too_late` | `hookAll` after an eager registration or a `get` on the same scope — in one cascade or earlier in the block — which the scope refuses with `CobaltHookError`; add hooks before anything is built |
-
-`custom_lint` is not used: its latest release (0.8.1) is pinned to `analyzer ^8.0.0` and cannot
-coexist with a modern analyzer. `riverpod_lint` migrated off it to the first-party
-`analysis_server_plugin`, and `cobalt_lint` follows.
-
-Setting the plugin up has two traps worth reading about before you hit them — see
-[GUIDE_CODEGEN.md §16](GUIDE_CODEGEN.md#16-the-lint-plugin).
-
-## Examples
-
-One app runs them all:
-
-```bash
-cd examples/gallery && flutter run
-```
-
-The gallery is organised by **capability**, not by project — a reader arrives wanting to know how
-scopes end, not wanting to see `notes_app`. Seventeen entries in six sections:
-
-| Section | Entries |
-|---|---|
-| Startup | Two-phase startup · Environments · Lazy async · Async transient |
-| Injection | Property injection · Named and multi-injection · Decorators |
-| Scopes & lifetime | Widget-owned scope · Session scope · Scope tree · Navigation flows · Teardown |
-| Code generation | Generated container · Manual mode |
-| Observability | Graph events · In-app inspector |
-| Testing | Testing patterns |
-
-Each entry that has a UI opens with a graph **of its own**, built when you open it and disposed when
-you leave. Open two and their scope trees are unrelated — which is the thing the gallery is really
-there to show. The three entries with no UI (`Teardown`, `Manual mode`, `Testing patterns`) show
-their console output instead of a button, because a gallery that offered to "open" a CLI would be
-lying.
-
-The gallery is written in English, Russian, Chinese and Korean, switchable from the hub — and so is every
-screen it mounts. Each example package carries its own `l10n/*.arb` and generates its own delegate,
-which the gallery collects beside its own and the inspector's; that is what a multi-package Flutter
-app looks like.
-
-The framework's own log records are still English, as are the identifiers on screen — step names,
-scope names, registration keys, lifetimes. See the
-[`cobalt_inspector` README](packages/cobalt_inspector/README.md) for what stays in Cobalt's own words
-and why, and the [gallery's](examples/gallery/README.md) for how the examples are wired.
-
-## Working on this repository
-
-```
-./tool/get.sh
-dart analyze --fatal-infos .
-dart format --output=none --set-exit-if-changed .
-python3 tool/modifiers.py --check
-./tool/test.sh
-(cd examples/hello && dart run build_runner build)
-(cd examples/codegen_basics && dart run build_runner build)
-(cd examples/notes_app && dart run build_runner build)
-(cd compat/external_consumer && dart run build_runner build)
-./tool/coverage.sh
-```
-
-All of it on Flutter 3.38.9. `tool/get.sh` resolves the root and every member that `tool/members.sh`
-finds by its pubspec; after adding a package, or a dependency on a sibling, `python3
-tool/overrides.py` rewrites the overrides, and CI fails while they are stale. `benchmark/` is a
-member like the rest: its test, run by `tool/test.sh`, checks that every scenario runs and that both
-containers do what the row says; the numbers under **Performance** come from its `bin/main.dart`,
-compiled AOT.
-
-`tool/coverage.sh` measures line coverage of the publishable packages that have tests, prints them
-worst-first, and fails under a floor on the **total** — 85%. The current figure is what the script
-prints and is not repeated here: a number that moves with every commit goes stale in prose and
-nothing checks it, which it has already done twice. The floor is on the total rather than per package
-deliberately: coverage is measured per package while the code is shared, so `cobalt_analyzer`'s
-parsers are driven far more from `cobalt_generator`'s tests and from `compat/external_consumer` than
-from their own suite. A per-package floor would demand tests written where they do not belong.
-Override it with `COVERAGE_FLOOR=90 ./tool/coverage.sh`.
-
-CI's `verify` job (`.github/workflows/ci.yml`) runs all of the above on Flutter 3.38.9, plus a `git
-diff --exit-code` after regenerating both examples **and `compat/external_consumer`**, so stale
-generated code fails the build. The `forward` job repeats resolution, analysis, tests and the
-generated-code diff on `stable` and `beta`. The generator formats its own output at a fixed language
-version, so that diff does not depend on which SDK ran it.
-
-**Layout.** One public type per file. The sealed `CobaltRegistration` hierarchy is the deliberate
-exception: a sealed hierarchy must live in one library, so its subclasses are `part` files rather
-than separate libraries. `compat/external_consumer` is outside that rule of thumb entirely — it is a
-package that takes its siblings through `dependency_overrides` in its own pubspec and stays out of
-`tool/overrides.py`, so it resolves the way a third-party project would. It exists to keep the code-generation
-pipeline honest from outside the repository.
-
-**Known publish warning.** `cobalt_lint` reports "the name of lib/main.dart should match the name of
-the package". That entry point is fixed by the analysis server plugin API — the server generates code
-that imports `package:cobalt_lint/main.dart` and reads its `plugin` variable. `riverpod_lint` carries
-the same warning.
+Dart 3.10 and Flutter 3.38, or newer. Which analyzer your project ends up with, and why:
+[docs/OVERVIEW.md](docs/OVERVIEW.md#requirements).
 
 ## Licence
 

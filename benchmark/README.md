@@ -1,7 +1,8 @@
 # cobalt_benchmark
 
 What Cobalt costs, measured next to [get_it](https://pub.dev/packages/get_it). Not
-published; the numbers it prints are in the repository README under **Performance**.
+published; the numbers it prints are under **Performance** in
+[docs/OVERVIEW.md](../docs/OVERVIEW.md#performance).
 
 ```
 dart compile exe bin/main.dart -o /tmp/cobalt_benchmark && /tmp/cobalt_benchmark

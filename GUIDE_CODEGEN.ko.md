@@ -78,7 +78,7 @@ dev_dependencies:
 함께 따라오는 것이 하나 있습니다. Flutter 3.38에서는 프로젝트의 의존성 해결 결과가 `analyzer 10.0.1`과
 `build_runner 2.15.1`이 됩니다. 그곳에서 Flutter가 `meta 1.17.0`을 고정하는데, 더 새로운 analyzer는
 `^1.18.0`을 요구하기 때문입니다. 더 새로운 Flutter에서는 대신 12.1.0으로 해결되며, 어느 쪽이든 생성되는 코드는
-같습니다. 전체 행은 [README](README.ko.md)의 **요구 사항**을 참고하십시오.
+같습니다. 전체 행은 [docs/OVERVIEW.ko.md](docs/OVERVIEW.ko.md#요구-사항)의 **요구 사항**을 참고하십시오.
 
 순수 Dart 패키지(CLI, 서버, 위젯이 없는 패키지)는 `cobalt_flutter`와 `cobalt_test_flutter`를 뺍니다.
 런타임의 어떤 부분도 Flutter를 필요로 하지 않습니다.
@@ -1298,7 +1298,7 @@ git diff --exit-code
 
 - [GUIDE_MANUAL.ko.md](GUIDE_MANUAL.ko.md): 빌드 단계 없이 같은 런타임을 쓰는 방법, 그리고 무엇이 무엇과
   조합되는지.
-- [README.ko.md](README.ko.md): Cobalt가 무엇인지, 그리고 각 결정이 왜 그렇게 내려졌는지.
+- [docs/OVERVIEW.ko.md](docs/OVERVIEW.ko.md): Cobalt가 무엇인지, 그리고 각 결정이 왜 그렇게 내려졌는지.
 - [MIGRATION.ko.md](MIGRATION.ko.md): `get_it`과 `injectable`에서 옮겨 오는 방법, 대응되지 않는 것까지 포함해서.
 - `examples/codegen_basics`는 가장 작은 생성 구성이고, `examples/notes_app`은 가장 큰 구성입니다.
   둘 다 갤러리에서 실행됩니다: `cd examples/gallery && flutter run`.
