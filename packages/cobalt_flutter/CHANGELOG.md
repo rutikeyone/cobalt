@@ -1,3 +1,9 @@
+## 1.1.1
+
+- `CobaltNoScopeError` and `CobaltNoAppScopeError` end with a link to their
+  entry in `docs/TROUBLESHOOTING.md`, as every Cobalt error now does. No
+  other changes in this package.
+
 ## 1.1.0
 
 - No code changes in this package. Republished in lockstep with 1.1.0, which

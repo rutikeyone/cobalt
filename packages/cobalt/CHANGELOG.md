@@ -1,3 +1,12 @@
+## 1.1.1
+
+- Every runtime error ends with a link to its entry in
+  `docs/TROUBLESHOOTING.md`, which says when the error happens and what to
+  do. Only `toString()` changes; `message` is the same as before.
+- Documentation for newcomers: a shorter README with a Quick start,
+  `examples/hello` as the smallest app, `docs/OVERVIEW.md` for everything the
+  README no longer holds, and `docs/TROUBLESHOOTING.md`, one entry per error.
+
 ## 1.1.0
 
 - Korean documentation: README, both guides and MIGRATION are available in
