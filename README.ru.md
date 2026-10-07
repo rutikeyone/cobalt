@@ -366,6 +366,7 @@ dart analyze --fatal-infos .
 dart format --output=none --set-exit-if-changed .
 python3 tool/modifiers.py --check
 ./tool/test.sh
+(cd examples/hello && dart run build_runner build)
 (cd examples/codegen_basics && dart run build_runner build)
 (cd examples/notes_app && dart run build_runner build)
 (cd compat/external_consumer && dart run build_runner build)
