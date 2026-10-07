@@ -114,6 +114,7 @@ that swaps the clock, is in [`examples/hello`](examples/hello).
 | **Step by step, with the generator** | [GUIDE_CODEGEN.md](GUIDE_CODEGEN.md) |
 | **Step by step, without code generation** | [GUIDE_MANUAL.md](GUIDE_MANUAL.md) |
 | **Coming from get_it, injectable or provider** | [MIGRATION.md](MIGRATION.md) |
+| **Something threw** | [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) — every error, and what to do |
 | **Every feature, how it works, compatibility, performance** | [docs/OVERVIEW.md](docs/OVERVIEW.md) |
 | **Every feature in one app** | `cd examples/gallery && flutter run` |
 | **Working on Cobalt itself** | [CONTRIBUTING.md](CONTRIBUTING.md) |
