@@ -101,6 +101,9 @@ scope the hand-written version built.
 Full walkthroughs: [Manual Mode](https://github.com/rutikeyone/cobalt/blob/main/GUIDE_MANUAL.md)
 and [Code-Gen Mode](https://github.com/rutikeyone/cobalt/blob/main/GUIDE_CODEGEN.md).
 
+A whole Flutter app, generated container and a test included, is
+[`examples/hello`](https://github.com/rutikeyone/cobalt/tree/main/examples/hello).
+
 ## What it guarantees
 
 - **Hierarchical scopes.** `scope.push('session')` creates a child that sees its parent and can

@@ -292,8 +292,8 @@ should already trust.
 
 ## From Cobalt 0.x to 1.0
 
-From 0.9 there is nothing to change: 1.0 is 0.9 with the API frozen — see Compatibility in the
-README for what that promises. From an older 0.x, these are the changes that stop code compiling,
+From 0.9 there is nothing to change: 1.0 is 0.9 with the API frozen — see Compatibility in
+[docs/OVERVIEW.md](docs/OVERVIEW.md#compatibility) for what that promises. From an older 0.x, these are the changes that stop code compiling,
 oldest first; apply the ones after the release you are on.
 
 | Since | What changed | What to do |

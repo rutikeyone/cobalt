@@ -21,7 +21,13 @@ import 'package:test/test.dart';
 void main() {
   final root = Directory('../..');
 
-  const families = {'README', 'GUIDE_MANUAL', 'GUIDE_CODEGEN', 'MIGRATION'};
+  const families = {
+    'README',
+    'GUIDE_MANUAL',
+    'GUIDE_CODEGEN',
+    'MIGRATION',
+    'docs/OVERVIEW',
+  };
 
   String path(String stem) => '${root.path}/$stem';
 
@@ -50,11 +56,12 @@ void main() {
 
   group('every translation offers the other three', () {
     for (final family in families) {
+      final stem = family.split('/').last;
       final switcher =
-          '  <a href="$family.md">English</a> · '
-          '<a href="$family.ru.md">Русский</a> · '
-          '<a href="$family.zh-CN.md">中文</a> · '
-          '<a href="$family.ko.md">한국어</a>';
+          '  <a href="$stem.md">English</a> · '
+          '<a href="$stem.ru.md">Русский</a> · '
+          '<a href="$stem.zh-CN.md">中文</a> · '
+          '<a href="$stem.ko.md">한국어</a>';
 
       for (final name in translationsOf(family)) {
         test(name, () {
@@ -133,11 +140,14 @@ void main() {
     for (final family in families) {
       for (final name in translationsOf(family)) {
         test(name, () {
+          final folder = name.contains('/')
+              ? name.substring(0, name.lastIndexOf('/') + 1)
+              : '';
           final broken = linksIn(name)
               .where(
                 (target) =>
-                    !File(path(target)).existsSync() &&
-                    !Directory(path(target)).existsSync(),
+                    !File(path('$folder$target')).existsSync() &&
+                    !Directory(path('$folder$target')).existsSync(),
               )
               .toSet();
 

@@ -76,7 +76,7 @@ dev_dependencies:
 随之而来的是一个结果：在 Flutter 3.38 上，你的项目会解析到 `analyzer 10.0.1` 和
 `build_runner 2.15.1`，因为 Flutter 在那里把 `meta` 钉在 1.17.0，而更新的 analyzer 需要 `^1.18.0`。
 在更新的 Flutter 上则解析到 12.1.0，两种情况下生成的代码完全相同。
-完整的一行见 [README.zh-CN.md](README.zh-CN.md) 的**环境要求**一节。
+完整的一行见 [docs/OVERVIEW.zh-CN.md](docs/OVERVIEW.zh-CN.md#环境要求) 的**环境要求**一节。
 
 纯 Dart 包——命令行工具、服务端、没有 widget 的包——去掉 `cobalt_flutter` 和
 `cobalt_test_flutter`。运行时任何地方都不需要 Flutter。
@@ -1232,7 +1232,7 @@ git diff --exit-code
 ## 接下来看什么
 
 - [GUIDE_MANUAL.zh-CN.md](GUIDE_MANUAL.zh-CN.md)——同一套运行时，不带构建步骤，以及什么能和什么组合。
-- [README.zh-CN.md](README.zh-CN.md)——Cobalt 是什么，以及每个决定为何是现在这样。
+- [docs/OVERVIEW.zh-CN.md](docs/OVERVIEW.zh-CN.md)——Cobalt 是什么，以及每个决定为何是现在这样。
 - [MIGRATION.zh-CN.md](MIGRATION.zh-CN.md)——从 `get_it` 和 `injectable` 迁移，包括对不上的部分。
 - `examples/codegen_basics` 是最小的生成设置，`examples/notes_app` 是最大的。
   两者都从画廊运行：`cd examples/gallery && flutter run`。

@@ -26,10 +26,6 @@ void main() {
 
   const documents = {
     'README.md': 'the package README',
-    '../../README.md': 'the root README',
-    '../../README.ru.md': 'the Russian README',
-    '../../README.zh-CN.md': 'the Chinese README',
-    '../../README.ko.md': 'the Korean README',
     '../../GUIDE_CODEGEN.md': 'the Code-Gen guide',
     '../../GUIDE_CODEGEN.ru.md': 'the Russian Code-Gen guide',
     '../../GUIDE_CODEGEN.zh-CN.md': 'the Chinese Code-Gen guide',

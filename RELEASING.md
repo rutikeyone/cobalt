@@ -53,8 +53,8 @@ wait for the previous group to appear on pub.dev — the index is not instant.
       jobs test the toolchain packages on each row of the table below;
       `tool/matrix.sh <version>` runs one row locally.
 - [ ] Translations updated. `README.ru.md`, `README.zh-CN.md`, `README.ko.md`,
-      the six translated guides, `MIGRATION.ru.md`, `MIGRATION.zh-CN.md` and
-      `MIGRATION.ko.md` track the English originals; a test checks that all four sets exist and link to each
+      the three translated `docs/OVERVIEW` pages, the six translated guides, `MIGRATION.ru.md`, `MIGRATION.zh-CN.md` and
+      `MIGRATION.ko.md` track the English originals; a test checks that every set exists and links to each
       other, and CI checks they are not empty, but nothing checks that they still
       say the same thing — so this box is the only thing that does. English is
       authoritative: if a translation is stale, fix it or say so in it.
@@ -122,8 +122,8 @@ visible in a diff you are scrolling past.
 
 ### What breaks
 
-Semver, with three decisions about the cases semver leaves open. The README states them for
-users; this is the table they come from.
+Semver, with three decisions about the cases semver leaves open. The Compatibility section of
+`docs/OVERVIEW.md` states them for users; this is the table they come from.
 
 | Public type | Users… | Kind of class | Adding a member | Also minor |
 |---|---|---|---|---|
@@ -149,7 +149,7 @@ version is a major step past the published one. So a breaking change reaches `ma
 a major release. When the job fails, there are three ways out, in the order to try them: make the
 change non-breaking (a new optional parameter, a new member with a default); if what changed is not
 meant to be stable API, mark it `@experimental` — the tool treats changes there as non-breaking, and
-the README says such members may change in a minor release; or ship it in a major. `cobalt_analyzer`
+the overview says such members may change in a minor release; or ship it in a major. `cobalt_analyzer`
 is reported and never gated, being internal.
 
 It is still a second pair of eyes, not the authority: it did not flag `CobaltResolver` turning from
@@ -316,7 +316,7 @@ picture, and the reason a screenshot is never evidence that the floor works.
 
 ## Performance numbers
 
-The table under **Performance** in the four READMEs is a measurement, and goes stale like one.
+The table under **Performance** in the four `docs/OVERVIEW` pages is a measurement, and goes stale like one.
 Retake it when a release changes how a scope resolves, builds or starts — not for every release:
 
 ```
