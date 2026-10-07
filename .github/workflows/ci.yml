@@ -55,8 +55,8 @@ jobs:
 
       - name: Verify generated code is current
         run: |
-          for package in examples/codegen_basics examples/notes_app \
-                         compat/external_consumer; do
+          for package in examples/hello examples/codegen_basics \
+                         examples/notes_app compat/external_consumer; do
             (cd "$package" && dart run build_runner build)
           done
           for package in packages/cobalt_inspector examples/gallery \
@@ -120,8 +120,8 @@ jobs:
 
       - name: Generated code does not depend on the SDK
         run: |
-          for package in examples/codegen_basics examples/notes_app \
-                         compat/external_consumer; do
+          for package in examples/hello examples/codegen_basics \
+                         examples/notes_app compat/external_consumer; do
             (cd "$package" && dart run build_runner build)
           done
           git diff --exit-code -- '*.g.dart'

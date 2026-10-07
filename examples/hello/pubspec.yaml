@@ -1,0 +1,21 @@
+name: hello
+description: The smallest Cobalt app — the README's Quick start.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.10.0
+  flutter: ">=3.38.0"
+
+dependencies:
+  cobalt: ^1.0.0
+  cobalt_flutter: ^1.0.0
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  lints: ^6.0.0
+  cobalt_generator: ^1.0.0
+  build_runner: ^2.15.0
+  flutter_test:
+    sdk: flutter
