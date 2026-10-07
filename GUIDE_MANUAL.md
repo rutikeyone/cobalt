@@ -21,6 +21,10 @@ are locked into.
 
 ## Contents
 
+**For a first app, sections 1–5 are enough:** install, register, start the app, read in a widget.
+The rest is for when you need it — each section answers one question. The smallest whole app, with
+the generator, is [`examples/hello`](examples/hello).
+
 1. [Install](#1-install)
 2. [Your first graph](#2-your-first-graph)
 3. [Registering and reading](#3-registering-and-reading)

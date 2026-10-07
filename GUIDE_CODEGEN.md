@@ -27,6 +27,10 @@ without the generator: [GUIDE_MANUAL.md](GUIDE_MANUAL.md).
 
 ## Contents
 
+**For a first app, read sections 1, 2, 7 and 8:** install, annotate, start the app, read in a widget.
+[`examples/hello`](examples/hello) is exactly that, in one file. The rest is for when you need it —
+each section answers one question.
+
 1. [Install](#1-install)
 2. [Your first generated graph](#2-your-first-generated-graph)
 3. [What comes out](#3-what-comes-out)
