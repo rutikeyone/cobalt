@@ -1,3 +1,10 @@
+## 1.1.1
+
+- No code changes in this package. Republished in lockstep with 1.1.1:
+  a shorter README with a Quick start, `examples/hello` as the smallest
+  app, `docs/OVERVIEW.md` for everything the README no longer holds, and
+  `docs/TROUBLESHOOTING.md`, one entry per error.
+
 ## 1.1.0
 
 - No code changes in this package. Republished in lockstep with 1.1.0, which
