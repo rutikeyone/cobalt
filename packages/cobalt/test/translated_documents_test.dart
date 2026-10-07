@@ -27,6 +27,7 @@ void main() {
     'GUIDE_CODEGEN',
     'MIGRATION',
     'docs/OVERVIEW',
+    'docs/TROUBLESHOOTING',
   };
 
   String path(String stem) => '${root.path}/$stem';

@@ -53,7 +53,7 @@ wait for the previous group to appear on pub.dev — the index is not instant.
       jobs test the toolchain packages on each row of the table below;
       `tool/matrix.sh <version>` runs one row locally.
 - [ ] Translations updated. `README.ru.md`, `README.zh-CN.md`, `README.ko.md`,
-      the three translated `docs/OVERVIEW` pages, the six translated guides, `MIGRATION.ru.md`, `MIGRATION.zh-CN.md` and
+      the three translated `docs/OVERVIEW` and `docs/TROUBLESHOOTING` pages, the six translated guides, `MIGRATION.ru.md`, `MIGRATION.zh-CN.md` and
       `MIGRATION.ko.md` track the English originals; a test checks that every set exists and links to each
       other, and CI checks they are not empty, but nothing checks that they still
       say the same thing — so this box is the only thing that does. English is

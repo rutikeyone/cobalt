@@ -1,3 +1,5 @@
+import 'package:cobalt/src/errors/troubleshooting_link.dart';
+
 /// Thrown when dependencies form a cycle.
 ///
 /// Raised in two places: while sorting the async init graph, and while
@@ -11,4 +13,7 @@ final class CobaltCycleError extends StateError {
 
   /// The cycle, starting and ending at the same node.
   final List<String> cycle;
+
+  @override
+  String toString() => '${super.toString()}\n${troubleshootingLink(this)}';
 }

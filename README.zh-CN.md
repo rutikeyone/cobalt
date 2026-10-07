@@ -105,6 +105,7 @@ flutter run
 | **一步一步，用生成器** | [GUIDE_CODEGEN.zh-CN.md](GUIDE_CODEGEN.zh-CN.md) |
 | **一步一步，不用代码生成** | [GUIDE_MANUAL.zh-CN.md](GUIDE_MANUAL.zh-CN.md) |
 | **从 get_it、injectable 或 provider 迁移** | [MIGRATION.zh-CN.md](MIGRATION.zh-CN.md) |
+| **出错了** | [docs/TROUBLESHOOTING.zh-CN.md](docs/TROUBLESHOOTING.zh-CN.md)——每个错误，以及怎么处理 |
 | **全部特性、工作原理、兼容性、性能** | [docs/OVERVIEW.zh-CN.md](docs/OVERVIEW.zh-CN.md) |
 | **一个应用看全部特性** | `cd examples/gallery && flutter run` |
 | **参与开发 Cobalt 本身** | [CONTRIBUTING.md](CONTRIBUTING.md)（英文） |

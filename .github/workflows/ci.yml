@@ -44,7 +44,9 @@ jobs:
                    GUIDE_MANUAL.md GUIDE_MANUAL.ru.md GUIDE_MANUAL.zh-CN.md GUIDE_MANUAL.ko.md \
                    GUIDE_CODEGEN.md GUIDE_CODEGEN.ru.md GUIDE_CODEGEN.zh-CN.md GUIDE_CODEGEN.ko.md \
                    MIGRATION.md MIGRATION.ru.md MIGRATION.zh-CN.md MIGRATION.ko.md \
-                   docs/OVERVIEW.md docs/OVERVIEW.ru.md docs/OVERVIEW.zh-CN.md docs/OVERVIEW.ko.md; do
+                   docs/OVERVIEW.md docs/OVERVIEW.ru.md docs/OVERVIEW.zh-CN.md docs/OVERVIEW.ko.md \
+                   docs/TROUBLESHOOTING.md docs/TROUBLESHOOTING.ru.md docs/TROUBLESHOOTING.zh-CN.md \
+                   docs/TROUBLESHOOTING.ko.md; do
             test -s "$f" || { echo "missing or empty: $f"; exit 1; }
           done
 
