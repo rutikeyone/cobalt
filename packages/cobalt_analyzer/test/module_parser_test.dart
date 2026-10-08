@@ -145,6 +145,24 @@ class Module {
 
       expect(declarations.single.environments, {'dev'});
     });
+
+    test('instantiations on a member are rejected', () async {
+      expect(
+        () => parse('''
+class Note {}
+class Cache<T> {}
+
+@cobaltModule
+class Module {
+  const Module();
+
+  @CobaltInject(instantiations: [Cache<Note>])
+  Cache<Note> cache() => Cache<Note>();
+}
+'''),
+        rejects(contains('Module.cache lists instantiations')),
+      );
+    });
   });
 
   group('the module class', () {

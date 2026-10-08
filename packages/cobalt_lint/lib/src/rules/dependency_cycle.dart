@@ -62,7 +62,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     final List<CobaltInjectableClass> declarations;
     try {
       if (_parser.declares(element)) {
-        declarations = [_parser.parseClass(element)];
+        declarations = _parser.parseClass(element);
       } else if (_modules.declares(element)) {
         declarations = _modules.parseClass(element);
       } else {

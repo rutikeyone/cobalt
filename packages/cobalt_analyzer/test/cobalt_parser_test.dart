@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cobalt_analyzer/cobalt_analyzer.dart';
 import 'package:test/test.dart';
 
@@ -46,11 +48,44 @@ class PlatformModule {
     expect(
       declarations.injectables.map((each) => each.type.name),
       ['Logger', 'Channel'],
-      reason:
-          'classes first, then what modules provide — a module is the one '
-          'declaration that yields several',
+      reason: 'classes first, then what modules provide',
     );
     expect(declarations.injectables.last.provider?.member, 'channel');
+  });
+
+  test('a generic class yields one registration per instantiation, and '
+      'its type arguments survive the IR', () async {
+    final library = await libraryFrom('''
+class Note {}
+class Tag {}
+class Store<T> {}
+
+@CobaltInject(instantiations: [Cache<Note>, Cache<Tag>])
+class Cache<T> {
+  Cache(this.store);
+  final Store<T> store;
+}
+''');
+
+    final declarations = CobaltLibraryDeclarations.fromJson(
+      jsonDecode(jsonEncode(parser.parseLibrary(library).toJson()))
+          as Map<String, dynamic>,
+    );
+
+    expect(declarations.injectables.map((each) => '${each.type}'), [
+      'Cache<Note>',
+      'Cache<Tag>',
+    ]);
+    expect(
+      declarations.injectables.map(
+        (each) => '${each.constructorParameters.single.type}',
+      ),
+      ['Store<Note>', 'Store<Tag>'],
+    );
+    expect(
+      declarations.injectables.first.type.signature,
+      isNot(declarations.injectables.last.type.signature),
+    );
   });
 
   test('a library that declares nothing is empty, not null', () async {

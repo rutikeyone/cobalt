@@ -21,7 +21,7 @@ class NoteEditor {
 }
 ''');
 
-      final parsed = parser.parseClass(clazz);
+      final parsed = parser.parseClass(clazz).single;
 
       expect(parsed.takesCallSiteValues, isTrue);
       expect(parsed.callSiteValues.map((each) => each.field), ['id']);
@@ -45,7 +45,7 @@ class Api {
 }
 ''');
 
-      final parsed = parser.parseClass(clazz);
+      final parsed = parser.parseClass(clazz).single;
 
       expect(parsed.constructorParameters.map((each) => each.isNamed), [
         false,
@@ -56,8 +56,9 @@ class Api {
 
   group('an async initializer built from a call-site value', () {
     test('is read as one, built per call', () async {
-      final declaration = parser.parseClass(
-        await classNamed('Document', '''
+      final declaration = parser
+          .parseClass(
+            await classNamed('Document', '''
 @CobaltInit()
 class Document implements AsyncInitializable {
   Document({@cobaltParam required this.id});
@@ -68,7 +69,8 @@ class Document implements AsyncInitializable {
   Future<void> init() async {}
 }
 '''),
-      );
+          )
+          .single;
 
       expect(declaration.isAsyncInit, isTrue);
       expect(declaration.takesCallSiteValues, isTrue);
@@ -192,7 +194,7 @@ class Editor {
 }
 ''');
 
-      final parsed = parser.parseClass(clazz);
+      final parsed = parser.parseClass(clazz).single;
 
       expect(parsed.callSiteValues.single.type.isNullable, isTrue);
     });

@@ -75,7 +75,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     final CobaltInjectableClass declaration;
     try {
-      declaration = _parser.parseClass(element);
+      declaration = _parser.parseClass(element).first;
     } on CobaltParseError {
       return;
     }
@@ -141,7 +141,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool _isScopeOwned(ClassElement fieldElement) {
     if (!_parser.declares(fieldElement)) return false;
     try {
-      final declaration = _parser.parseClass(fieldElement);
+      final declaration = _parser.parseClass(fieldElement).first;
       return declaration.lifetime != CobaltLifetime.transient &&
           !declaration.constructorParameters.any((it) => it.isParam);
     } on CobaltParseError {

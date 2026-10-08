@@ -35,7 +35,7 @@ class PropertyInjectionGenerator implements Generator {
     for (final clazz in library.element.classes) {
       try {
         if (_parser.declares(clazz)) {
-          final parsed = _parser.parseClass(clazz);
+          final parsed = _parser.parseClass(clazz).first;
           if (parsed.hasPropertyInjection) mixins.add(_emitter.emit(parsed));
         } else if (_decorators.declares(clazz)) {
           final parsed = _decorators.parseClass(clazz);

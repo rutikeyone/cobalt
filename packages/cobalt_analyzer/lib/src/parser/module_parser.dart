@@ -16,9 +16,8 @@ import 'package:analyzer/dart/element/type.dart';
 
 /// Reads an `@CobaltModule` class into one registration per annotated member.
 ///
-/// This is the only parser that is one-to-many: a module class is not itself
-/// registered, it is a place to hang registrations of types the package does
-/// not own.
+/// A module class is not itself registered, it is a place to hang
+/// registrations of types the package does not own.
 class CobaltModuleParser {
   const CobaltModuleParser();
 
@@ -110,6 +109,15 @@ class CobaltModuleParser {
     }
 
     final annotation = injectMatcher.firstOf(member)!;
+    final instantiations = annotation.getField('instantiations')?.toListValue();
+    if (instantiations != null && instantiations.isNotEmpty) {
+      throw CobaltParseError(
+        '$where lists instantiations. A module member already returns one '
+        'concrete type; to register another instantiation, add a member '
+        'returning it.',
+        member,
+      );
+    }
     final produced = _producedType(member, where);
     final isAsync = member.returnType.isDartAsyncFuture;
     final lifetime = _lifetimeOf(annotation, isAsync: isAsync);

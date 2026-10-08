@@ -13,12 +13,14 @@ class CobaltInject {
     this.dispose,
     this.lifetime = CobaltLifetime.lazySingleton,
     this.lazyInit = false,
+    this.instantiations = const <Type>[],
   });
   final String? name;
   final Type? exposeAs;
   final Function? dispose;
   final CobaltLifetime lifetime;
   final bool lazyInit;
+  final List<Type> instantiations;
 }
 
 const cobaltInject = CobaltInject();

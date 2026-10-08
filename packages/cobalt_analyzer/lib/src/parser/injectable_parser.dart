@@ -11,6 +11,8 @@ import 'package:cobalt_analyzer/src/parser/type_ref_resolver.dart';
 import 'package:cobalt_annotations/cobalt_annotations.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 class CobaltInjectableParser {
   const CobaltInjectableParser();
@@ -18,22 +20,15 @@ class CobaltInjectableParser {
   bool declares(ClassElement clazz) =>
       injectMatcher.matches(clazz) || initMatcher.matches(clazz);
 
-  CobaltInjectableClass parseClass(ClassElement clazz) {
+  /// One registration per instantiation [clazz] names, or a single one when
+  /// it declares no type parameters.
+  List<CobaltInjectableClass> parseClass(ClassElement clazz) {
     final initAnnotation = initMatcher.firstOf(clazz);
     final isAsyncInit = initAnnotation != null;
-    final annotation = injectMatcher.firstOf(clazz) ?? initAnnotation!;
+    final injectAnnotation = injectMatcher.firstOf(clazz);
+    final annotation = injectAnnotation ?? initAnnotation!;
 
-    if (clazz.typeParameters.isNotEmpty) {
-      final parameters = clazz.typeParameters
-          .map((parameter) => parameter.displayName)
-          .join(', ');
-      throw CobaltParseError(
-        '${clazz.displayName} declares type parameters <$parameters>, so there '
-        'is no single instantiation to register. Annotate a concrete subtype, '
-        'or expose one with @CobaltInject(exposeAs: ...).',
-        clazz,
-      );
-    }
+    final instantiations = _instantiationsOf(clazz, injectAnnotation);
 
     final constructor = _constructorOf(clazz);
     final takesParams = constructor.formalParameters.any(paramMatcher.matches);
@@ -83,7 +78,7 @@ class CobaltInjectableParser {
       );
     }
 
-    if (injectMatcher.firstOf(clazz)?.readBool('lazyInit') ?? false) {
+    if (injectAnnotation?.readBool('lazyInit') ?? false) {
       throw CobaltParseError(
         '${clazz.displayName} is @CobaltInject(lazyInit: true). lazyInit is '
         'the module-member form; on a class, say @CobaltInit(lazy: true) — the '
@@ -144,29 +139,159 @@ class CobaltInjectableParser {
       );
     }
 
-    return CobaltInjectableClass(
-      type: typeRefOfElement(clazz),
+    final name = annotation.readString('name');
+    final exposeAs = _exposeAsOf(annotation);
+    final environments = environmentsOf(clazz);
+    final properties = injectedFieldsOf(clazz);
+
+    if (clazz.typeParameters.isNotEmpty && properties.isNotEmpty) {
+      throw CobaltParseError(
+        '${clazz.displayName} is generic and has the @injected field '
+        '${properties.first.field}. Property injection fills one mixin per '
+        'class, not one per instantiation. Take it in the constructor.',
+        clazz,
+      );
+    }
+
+    CobaltInjectableClass build(
+      CobaltTypeRef type,
+      List<FormalParameterElement> typed,
+    ) => CobaltInjectableClass(
+      type: type,
       lifetime: lifetime,
-      name: annotation.readString('name'),
-      exposeAs: _exposeAsOf(annotation),
+      name: name,
+      exposeAs: exposeAs,
       isAsyncInit: isAsyncInit,
       isLazyAsync: isLazyAsync,
       dependsOn: dependsOn,
-      environments: environmentsOf(clazz),
+      environments: environments,
       dispose: dispose,
       constructorParameters: [
-        for (final parameter in constructor.formalParameters)
+        for (final (index, parameter) in constructor.formalParameters.indexed)
           CobaltInjectedProperty(
             field: parameter.name ?? '',
-            type: typeRefOf(parameter.type),
+            type: typeRefOf(typed[index].type),
             name: namedMatcher.firstOf(parameter)?.readString('name'),
             isNamed: parameter.isNamed,
             isParam: paramMatcher.matches(parameter),
           ),
       ],
-      properties: injectedFieldsOf(clazz),
+      properties: properties,
     );
+
+    if (instantiations.isEmpty) {
+      return [build(typeRefOfElement(clazz), constructor.formalParameters)];
+    }
+    return [
+      for (final instantiation in instantiations)
+        build(
+          typeRefOf(instantiation),
+          _instantiatedConstructorOf(
+            instantiation,
+            constructor,
+          ).formalParameters,
+        ),
+    ];
   }
+
+  /// The instantiations [clazz] registers, empty for a class without type
+  /// parameters.
+  List<InterfaceType> _instantiationsOf(
+    ClassElement clazz,
+    DartObject? injectAnnotation,
+  ) {
+    final values =
+        injectAnnotation?.getField('instantiations')?.toListValue() ??
+        const <DartObject>[];
+
+    if (clazz.typeParameters.isEmpty) {
+      if (values.isEmpty) return const [];
+      throw CobaltParseError(
+        '${clazz.displayName} lists instantiations but declares no type '
+        'parameters, so there is nothing to instantiate. Drop instantiations.',
+        clazz,
+      );
+    }
+
+    if (values.isEmpty) {
+      final parameters = clazz.typeParameters
+          .map((parameter) => parameter.displayName)
+          .join(', ');
+      final example = clazz.typeParameters.map((_) => 'Note').join(', ');
+      throw CobaltParseError(
+        '${clazz.displayName} declares type parameters <$parameters>, so there '
+        'is no single instantiation to register. Name the ones to register, '
+        'as in @CobaltInject(instantiations: [${clazz.displayName}<$example>]), '
+        'or annotate a concrete subtype.',
+        clazz,
+      );
+    }
+
+    if (injectAnnotation?.getField('exposeAs')?.toTypeValue() != null) {
+      throw CobaltParseError(
+        '${clazz.displayName} lists instantiations and also names exposeAs. '
+        'One exposed type cannot stand for several instantiations. Drop '
+        'exposeAs, or annotate a concrete subtype that implements it.',
+        clazz,
+      );
+    }
+
+    final instantiations = <InterfaceType>[];
+    for (final value in values) {
+      final type = value.toTypeValue();
+      final shown = type?.getDisplayString() ?? '$value';
+      if (type is! InterfaceType ||
+          type.element != clazz ||
+          type.nullabilitySuffix == NullabilitySuffix.question) {
+        throw CobaltParseError(
+          '${clazz.displayName} lists $shown among its instantiations. Each '
+          'entry has to be ${clazz.displayName} itself with its type '
+          'arguments, such as ${clazz.displayName}<Note>.',
+          clazz,
+        );
+      }
+      final unusable = type.typeArguments.where(_isUnusableArgument);
+      if (unusable.isNotEmpty) {
+        throw CobaltParseError(
+          '${clazz.displayName} lists $shown among its instantiations, and '
+          '${unusable.first.getDisplayString()} is not a type argument Cobalt '
+          'can register. A raw ${clazz.displayName} reads as '
+          '${clazz.displayName}<dynamic>; spell out every type argument.',
+          clazz,
+        );
+      }
+      if (instantiations.contains(type)) {
+        throw CobaltParseError(
+          '${clazz.displayName} lists $shown twice among its instantiations. '
+          'Name each one once.',
+          clazz,
+        );
+      }
+      instantiations.add(type);
+    }
+    return instantiations;
+  }
+
+  static bool _isUnusableArgument(DartType type) =>
+      type is DynamicType ||
+      type is NeverType ||
+      type is InvalidType ||
+      _mentionsTypeParameterOrInvalid(type);
+
+  static bool _mentionsTypeParameterOrInvalid(DartType type) =>
+      type is TypeParameterType ||
+      type is InvalidType ||
+      (type is InterfaceType &&
+          type.typeArguments.any(_mentionsTypeParameterOrInvalid));
+
+  /// [constructor] as a member of [instantiation], so its parameter types
+  /// read `Store<Note>` where the declaration says `Store<T>`.
+  ConstructorElement _instantiatedConstructorOf(
+    InterfaceType instantiation,
+    ConstructorElement constructor,
+  ) => instantiation.constructors.firstWhere(
+    (candidate) => candidate.baseElement == constructor.baseElement,
+  );
 
   ConstructorElement _constructorOf(ClassElement clazz) {
     if (clazz.isAbstract) {

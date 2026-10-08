@@ -58,7 +58,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     final CobaltInjectableClass declaration;
     try {
-      declaration = _parser.parseClass(element);
+      declaration = _parser.parseClass(element).first;
     } on CobaltParseError {
       return;
     }

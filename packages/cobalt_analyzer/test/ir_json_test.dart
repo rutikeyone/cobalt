@@ -171,6 +171,41 @@ void main() {
     expect(decoded.constructorParameters.last.name, 'audit');
   });
 
+  test('an instantiation of a generic class keeps its type arguments', () {
+    const note = CobaltTypeRef(name: 'Note', import: appImport);
+    final result = roundTrip(
+      CobaltLibraryDeclarations(
+        injectables: [
+          CobaltInjectableClass(
+            type: const CobaltTypeRef(
+              name: 'Cache',
+              import: appImport,
+              typeArguments: [note],
+            ),
+            lifetime: CobaltLifetime.lazySingleton,
+            constructorParameters: const [
+              CobaltInjectedProperty(
+                field: 'store',
+                type: CobaltTypeRef(
+                  name: 'Store',
+                  import: appImport,
+                  typeArguments: [note],
+                ),
+              ),
+            ],
+            properties: const [],
+          ),
+        ],
+      ),
+    );
+
+    final cache = result.injectables.single;
+    expect(cache.type.toString(), 'Cache<Note>');
+    expect(cache.type.typeArguments.single.import, appImport);
+    expect(cache.type.signature, '$appImport#Cache<$appImport#Note>');
+    expect(cache.constructorParameters.single.type.toString(), 'Store<Note>');
+  });
+
   test('a parameter written by an older build reads as neither', () {
     final decoded = CobaltInjectedProperty.fromJson({
       'field': 'repo',
