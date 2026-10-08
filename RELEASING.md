@@ -127,14 +127,15 @@ Semver, with three decisions about the cases semver leaves open. The Compatibili
 
 | Public type | Users… | Kind of class | Adding a member | Also minor |
 |---|---|---|---|---|
-| `CobaltScope`, `CobaltKey`, `CobaltApplication`, records | use | `final` | minor | new optional parameter |
+| `CobaltScope`, `CobaltKey`, `CobaltApplication`, `CobaltRegistrationInfo`, `CobaltHookInfo`, records | use | `final` | minor | new optional parameter |
 | errors: `CobaltError` and every error it has, in each package | catch | `CobaltError` `base`, the rest `final` | minor | new optional parameter |
 | `CobaltResolver` | use | `abstract base` — only `CobaltScope` | minor | — |
 | `CobaltObserver`, `CobaltRecordingObserver`, `CobaltHook` | extend | `abstract base` | minor, with an empty body | — |
 | factories, `CobaltDecorator`, `CobaltScopeBuilder`, `CobaltBootstrapStep`, `CobaltLogSink`, `CobaltErrorSink`, `Disposable`, `AsyncDisposable`, `AsyncInitializable`, `CobaltInjectable` | implement | `interface` | **major** | — |
 | `CobaltOverride` and its subtypes | construct | `interface` / `final` | major | new named constructor |
 | `CobaltRegistrationKind`, `CobaltEventKind`, `CobaltDisposeStage`, `CobaltLogLevel`, `CobaltScopeState` | read | `enum` | **minor** — a new value | new getter |
-| `CobaltScope.debug*` members | read (inspector, `cobalt_test`) | `@experimental` | anything — not covered | — |
+| `CobaltScope.debugResolve*` members | read (inspector, `cobalt_test`) | `@experimental` | anything, not covered | - |
+| read-only `CobaltScope.debug*` members (`debugKindOf`, `debugDescribeTree` and the rest) | read | `@Deprecated` | removed in 2.0, kept unchanged until then | - |
 | everything in `cobalt_analyzer` | the generator and the lint plugin | internal package | anything — not covered | — |
 
 A new enum value breaks an exhaustive `switch` in user code; it is minor anyway, because the

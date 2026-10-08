@@ -96,10 +96,13 @@ CI 的 `verify` job 在 Flutter 3.38.9 上运行全部检查，`forward` 则在 
   （`onInstanceBuilt` 就是这样加入的；`CobaltHook` 也是这样设计的）。你*实现*的东西——工厂、装饰器、日志接收器、`Disposable`——
   只会在主版本中新增成员。
 
-有两样东西被有意排除在这些规则之外。`CobaltScope` 的 `debug*` 成员——检查器和 `cobalt_test` 读取图的途径——标注了
-`@experimental`，可能在次版本中变化；较新的分析器会在你的代码每次使用时报告 `experimental_member_use`——这正是用意，
-在有意使用的地方忽略即可。`cobalt_analyzer` 是生成器和 lint 插件的内部包：它的 API 跟随二者的需要，而不是
+有两样东西被有意排除在这些规则之外。`CobaltScope` 的 `debugResolve…` 成员是检查器和 `cobalt_test` 进行解析的途径，
+标注了 `@experimental`，可能在次版本中变化；较新的分析器会在其他包每次使用它们时报告 `experimental_member_use`，
+这正是用意：在有意使用的地方忽略即可。`cobalt_analyzer` 是生成器和 lint 插件的内部包：它的 API 跟随二者的需要，而不是
 semver；请依赖它们，而不是它。
+
+只读的 `debug…` 成员（`debugKindOf`、`debugDescribeTree` 等）不属于例外：1.2 已将它们弃用，改用 `registrationOf`、
+`describeTree()` 及其余检查 API；和任何弃用成员一样，它们在整个 1.x 中保持不变，并将在 2.0 中移除。
 
 从更早的 0.x 升级：[MIGRATION](../MIGRATION.zh-CN.md#从-cobalt-0x-到-10) 列出了每个会让代码无法编译的变化，以及如何处理。
 

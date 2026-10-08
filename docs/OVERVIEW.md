@@ -101,11 +101,15 @@ releases any minor could; since 1.0 none does. Three rules say what that covers:
   Anything you *implement* — factories, decorators, sinks, `Disposable` — gains members only in a
   major.
 
-Two things are outside these rules on purpose. `CobaltScope`'s `debug*` members — what the inspector
-and `cobalt_test` read the graph through — are marked `@experimental` and may change in a minor
-release; newer analyzers flag each use from your code with `experimental_member_use`, which is the
-point — ignore it where you mean it. And `cobalt_analyzer` is internal to the generator and the lint plugin: its API follows
-what they need, not semver; depend on them rather than on it.
+Two things are outside these rules on purpose. `CobaltScope`'s `debugResolve…` members, which the
+inspector and `cobalt_test` resolve through, are marked `@experimental` and may change in a minor
+release; newer analyzers flag each use from another package with `experimental_member_use`, which is
+the point: ignore it where you mean it. And `cobalt_analyzer` is internal to the generator and the
+lint plugin: its API follows what they need, not semver; depend on them rather than on it.
+
+The read-only `debug…` members (`debugKindOf`, `debugDescribeTree` and the rest) are not an
+exception: 1.2 deprecated them in favour of `registrationOf`, `describeTree()` and the rest of the
+inspection API, and like any deprecated member they stay unchanged through 1.x and go in 2.0.
 
 Coming from an older 0.x release: [MIGRATION](../MIGRATION.md#from-cobalt-0x-to-10) lists every change
 that stops code compiling, and what to do about it.

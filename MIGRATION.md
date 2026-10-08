@@ -317,4 +317,7 @@ Changes in behaviour that compile but are worth a look:
   debug builds. `restartOnGraphChange: false` keeps the old behaviour.
 - **1.0** — `CobaltScope`'s `debug*` members are `@experimental`; newer analyzers report
   `experimental_member_use` where your code calls them. They may change in a minor release — ignore
-  the warning where you mean it.
+  the warning where you mean it. Since 1.2 the read-only ones are deprecated instead, in favour of
+  `registrationOf`, `describeTree()` and the rest of
+  [Inspecting a scope](packages/cobalt/README.md#inspecting-a-scope), and go in 2.0; only the
+  `debugResolve…` members stay `@experimental`.

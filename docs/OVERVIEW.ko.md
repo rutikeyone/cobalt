@@ -103,10 +103,15 @@ CI의 `verify` 작업은 모든 것을 Flutter 3.38.9에서 실행하고, `forwa
   여러분이 *구현하는* 것, 즉 팩토리, 데코레이터, 싱크, `Disposable`은 메이저 릴리스에서만 멤버가
   늘어납니다.
 
-두 가지는 의도적으로 이 규칙 밖에 있습니다. 인스펙터와 `cobalt_test`가 그래프를 읽는 통로인 `CobaltScope`의
-`debug*` 멤버는 `@experimental`로 표시되어 있으며 마이너 릴리스에서 바뀔 수 있습니다. 새로운 analyzer는
-여러분 코드의 각 사용처를 `experimental_member_use`로 표시하는데, 바로 그것이 목적입니다. 의도한 곳에서는 무시하십시오. 그리고 `cobalt_analyzer`는 제너레이터와 린트 플러그인의 내부 패키지입니다. 그 API는 semver가 아니라
+두 가지는 의도적으로 이 규칙 밖에 있습니다. 인스펙터와 `cobalt_test`가 해석에 사용하는 `CobaltScope`의
+`debugResolve…` 멤버는 `@experimental`로 표시되어 있으며 마이너 릴리스에서 바뀔 수 있습니다. 새로운 analyzer는
+다른 패키지의 각 사용처를 `experimental_member_use`로 표시하는데, 바로 그것이 목적입니다. 의도한 곳에서는
+무시하십시오. 그리고 `cobalt_analyzer`는 제너레이터와 린트 플러그인의 내부 패키지입니다. 그 API는 semver가 아니라
 두 패키지의 필요를 따르므로, 이 패키지가 아니라 두 패키지에 의존하십시오.
+
+읽기 전용 `debug…` 멤버(`debugKindOf`, `debugDescribeTree` 등)는 예외가 아닙니다. 1.2에서
+`registrationOf`, `describeTree()`를 비롯한 나머지 조회 API로 대체되어 deprecated가 되었고, 다른 deprecated
+멤버와 마찬가지로 1.x 동안 그대로 유지되다가 2.0에서 제거됩니다.
 
 이전 0.x 릴리스에서 옮겨 오는 경우: [MIGRATION](../MIGRATION.ko.md#cobalt-0x에서-10으로)에 코드 컴파일을 깨뜨리는
 모든 변경과 그 대처 방법이 정리되어 있습니다.

@@ -270,3 +270,5 @@ bloc，改为指定函数：`@CobaltInject(dispose: closeBloc)`。另外要用 `
 - **0.9** — 在 debug 构建中，`CobaltAppScope` 会在改变了注册的热重载时重启图。`restartOnGraphChange: false` 恢复旧行为。
 - **1.0** — `CobaltScope` 的 `debug*` 成员标注了 `@experimental`；较新的分析器会在你的代码调用处报告
   `experimental_member_use`。它们可能在次版本中变化——在有意使用的地方忽略该警告即可。
+  自 1.2 起，只读成员改为弃用，由 `registrationOf`、`describeTree()` 以及 [Inspecting a scope](packages/cobalt/README.md#inspecting-a-scope)
+  中的其余成员取代，并将在 2.0 中移除；只有 `debugResolve…` 成员仍标注 `@experimental`。

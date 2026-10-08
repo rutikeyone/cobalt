@@ -229,15 +229,26 @@ await scope.getAsync<SearchEngine>();          // 先构建惰性异步注册—
 scope.keys;                  // 本作用域自己的注册，按注册顺序
 scope.visibleKeys;           // 加上继承来的，并映射到各自的持有作用域
 scope.root;                  // 树顶
-scope.debugDescribeTree();   // 以文本形式呈现的树
+scope.describeTree();        // 以文本形式呈现的树
+
+final info = scope.registrationOf(const CobaltKey(SearchEngine));
+info?.kind;                  // lazyAsyncSingleton、transient 等
+info?.implementation;        // 它构建的类，前提是工厂提供了该信息
+info?.decorators;            // 包装它的装饰器，由内到外
+info?.isOverridden;          // 是否由覆盖提供
 ```
 
 `visibleKeys` 是 map 而不是 set，原因值得尽早记住：工厂运行在拥有**它自身那条注册**的作用域上，
 而不是你发问的那个。知道哪个作用域持有某个键，才知道一次覆盖会不会被看到——见 [§13](#13-测试)。
 
-所有名为 `debug…` 的成员——这里的 `debugDescribeTree`，以及检查器和 `cobalt_test` 读取的 `debugKindOf`、`debugDecoratorsOf`
-等——都标注了 `@experimental`：不受 semver 约束，可能在次版本中变化，较新的分析器会在每次使用时报告
-`experimental_member_use`。用于诊断页面或测试没问题；不要在其上构建。
+`registrationOf` 和 `get` 一样会沿祖先向上回答，没有任何注册对应该键时返回 null。`hooks` 和
+`adoptedTypes` 列出添加到作用域上的钩子以及交给 `adopt` 的对象，`CobaltScope.previewRegistrations(builder)`
+则在不构建任何东西的前提下列出一个构建器会注册什么。`describeTree()` 用于阅读而非解析：其文本格式在任何版本中都可能变化。
+
+它们取代了只读的 `debug…` 成员（`debugDescribeTree`、`debugKindOf`、`debugDecoratorsOf` 等）。
+这些成员仍可使用，但已弃用，将在 2.0 中移除。只有 `debugResolve…` 成员仍标注 `@experimental`：
+不受 semver 约束，可能在次版本中变化，较新的分析器会在其他包使用它们时报告 `experimental_member_use`。
+用于测试没问题；不要在其上构建。
 
 ---
 

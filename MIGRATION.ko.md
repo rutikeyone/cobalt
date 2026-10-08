@@ -312,4 +312,7 @@ class CounterCubit extends Cubit<int> with CobaltBloc {}
   `restartOnGraphChange: false`로 이전 동작을 유지합니다.
 - **1.0**: `CobaltScope`의 `debug*` 멤버는 `@experimental`입니다. 새로운 analyzer는 여러분의 코드가
   이를 호출하는 곳에서 `experimental_member_use`를 보고합니다. 마이너 릴리스에서 바뀔 수 있으므로,
-  의도한 곳에서는 경고를 무시하십시오.
+  의도한 곳에서는 경고를 무시하십시오. 1.2부터 읽기 전용 멤버는 대신 deprecated로 바뀌었고,
+  `registrationOf`, `describeTree()`를 비롯한
+  [Inspecting a scope](packages/cobalt/README.md#inspecting-a-scope)의 멤버로 대체되며 2.0에서
+  제거됩니다. `@experimental`로 남는 것은 `debugResolve…` 멤버뿐입니다.

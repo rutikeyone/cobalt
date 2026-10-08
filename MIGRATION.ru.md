@@ -303,4 +303,7 @@ class CounterCubit extends Cubit<int> with CobaltBloc {}
   регистрации. `restartOnGraphChange: false` возвращает прежнее поведение.
 - **1.0** — `debug*`-члены `CobaltScope` помечены `@experimental`; новые анализаторы сообщают
   `experimental_member_use` там, где ваш код их вызывает. Они могут меняться в минорном релизе —
-  подавляйте предупреждение там, где это осознанно.
+  подавляйте предупреждение там, где это осознанно. С 1.2 read-only члены вместо этого помечены
+  устаревшими в пользу `registrationOf`, `describeTree()` и остального из
+  [Inspecting a scope](packages/cobalt/README.md#inspecting-a-scope) и уйдут в 2.0; `@experimental`
+  остаются только члены `debugResolve…`.
