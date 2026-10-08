@@ -4,6 +4,7 @@
 /// generator uses, so the IDE and the build agree on what a declaration means.
 library;
 
+import 'package:cobalt_lint/src/fixes/make_late_final.dart';
 import 'package:cobalt_lint/src/rules/async_transient_read_synchronously.dart';
 import 'package:cobalt_lint/src/rules/bootstrap_requires_run_method.dart';
 import 'package:cobalt_lint/src/rules/bootstrap_step_cannot_inject.dart';
@@ -56,5 +57,10 @@ class _CobaltPlugin extends Plugin {
     registry.registerWarningRule(ParamNeedsAnInjectable());
     registry.registerWarningRule(RegistrationIsNeverReleased());
     registry.registerWarningRule(ResourceIsNeverClosed());
+
+    registry.registerFixForRule(
+      InjectedFieldMustBeLateFinal.code,
+      MakeLateFinal.new,
+    );
   }
 }
