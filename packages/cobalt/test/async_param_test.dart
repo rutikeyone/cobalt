@@ -249,7 +249,10 @@ void main() {
       final scope = documents();
       const key = CobaltKey(Document);
 
-      expect(scope.debugKindOf(key), CobaltRegistrationKind.asyncParameterized);
+      expect(
+        scope.registrationOf(key)?.kind,
+        CobaltRegistrationKind.asyncParameterized,
+      );
       expect(
         await scope.debugResolveWithParamAsync(key, 9),
         isA<Document>().having((d) => d.id, 'id', 9),

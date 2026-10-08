@@ -20,6 +20,8 @@ Cobalt 在运行时抛出的每个错误，末尾都带着指向本页对应条�
 
 ```
 Config is not registered in scope "app" or its ancestors. Resolving: Api -> Repository -> Config.
+Nothing in this scope tree registers Config. Register it, or if it is a @cobaltInject class, run
+build_runner again.
 ```
 
 请求了一个从当前作用域到根作用域都没有注册的类型。
@@ -27,6 +29,7 @@ Config is not registered in scope "app" or its ancestors. Resolving: Api -> Repo
 - 使用生成器：给这个类加上 `@cobaltInject`，再运行一次 `dart run build_runner build`。如果这个类型是在生成的容器之外手写注册的，把它写进 `@CobaltScopeRoot(provides: [...])`。
 - 手写注册：在该作用域的 `build()` 里注册它，或在上层作用域里注册。
 - `Resolving:` 按先后列出是谁在请求。从第一个名字开始查。
+- 调用链之后是一条提示。如果当前作用域下层或旁支的作用域注册了这个键，消息会列出其中最多三个：解析只向上查找，从不向下，所以把注册移到上层，或从那个作用域解析。如果同一类型以其他名称注册过，消息会列出这些键，例如 `Api, Api(fake)`：检查 `name:`。两者都没有时，消息会说明整个作用域树都没有注册它：参见前两条。错误对象的 `registeredElsewhere` 和 `sameType` 字段提供同样的信息。
 - 如果消息说作用域还在构建中：一个 eager 的 `registerSingleton` 在 `build()` 后面的注册完成之前就解析了它的依赖。把它挪到那些注册之后，或改成 lazy。
 - 作用域只能看到自己和上层作用域。注册在会话或屏幕作用域里的类型，从根作用域看不到。
 
@@ -180,6 +183,7 @@ override 什么也没替换。
 - **没人注册的依赖。** 修法和 [CobaltNotRegisteredError](#cobaltnotregisterederror) 一样：给类加注解，或把它写进 `@CobaltScopeRoot(provides: [...])`。消息会一次列出所有缺口。
 - **一个包里有两个 `@CobaltScopeRoot` 类。** 一个包只有一个生成的根。保留一个。
 - **依赖循环。** 见 [CobaltCycleError](#cobaltcycleerror)。
-- **带 `@CobaltInject` 的抽象类或泛型类。** 生成器无法构建它。给具体类加注解，并以接口暴露它：`@CobaltInject(exposeAs: ApiClient)`。
+- **带 `@CobaltInject` 的抽象类。** 生成器无法构建它。给具体类加注解，并以接口暴露它：`@CobaltInject(exposeAs: ApiClient)`。
+- **带 `@CobaltInject` 的泛型类。** 消息会说这个类声明了类型参数，因此没有唯一的具体化可以注册。请列出它要注册的具体化，并写全每个类型实参：`@CobaltInject(instantiations: [Cache<Note>, Cache<User>])`。列表里裸写的 `Cache` 会被读成 `Cache<dynamic>` 并被拒绝；`exposeAs` 与 `instantiations` 同时出现、泛型类上的 `@injected` 字段也同样会被拒绝，这种字段请改为通过构造函数接收。
 
 检查如何工作，见 [GUIDE_CODEGEN.zh-CN.md](../GUIDE_CODEGEN.zh-CN.md#5-图必须是完整的)；[lint 插件](../GUIDE_CODEGEN.zh-CN.md#16-lint-插件)能在构建之前就在编辑器里显示其中大部分问题。

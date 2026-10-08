@@ -6,12 +6,41 @@
 # cobalt_inspector
 
 The live scope tree, what [Cobalt](https://pub.dev/packages/cobalt) built and with what lifetime, and
-everything the graph reported — on a screen inside your app, with nothing attached from outside.
+everything the graph reported, on a screen inside your app with nothing attached from outside.
 
-```yaml
-dev_dependencies:
-  cobalt_inspector: ^1.0.0
+```bash
+flutter pub add dev:cobalt_inspector
 ```
+
+Hand the log to the graph when the app starts:
+
+```dart
+final log = CobaltInspectorLog();
+
+void main() => runApp(
+  MaterialApp(
+    builder: CobaltAppScope.builder(
+      root: const $CobaltRootScope(),
+      observers: [log],
+    ),
+    home: const HomeScreen(),
+  ),
+);
+```
+
+Then open the screen from a button in your debug menu:
+
+```dart
+Navigator.of(context).push(
+  MaterialPageRoute<void>(
+    builder: (_) => CobaltInspectorScreen(log: log, scope: context.cobaltScope),
+  ),
+);
+```
+
+Learn more: [the three views](#three-views-and-why-they-read-different-things),
+[your own colours](#dressing-it-in-your-own-colours), and
+[the inspector in the Code-Gen guide](https://github.com/rutikeyone/cobalt/blob/main/GUIDE_CODEGEN.md#on-screen-while-the-app-runs).
 
 ## Wiring
 
@@ -32,11 +61,13 @@ Then push the screen from wherever your debug menu lives:
 
 ```dart
 Navigator.of(context).push(
-  MaterialPageRoute<void>(builder: (_) => CobaltInspectorScreen(log: log)),
+  MaterialPageRoute<void>(
+    builder: (_) => CobaltInspectorScreen(log: log, scope: context.cobaltScope),
+  ),
 );
 ```
 
-It reads the scope above it and climbs to the root, so it shows the whole graph wherever it opens.
+It climbs from that scope to the root, so it shows the whole graph wherever it opens.
 
 ## Three views, and why they read different things
 
@@ -45,7 +76,7 @@ It reads the scope above it and climbs to the root, so it shows the whole graph 
 indistinguishable there, as are a scope that was disposed and one pushed later under the same name.
 Good enough to label a log row, not to identify a node.
 
-Each scope lists what it registers with its lifetime, read through `debugKindOf`, and separately
+Each scope lists what it registers with its lifetime, read through `registrationOf`, and separately
 what it inherits, with the scope that owns it. That owner is the fact that decides what an override
 actually affects: a factory runs on the scope that owns *its* registration, not the one you asked
 from.
@@ -53,7 +84,7 @@ from.
 A registration an override replaced is marked **overridden**, and one a decorator wraps is marked
 **decorated**; its sheet names the decorators, innermost first, by the `debugLabel` they were added
 with — the annotated class when the container is generated. Both come from `overriddenKeys` and
-`debugDecoratorsOf`, so marking a row builds nothing.
+`registrationOf`, so marking a row builds nothing.
 
 **Built** comes from creation events, and has to. A scope's registrations are what was *declared* —
 a lazy singleton nobody resolved looks there exactly like one that is built — so only an event

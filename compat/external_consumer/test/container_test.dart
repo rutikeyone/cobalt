@@ -1,7 +1,7 @@
 // CobaltScope's debug* members are @experimental — outside semver, which newer
 // analyzers flag on every use from another package. Reading the graph through
 // them is what this file is for.
-// ignore_for_file: experimental_member_use
+// ignore_for_file: experimental_member_use, deprecated_member_use
 
 import 'package:cobalt/cobalt.dart';
 import 'package:cobalt_external_consumer/cobalt_external_consumer.dart';
@@ -91,6 +91,24 @@ void main() {
     final catalog = scope.get<Catalog>();
     expect(catalog.users.all().single.name, 'ada');
     expect(catalog.orders.all().map((order) => order.id), [1, 2]);
+  });
+
+  test('a generic class registers each instantiation it lists', () {
+    final users = scope.get<Cache<User>>();
+    final orders = scope.get<Cache<Order>>();
+
+    expect(users.repository, isA<UserRepository>());
+    expect(orders.repository, isA<OrderRepository>());
+    expect(users.entries.single.name, 'ada');
+    expect(orders.entries.map((order) => order.id), [1, 2]);
+    expect(scope.isRegistered<Cache<Object>>(), isFalse);
+  });
+
+  test('a dependency on one instantiation gets that instantiation', () {
+    expect(
+      identical(scope.get<Shelf>().users, scope.get<Cache<User>>()),
+      isTrue,
+    );
   });
 
   group('a module registers types the package does not own', () {

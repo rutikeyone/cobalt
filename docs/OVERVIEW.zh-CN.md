@@ -96,10 +96,13 @@ CI 的 `verify` job 在 Flutter 3.38.9 上运行全部检查，`forward` 则在 
   （`onInstanceBuilt` 就是这样加入的；`CobaltHook` 也是这样设计的）。你*实现*的东西——工厂、装饰器、日志接收器、`Disposable`——
   只会在主版本中新增成员。
 
-有两样东西被有意排除在这些规则之外。`CobaltScope` 的 `debug*` 成员——检查器和 `cobalt_test` 读取图的途径——标注了
-`@experimental`，可能在次版本中变化；较新的分析器会在你的代码每次使用时报告 `experimental_member_use`——这正是用意，
-在有意使用的地方忽略即可。`cobalt_analyzer` 是生成器和 lint 插件的内部包：它的 API 跟随二者的需要，而不是
+有两样东西被有意排除在这些规则之外。`CobaltScope` 的 `debugResolve…` 成员是检查器和 `cobalt_test` 进行解析的途径，
+标注了 `@experimental`，可能在次版本中变化；较新的分析器会在其他包每次使用它们时报告 `experimental_member_use`，
+这正是用意：在有意使用的地方忽略即可。`cobalt_analyzer` 是生成器和 lint 插件的内部包：它的 API 跟随二者的需要，而不是
 semver；请依赖它们，而不是它。
+
+只读的 `debug…` 成员（`debugKindOf`、`debugDescribeTree` 等）不属于例外：1.2 已将它们弃用，改用 `registrationOf`、
+`describeTree()` 及其余检查 API；和任何弃用成员一样，它们在整个 1.x 中保持不变，并将在 2.0 中移除。
 
 从更早的 0.x 升级：[MIGRATION](../MIGRATION.zh-CN.md#从-cobalt-0x-到-10) 列出了每个会让代码无法编译的变化，以及如何处理。
 
@@ -159,7 +162,7 @@ something outside the generated container registers it.
 ```
 
 构造参数、`@injected` 字段和 `@CobaltInit(dependsOn:)` 都算在内，`@Named` 限定符是键的一部分，
-每个环境分别检查。重复注册、依赖环、同一个包里两个作用域根、泛型可注入类、抽象类——同样都是构建失败。
+每个环境分别检查。重复注册、依赖环、同一个包里两个作用域根、没有列出 `instantiations` 的泛型可注入类、抽象类，同样都是构建失败。
 
 这是 Code-Gen 才有的保证，边界也说得很老实：手写工厂在 `create` 内部解析，
 静态分析看不到它将要请求什么。Manual Mode 的图仍然会在运行时失败——
@@ -175,8 +178,18 @@ something outside the generated container registers it.
 所以重启拿到的是新的步骤，而不是上次启动已经用掉的那些。
 
 泛型作为依赖和 `exposeAs` 目标都可用：`Repository<User>` 和 `Repository<Order>` 是两条注册，
-因为 `CobaltKey` 由 `Type` 构成，而它们是不同的类型。但可注入类本身不能是泛型：
-没有人告诉生成器该注册哪些具体实例化。
+因为 `CobaltKey` 由 `Type` 构成，而它们是不同的类型。可注入类本身也可以是泛型，
+只要列出要注册的具体实例化；每一个都会成为独立的注册，并用各自的 `Store<Note>` 或 `Store<User>` 构建：
+
+```dart
+@CobaltInject(instantiations: [Cache<Note>, Cache<User>])
+class Cache<T> {
+  Cache(this.store);
+  final Store<T> store;
+}
+```
+
+每个类型实参都要写全，`exposeAs` 和 `@injected` 字段都不能与 `instantiations` 一起用。
 
 `cobalt_analyzer` 的存在是为了让生成器和 lint 插件用**同一套**实现解析 Cobalt 声明，而不是两套迟早会
 各说各话的实现。它持有 IR 和拓扑排序，并且既不依赖 `build`，也不依赖插件 API。

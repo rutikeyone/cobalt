@@ -160,8 +160,18 @@ class AppModule {
 **`@Order` 消失了。** injectable 要你声明顺序；Cobalt 自己算。注册由编译期拓扑排序决定顺序，其中属性注入
 的字段也算依赖边；出现环时构建失败并指出环本身，而不是一路递归到栈溢出。
 
-**泛型类会被拒绝。** `@CobaltInject class Cache<T>` 是构建错误，因为没有任何信息告诉生成器该注册哪些具体化。
-请注解一个具体子类型，或者暴露一个：`@CobaltInject(exposeAs: Cache<Note>)`。泛型*依赖*则完全正常——
+**泛型类要列出自己的具体化。** 光写 `@CobaltInject class Cache<T>` 是构建错误，因为没有任何信息告诉生成器该注册哪些具体化。
+把它们列出来，每一个都会成为独立的注册，并用各自的 `Store<Note>` 或 `Store<User>` 构建：
+
+```dart
+@CobaltInject(instantiations: [Cache<Note>, Cache<User>])
+class Cache<T> {
+  Cache(this.store);
+  final Store<T> store;
+}
+```
+
+每个类型实参都要写全，`exposeAs` 和 `@injected` 字段都不能与 `instantiations` 一起用。泛型*依赖*则完全正常：
 `Repository<User>` 和 `Repository<Order>` 是两个独立的注册。
 
 ### 你得到的东西
@@ -270,3 +280,5 @@ bloc，改为指定函数：`@CobaltInject(dispose: closeBloc)`。另外要用 `
 - **0.9** — 在 debug 构建中，`CobaltAppScope` 会在改变了注册的热重载时重启图。`restartOnGraphChange: false` 恢复旧行为。
 - **1.0** — `CobaltScope` 的 `debug*` 成员标注了 `@experimental`；较新的分析器会在你的代码调用处报告
   `experimental_member_use`。它们可能在次版本中变化——在有意使用的地方忽略该警告即可。
+  自 1.2 起，只读成员改为弃用，由 `registrationOf`、`describeTree()` 以及 [Inspecting a scope](packages/cobalt/README.md#inspecting-a-scope)
+  中的其余成员取代，并将在 2.0 中移除；只有 `debugResolve…` 成员仍标注 `@experimental`。

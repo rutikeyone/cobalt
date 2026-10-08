@@ -31,8 +31,8 @@ class Telemetry {}
 //          'Future<void> init()' method. — cobalt_init_requires_init_method
 ```
 
-Twelve rules ship; all read annotations through `cobalt_analyzer`, the same
-layer the generator uses.
+Every rule reads annotations through `cobalt_analyzer`, the same layer the
+generator uses; the README lists them all.
 
 Note that `plugins` only works at the root of a package or workspace, and that
 the analysis server resolves plugins from pub.dev rather than from your

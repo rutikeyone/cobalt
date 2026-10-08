@@ -104,13 +104,14 @@ class CobaltInjectableClass {
 
   /// How this declaration is named in diagnostics.
   ///
-  /// For a class that is the class itself; for a module member, [type] is what
+  /// For a class that is the class itself, with its type arguments when it is
+  /// one instantiation of a generic class; for a module member, [type] is what
   /// the member *returns*, which alone would read as "Dio and Dio both
   /// register Dio".
   String get label {
     final origin = provider;
     return origin == null
-        ? type.name
+        ? type.toString()
         : '${origin.module.name}.${origin.member}';
   }
 

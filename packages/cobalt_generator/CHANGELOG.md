@@ -1,3 +1,19 @@
+## 1.2.0
+
+- Generic classes: `@CobaltInject(instantiations: [Cache<Note>,
+  Cache<Tag>])` registers each listed instantiation with its own factory,
+  named after its type arguments (`_CacheOfNoteFactory`; `Pair<String, int>`
+  becomes `_PairOfStringAndIntFactory`), and each constructor resolves its
+  own `Store<Note>` or `Store<Tag>`. A raw type, a duplicate entry,
+  `exposeAs` or an `@injected` field next to `instantiations` is a build
+  error.
+- A type argument keeps its `?` in a registration's key: `Cache<Note?>` and
+  `Cache<Note>` are two registrations, as they are two types at runtime.
+  Before, the `?` inside type arguments was dropped.
+- Requires `cobalt_analyzer` and `cobalt_annotations` 1.2.0.
+- The README opens with how to install it and a Quick start, and the
+  pubspec description says what the generator does.
+
 ## 1.1.1
 
 - No code changes in this package. Republished in lockstep with 1.1.1:

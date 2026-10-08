@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:cobalt_analyzer/cobalt_analyzer.dart';
 import 'package:cobalt_generator/builder.dart';
+import 'package:cobalt_generator/src/builders/container_builder.dart';
 import 'package:build/build.dart';
 import 'package:build_test/build_test.dart';
 import 'package:logging/logging.dart';
@@ -90,6 +91,103 @@ class Api {
             .name,
         'Logger',
       );
+    });
+
+    /// Both phases over one source: the scan writes one declaration per
+    /// instantiation, and the container registers each under its own type
+    /// with a factory of its own.
+    test('registers every instantiation a generic class lists', () async {
+      String? written;
+
+      await testBuilder(
+        builder,
+        {
+          ...deps,
+          '$_pkg|lib/caches.dart': '''
+import 'package:cobalt_annotations/cobalt_annotations.dart';
+
+class Note {}
+
+class User {}
+
+abstract interface class Store<T> {}
+
+@CobaltInject(exposeAs: Store<Note>)
+class NoteStore implements Store<Note> {
+  NoteStore();
+}
+
+@CobaltInject(exposeAs: Store<User>)
+class UserStore implements Store<User> {
+  UserStore();
+}
+
+@CobaltInject(instantiations: [Cache<Note>, Cache<User>])
+class Cache<T> {
+  Cache(this.store);
+  final Store<T> store;
+}
+''',
+        },
+        packageConfig: packages,
+        generateFor: {'$_pkg|lib/caches.dart'},
+        outputs: {
+          '$_pkg|lib/caches.cobalt.json': decodedMatches(
+            predicate<String>((value) {
+              written = value;
+              return true;
+            }),
+          ),
+        },
+      );
+
+      String? container;
+      await testBuilder(
+        const CobaltContainerBuilder(),
+        {'$_pkg|lib/caches.cobalt.json': written!},
+        rootPackage: _pkg,
+        outputs: {
+          '$_pkg|lib/cobalt.g.dart': decodedMatches(
+            predicate<String>((value) {
+              container = value;
+              return true;
+            }),
+          ),
+        },
+      );
+
+      final source = container!
+          .replaceAll(RegExp(r'\s+'), ' ')
+          .replaceAll(RegExp(r'_i\d+\.'), '')
+          .replaceAll('( ', '(')
+          .replaceAll(', )', ')');
+      for (final type in ['Note', 'User']) {
+        expect(
+          source,
+          contains(
+            'final class _CacheOf${type}Factory implements '
+            'CobaltFactory<Cache<$type>>, CobaltDescribedFactory',
+          ),
+        );
+        expect(
+          source,
+          contains("String get implementation => 'Cache<$type>';"),
+        );
+        expect(
+          source,
+          contains(
+            'Cache<$type> create(CobaltResolver resolver) => '
+            'Cache<$type>(resolver.get<Store<$type>>());',
+          ),
+        );
+        expect(
+          source,
+          contains(
+            'scope.registerLazySingleton<Cache<$type>>('
+            'const _CacheOf${type}Factory());',
+          ),
+        );
+      }
     });
 
     /// A parse failure is reported, not thrown: build_runner catches it and

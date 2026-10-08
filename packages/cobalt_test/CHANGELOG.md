@@ -1,3 +1,11 @@
+## 1.2.0
+
+- Reads the graph through `cobalt`'s stable introspection API
+  (`registrationOf`, `hooks`, `adoptedTypes`) instead of the deprecated
+  `debug*` members. What `checkGraph`, `describeGraph` and
+  `describeGraphMermaid` report is unchanged. Requires `cobalt` 1.2.0.
+- The README opens with how to install it and a first test.
+
 ## 1.1.1
 
 - No code changes in this package. Republished in lockstep with 1.1.1:

@@ -177,10 +177,21 @@ class AppModule {
 сортируются компайл-тайм топологической сортировкой, где поля с property injection считаются рёбрами
 графа, а цикл валит сборку, называя цикл, а не рекурсирует до переполнения стека.
 
-**Дженерик-классы отвергаются.** `@CobaltInject class Cache<T>` — ошибка сборки, потому что ничто не
-сообщает генератору, какие инстанциации регистрировать. Аннотируйте конкретный подтип или выставьте
-его: `@CobaltInject(exposeAs: Cache<Note>)`. Дженерик-*зависимости* работают нормально —
-`Repository<User>` и `Repository<Order>` это разные регистрации.
+**Дженерик-классы называют свои инстанциации.** Голый `@CobaltInject class Cache<T>` дает ошибку
+сборки, потому что ничто не сообщает генератору, какие инстанциации регистрировать. Перечислите их, и
+каждая станет отдельной регистрацией со своим `Store<Note>` или `Store<User>`:
+
+```dart
+@CobaltInject(instantiations: [Cache<Note>, Cache<User>])
+class Cache<T> {
+  Cache(this.store);
+  final Store<T> store;
+}
+```
+
+Каждый аргумент типа выписывается явно, а ни `exposeAs`, ни поля `@injected` с `instantiations` не
+сочетаются. Дженерик-*зависимости* работают нормально: `Repository<User>` и `Repository<Order>` это
+разные регистрации.
 
 ### Что вы получаете
 
@@ -303,4 +314,7 @@ class CounterCubit extends Cubit<int> with CobaltBloc {}
   регистрации. `restartOnGraphChange: false` возвращает прежнее поведение.
 - **1.0** — `debug*`-члены `CobaltScope` помечены `@experimental`; новые анализаторы сообщают
   `experimental_member_use` там, где ваш код их вызывает. Они могут меняться в минорном релизе —
-  подавляйте предупреждение там, где это осознанно.
+  подавляйте предупреждение там, где это осознанно. С 1.2 read-only члены вместо этого помечены
+  устаревшими в пользу `registrationOf`, `describeTree()` и остального из
+  [Inspecting a scope](packages/cobalt/README.md#inspecting-a-scope) и уйдут в 2.0; `@experimental`
+  остаются только члены `debugResolve…`.

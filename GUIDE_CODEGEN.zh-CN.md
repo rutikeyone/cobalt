@@ -275,9 +275,23 @@ registers them.
 就是一个缺口。每个环境分别检查，所以只在 `dev` 存在的注册无法满足一个同样跑在 `prod` 的依赖方。
 
 同样在构建期被拒绝的还有：同一个键的重复注册、依赖环（并指出这个环）、
-同一个包里两个 `@CobaltScopeRoot`、`@CobaltInject` 用在抽象类或没有公开生成式构造函数的类上，
-以及 `@CobaltInject` 用在**泛型类**上——没有人告诉生成器该注册哪些具体实例化，
-所以请给具体子类型加注解，或用 `exposeAs` 暴露一个。
+同一个包里两个 `@CobaltScopeRoot`，以及 `@CobaltInject` 用在抽象类或没有公开生成式构造函数的类上。
+
+**泛型类**要列出它注册的具体实例化，每个实例化一条注册：
+
+```dart
+@CobaltInject(instantiations: [Cache<Note>, Cache<User>])
+class Cache<T> {
+  Cache(this.store);
+  final Store<T> store;
+}
+```
+
+这会注册 `Cache<Note>` 和 `Cache<User>`，每个都用自己的 `Store<Note>` 或 `Store<User>` 构建。
+`name`、`lifetime`、`dispose` 和环境对其中每一个都生效。没有 `instantiations` 的泛型类是构建错误，
+因为没有任何地方说明该注册哪些实例化。每一项都要写全所有类型实参（裸写的 `Cache` 会被读成
+`Cache<dynamic>` 并被拒绝），`exposeAs` 不能与 `instantiations` 同时使用，泛型类也不能有
+`@injected` 字段：请改为通过构造函数接收。
 
 泛型在其他任何地方都没问题。`Repository<User>` 和 `Repository<Order>` 是两条独立的注册，
 因为 `CobaltKey` 由 `Type` 构成，而它们是不同的类型。
@@ -948,6 +962,10 @@ plugins:
 | `cobalt_override_needs_type_argument` | `CobaltOverride` 或 `CobaltParamOverride` 没写类型参数，替换哪个键就由 Dart 推断 |
 | `cobalt_hook_added_too_late` | 在同一作用域上、同一级联或同一代码块中较早处已有 eager 注册或 `get` 之后才调用 `hookAll`——作用域会以 `CobaltHookError` 拒绝；请在任何构建之前添加钩子 |
 
+其中七条规则还在 IDE 里提供快速修复：它会替你补上缺少的 `late final`、mixin、`@cobaltInject`、
+`lazy: true` 或 `implements Disposable`。哪条规则修复什么，见
+[包的 README](packages/cobalt_lint/README.md#quick-fixes)。
+
 配置它有两件事会实打实地耗掉你的时间：
 
 1. `plugins:` 一节**只在包或 workspace 的根目录生效**。放在嵌套的 `analysis_options.yaml` 里
@@ -1213,8 +1231,10 @@ git diff --exit-code
   这是本模式唯一一项实打实的维护义务。
 - **同一个包里两个 `@CobaltScopeRoot`。** 这是构建错误，解法是拆成两个包——
   `cobalt_container` 会把整个包聚合成一个根。
-- **在泛型类上用 `@CobaltInject`。** 会被拒绝：没有人告诉生成器该注册哪些具体实例化。
-  请给具体子类型加注解，或用 `exposeAs` 暴露一个。泛型作为依赖和 `exposeAs` 目标都完全可用。
+- **在泛型类上用 `@CobaltInject` 却没有 `instantiations`。** 会被拒绝：没有人告诉生成器该注册哪些具体实例化。
+  请把它们列出来，例如 `@CobaltInject(instantiations: [Cache<Note>, Cache<User>])`，并写全每个类型实参；
+  或者给具体子类型加注解。`exposeAs` 和 `@injected` 字段都不能与 `instantiations` 一起用。
+  泛型作为依赖和 `exposeAs` 目标都完全可用。
 - **写了 `@injected` 却没有 `with _$ClassName`。** 字段不会被赋值，第一次读取就抛 `LateError`。
   lint 会更早告诉你。
 - **用 `provides:` 承诺了却没去注册。** 检查相信了你，于是故障挪到了运行期。

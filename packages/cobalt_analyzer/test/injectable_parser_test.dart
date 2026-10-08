@@ -6,27 +6,270 @@ import 'support.dart';
 void main() {
   const parser = CobaltInjectableParser();
 
-  test('a class with type parameters is rejected', () async {
-    final clazz = await classNamed('Cache', '''
+  group('a generic class', () {
+    Matcher rejects(Object message) => throwsA(
+      isA<CobaltParseError>().having(
+        (error) => error.message,
+        'message',
+        message,
+      ),
+    );
+
+    test('naming no instantiation is rejected with a hint', () async {
+      final clazz = await classNamed('Cache', '''
 @cobaltInject
 class Cache<T> {
   Cache();
 }
 ''');
 
-    expect(
-      () => parser.parseClass(clazz),
-      throwsA(
-        isA<CobaltParseError>().having(
-          (error) => error.message,
-          'message',
+      expect(
+        () => parser.parseClass(clazz),
+        rejects(
           allOf(
             contains('type parameters <T>'),
             contains('no single instantiation'),
+            contains('@CobaltInject(instantiations: [Cache<Note>])'),
+            contains('concrete subtype'),
           ),
         ),
-      ),
+      );
+    });
+
+    test(
+      'instantiations on a class without type parameters are rejected',
+      () async {
+        final clazz = await classNamed('Cache', '''
+@CobaltInject(instantiations: [Cache])
+class Cache {
+  Cache();
+}
+''');
+
+        expect(
+          () => parser.parseClass(clazz),
+          rejects(contains('declares no type parameters')),
+        );
+      },
     );
+
+    test('each instantiation is one registration with its own types', () async {
+      final clazz = await classNamed('Cache', '''
+class Note {}
+class Tag {}
+class Store<T> {}
+
+@CobaltInject(instantiations: [Cache<Note>, Cache<Tag>])
+class Cache<T> {
+  Cache(this.store, {@Named('fast') required this.backup});
+  final Store<T> store;
+  final Store<T> backup;
+}
+''');
+
+      final parsed = parser.parseClass(clazz);
+
+      expect(parsed.map((each) => '${each.type}'), [
+        'Cache<Note>',
+        'Cache<Tag>',
+      ]);
+      expect(parsed.map((each) => each.label), ['Cache<Note>', 'Cache<Tag>']);
+      expect(parsed.first.type.typeArguments.single.import, isNotNull);
+      expect(
+        parsed.map(
+          (each) => [for (final p in each.constructorParameters) '${p.type}'],
+        ),
+        [
+          ['Store<Note>', 'Store<Note>'],
+          ['Store<Tag>', 'Store<Tag>'],
+        ],
+      );
+      expect(parsed.first.constructorParameters.last.name, 'fast');
+      expect(parsed.first.constructorParameters.last.isNamed, isTrue);
+    });
+
+    test('the annotation applies to every instantiation', () async {
+      final clazz = await classNamed('Cache', '''
+class Note {}
+class Tag {}
+class Store<T> {}
+
+Future<void> closeCache(Object cache) async {}
+
+@CobaltEnvironment('prod')
+@CobaltInject(
+  name: 'local',
+  lifetime: CobaltLifetime.singleton,
+  dispose: closeCache,
+  instantiations: [Cache<Note>, Cache<Tag>],
+)
+class Cache<T> {
+  Cache(this.store);
+  final Store<T> store;
+}
+''');
+
+      final parsed = parser.parseClass(clazz);
+
+      expect(parsed, hasLength(2));
+      for (final each in parsed) {
+        expect(each.name, 'local');
+        expect(each.lifetime, CobaltLifetime.singleton);
+        expect(each.dispose!.name, 'closeCache');
+        expect(each.environments, {'prod'});
+      }
+    });
+
+    test('dependsOn applies to every instantiation', () async {
+      final clazz = await classNamed('Loader', '''
+class Note {}
+class Tag {}
+class Store<T> {}
+class Database {}
+
+@CobaltInject(instantiations: [Loader<Note>, Loader<Tag>])
+@CobaltInit(dependsOn: [Database])
+class Loader<T> {
+  Loader(this.store);
+  final Store<T> store;
+  Future<void> init() async {}
+}
+''');
+
+      final parsed = parser.parseClass(clazz);
+
+      expect(parsed, hasLength(2));
+      for (final each in parsed) {
+        expect(each.isAsyncInit, isTrue);
+        expect(each.dependsOn.single.name, 'Database');
+      }
+    });
+
+    test('@CobaltParam applies to every instantiation', () async {
+      final clazz = await classNamed('Page', '''
+class Note {}
+class Tag {}
+class Store<T> {}
+
+@CobaltInject(
+  lifetime: CobaltLifetime.transient,
+  instantiations: [Page<Note>, Page<Tag>],
+)
+class Page<T> {
+  Page(this.store, {@cobaltParam required this.items});
+  final Store<T> store;
+  final List<T> items;
+}
+''');
+
+      final parsed = parser.parseClass(clazz);
+
+      expect(parsed.map((each) => '${each.callSiteValues.single.type}'), [
+        'List<Note>',
+        'List<Tag>',
+      ]);
+    });
+
+    test('a raw instantiation reads as dynamic and is rejected', () async {
+      final clazz = await classNamed('Cache', '''
+@CobaltInject(instantiations: [Cache])
+class Cache<T> {
+  Cache();
+}
+''');
+
+      expect(
+        () => parser.parseClass(clazz),
+        rejects(allOf(contains('dynamic'), contains('spell out'))),
+      );
+    });
+
+    test('Never as a type argument is rejected', () async {
+      final clazz = await classNamed('Cache', '''
+@CobaltInject(instantiations: [Cache<Never>])
+class Cache<T> {
+  Cache();
+}
+''');
+
+      expect(
+        () => parser.parseClass(clazz),
+        rejects(contains('Never is not a type argument')),
+      );
+    });
+
+    test('an entry naming another class is rejected', () async {
+      final clazz = await classNamed('Cache', '''
+class Note {}
+class Other<T> {}
+
+@CobaltInject(instantiations: [Other<Note>])
+class Cache<T> {
+  Cache();
+}
+''');
+
+      expect(
+        () => parser.parseClass(clazz),
+        rejects(contains('has to be Cache itself')),
+      );
+    });
+
+    test('a duplicate instantiation is rejected', () async {
+      final clazz = await classNamed('Cache', '''
+class Note {}
+typedef NoteCache = Cache<Note>;
+
+@CobaltInject(instantiations: [Cache<Note>, NoteCache])
+class Cache<T> {
+  Cache();
+}
+''');
+
+      expect(
+        () => parser.parseClass(clazz),
+        rejects(contains('Cache<Note> twice')),
+      );
+    });
+
+    test('exposeAs together with instantiations is rejected', () async {
+      final clazz = await classNamed('Cache', '''
+class Note {}
+abstract interface class Store {}
+
+@CobaltInject(exposeAs: Store, instantiations: [Cache<Note>])
+class Cache<T> implements Store {
+  Cache();
+}
+''');
+
+      expect(
+        () => parser.parseClass(clazz),
+        rejects(contains('also names exposeAs')),
+      );
+    });
+
+    test('an @injected field is rejected', () async {
+      final clazz = await classNamed('Cache', '''
+class Note {}
+class Clock {}
+
+@CobaltInject(instantiations: [Cache<Note>])
+class Cache<T> {
+  Cache();
+
+  @injected
+  late final Clock clock;
+}
+''');
+
+      expect(
+        () => parser.parseClass(clazz),
+        rejects(
+          allOf(contains('@injected field clock'), contains('constructor')),
+        ),
+      );
+    });
   });
 
   test('a class with no public generative constructor is rejected', () async {
@@ -60,7 +303,7 @@ class LiveApiClient implements ApiClient {
 }
 ''');
 
-    final parsed = parser.parseClass(clazz);
+    final parsed = parser.parseClass(clazz).single;
 
     expect(parsed.exposeAs!.name, 'ApiClient');
   });
@@ -78,7 +321,7 @@ class Catalog {
 }
 ''');
 
-    final parsed = parser.parseClass(clazz);
+    final parsed = parser.parseClass(clazz).single;
     final dependency = parsed.constructorParameters.single.type;
 
     expect(dependency.name, 'Repository');
@@ -97,7 +340,7 @@ class Ticker {
 }
 ''');
 
-      final dispose = parser.parseClass(clazz).dispose!;
+      final dispose = parser.parseClass(clazz).single.dispose!;
 
       expect(dispose.name, 'closeTicker');
       expect(dispose.owner, isNull);
@@ -115,7 +358,7 @@ class Ticker {
 }
 ''');
 
-      final dispose = parser.parseClass(clazz).dispose!;
+      final dispose = parser.parseClass(clazz).single.dispose!;
 
       expect(dispose.name, 'close');
       expect(dispose.owner, 'Tickers');

@@ -69,7 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     final CobaltInjectableClass declaration;
     try {
-      declaration = _parser.parseClass(element);
+      declaration = _parser.parseClass(element).first;
     } on CobaltParseError {
       // A declaration the generator will refuse anyway. Another rule names it.
       return;

@@ -471,7 +471,7 @@ void main() {
 
       expect(built, 1);
       expect(
-        scope.debugKindOf(const CobaltKey(Database)),
+        scope.registrationOf(const CobaltKey(Database))?.kind,
         CobaltRegistrationKind.singleton,
       );
       final created = observer.ofKind(CobaltEventKind.instanceCreated).single;

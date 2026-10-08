@@ -18,9 +18,15 @@ Reference typeReferenceOf(CobaltTypeRef type) {
     (b) => b
       ..symbol = type.name
       ..url = type.import
-      ..types.addAll([for (final a in type.typeArguments) typeReferenceOf(a)]),
+      ..types.addAll([for (final a in type.typeArguments) _argumentOf(a)]),
   );
 }
+
+/// A type argument keeps its `?`: `Cache<Note?>` and `Cache<Note>` are two
+/// types at runtime, and only the outermost nullability marks a dependency
+/// optional.
+Reference _argumentOf(CobaltTypeRef type) =>
+    type.isNullable ? recordFieldTypeOf(type) : typeReferenceOf(type);
 
 /// The type of one field of a call-site record.
 ///
@@ -37,7 +43,7 @@ Reference recordFieldTypeOf(CobaltTypeRef type) {
       ..symbol = type.name
       ..url = type.import
       ..isNullable = true
-      ..types.addAll([for (final a in type.typeArguments) typeReferenceOf(a)]),
+      ..types.addAll([for (final a in type.typeArguments) _argumentOf(a)]),
   );
 }
 

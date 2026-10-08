@@ -1,8 +1,3 @@
-// CobaltScope's debug* members are @experimental — outside semver, which newer
-// analyzers flag on every use from another package. Reading the graph through
-// them is what this file is for.
-// ignore_for_file: experimental_member_use
-
 import 'package:cobalt_flutter/cobalt_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:gallery/catalog/decorators_graph.dart';
@@ -20,10 +15,13 @@ class DecoratorsScreen extends StatelessWidget {
     final l10n = GalleryL10n.of(context);
     final scope = context.cobaltScope;
     final log = context.cobalt<ForecastLog>();
-    final chain = scope.debugDecoratorsOf(const CobaltKey(Weather));
-    final backupChain = scope.debugDecoratorsOf(
-      const CobaltKey(Weather, name: 'backup'),
-    );
+    final chain =
+        scope.registrationOf(const CobaltKey(Weather))?.decorators ?? const [];
+    final backupChain =
+        scope
+            .registrationOf(const CobaltKey(Weather, name: 'backup'))
+            ?.decorators ??
+        const [];
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.decoratorsTitle)),

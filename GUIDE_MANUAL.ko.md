@@ -231,17 +231,30 @@ await scope.getAsync<SearchEngine>();          // 지연 비동기 등록을 먼
 scope.keys;                  // 이 스코프 자신의 등록, 등록 순서대로
 scope.visibleKeys;           // 위의 것과 상속된 것, 각각을 소유한 스코프에 매핑됨
 scope.root;                  // 트리의 꼭대기
-scope.debugDescribeTree();   // 텍스트로 표현한 트리
+scope.describeTree();        // 텍스트로 표현한 트리
+
+final info = scope.registrationOf(const CobaltKey(SearchEngine));
+info?.kind;                  // lazyAsyncSingleton, transient 등
+info?.implementation;        // 빌드하는 클래스, 팩토리가 알려 줄 때
+info?.decorators;            // 감싸는 데코레이터, 가장 안쪽부터
+info?.isOverridden;          // 재정의가 제공하는지 여부
 ```
 
 `visibleKeys`가 집합이 아니라 맵인 데에는 일찍 익혀 둘 만한 이유가 있습니다. 팩토리는 여러분이 요청한
 스코프가 아니라 *자기* 등록을 소유한 스코프에서 실행됩니다. 어느 스코프가 키를 소유하는지 알아야 재정의가
 보일지 알 수 있습니다. [§13](#13-테스트)을 참고하십시오.
 
-`debug…`로 이름 붙은 모든 것(여기의 `debugDescribeTree`, 그리고 인스펙터와 `cobalt_test`가 읽는
-`debugKindOf`, `debugDecoratorsOf` 등)은 `@experimental`입니다. semver 밖에 있으므로 마이너 릴리스에서
-바뀔 수 있고, 새로운 analyzer는 각 사용처를 `experimental_member_use`로 표시합니다. 진단 화면이나
-테스트에서는 괜찮지만, 그 위에 무언가를 쌓아 올릴 것은 아닙니다.
+`registrationOf`는 `get`처럼 조상까지 거슬러 올라가 답하며, 키를 등록한 곳이 없으면 null을 반환합니다.
+`hooks`와 `adoptedTypes`는 스코프에 추가된 훅과 `adopt`에 넘긴 것을 나열하고,
+`CobaltScope.previewRegistrations(builder)`는 아무것도 빌드하지 않고 빌더가 무엇을 등록하는지 나열합니다.
+`describeTree()`는 읽기 위한 것이지 파싱하기 위한 것이 아닙니다. 그 텍스트의 형태는 어느 릴리스에서든 바뀔 수
+있습니다.
+
+이것들은 읽기 전용 `debug…` 멤버(`debugDescribeTree`, `debugKindOf`, `debugDecoratorsOf` 등)를
+대체합니다. 그 멤버들은 여전히 동작하지만 deprecated 상태이며 2.0에서 제거됩니다. `@experimental`로 남는 것은
+`debugResolve…` 멤버뿐입니다. semver 밖에 있으므로 마이너 릴리스에서 바뀔 수 있고, 새로운 analyzer는 다른
+패키지에서의 사용을 `experimental_member_use`로 표시합니다. 테스트에서는 괜찮지만, 그 위에 무언가를 쌓아 올릴
+것은 아닙니다.
 
 ---
 

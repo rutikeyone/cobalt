@@ -1,8 +1,3 @@
-// CobaltScope's debug* members are @experimental — outside semver, which newer
-// analyzers flag on every use from another package. Reading the graph through
-// them is what this file is for.
-// ignore_for_file: experimental_member_use
-
 import 'package:cobalt/cobalt.dart';
 
 /// The keys [scope] registers itself, in the order a description lists them.
@@ -16,13 +11,15 @@ List<CobaltKey> describedKeysOf(CobaltScope scope) =>
 ///
 /// Shared by `describeGraph` and `describeGraphMermaid`, so the text and the
 /// picture of one graph cannot disagree.
-List<String> factsOf(CobaltScope scope, CobaltKey key) => [
-  scope.debugKindOf(key)?.name ?? 'unknown',
-  if (scope.debugImplementationOf(key) case final implementation?
-      when implementation != '${key.type}')
-    'as $implementation',
-  if (scope.overriddenKeys.contains(key)) 'overridden',
-  if (scope.debugDecoratorsOf(key) case final decorators
-      when decorators.isNotEmpty)
-    'decorated: ${decorators.join(' → ')}',
-];
+List<String> factsOf(CobaltScope scope, CobaltKey key) {
+  final info = scope.registrationOf(key);
+  return [
+    info?.kind.name ?? 'unknown',
+    if (info?.implementation case final implementation?
+        when implementation != '${key.type}')
+      'as $implementation',
+    if (scope.overriddenKeys.contains(key)) 'overridden',
+    if (info?.decorators case final decorators? when decorators.isNotEmpty)
+      'decorated: ${decorators.join(' → ')}',
+  ];
+}

@@ -1,17 +1,89 @@
 # cobalt_generator
 
-Code generator for [Cobalt](https://github.com/rutikeyone/cobalt). Add it as a `dev_dependency` — it
-never ships in an application.
+Writes the [Cobalt](https://pub.dev/packages/cobalt) container for you: annotate your classes, run
+`build_runner`, and a missing dependency fails the build instead of the app.
 
-```yaml
-dev_dependencies:
-  cobalt_generator: ^1.0.0
-  build_runner: ^2.16.0
+## Install
+
+```bash
+flutter pub add cobalt cobalt_flutter dev:cobalt_generator dev:build_runner
 ```
 
+In a pure Dart package, `dart pub add cobalt dev:cobalt_generator dev:build_runner`. The generator
+is a dev dependency: it never ships in an application.
+
+## Quick start
+
+**1. Annotate** each class the graph should build. Its constructor parameters are its
+dependencies:
+
+```dart
+@cobaltInject
+class Clock {
+  Clock();
+
+  DateTime now() => DateTime.now();
+}
+
+@cobaltInject
+class Greeter {
+  Greeter(this.clock);
+
+  final Clock clock;
+}
 ```
+
+**2. Generate** the container:
+
+```bash
 dart run build_runner build
 ```
+
+It writes `lib/cobalt.g.dart`: a factory per class, and `$CobaltRootScope`, which registers them in
+dependency order.
+
+**3. Start** the generated root. In a Flutter app, hand it to `CobaltAppScope` from
+[`cobalt_flutter`](https://pub.dev/packages/cobalt_flutter):
+
+```dart
+builder: CobaltAppScope.builder(root: const $CobaltRootScope()),
+```
+
+Anywhere else, to `CobaltApplication`:
+
+```dart
+final app = await CobaltApplication.start(root: const $CobaltRootScope());
+final greeter = app.get<Greeter>();
+```
+
+## When a dependency is missing
+
+Take `@cobaltInject` off `Clock` and the build stops, naming the gap:
+
+```
+Greeter requires Clock, which nothing registers. Annotate the class that provides
+it with @CobaltInject, add an @CobaltModule member returning it when the type is
+not yours, or name it in @CobaltScopeRoot(provides: [...]) when something outside
+the generated container registers it.
+```
+
+Every gap is reported in one build, so a graph is fixed in one pass.
+
+## Learn more
+
+| | |
+|---|---|
+| **Step by step, with the generator** | [GUIDE_CODEGEN.md](https://github.com/rutikeyone/cobalt/blob/main/GUIDE_CODEGEN.md) |
+| **What the generated file looks like** | [What comes out](https://github.com/rutikeyone/cobalt/blob/main/GUIDE_CODEGEN.md#3-what-comes-out) |
+| **Registering a type from another package** | [Types you did not write](https://github.com/rutikeyone/cobalt/blob/main/GUIDE_CODEGEN.md#14-types-you-did-not-write) |
+| **Something threw** | [docs/TROUBLESHOOTING.md](https://github.com/rutikeyone/cobalt/blob/main/docs/TROUBLESHOOTING.md) |
+| **A whole Flutter app, with a test** | [`examples/hello`](https://github.com/rutikeyone/cobalt/tree/main/examples/hello) |
+| **Property injection, a decorator, a scope per screen** | [`examples/codegen_basics`](https://github.com/rutikeyone/cobalt/tree/main/examples/codegen_basics) |
+
+## Reference
+
+Everything below describes the generator in full.
+
 
 ## Builders
 
@@ -175,19 +247,33 @@ static can see what it will ask for. Registrations written by hand still fail at
 
 ## Generic types
 
-`Repository<User>` and `Repository<Order>` are two separate registrations — as dependencies and as
+`Repository<User>` and `Repository<Order>` are two separate registrations, as dependencies and as
 `exposeAs` targets alike. The identity of a registration includes its type arguments, matching the
 runtime, where `CobaltKey` is built from `Type`.
 
-The injectable class itself may not be generic. `@CobaltInject class Cache<T>` is rejected at build
-time, because nothing says which instantiations to register. Annotate a concrete subtype, or expose
-one with `@CobaltInject(exposeAs: Cache<Note>)`.
+A generic class lists the instantiations it registers, one registration each:
 
-Nullability is not part of that identity: a `Foo?` dependency reads the `Foo` registration. What it
-does change is whether the dependency is required. A nullable parameter or `@injected` field is
-emitted as `resolver.getOrNull<Foo>()` and is skipped by the completeness check, so nothing
-registering `Foo` injects null rather than failing the build. It stays an ordering edge when `Foo`
-*is* registered, and `@CobaltInit(dependsOn:)` is never optional — it declares order, not injection.
+```dart
+@CobaltInject(instantiations: [Cache<Note>, Cache<User>])
+class Cache<T> {
+  Cache(this.store);
+  final Store<T> store;
+}
+```
+
+Each instantiation gets its own factory, named after its type arguments (`_CacheOfNoteFactory`,
+`_CacheOfUserFactory`; `Pair<String, int>` becomes `_PairOfStringAndIntFactory`), and its
+constructor resolves its own `Store<Note>` or `Store<User>`. A generic class without
+`instantiations` is a build error. Every entry spells out each type argument (a raw `Cache` reads as
+`Cache<dynamic>`), and neither `exposeAs` nor `@injected` fields combine with `instantiations`.
+
+Nullability of the outer type is not part of that identity: a `Foo?` dependency reads the `Foo`
+registration. A type argument keeps its `?`, so `Cache<Note?>` and `Cache<Note>` are two
+registrations. What an outer `?` does change is whether the dependency is required. A nullable
+parameter or `@injected` field is emitted as `resolver.getOrNull<Foo>()` and is skipped by the
+completeness check, so nothing registering `Foo` injects null rather than failing the build. It stays
+an ordering edge when `Foo` *is* registered, and `@CobaltInit(dependsOn:)` is never optional: it
+declares order, not injection.
 
 A module member may not return a nullable type. A nullable type marks a dependency optional; it
 cannot describe a registration, because `CobaltKey` has no way to represent `Foo?`.

@@ -18,6 +18,13 @@ import 'package:cobalt_analyzer/cobalt_analyzer.dart';
 ///   `Clock` never renames anything else in the file;
 /// - the suffix is a function of the library alone, so it does not depend on
 ///   the order declarations were visited in and does not move between builds.
+///
+/// One instantiation of a generic class is named after its type arguments as
+/// well, `_CacheOfNoteFactory` beside `_CacheOfUserFactory`, because every
+/// instantiation comes from the same class in the same library and the
+/// library alone could not tell them apart. For the same reason a contested
+/// instantiation takes its suffix from the whole type rather than from the
+/// library.
 class CobaltFactoryNames {
   /// Names the factories of [declarations], resolving collisions among them.
   CobaltFactoryNames(
@@ -45,7 +52,7 @@ class CobaltFactoryNames {
   String of(CobaltInjectableClass declaration) {
     final base = _baseNameOf(declaration);
     if (!_contested.contains(base)) return base;
-    return '$base\$${_aliasOf(_libraryOf(declaration))}';
+    return '$base\$${_suffixOf(declaration)}';
   }
 
   /// The name of the record type holding [declaration]'s call-site values.
@@ -56,10 +63,10 @@ class CobaltFactoryNames {
   String argsOf(CobaltInjectableClass declaration) {
     final base = _baseNameOf(declaration);
     final name =
-        '\$${_capitalised(declaration.type.name)}'
+        '\$${_capitalised(_typeTagOf(declaration.type))}'
         '${_capitalised(declaration.name)}Args';
     if (!_contested.contains(base)) return name;
-    return '$name\$${_aliasOf(_libraryOf(declaration))}';
+    return '$name\$${_suffixOf(declaration)}';
   }
 
   static Set<String> _contestedIn(
@@ -86,8 +93,44 @@ class CobaltFactoryNames {
       return '_${provider.module.name}${_capitalised(provider.member)}'
           '${suffix}Factory';
     }
-    return '_${declaration.type.name}${suffix}Factory';
+    return '_${_typeTagOf(declaration.type)}${suffix}Factory';
   }
+
+  /// [type] as part of an identifier: its name, then its type arguments
+  /// after `Of` and joined by `And`, each nullable one marked `Nullable`.
+  /// `Pair<String, List<Note?>>` reads `PairOfStringAndListOfNullableNote`.
+  static String _typeTagOf(CobaltTypeRef type) {
+    final name = _identifierOf(type.name);
+    if (type.typeArguments.isEmpty) return name;
+    final arguments = type.typeArguments.map(
+      (argument) =>
+          '${argument.isNullable ? 'Nullable' : ''}'
+          '${_capitalised(_typeTagOf(argument))}',
+    );
+    return '${name}Of${arguments.join('And')}';
+  }
+
+  /// [name] with everything an identifier cannot hold dropped, for a type
+  /// argument written as a record or a function type.
+  static String _identifierOf(String name) {
+    if (_identifier.hasMatch(name)) return name;
+    return name
+        .split(RegExp(r'[^A-Za-z0-9_$]+'))
+        .where((part) => part.isNotEmpty)
+        .map(_capitalised)
+        .join();
+  }
+
+  static final _identifier = RegExp(r'^[A-Za-z_$][A-Za-z0-9_$]*$');
+
+  static bool _isInstantiation(CobaltInjectableClass declaration) =>
+      declaration.provider == null && declaration.type.typeArguments.isNotEmpty;
+
+  static int _suffixOf(CobaltInjectableClass declaration) => _aliasOf(
+    _isInstantiation(declaration)
+        ? declaration.type.signature
+        : _libraryOf(declaration),
+  );
 
   static String _libraryOf(CobaltInjectableClass declaration) =>
       declaration.provider?.module.import ?? declaration.type.import ?? '';

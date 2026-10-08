@@ -1,3 +1,19 @@
+## 1.2.0
+
+- Quick fixes for seven rules, offered by the IDE on the diagnostic:
+  `cobalt_injected_field_must_be_late_final` declares the field
+  `late final`, `cobalt_missing_injection_mixin` adds the `_$ClassName`
+  mixin, `cobalt_injected_field_needs_an_injectable`,
+  `cobalt_environment_needs_a_registration` and
+  `cobalt_param_needs_an_injectable` add `@cobaltInject`,
+  `cobalt_depends_on_lazy_registration` replaces `dependsOn: [...]` with
+  `lazy: true`, and `cobalt_registration_is_never_released` implements
+  `Disposable` or `AsyncDisposable`. The README lists them.
+- The rules read a generic class as one registration per entry of
+  `@CobaltInject(instantiations:)`, as the generator does.
+- Requires `cobalt_analyzer` 1.2.0.
+- The README opens with how to turn the plugin on and what it reports.
+
 ## 1.1.1
 
 - No code changes in this package. Republished in lockstep with 1.1.1:

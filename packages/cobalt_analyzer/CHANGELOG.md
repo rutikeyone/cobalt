@@ -1,3 +1,12 @@
+## 1.2.0
+
+- Internal: parses `@CobaltInject(instantiations:)` into one declaration
+  per instantiation, so `parseClass` returns a list, and reports a raw type,
+  a duplicate entry, `exposeAs`, an `@injected` field or a module member
+  with `instantiations` as build errors. A type argument keeps its `?` in a
+  registration's identity. Requires `cobalt_annotations` 1.2.0;
+  `cobalt_generator` and `cobalt_lint` 1.2.0 require this version.
+
 ## 1.1.1
 
 - No code changes in this package. Republished in lockstep with 1.1.1:

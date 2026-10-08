@@ -19,6 +19,8 @@ the error happens and what to do about it.
 
 ```
 Config is not registered in scope "app" or its ancestors. Resolving: Api -> Repository -> Config.
+Nothing in this scope tree registers Config. Register it, or if it is a @cobaltInject class, run
+build_runner again.
 ```
 
 Something asked for a type that no scope between here and the root registers.
@@ -28,6 +30,12 @@ Something asked for a type that no scope between here and the root registers.
   `@CobaltScopeRoot(provides: [...])`.
 - By hand: register it in the scope's `build()`, or in a scope above it.
 - `Resolving:` shows who asked, first to last. Start looking at the first name.
+- After the trail comes a hint. If scopes below or beside this one register the key, the message
+  names up to three of them: resolution walks up, never down, so move the registration up or resolve
+  from that scope. If the type is registered under other names, it lists those keys, as in
+  `Api, Api(fake)`: check the `name:`. If neither applies, it says nothing in the scope tree
+  registers the key: see the first two points. The error carries the same facts as
+  `registeredElsewhere` and `sameType`.
 - If the message says the scope is still being built: an eager `registerSingleton` resolved its
   dependencies before they were registered further down `build()`. Move it below them, or make it
   lazy.
@@ -223,8 +231,13 @@ The generator stops the build with a message that says what to change. The usual
   `@CobaltScopeRoot(provides: [...])`. The message lists every gap at once.
 - **Two `@CobaltScopeRoot` classes in one package.** A package has one generated root. Keep one.
 - **A dependency cycle.** See [CobaltCycleError](#cobaltcycleerror).
-- **An abstract or generic class with `@CobaltInject`.** The generator cannot build it. Annotate a
-  concrete class and expose it under the interface: `@CobaltInject(exposeAs: ApiClient)`.
+- **An abstract class with `@CobaltInject`.** The generator cannot build it. Annotate a concrete
+  class and expose it under the interface: `@CobaltInject(exposeAs: ApiClient)`.
+- **A generic class with `@CobaltInject`.** The message says the class declares type parameters, so
+  there is no single instantiation to register. Name the ones it registers, every type argument
+  spelled out: `@CobaltInject(instantiations: [Cache<Note>, Cache<User>])`. A raw `Cache` in the list
+  reads as `Cache<dynamic>` and is rejected, and so are `exposeAs` beside `instantiations` and an
+  `@injected` field on a generic class; take that field in the constructor.
 
 [GUIDE_CODEGEN.md](../GUIDE_CODEGEN.md#5-the-graph-has-to-be-complete) explains how the check works,
 and the [lint plugin](../GUIDE_CODEGEN.md#16-the-lint-plugin) shows most of these in the editor before

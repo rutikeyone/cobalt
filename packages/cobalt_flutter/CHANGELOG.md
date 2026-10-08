@@ -1,3 +1,12 @@
+## 1.2.0
+
+- On a hot reload, `CobaltAppScope` compares the builder's registrations
+  with the live graph through `CobaltScope.previewRegistrations` and
+  `registrationOf` instead of the deprecated `debug*` members. It restarts
+  the graph in the same cases as before. Requires `cobalt` 1.2.0.
+- The README opens with what the package is, how to install it and a Quick
+  start, and the pubspec description says what it does.
+
 ## 1.1.1
 
 - `CobaltNoScopeError` and `CobaltNoAppScopeError` end with a link to their

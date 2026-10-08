@@ -6,10 +6,42 @@ dependencies, and check that a hand-written graph resolves.
 Pure Dart, on `test_api` and `matcher` rather than the full `test` runner, so the same helpers work
 under `dart test` and `flutter test`.
 
-```yaml
-dev_dependencies:
-  cobalt_test: ^1.0.0
+```bash
+dart pub add dev:cobalt_test
 ```
+
+A test of the `Greeter` from the
+[`cobalt_flutter` Quick start](https://pub.dev/packages/cobalt_flutter#quick-start), with the clock
+fixed so the greeting no longer depends on the time of day:
+
+```dart
+class FixedClock implements Clock {
+  FixedClock(this.time);
+
+  final DateTime time;
+
+  @override
+  DateTime now() => time;
+}
+
+test('greets in the morning', () async {
+  final app = await cobaltTestScope(
+    root: const $CobaltRootScope(),
+    overrides: [
+      CobaltOverride<Clock>.value(FixedClock(DateTime(2026, 10, 7, 9))),
+    ],
+  );
+
+  expect(app.get<Greeter>().greet('Cobalt'), 'Good morning, Cobalt!');
+});
+```
+
+`cobaltTestScope` starts the same graph the app starts, with `Clock` replaced for everything that
+asks for it, and disposes it when the test ends.
+
+Learn more: tests in the [Code-Gen guide](https://github.com/rutikeyone/cobalt/blob/main/GUIDE_CODEGEN.md#18-tests)
+and the [Manual guide](https://github.com/rutikeyone/cobalt/blob/main/GUIDE_MANUAL.md#13-tests), and
+[`cobalt_test_flutter`](https://pub.dev/packages/cobalt_test_flutter) for widget tests.
 
 ## Building a graph
 

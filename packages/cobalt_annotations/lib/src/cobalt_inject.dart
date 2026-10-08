@@ -22,6 +22,7 @@ class CobaltInject {
     this.exposeAs,
     this.dispose,
     this.lazyInit = false,
+    this.instantiations = const <Type>[],
   });
 
   /// How long the instance lives. Defaults to [CobaltLifetime.lazySingleton].
@@ -59,6 +60,30 @@ class CobaltInject {
   /// `getAsync` instead of during `scope.init()` — the module form of
   /// `@CobaltInit(lazy: true)`. On anything else it is a build error.
   final bool lazyInit;
+
+  /// The instantiations of a generic class to register, one registration
+  /// each.
+  ///
+  /// A class with type parameters has no single type to register, so it names
+  /// the ones it wants. This registers `Cache<Note>` and `Cache<Tag>`, and the
+  /// constructor of each receives its own `Store<Note>` or `Store<Tag>`:
+  ///
+  /// ```dart
+  /// @CobaltInject(instantiations: [Cache<Note>, Cache<Tag>])
+  /// class Cache<T> {
+  ///   Cache(this.store);
+  ///   final Store<T> store;
+  /// }
+  /// ```
+  ///
+  /// [name], [lifetime], [dispose] and the environment apply to every one of
+  /// them. Each entry has to be the annotated class with every type argument
+  /// spelled out; a raw `Cache` reads as `Cache<dynamic>` and is a build
+  /// error, as is listing the same instantiation twice, combining it with
+  /// [exposeAs], or giving the class an `@injected` field.
+  ///
+  /// Leave it empty on a class without type parameters.
+  final List<Type> instantiations;
 }
 
 /// Registers the class as a lazy singleton — one instance per scope, built on

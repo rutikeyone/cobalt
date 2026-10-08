@@ -184,11 +184,20 @@ Cobalt가 하위 클래스를 생성하는 대신 `const AppModule()`에서 멤�
 순환이 있으면 스택 오버플로까지 재귀하는 대신 그 순환을 지목하며 빌드가
 실패합니다.
 
-**제네릭 클래스는 거부됩니다.** `@CobaltInject class Cache<T>`는 빌드 오류입니다.
-어떤 인스턴스화를 등록할지 제너레이터에 알려 주는 것이 없기 때문입니다.
-구체 하위 타입에 어노테이션을 붙이거나, 하나를 노출하십시오:
-`@CobaltInject(exposeAs: Cache<Note>)`. 제네릭 *의존성*은 평소대로 동작합니다.
-`Repository<User>`와 `Repository<Order>`는 별개의 등록입니다.
+**제네릭 클래스는 자기 인스턴스화를 나열합니다.** 그냥 `@CobaltInject class Cache<T>`만 쓰면
+빌드 오류입니다. 어떤 인스턴스화를 등록할지 제너레이터에 알려 주는 것이 없기 때문입니다.
+인스턴스화를 나열하면 각각이 별개의 등록이 되고, 자기 `Store<Note>` 또는 `Store<User>`로 만들어집니다.
+
+```dart
+@CobaltInject(instantiations: [Cache<Note>, Cache<User>])
+class Cache<T> {
+  Cache(this.store);
+  final Store<T> store;
+}
+```
+
+모든 타입 인자를 명시해야 하며, `exposeAs`와 `@injected` 필드는 `instantiations`와 함께 쓸 수 없습니다.
+제네릭 *의존성*은 평소대로 동작합니다. `Repository<User>`와 `Repository<Order>`는 별개의 등록입니다.
 
 ### 얻는 것
 
@@ -312,4 +321,7 @@ class CounterCubit extends Cubit<int> with CobaltBloc {}
   `restartOnGraphChange: false`로 이전 동작을 유지합니다.
 - **1.0**: `CobaltScope`의 `debug*` 멤버는 `@experimental`입니다. 새로운 analyzer는 여러분의 코드가
   이를 호출하는 곳에서 `experimental_member_use`를 보고합니다. 마이너 릴리스에서 바뀔 수 있으므로,
-  의도한 곳에서는 경고를 무시하십시오.
+  의도한 곳에서는 경고를 무시하십시오. 1.2부터 읽기 전용 멤버는 대신 deprecated로 바뀌었고,
+  `registrationOf`, `describeTree()`를 비롯한
+  [Inspecting a scope](packages/cobalt/README.md#inspecting-a-scope)의 멤버로 대체되며 2.0에서
+  제거됩니다. `@experimental`로 남는 것은 `debugResolve…` 멤버뿐입니다.

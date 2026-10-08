@@ -536,7 +536,7 @@ class GalleryL10nEn extends GalleryL10n {
 
   @override
   String get inspectorPoint2 =>
-      'Every registration carries its lifetime, read with debugKindOf';
+      'Every registration carries its lifetime, read with registrationOf';
 
   @override
   String get inspectorPoint3 =>

@@ -927,7 +927,7 @@ abstract class GalleryL10n {
   /// No description provided for @inspectorPoint2.
   ///
   /// In en, this message translates to:
-  /// **'Every registration carries its lifetime, read with debugKindOf'**
+  /// **'Every registration carries its lifetime, read with registrationOf'**
   String get inspectorPoint2;
 
   /// No description provided for @inspectorPoint3.

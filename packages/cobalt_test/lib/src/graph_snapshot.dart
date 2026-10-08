@@ -1,8 +1,3 @@
-// CobaltScope's debug* members are @experimental — outside semver, which newer
-// analyzers flag on every use from another package. Reading the graph through
-// them is what this file is for.
-// ignore_for_file: experimental_member_use
-
 import 'dart:async';
 
 import 'package:cobalt/cobalt.dart';
@@ -44,10 +39,10 @@ String describeGraph(CobaltScope scope) {
   final lines = <String>[];
   void describe(CobaltScope scope, String indent) {
     lines.add('${indent}scope "${scope.name}"');
-    if (scope.debugHooks case final hooks when hooks.isNotEmpty) {
+    if (scope.hooks case final hooks when hooks.isNotEmpty) {
       lines.add('$indent  hooks: ${hooks.join(', ')}');
     }
-    if (scope.debugAdopted case final adopted when adopted.isNotEmpty) {
+    if (scope.adoptedTypes case final adopted when adopted.isNotEmpty) {
       lines.add('$indent  adopted: ${adopted.join(', ')}');
     }
     for (final key in describedKeysOf(scope)) {

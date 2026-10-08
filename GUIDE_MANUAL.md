@@ -231,17 +231,30 @@ Diagnostics, and none of it builds anything:
 scope.keys;                  // this scope's own registrations, in registration order
 scope.visibleKeys;           // those plus inherited ones, mapped to the scope that owns each
 scope.root;                  // the top of the tree
-scope.debugDescribeTree();   // the tree as text
+scope.describeTree();        // the tree as text
+
+final info = scope.registrationOf(const CobaltKey(SearchEngine));
+info?.kind;                  // lazyAsyncSingleton, transient and so on
+info?.implementation;        // the class it builds, when its factory says
+info?.decorators;            // what wraps it, innermost first
+info?.isOverridden;          // whether an override supplies it
 ```
 
 `visibleKeys` is a map rather than a set for a reason worth internalising early: a factory runs on
 the scope that owns *its own* registration, not on the one you asked. Knowing which scope owns a key
 is what tells you whether an override will be seen — see [§13](#13-tests).
 
-Everything named `debug…` — `debugDescribeTree` here, and `debugKindOf`, `debugDecoratorsOf` and the
-rest that the inspector and `cobalt_test` read — is `@experimental`: outside semver, so it may change
-in a minor release, and newer analyzers flag each use with `experimental_member_use`. Fine in a
-diagnostics screen or a test; not something to build on.
+`registrationOf` answers through ancestors, like `get`, and returns null when nothing registers the
+key. `hooks` and `adoptedTypes` list the hooks added to a scope and what was handed to `adopt`, and
+`CobaltScope.previewRegistrations(builder)` lists what a builder registers without building
+anything. `describeTree()` is for reading, not parsing: the shape of its text may change in any
+release.
+
+These replace the read-only `debug…` members (`debugDescribeTree`, `debugKindOf`,
+`debugDecoratorsOf` and the rest), which still work, are deprecated, and go in 2.0. Only the
+`debugResolve…` members stay `@experimental`: outside semver, so they may change in a minor release,
+and newer analyzers flag their use from another package with `experimental_member_use`. Fine in a
+test; not something to build on.
 
 ---
 

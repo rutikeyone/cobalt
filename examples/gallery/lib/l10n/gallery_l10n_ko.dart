@@ -474,7 +474,7 @@ class GalleryL10nKo extends GalleryL10n {
   String get inspectorPoint1 => '트리는 이벤트로 재구성하지 않고, 살아 있는 스코프를 직접 순회해 얻습니다';
 
   @override
-  String get inspectorPoint2 => '모든 등록은 자신의 수명을 지니며, debugKindOf로 읽습니다';
+  String get inspectorPoint2 => '모든 등록은 자신의 수명을 지니며, registrationOf로 읽습니다';
 
   @override
   String get inspectorPoint3 => '탭하면 사실만 보여 줍니다. 빌드는 별도의 동작이며 그 비용을 알려 줍니다';

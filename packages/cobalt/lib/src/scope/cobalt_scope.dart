@@ -28,6 +28,7 @@ import 'package:cobalt/src/factory/cobalt_factory.dart';
 import 'package:cobalt/src/factory/cobalt_param_factory.dart';
 import 'package:cobalt/src/graph/topological_sort.dart';
 import 'package:cobalt/src/hook/cobalt_hook.dart';
+import 'package:cobalt/src/hook/cobalt_hook_info.dart';
 import 'package:cobalt/src/key/cobalt_key.dart';
 import 'package:cobalt/src/lifecycle/cobalt_injectable.dart';
 import 'package:cobalt/src/lifecycle/cobalt_resolver.dart';
@@ -37,6 +38,7 @@ import 'package:cobalt/src/observer/cobalt_observer.dart';
 import 'package:cobalt/src/observer/cobalt_scope_ref.dart';
 import 'package:cobalt/src/overrides/cobalt_override.dart';
 import 'package:cobalt/src/registration/cobalt_registration.dart';
+import 'package:cobalt/src/scope/cobalt_registration_info.dart';
 import 'package:cobalt/src/scope/cobalt_registration_kind.dart';
 import 'package:cobalt/src/scope/cobalt_scope_state.dart';
 import 'package:cobalt/src/scope/resolution_tracker.dart';
@@ -186,64 +188,36 @@ final class CobaltScope extends CobaltResolver {
     return Map.unmodifiable(result);
   }
 
-  /// What kind of registration [key] has, or null when nothing registers it.
+  /// What this scope knows about the registration of [key], or null when
+  /// nothing registers it.
   ///
   /// Resolves through ancestors like [get] does, so it answers for the scope
-  /// the key would actually come from.
+  /// the key would actually come from: the decorators and the override it
+  /// reports are that scope's.
   ///
-  /// For tools. It exists because the alternative — telling a parameterized
-  /// registration apart from a broken one by reading an exception message — is
+  /// For tools. It exists because the alternative, telling a parameterized
+  /// registration apart from a broken one by reading an exception message, is
   /// parsing prose.
   ///
-  /// Experimental: not covered by semantic versioning, so it may change
-  /// in a minor release — see Compatibility in the README.
-  @experimental
-  CobaltRegistrationKind? debugKindOf(CobaltKey key) =>
-      switch (_lookup(key)?.registration) {
-        SingletonRegistration() => CobaltRegistrationKind.singleton,
-        LazySingletonRegistration() => CobaltRegistrationKind.lazySingleton,
-        TransientRegistration() => CobaltRegistrationKind.transient,
-        AsyncSingletonRegistration() => CobaltRegistrationKind.asyncSingleton,
-        LazyAsyncSingletonRegistration() =>
-          CobaltRegistrationKind.lazyAsyncSingleton,
-        ParamRegistration() => CobaltRegistrationKind.parameterized,
-        AsyncParamRegistration() => CobaltRegistrationKind.asyncParameterized,
-        AsyncTransientRegistration() => CobaltRegistrationKind.asyncTransient,
-        null => null,
-      };
+  /// Read-only, so it does not throw on a scope being torn down. After
+  /// [dispose] this scope registers nothing, and it answers for the ancestors.
+  CobaltRegistrationInfo? registrationOf(CobaltKey key) {
+    final found = _lookup(key);
+    return found?.scope._infoOf(found.registration);
+  }
 
-  /// The decorators that wrap [key], in the order they apply, innermost
-  /// first; empty when none do.
-  ///
-  /// Each is named by the `debugLabel` it was added with, or by its type.
-  /// Answered for the scope that owns [key], the only one whose decorators
-  /// can apply to it — those of the key and those of its whole type alike.
-  ///
-  /// Experimental: not covered by semantic versioning, so it may change
-  /// in a minor release — see Compatibility in the README.
-  @experimental
-  List<String> debugDecoratorsOf(CobaltKey key) => [
-    for (final decoration
-        in _lookup(key)?.scope._decorationsOf(key) ?? const <_Decoration>[])
-      decoration.label,
-  ];
-
-  /// The registrations [builder] makes and how long each lives, without
+  /// The registrations [builder] makes, in the order it makes them, without
   /// starting anything.
   ///
   /// [builder] runs against a scope of its own that records an eager
-  /// registration instead of building it, and is dropped afterwards — nothing
+  /// registration instead of building it, and is dropped afterwards: nothing
   /// is initialized, disposed or handed out. What a builder does besides
   /// registering, such as constructing a value for `registerSingleton`, it
   /// still does. `CobaltAppScope` compares this with the live root on a hot
   /// reload, to restart the graph only when its registrations changed.
   ///
   /// Throws what [runBuilder] throws for a builder that cannot run.
-  ///
-  /// Experimental: not covered by semantic versioning, so it may change
-  /// in a minor release — see Compatibility in the README.
-  @experimental
-  static Map<CobaltKey, CobaltRegistrationKind> debugRegistrationsOf(
+  static List<CobaltRegistrationInfo> previewRegistrations(
     CobaltScopeBuilder builder,
   ) {
     final probe = CobaltScope._(
@@ -253,51 +227,123 @@ final class CobaltScope extends CobaltResolver {
       const [],
     ).._dryRun = true;
     probe.runBuilder(builder);
-    return {for (final key in probe.keys) key: probe.debugKindOf(key)!};
+    return List.unmodifiable([
+      for (final registration in probe._registrations.values)
+        probe._infoOf(registration),
+    ]);
   }
 
-  /// Set on the scope [debugRegistrationsOf] runs a builder against.
+  /// Set on the scope [previewRegistrations] runs a builder against.
   var _dryRun = false;
 
-  /// The class the registration of [key] builds, when its factory says —
-  /// see [CobaltDescribedFactory]; null when it does not, or when nothing
-  /// registers [key].
-  ///
-  /// Answered for the scope that owns [key]. The generator's factories always
-  /// say, which is how `describeGraph` can tell `FakeApiClient` from
-  /// `LiveApiClient` behind one `ApiClient`.
-  ///
-  /// Experimental: not covered by semantic versioning, so it may change
-  /// in a minor release — see Compatibility in the README.
-  @experimental
-  String? debugImplementationOf(CobaltKey key) =>
-      _lookup(key)?.registration.implementation;
+  CobaltRegistrationInfo _infoOf(CobaltRegistration registration) {
+    final key = registration.key;
+    return CobaltRegistrationInfo(
+      key: key,
+      kind: _kindOf(registration),
+      implementation: registration.implementation,
+      decorators: List.unmodifiable([
+        for (final decoration in _decorationsOf(key) ?? const <_Decoration>[])
+          decoration.label,
+      ]),
+      isOverridden: _overriddenKeys.contains(key),
+    );
+  }
 
-  /// What [adopt] handed to this scope, in the order it was adopted, each by
-  /// its type — the bootstrap steps a start ran, in the common case.
-  ///
-  /// Experimental: not covered by semantic versioning, so it may change
-  /// in a minor release — see Compatibility in the README.
-  @experimental
-  List<String> get debugAdopted => List.unmodifiable(_adopted);
+  static CobaltRegistrationKind _kindOf(CobaltRegistration registration) =>
+      switch (registration) {
+        SingletonRegistration() => CobaltRegistrationKind.singleton,
+        LazySingletonRegistration() => CobaltRegistrationKind.lazySingleton,
+        TransientRegistration() => CobaltRegistrationKind.transient,
+        AsyncSingletonRegistration() => CobaltRegistrationKind.asyncSingleton,
+        LazyAsyncSingletonRegistration() =>
+          CobaltRegistrationKind.lazyAsyncSingleton,
+        ParamRegistration() => CobaltRegistrationKind.parameterized,
+        AsyncParamRegistration() => CobaltRegistrationKind.asyncParameterized,
+        AsyncTransientRegistration() => CobaltRegistrationKind.asyncTransient,
+      };
 
-  final _adopted = <String>[];
+  /// The type of everything [adopt] handed to this scope, in the order it
+  /// was adopted: the bootstrap steps a start ran, in the common case.
+  ///
+  /// Empty after [dispose].
+  List<Type> get adoptedTypes => List.unmodifiable(_adopted);
+
+  final _adopted = <Type>[];
 
   static String? _implementationOf(Object factory) =>
       factory is CobaltDescribedFactory ? factory.implementation : null;
 
-  /// The hooks added to this scope itself, in the order they run, each as
-  /// `Label on Type`; empty when none were.
+  /// The hooks added to this scope itself, in the order they run; empty when
+  /// none were.
   ///
   /// A scope below runs these too, after its ancestors' and before its own,
   /// so the whole set for a scope is its ancestors' lists and then this one.
   ///
+  /// Empty after [dispose].
+  List<CobaltHookInfo> get hooks => List.unmodifiable([
+    for (final hook in _hooks)
+      CobaltHookInfo(label: hook.label, type: hook.type),
+  ]);
+
+  /// What kind of registration [key] has, or null when nothing registers it.
+  ///
   /// Experimental: not covered by semantic versioning, so it may change
-  /// in a minor release — see Compatibility in the README.
+  /// in a minor release; see Compatibility in the README.
   @experimental
-  List<String> get debugHooks => [
-    for (final hook in _hooks) '${hook.label} on ${hook.type}',
+  @Deprecated('Use registrationOf(key)?.kind. Removed in 2.0.')
+  CobaltRegistrationKind? debugKindOf(CobaltKey key) =>
+      registrationOf(key)?.kind;
+
+  /// The decorators that wrap [key], innermost first; empty when none do.
+  ///
+  /// Experimental: not covered by semantic versioning, so it may change
+  /// in a minor release; see Compatibility in the README.
+  @experimental
+  @Deprecated('Use registrationOf(key)?.decorators. Removed in 2.0.')
+  List<String> debugDecoratorsOf(CobaltKey key) => [
+    ...?registrationOf(key)?.decorators,
   ];
+
+  /// The registrations [builder] makes and the kind of each, without
+  /// starting anything.
+  ///
+  /// Experimental: not covered by semantic versioning, so it may change
+  /// in a minor release; see Compatibility in the README.
+  @experimental
+  @Deprecated('Use previewRegistrations(builder). Removed in 2.0.')
+  static Map<CobaltKey, CobaltRegistrationKind> debugRegistrationsOf(
+    CobaltScopeBuilder builder,
+  ) => {for (final info in previewRegistrations(builder)) info.key: info.kind};
+
+  /// The class the registration of [key] builds, when its factory says; null
+  /// when it does not, or when nothing registers [key].
+  ///
+  /// Experimental: not covered by semantic versioning, so it may change
+  /// in a minor release; see Compatibility in the README.
+  @experimental
+  @Deprecated('Use registrationOf(key)?.implementation. Removed in 2.0.')
+  String? debugImplementationOf(CobaltKey key) =>
+      registrationOf(key)?.implementation;
+
+  /// What [adopt] handed to this scope, in the order it was adopted, each by
+  /// its type.
+  ///
+  /// Experimental: not covered by semantic versioning, so it may change
+  /// in a minor release; see Compatibility in the README.
+  @experimental
+  @Deprecated('Use adoptedTypes. Removed in 2.0.')
+  List<String> get debugAdopted =>
+      List.unmodifiable([for (final type in adoptedTypes) '$type']);
+
+  /// The hooks added to this scope itself, in the order they run, each as
+  /// `Label on Type`.
+  ///
+  /// Experimental: not covered by semantic versioning, so it may change
+  /// in a minor release; see Compatibility in the README.
+  @experimental
+  @Deprecated('Use hooks. Removed in 2.0.')
+  List<String> get debugHooks => [for (final hook in hooks) '$hook'];
 
   /// Resolves [key] without naming its type, or null when nothing registers it.
   ///
@@ -307,7 +353,7 @@ final class CobaltScope extends CobaltResolver {
   ///
   /// Everything [get] throws, this throws: an async singleton before `init()`
   /// raises `CobaltNotReadyError`, a parameterized registration raises
-  /// `CobaltError`, a cycle raises `CobaltCycleError`. Check [debugKindOf] first
+  /// `CobaltError`, a cycle raises `CobaltCycleError`. Check [registrationOf] first
   /// rather than reading those apart afterwards.
   ///
   /// Experimental: not covered by semantic versioning, so it may change
@@ -392,14 +438,21 @@ final class CobaltScope extends CobaltResolver {
     return found.scope._resolveWithParamAsync(found.registration, param);
   }
 
+  /// Renders this scope and everything under it, one line per scope: its
+  /// name, its state and how many registrations it has.
+  ///
+  /// For reading, in diagnostics and test failures, not for parsing: the
+  /// shape of the text is not a contract and may change in any release. Read
+  /// [children], [state] and [keys] for anything a program decides on.
+  String describeTree() => _describe(0).join('\n');
+
   /// Renders this scope and everything under it, one line per scope.
   ///
-  /// For diagnostics and test failures. The shape is not a contract.
-  ///
   /// Experimental: not covered by semantic versioning, so it may change
-  /// in a minor release — see Compatibility in the README.
+  /// in a minor release; see Compatibility in the README.
   @experimental
-  String debugDescribeTree() => _describe(0).join('\n');
+  @Deprecated('Use describeTree(). Removed in 2.0.')
+  String debugDescribeTree() => describeTree();
 
   List<String> _describe(int indent) => [
     '${'  ' * indent}$name  [${_state.name}]  ${_registrations.length} '
@@ -498,7 +551,7 @@ final class CobaltScope extends CobaltResolver {
   /// key this scope does not register wraps nothing, and [runBuilder] reports
   /// that once the builder returns, naming the ancestor that owns it.
   ///
-  /// [debugLabel] is how [debugDecoratorsOf] and the inspector name it,
+  /// [debugLabel] is how [registrationOf] and the inspector name it,
   /// defaulting to the decorator's type. The generator passes the annotated
   /// class, since the type it emits is its own private wrapper.
   void decorate<T extends Object>(
@@ -684,7 +737,7 @@ final class CobaltScope extends CobaltResolver {
     if (!_admit(key)) return;
     final order = _order++;
     if (_dryRun) {
-      // Recorded, not built: see debugRegistrationsOf.
+      // Recorded, not built: see previewRegistrations.
       _registrations[key] = SingletonRegistration(
         key: key,
         order: order,
@@ -905,12 +958,7 @@ final class CobaltScope extends CobaltResolver {
     final key = CobaltKey(T, name: name);
     final found = _lookup(key);
     if (found == null) {
-      throw CobaltNotRegisteredError(
-        key,
-        this.name,
-        resolving: _trail(),
-        whileBuilding: _building,
-      );
+      throw _notRegistered(key, resolving: _trail(), whileBuilding: _building);
     }
     return found.scope._materialize(found.registration) as T;
   }
@@ -921,12 +969,7 @@ final class CobaltScope extends CobaltResolver {
     final key = CobaltKey(T, name: name);
     final found = _lookup(key);
     if (found == null) {
-      throw CobaltNotRegisteredError(
-        key,
-        this.name,
-        resolving: _trail(),
-        whileBuilding: _building,
-      );
+      throw _notRegistered(key, resolving: _trail(), whileBuilding: _building);
     }
     return await found.scope._resolveAsync(found.registration) as T;
   }
@@ -952,14 +995,14 @@ final class CobaltScope extends CobaltResolver {
     for (final key in keys.toSet()) {
       final found = _lookup(key);
       if (found == null) {
-        throw CobaltNotRegisteredError(key, name);
+        throw _notRegistered(key);
       }
       final registration = found.registration;
       if (registration is! LazyAsyncSingletonRegistration) {
         throw ArgumentError.value(
           key,
           'keys',
-          'is a ${debugKindOf(key)?.name} registration, not a lazy async one, '
+          'is a ${_kindOf(registration).name} registration, not a lazy async one, '
               'so there is nothing to build ahead of time',
         );
       }
@@ -1007,12 +1050,7 @@ final class CobaltScope extends CobaltResolver {
     final key = CobaltKey(T, name: name);
     final found = _lookup(key);
     if (found == null) {
-      throw CobaltNotRegisteredError(
-        key,
-        this.name,
-        resolving: _trail(),
-        whileBuilding: _building,
-      );
+      throw _notRegistered(key, resolving: _trail(), whileBuilding: _building);
     }
     final registration = found.registration;
     if (registration is AsyncParamRegistration) {
@@ -1051,12 +1089,7 @@ final class CobaltScope extends CobaltResolver {
     final key = CobaltKey(T, name: name);
     final found = _lookup(key);
     if (found == null) {
-      throw CobaltNotRegisteredError(
-        key,
-        this.name,
-        resolving: _trail(),
-        whileBuilding: _building,
-      );
+      throw _notRegistered(key, resolving: _trail(), whileBuilding: _building);
     }
     return await found.scope._resolveWithParamAsync(found.registration, param)
         as T;
@@ -1237,7 +1270,7 @@ final class CobaltScope extends CobaltResolver {
   }) {
     _assertUsable();
     _own(instance, teardown: _teardownOf(dispose));
-    _adopted.add('${instance.runtimeType}');
+    _adopted.add(instance.runtimeType);
     return instance;
   }
 
@@ -1478,6 +1511,43 @@ final class CobaltScope extends CobaltResolver {
     }
     if (_applyingOverrides) _overriddenKeys.add(key);
     return true;
+  }
+
+  CobaltNotRegisteredError _notRegistered(
+    CobaltKey key, {
+    List<CobaltKey> resolving = const [],
+    bool whileBuilding = false,
+  }) {
+    final above = Set<CobaltScope>.identity();
+    for (CobaltScope? scope = this; scope != null; scope = scope.parent) {
+      above.add(scope);
+    }
+    final elsewhere = <String>[];
+    void visit(CobaltScope scope) {
+      if (elsewhere.length == 3) return;
+      if (!above.contains(scope) &&
+          scope.keys.contains(key) &&
+          !elsewhere.contains(scope.name)) {
+        elsewhere.add(scope.name);
+      }
+      for (final child in scope.children) {
+        visit(child);
+      }
+    }
+
+    visit(root);
+    final sameType = [
+      for (final visible in visibleKeys.keys)
+        if (visible.type == key.type && visible.name != key.name) visible,
+    ]..sort((a, b) => '$a'.compareTo('$b'));
+    return CobaltNotRegisteredError(
+      key,
+      name,
+      resolving: resolving,
+      whileBuilding: whileBuilding,
+      registeredElsewhere: elsewhere,
+      sameType: sameType,
+    );
   }
 
   ({CobaltScope scope, CobaltRegistration registration})? _lookup(

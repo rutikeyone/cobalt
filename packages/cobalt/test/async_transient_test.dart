@@ -285,7 +285,10 @@ void main() {
       final scope = reports();
       const key = CobaltKey(Report);
 
-      expect(scope.debugKindOf(key), CobaltRegistrationKind.asyncTransient);
+      expect(
+        scope.registrationOf(key)?.kind,
+        CobaltRegistrationKind.asyncTransient,
+      );
       expect(await scope.debugResolveAsync(key), isA<Report>());
       expect(
         () => scope.debugResolve(key),

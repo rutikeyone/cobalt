@@ -21,7 +21,7 @@ class Report {
 }
 ''');
 
-      final parsed = parser.parseClass(clazz);
+      final parsed = parser.parseClass(clazz).single;
       expect(parsed.lifetime, CobaltLifetime.transient);
       expect(parsed.isAsyncInit, isTrue);
       expect(parsed.isAsyncTransient, isTrue);
@@ -40,7 +40,7 @@ class Report {
 }
 ''');
 
-      expect(parser.parseClass(clazz).isAsyncTransient, isTrue);
+      expect(parser.parseClass(clazz).single.isAsyncTransient, isTrue);
     });
 
     test('a plain @CobaltInit stays a singleton built by init()', () async {
@@ -52,7 +52,7 @@ class Database {
 }
 ''');
 
-      final parsed = parser.parseClass(clazz);
+      final parsed = parser.parseClass(clazz).single;
       expect(parsed.lifetime, CobaltLifetime.lazySingleton);
       expect(parsed.isAsyncTransient, isFalse);
       expect(parsed.isBuiltInPhaseOne, isTrue);
@@ -66,7 +66,7 @@ class Report {
 }
 ''');
 
-      final parsed = parser.parseClass(clazz);
+      final parsed = parser.parseClass(clazz).single;
       expect(parsed.isAsyncTransient, isFalse);
       expect(parsed.isAwaited, isFalse);
     });
@@ -82,7 +82,7 @@ class Report {
 }
 ''');
 
-      final parsed = parser.parseClass(clazz);
+      final parsed = parser.parseClass(clazz).single;
       expect(parsed.isAsyncParam, isTrue);
       expect(parsed.isAsyncTransient, isFalse);
     });

@@ -1,9 +1,9 @@
 /// What kind of registration a key has.
 ///
-/// Reported by `CobaltScope.debugKindOf` so a tool can tell what it is looking
-/// at without reaching for the registration itself, which stays internal — a
-/// registration carries factories and mutable build state, and handing those
-/// out would make every diagnostic a way to corrupt the graph.
+/// Reported by `CobaltScope.registrationOf` so a tool can tell what it is
+/// looking at without reaching for the registration itself, which stays
+/// internal — a registration carries factories and mutable build state, and
+/// handing those out would make every diagnostic a way to corrupt the graph.
 ///
 /// The distinction that matters most in practice is [parameterized] and
 /// [asyncParameterized]: they are the kinds that cannot be resolved without a

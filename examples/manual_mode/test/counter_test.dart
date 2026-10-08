@@ -1,8 +1,3 @@
-// CobaltScope's debug* members are @experimental — outside semver, which newer
-// analyzers flag on every use from another package. Reading the graph through
-// them is what this file is for.
-// ignore_for_file: experimental_member_use
-
 import 'package:cobalt/cobalt.dart';
 import 'package:manual_mode/counter.dart';
 import 'package:test/test.dart';
@@ -41,7 +36,7 @@ void main() {
       app.get<EventLog>().entries,
       containsAllInOrder(['alice -> 1', 'audited alice']),
     );
-    expect(session.debugDecoratorsOf(const CobaltKey(Counter)), [
+    expect(session.registrationOf(const CobaltKey(Counter))?.decorators, [
       'AuditedCounterDecorator',
     ]);
   });

@@ -1,6 +1,6 @@
 name: cobalt
-description: Runtime core of Cobalt, a dependency injection framework with hierarchical scopes, deterministic disposal and async init graphs.
-version: 1.1.1
+description: Dependency injection for Dart and Flutter. Scopes close everything they built when they end, async services start in dependency order, and tests can override any dependency.
+version: 1.2.0
 repository: https://github.com/rutikeyone/cobalt
 issue_tracker: https://github.com/rutikeyone/cobalt/issues
 topics:
@@ -14,7 +14,7 @@ environment:
 
 
 dependencies:
-  cobalt_annotations: ^1.0.0
+  cobalt_annotations: ^1.2.0
   collection: ^1.19.0
   meta: ^1.16.0
 

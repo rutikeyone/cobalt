@@ -20,7 +20,7 @@ class SearchEngine {
 }
 ''');
 
-      final parsed = parser.parseClass(clazz);
+      final parsed = parser.parseClass(clazz).single;
       expect(parsed.isLazyAsync, isTrue);
       expect(parsed.isAsyncInit, isTrue);
     });
@@ -34,7 +34,7 @@ class SearchEngine {
 }
 ''');
 
-      expect(parser.parseClass(clazz).isLazyAsync, isTrue);
+      expect(parser.parseClass(clazz).single.isLazyAsync, isTrue);
     });
 
     test('a plain @CobaltInit is not lazy', () async {
@@ -46,7 +46,7 @@ class Database {
 }
 ''');
 
-      expect(parser.parseClass(clazz).isLazyAsync, isFalse);
+      expect(parser.parseClass(clazz).single.isLazyAsync, isFalse);
     });
 
     test('lazy with dependsOn is refused', () async {

@@ -27,9 +27,7 @@ class CobaltParser {
     return CobaltLibraryDeclarations(
       injectables: [
         for (final clazz in classes)
-          if (_injectables.declares(clazz)) _injectables.parseClass(clazz),
-        // A module is the one declaration that yields many registrations, so
-        // this spreads where the others append.
+          if (_injectables.declares(clazz)) ..._injectables.parseClass(clazz),
         for (final clazz in classes)
           if (_modules.declares(clazz)) ..._modules.parseClass(clazz),
       ],
