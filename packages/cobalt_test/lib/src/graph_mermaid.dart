@@ -1,8 +1,3 @@
-// CobaltScope's debug* members are @experimental — outside semver, which newer
-// analyzers flag on every use from another package. Reading the graph through
-// them is what this file is for.
-// ignore_for_file: experimental_member_use
-
 import 'package:cobalt/cobalt.dart';
 import 'package:cobalt_test/src/graph_facts.dart';
 
@@ -34,13 +29,13 @@ String describeGraphMermaid(CobaltScope scope) {
     lines
       ..add('$indent  subgraph $id["${_escape('scope "${scope.name}"')}"]')
       ..add('$indent    direction TB');
-    final hooks = scope.debugHooks;
+    final hooks = scope.hooks;
     if (hooks.isNotEmpty) {
       lines.add(
         '$indent    ${id}_hooks(["${_escape('hooks: ${hooks.join(', ')}')}"])',
       );
     }
-    final adopted = scope.debugAdopted;
+    final adopted = scope.adoptedTypes;
     if (adopted.isNotEmpty) {
       lines.add(
         '$indent    ${id}_adopted(["${_escape('adopted: ${adopted.join(', ')}')}"])',

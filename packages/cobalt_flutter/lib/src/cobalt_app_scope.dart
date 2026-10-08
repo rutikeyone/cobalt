@@ -1,8 +1,3 @@
-// CobaltScope's debug* members are @experimental — outside semver, which newer
-// analyzers flag on every use from another package. Reading the graph through
-// them is what this file is for.
-// ignore_for_file: experimental_member_use
-
 import 'dart:async';
 import 'dart:ui' show AppExitResponse;
 
@@ -191,7 +186,7 @@ class CobaltAppScope extends StatefulWidget {
   /// registration added, removed or given another lifetime would otherwise
   /// wait for a hot restart — and until then the app resolves against the
   /// old graph. On each reload this runs [root] again without building
-  /// anything (`CobaltScope.debugRegistrationsOf`) and compares its
+  /// anything (`CobaltScope.previewRegistrations`) and compares its
   /// registrations with the live root's; only when they differ does it call
   /// [CobaltAppScopeController.restart], and say what changed in the debug
   /// console. A reload that touched only widgets or factory bodies keeps the
@@ -372,7 +367,7 @@ class _CobaltAppScopeState extends State<CobaltAppScope>
     if (!widget.restartOnGraphChange || root == null || scope == null) return;
     String? change;
     try {
-      change = _changeIn(CobaltScope.debugRegistrationsOf(root), scope);
+      change = _changeIn(CobaltScope.previewRegistrations(root), scope);
     } catch (error) {
       // A builder that no longer runs: restarting shows it the usual way,
       // through errorBuilder.
@@ -388,24 +383,22 @@ class _CobaltAppScopeState extends State<CobaltAppScope>
   ///
   /// A key an override stands in for is compared by presence only: the
   /// override is free to register it with another lifetime.
-  static String? _changeIn(
-    Map<CobaltKey, CobaltRegistrationKind> now,
-    CobaltScope live,
-  ) {
+  static String? _changeIn(List<CobaltRegistrationInfo> now, CobaltScope live) {
     final before = live.keys;
+    final after = {for (final info in now) info.key};
     final added = [
-      for (final key in now.keys)
+      for (final key in after)
         if (!before.contains(key)) key,
     ];
     final removed = [
       for (final key in before)
-        if (!now.containsKey(key)) key,
+        if (!after.contains(key)) key,
     ];
     final relived = [
-      for (final MapEntry(:key, :value) in now.entries)
+      for (final CobaltRegistrationInfo(:key, :kind) in now)
         if (before.contains(key) &&
             !live.overriddenKeys.contains(key) &&
-            live.debugKindOf(key) != value)
+            live.registrationOf(key)?.kind != kind)
           key,
     ];
     if (added.isEmpty && removed.isEmpty && relived.isEmpty) return null;

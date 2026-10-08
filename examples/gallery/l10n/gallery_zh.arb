@@ -137,7 +137,7 @@
   "inspectorTitle": "应用内检查器",
   "inspectorTeaches": "实时的作用域树、构建了什么以及各自的生命周期，就在应用内的一个界面上。",
   "inspectorPoint1": "这棵树是从活着的作用域走出来的，而不是从事件重建的",
-  "inspectorPoint2": "每个注册都带着自己的生命周期，通过 debugKindOf 读出",
+  "inspectorPoint2": "每个注册都带着自己的生命周期，通过 registrationOf 读出",
   "inspectorPoint3": "点击只展示事实；构建是一个单独的操作，并会说明它的代价",
   "inspectorPoint4": "急切单例出现在树里，却永远不会出现在“已构建”列表中",
   "testingTitle": "测试写法",

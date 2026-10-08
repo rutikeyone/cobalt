@@ -345,7 +345,7 @@
     "description": "One line: what \"In-app inspector\" exists to show."
   },
   "inspectorPoint1": "The tree is walked from the live scopes, not rebuilt from events",
-  "inspectorPoint2": "Every registration carries its lifetime, read with debugKindOf",
+  "inspectorPoint2": "Every registration carries its lifetime, read with registrationOf",
   "inspectorPoint3": "Tapping shows facts; building is a separate action that says its cost",
   "inspectorPoint4": "An eager singleton shows in the tree and never in the built list",
   "testingTitle": "Testing patterns",

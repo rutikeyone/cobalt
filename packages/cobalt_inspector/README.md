@@ -45,7 +45,7 @@ It reads the scope above it and climbs to the root, so it shows the whole graph 
 indistinguishable there, as are a scope that was disposed and one pushed later under the same name.
 Good enough to label a log row, not to identify a node.
 
-Each scope lists what it registers with its lifetime, read through `debugKindOf`, and separately
+Each scope lists what it registers with its lifetime, read through `registrationOf`, and separately
 what it inherits, with the scope that owns it. That owner is the fact that decides what an override
 actually affects: a factory runs on the scope that owns *its* registration, not the one you asked
 from.
@@ -53,7 +53,7 @@ from.
 A registration an override replaced is marked **overridden**, and one a decorator wraps is marked
 **decorated**; its sheet names the decorators, innermost first, by the `debugLabel` they were added
 with — the annotated class when the container is generated. Both come from `overriddenKeys` and
-`debugDecoratorsOf`, so marking a row builds nothing.
+`registrationOf`, so marking a row builds nothing.
 
 **Built** comes from creation events, and has to. A scope's registrations are what was *declared* —
 a lazy singleton nobody resolved looks there exactly like one that is built — so only an event

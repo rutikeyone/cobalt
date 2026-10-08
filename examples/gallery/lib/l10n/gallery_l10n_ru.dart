@@ -541,7 +541,7 @@ class GalleryL10nRu extends GalleryL10n {
 
   @override
   String get inspectorPoint2 =>
-      'Каждая регистрация несёт своё время жизни, читаемое через debugKindOf';
+      'Каждая регистрация несёт своё время жизни, читаемое через registrationOf';
 
   @override
   String get inspectorPoint3 =>

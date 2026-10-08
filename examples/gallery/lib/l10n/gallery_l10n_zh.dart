@@ -458,7 +458,7 @@ class GalleryL10nZh extends GalleryL10n {
   String get inspectorPoint1 => '这棵树是从活着的作用域走出来的，而不是从事件重建的';
 
   @override
-  String get inspectorPoint2 => '每个注册都带着自己的生命周期，通过 debugKindOf 读出';
+  String get inspectorPoint2 => '每个注册都带着自己的生命周期，通过 registrationOf 读出';
 
   @override
   String get inspectorPoint3 => '点击只展示事实；构建是一个单独的操作，并会说明它的代价';

@@ -1,15 +1,10 @@
-// CobaltScope's debug* members are @experimental — outside semver, which newer
-// analyzers flag on every use from another package. Reading the graph through
-// them is what this file is for.
-// ignore_for_file: experimental_member_use
-
 import 'package:cobalt_flutter/cobalt_flutter.dart';
 import 'package:flutter/material.dart';
 
 /// What one registration looks like to the inspector.
 ///
 /// Built from a live scope rather than from events: the scope knows what it
-/// registers and, through `debugKindOf`, how long each one lives. Reading it
+/// registers and, through `registrationOf`, how long each one lives. Reading it
 /// costs nothing and builds nothing.
 @immutable
 class RegistrationView {
@@ -33,23 +28,30 @@ class RegistrationView {
     final own = scope.keys;
     return [
       for (final entry in scope.visibleKeys.entries)
-        RegistrationView(
-          key: entry.key,
-          kind: scope.debugKindOf(entry.key),
-          owner: entry.value,
-          isInherited: !own.contains(entry.key),
-          isOverridden: entry.value.overriddenKeys.contains(entry.key),
-          decorators: scope.debugDecoratorsOf(entry.key),
-          implementation: switch (scope.debugImplementationOf(entry.key)) {
-            final built? when built != '${entry.key.type}' => built,
-            _ => null,
-          },
-        ),
+        _describe(entry.key, entry.value, scope.registrationOf(entry.key), own),
     ]..sort((a, b) {
       if (a.isInherited != b.isInherited) return a.isInherited ? 1 : -1;
       return a.key.toString().compareTo(b.key.toString());
     });
   }
+
+  static RegistrationView _describe(
+    CobaltKey key,
+    CobaltScope owner,
+    CobaltRegistrationInfo? info,
+    Set<CobaltKey> own,
+  ) => RegistrationView(
+    key: key,
+    kind: info?.kind,
+    owner: owner,
+    isInherited: !own.contains(key),
+    isOverridden: owner.overriddenKeys.contains(key),
+    decorators: info?.decorators ?? const [],
+    implementation: switch (info?.implementation) {
+      final built? when built != '${key.type}' => built,
+      _ => null,
+    },
+  );
 
   /// The type, and the name when it has one.
   final CobaltKey key;

@@ -1,8 +1,3 @@
-// CobaltScope's debug* members are @experimental — outside semver, which newer
-// analyzers flag on every use from another package. Reading the graph through
-// them is what this file is for.
-// ignore_for_file: experimental_member_use
-
 import 'package:cobalt_flutter/cobalt_flutter.dart';
 import 'package:cobalt_inspector/src/cobalt_inspector_log.dart';
 import 'package:cobalt_inspector/src/registration_detail_sheet.dart';
@@ -211,12 +206,12 @@ class _ScopeNode extends StatelessWidget {
               ),
             ),
           ),
-          if (!isCollapsed && scope.debugHooks.isNotEmpty)
+          if (!isCollapsed && scope.hooks.isNotEmpty)
             Padding(
               key: Key('hooks-${scope.name}-${scope.depth}'),
               padding: const EdgeInsets.fromLTRB(38, 0, 12, 8),
               child: Text(
-                strings.treeHooks(scope.debugHooks.join(', ')),
+                strings.treeHooks(scope.hooks.join(', ')),
                 style: TextStyle(color: theme.muted, fontSize: 12),
               ),
             ),

@@ -43,7 +43,7 @@ Future<CobaltGraphReport> checkGraph(
 
   for (final entry in visible.entries) {
     final key = entry.key;
-    final kind = scope.debugKindOf(key);
+    final kind = scope.registrationOf(key)?.kind;
 
     if (kind != null && kind.takesParam) {
       final param = params[key];
