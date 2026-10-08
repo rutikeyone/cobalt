@@ -1,3 +1,11 @@
+## 1.2.0
+
+- Reads the graph through `registrationOf` and `hooks` instead of the
+  deprecated `debug*` members; the screens show the same. Requires
+  `cobalt_flutter` 1.2.0, and with it `cobalt` 1.2.0.
+- The README opens with how to install it, hand the log to the graph and
+  open the screen.
+
 ## 1.1.1
 
 - No code changes in this package. Republished in lockstep with 1.1.1:

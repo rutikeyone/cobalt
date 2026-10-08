@@ -1,3 +1,27 @@
+## 1.2.0
+
+- A stable API for reading a scope's graph. `registrationOf(key)` returns
+  a `CobaltRegistrationInfo`: kind, implementation, decorators and whether
+  it is overridden. `previewRegistrations(builder)` lists what a builder
+  registers without starting anything, `hooks` returns `CobaltHookInfo`s,
+  `adoptedTypes` the types handed to `adopt`, and `describeTree()` the tree
+  as text. Unlike the `debug*` members, these are covered by semver.
+- Deprecated: the read-only `debug*` members, `debugKindOf`,
+  `debugDecoratorsOf`, `debugRegistrationsOf`, `debugImplementationOf`,
+  `debugAdopted`, `debugHooks` and `debugDescribeTree`. Each deprecation
+  names its replacement; they work unchanged until 2.0 removes them.
+  `debugResolve` and its three siblings stay `@experimental`.
+- `CobaltNotRegisteredError` ends with a hint: the scopes below or beside
+  this one that register the key (`registeredElsewhere`), the same type
+  under other names (`sameType`), or, when neither applies, that nothing in
+  the scope tree registers it.
+- `@CobaltInject(instantiations: [...])`, re-exported from
+  `cobalt_annotations`, registers a generic class once per instantiation;
+  `cobalt_generator` 1.2.0 writes the factories. Requires
+  `cobalt_annotations` 1.2.0.
+- The README opens with what Cobalt is, how to install it and a Quick
+  start, and the pubspec description says what the package does.
+
 ## 1.1.1
 
 - Every runtime error ends with a link to its entry in

@@ -1,3 +1,9 @@
+## 1.2.0
+
+- `CobaltInject.instantiations`: a generic class lists the instantiations
+  it registers, as in `@CobaltInject(instantiations: [Cache<Note>,
+  Cache<Tag>])`, one registration each. Read by `cobalt_generator` 1.2.0.
+
 ## 1.1.1
 
 - No code changes in this package. Republished in lockstep with 1.1.1:

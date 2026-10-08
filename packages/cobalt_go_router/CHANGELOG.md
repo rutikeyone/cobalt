@@ -1,3 +1,9 @@
+## 1.2.0
+
+- No code changes in this package. Republished in lockstep with 1.2.0:
+  `cobalt` reads its graph through a stable API, `cobalt_generator`
+  registers generic classes, and `cobalt_lint` has quick fixes.
+
 ## 1.1.1
 
 - No code changes in this package. Republished in lockstep with 1.1.1:

@@ -1,3 +1,9 @@
+## 1.2.0
+
+- Imports `package:logger/web.dart` instead of `package:logger/logger.dart`,
+  so the package no longer pulls in `dart:io` and compiles to WASM. The
+  `Logger` it takes is the same class.
+
 ## 1.1.1
 
 - No code changes in this package. Republished in lockstep with 1.1.1:
