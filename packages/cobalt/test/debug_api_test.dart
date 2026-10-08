@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use_from_same_package
+
 import 'package:cobalt/cobalt.dart';
 import 'package:cobalt_test/cobalt_test.dart';
 import 'package:test/test.dart';
@@ -7,41 +9,46 @@ import 'support.dart';
 void main() {
   setUp(resetLogs);
 
-  group('debugKindOf', () {
-    test('names every kind of registration', () {
-      final scope = cobaltTestRoot()
-        ..registerSingleton<Greeting>(Greeting('hi'))
-        ..registerLazySingleton<Logger>(const LoggerFactory())
-        ..registerFactory<ApiClient>(const ApiClientFactory())
-        ..registerAsyncSingleton<SlowService>(const SlowFactory('db', 0))
-        ..registerParamFactory<PropertyTarget, String>(
-          const TargetByNameFactory(),
-        );
-
-      expect(scope.debugKindOf(const CobaltKey(Greeting)), Kind.singleton);
-      expect(scope.debugKindOf(const CobaltKey(Logger)), Kind.lazySingleton);
-      expect(scope.debugKindOf(const CobaltKey(ApiClient)), Kind.transient);
-      expect(
-        scope.debugKindOf(const CobaltKey(SlowService)),
-        Kind.asyncSingleton,
-      );
-      expect(
-        scope.debugKindOf(const CobaltKey(PropertyTarget)),
-        Kind.parameterized,
-      );
-    });
-
-    test('is null for a key nothing registers', () {
-      expect(cobaltTestRoot().debugKindOf(const CobaltKey(Logger)), isNull);
-    });
-
-    test('answers through ancestors, like get does', () {
+  group('the deprecated read-only members', () {
+    test('answer what the stable API answers', () {
       final root = cobaltTestRoot()
-        ..registerLazySingleton<Logger>(const LoggerFactory());
+        ..registerLazySingleton<Logger>(const _DescribedLoggerFactory())
+        ..decorate<Logger>(FnDecorator((inner, _) => inner), debugLabel: 'Kept')
+        ..hookAll<Logger>(FnHook((_, _) {}), debugLabel: 'Seen')
+        ..adopt(Greeting('hi'));
+      final child = root.push('child');
+      const key = CobaltKey(Logger);
 
+      expect(child.debugKindOf(key), child.registrationOf(key)!.kind);
+      expect(child.debugDecoratorsOf(key), ['Kept']);
+      expect(child.debugImplementationOf(key), 'DescribedLogger');
+      expect(root.debugAdopted, ['Greeting']);
+      expect(root.debugHooks, ['Seen on Logger']);
+      expect(root.debugDescribeTree(), root.describeTree());
+    });
+
+    test('answer null or empty for a key nothing registers', () {
+      final scope = cobaltTestRoot();
+      const key = CobaltKey(Logger);
+
+      expect(scope.debugKindOf(key), isNull);
+      expect(scope.debugDecoratorsOf(key), isEmpty);
+      expect(scope.debugImplementationOf(key), isNull);
+    });
+
+    test('debugRegistrationsOf maps each previewed key to its kind', () {
       expect(
-        root.push('child').debugKindOf(const CobaltKey(Logger)),
-        Kind.lazySingleton,
+        CobaltScope.debugRegistrationsOf(
+          _Graph(
+            (scope) => scope
+              ..registerLazySingleton<Logger>(const LoggerFactory())
+              ..registerFactory<ApiClient>(const ApiClientFactory()),
+          ),
+        ),
+        {
+          const CobaltKey(Logger): Kind.lazySingleton,
+          const CobaltKey(ApiClient): Kind.transient,
+        },
       );
     });
   });
@@ -94,4 +101,23 @@ class TargetByNameFactory
   @override
   PropertyTarget create(CobaltResolver resolver, String param) =>
       PropertyTarget();
+}
+
+final class _DescribedLoggerFactory
+    implements CobaltFactory<Logger>, CobaltDescribedFactory {
+  const _DescribedLoggerFactory();
+
+  @override
+  String get implementation => 'DescribedLogger';
+
+  @override
+  Logger create(CobaltResolver resolver) => Logger();
+}
+
+final class _Graph implements CobaltScopeBuilder {
+  const _Graph(this.build_);
+  final void Function(CobaltScope scope) build_;
+
+  @override
+  void build(CobaltScope scope) => build_(scope);
 }

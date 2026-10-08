@@ -156,7 +156,7 @@ void main() {
         ..registerLazySingleton<Logger>(const LoggerFactory());
       root.push('session');
 
-      final lines = root.debugDescribeTree().split('\n');
+      final lines = root.describeTree().split('\n');
 
       expect(lines, hasLength(2));
       expect(lines.first, startsWith('app  [open]  1 registration'));
@@ -171,7 +171,7 @@ void main() {
 
     expect(child.state, CobaltScopeState.disposed);
     expect(child.keys, isEmpty);
-    expect(child.debugDescribeTree(), contains('disposed'));
+    expect(child.describeTree(), contains('disposed'));
     expect(child.root, same(root));
   });
 }

@@ -296,8 +296,8 @@ registration and with that scope's resolver. So:
 
 Decorating a key someone already resolved is refused — its holders would keep the undecorated
 instance — and so is decorating a key the scope does not register, reported by `runBuilder` with the
-ancestor that owns it. `debugDecoratorsOf(key)` lists what wraps a key, innermost first, by the
-`debugLabel` each was added with or else its type.
+ancestor that owns it. `registrationOf(key)?.decorators` lists what wraps a key, innermost first,
+by the `debugLabel` each was added with or else its type.
 `@CobaltDecorates` in `cobalt_generator` writes the same call from an annotation.
 
 `decorateAll<ApiClient>(...)` wraps every registration of the type in the scope, named or not,
@@ -312,7 +312,7 @@ A decorator has to return what its registration promised, so it cannot reach eve
 instance on unchanged. It sees what the factory made, before decorators, for every kind of
 registration; not a value handed over with `registerSingleton`. Ancestors' hooks run first, then the
 scope's own in the order added. Adding one after the scope, or a scope below, has built anything
-throws `CobaltHookError`. `debugHooks` lists a scope's own; `@cobaltHookAll` in `cobalt_generator`
+throws `CobaltHookError`. `hooks` lists a scope's own; `@cobaltHookAll` in `cobalt_generator`
 writes the call from an annotation. `onReleased` is the undo: when the scope is disposed, each
 instance it kept passes back through its hooks, innermost first, before it is closed; a transient,
 never the scope's, does not.
@@ -329,22 +329,31 @@ Folding those into null would turn a startup-ordering bug into a value that read
 
 ## Inspecting a scope
 
-Four read-only members, for diagnostics and tests:
+Read-only members, for diagnostics, tests and tools:
 
 | Member | Answers |
 |---|---|
 | `keys` | what this scope registers, in registration order |
 | `visibleKeys` | every key resolvable from here, mapped to the scope that owns it |
 | `root` | the outermost scope above this one |
-| `debugDescribeTree()` | the subtree as text, one line per scope |
+| `registrationOf(key)` | a `CobaltRegistrationInfo`: kind, implementation, decorators, whether overridden; null when nothing registers the key |
+| `CobaltScope.previewRegistrations(builder)` | what a builder registers, in order, without building anything |
+| `hooks` | the hooks added to this scope, as `CobaltHookInfo` |
+| `adoptedTypes` | the type of everything handed to `adopt`, in order |
+| `describeTree()` | the subtree as text, one line per scope |
 
 `visibleKeys` is a map rather than a set because the owner is the interesting part: a factory runs
 on the scope that owns *its* registration, not the scope you asked from, so a key alone cannot tell
-you what an override will reach.
+you what an override will reach. For the same reason `registrationOf` answers through ancestors, like
+`get`, and reports the decorators and the override of the scope that owns the key.
 
-`debugDescribeTree` — like every `debug…` member, `debugKindOf` and `debugDecoratorsOf` among them —
-is `@experimental`: outside semver, it may change in a minor release, and newer analyzers flag its
-use from another package with `experimental_member_use`.
+`describeTree()` is for reading, not parsing: the shape of its text may change in any release.
+
+These replace the read-only `debug…` members (`debugKindOf`, `debugDecoratorsOf`,
+`debugImplementationOf`, `debugRegistrationsOf`, `debugHooks`, `debugAdopted`,
+`debugDescribeTree`), which still work, are deprecated, and go in 2.0. The `debugResolve…` members
+stay `@experimental`: outside semver, they may change in a minor release, and newer analyzers flag
+their use from another package with `experimental_member_use`.
 
 None of them throws on a scope that is being torn down, so a diagnostics screen keeps working
 during teardown.

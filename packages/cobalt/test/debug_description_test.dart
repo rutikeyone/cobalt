@@ -20,7 +20,7 @@ final class _LiveApiFactory
 class Step {}
 
 void main() {
-  group('debugImplementationOf', () {
+  group('registrationOf(key).implementation', () {
     test('is what a described factory says, for every way of registering', () {
       final scope = cobaltTestRoot()
         ..registerLazySingleton<Api>(const _LiveApiFactory())
@@ -29,7 +29,7 @@ void main() {
 
       for (final name in [null, 'eager', 'fresh']) {
         expect(
-          scope.debugImplementationOf(CobaltKey(Api, name: name)),
+          scope.registrationOf(CobaltKey(Api, name: name))?.implementation,
           'LiveApi',
           reason: '$name',
         );
@@ -41,9 +41,14 @@ void main() {
         ..registerLazySingleton<Api>(FnFactory((_) => LiveApi()))
         ..registerSingleton<Api>(LiveApi(), name: 'value');
 
-      expect(scope.debugImplementationOf(const CobaltKey(Api)), isNull);
       expect(
-        scope.debugImplementationOf(const CobaltKey(Api, name: 'value')),
+        scope.registrationOf(const CobaltKey(Api))?.implementation,
+        isNull,
+      );
+      expect(
+        scope
+            .registrationOf(const CobaltKey(Api, name: 'value'))
+            ?.implementation,
         isNull,
       );
     });
@@ -53,16 +58,16 @@ void main() {
         ..registerLazySingleton<Api>(const _LiveApiFactory());
 
       expect(
-        root.push('child').debugImplementationOf(const CobaltKey(Api)),
+        root.push('child').registrationOf(const CobaltKey(Api))?.implementation,
         'LiveApi',
       );
     });
   });
 
-  group('debugRegistrationsOf', () {
+  group('previewRegistrations', () {
     test('lists every key with its kind, and builds nothing', () {
       var built = 0;
-      final registrations = CobaltScope.debugRegistrationsOf(
+      final registrations = CobaltScope.previewRegistrations(
         _Graph(
           (scope) => scope
             ..registerEagerSingleton<Api>(
@@ -82,18 +87,26 @@ void main() {
         ),
       );
 
-      expect(registrations, {
-        const CobaltKey(Api): CobaltRegistrationKind.singleton,
-        const CobaltKey(Api, name: 'lazy'):
-            CobaltRegistrationKind.lazySingleton,
-        const CobaltKey(Step): CobaltRegistrationKind.transient,
-      });
+      expect(registrations, const [
+        CobaltRegistrationInfo(
+          key: CobaltKey(Api),
+          kind: CobaltRegistrationKind.singleton,
+        ),
+        CobaltRegistrationInfo(
+          key: CobaltKey(Api, name: 'lazy'),
+          kind: CobaltRegistrationKind.lazySingleton,
+        ),
+        CobaltRegistrationInfo(
+          key: CobaltKey(Step),
+          kind: CobaltRegistrationKind.transient,
+        ),
+      ]);
       expect(built, 0, reason: 'an eager registration is recorded, not built');
     });
 
     test('throws what the builder throws', () {
       expect(
-        () => CobaltScope.debugRegistrationsOf(
+        () => CobaltScope.previewRegistrations(
           _Graph((scope) => throw StateError('broken builder')),
         ),
         throwsStateError,
@@ -101,12 +114,12 @@ void main() {
     });
   });
 
-  test('debugAdopted lists what was adopted, in order, by type', () {
+  test('adoptedTypes lists what was adopted, in order, by type', () {
     final scope = cobaltTestRoot()
       ..adopt(Step())
       ..adopt(LiveApi());
 
-    expect(scope.debugAdopted, ['Step', 'LiveApi']);
+    expect(scope.adoptedTypes, [Step, LiveApi]);
   });
 }
 

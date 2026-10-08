@@ -171,11 +171,13 @@ void main() {
         ..decorateAll<Api>(wrapping('x'), debugLabel: 'Logged')
         ..decorate<Api>(wrapping('y'), name: 'auth', debugLabel: 'Cached');
 
-      expect(scope.debugDecoratorsOf(const CobaltKey(Api, name: 'auth')), [
+      expect(
+        scope.registrationOf(const CobaltKey(Api, name: 'auth'))?.decorators,
+        ['Logged', 'Cached'],
+      );
+      expect(scope.registrationOf(const CobaltKey(Api))?.decorators, [
         'Logged',
-        'Cached',
       ]);
-      expect(scope.debugDecoratorsOf(const CobaltKey(Api)), ['Logged']);
     });
 
     test('several of the type apply in the order added', () {

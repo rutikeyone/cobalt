@@ -462,14 +462,14 @@ void main() {
   });
 
   group('for tools', () {
-    test('debugKindOf names the lazy kind', () {
+    test('registrationOf names the lazy kind', () {
       final scope = cobaltTestRoot()
         ..registerLazyAsyncSingleton<Engine>(
           AsyncFnFactory((_) async => Engine('engine', recorder)),
         );
 
       expect(
-        scope.debugKindOf(const CobaltKey(Engine)),
+        scope.registrationOf(const CobaltKey(Engine))?.kind,
         CobaltRegistrationKind.lazyAsyncSingleton,
       );
     });

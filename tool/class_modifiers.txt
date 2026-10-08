@@ -29,6 +29,7 @@ cobalt  CobaltEventKind  enum
 cobalt  CobaltFactory  abstract interface class
 cobalt  CobaltHook  abstract base class
 cobalt  CobaltHookError  final class
+cobalt  CobaltHookInfo  final class
 cobalt  CobaltInitTimeoutError  final class
 cobalt  CobaltInjectable  abstract interface class
 cobalt  CobaltKey  final class
@@ -50,6 +51,7 @@ cobalt  CobaltParamRequiredError  final class
 cobalt  CobaltParamTypeError  final class
 cobalt  CobaltPrintLogSink  final class
 cobalt  CobaltRecordingObserver  abstract base class
+cobalt  CobaltRegistrationInfo  final class
 cobalt  CobaltRegistrationKind  enum
 cobalt  CobaltResolver  abstract base class
 cobalt  CobaltScope  final class

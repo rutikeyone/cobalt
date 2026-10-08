@@ -98,7 +98,7 @@ void main() {
         ..decorate<Api>(wrapping('logged'));
 
       expect(scope.get<Api>().trail, ['logged', 'retried', 'real']);
-      expect(scope.debugDecoratorsOf(const CobaltKey(Api)), [
+      expect(scope.registrationOf(const CobaltKey(Api))?.decorators, [
         'FnDecorator<Api>',
         'FnDecorator<Api>',
       ]);
@@ -110,7 +110,7 @@ void main() {
         ..decorate<Api>(wrapping('retried'), debugLabel: 'Retrying')
         ..decorate<Api>(wrapping('logged'));
 
-      expect(scope.debugDecoratorsOf(const CobaltKey(Api)), [
+      expect(scope.registrationOf(const CobaltKey(Api))?.decorators, [
         'Retrying',
         'FnDecorator<Api>',
       ]);
