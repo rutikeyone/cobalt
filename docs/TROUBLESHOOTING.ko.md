@@ -23,6 +23,8 @@ Cobalt가 실행 중에 던지는 모든 오류는 이 페이지의 해당 항�
 
 ```
 Config is not registered in scope "app" or its ancestors. Resolving: Api -> Repository -> Config.
+Nothing in this scope tree registers Config. Register it, or if it is a @cobaltInject class, run
+build_runner again.
 ```
 
 현재 스코프부터 루트까지 어떤 스코프도 등록하지 않은 타입을 요청했습니다.
@@ -31,6 +33,11 @@ Config is not registered in scope "app" or its ancestors. Resolving: Api -> Repo
   생성된 컨테이너 밖에서 직접 등록하는 타입이라면 `@CobaltScopeRoot(provides: [...])`에 적습니다.
 - 직접 등록 시: 그 스코프의 `build()`나 상위 스코프에서 등록합니다.
 - `Resolving:`은 누가 요청했는지 처음부터 끝까지 보여 줍니다. 첫 번째 이름부터 살펴보십시오.
+- 호출 경로 뒤에는 힌트가 붙습니다. 현재 스코프의 하위나 옆 스코프가 이 키를 등록했다면 그중 최대 세 개를
+  알려 줍니다. 해결은 위로만 올라가고 아래로는 내려가지 않으므로, 등록을 상위로 옮기거나 그 스코프에서
+  해결하십시오. 같은 타입이 다른 이름으로 등록되어 있다면 그 키들을 `Api, Api(fake)`처럼 나열합니다.
+  `name:`을 확인하십시오. 둘 다 없으면 스코프 트리 어디에서도 등록하지 않았다고 알려 줍니다. 앞의 두
+  항목을 참고하십시오. 오류의 `registeredElsewhere`와 `sameType` 필드에도 같은 정보가 있습니다.
 - 메시지에 스코프가 아직 빌드 중이라고 나온다면: eager `registerSingleton`이 `build()` 아래쪽의 등록보다
   먼저 의존성을 해결했습니다. 그 등록들 아래로 옮기거나 lazy로 바꾸십시오.
 - 스코프는 자기 자신과 상위 스코프만 봅니다. 세션이나 화면 스코프에 등록한 타입은 루트에서 보이지 않습니다.

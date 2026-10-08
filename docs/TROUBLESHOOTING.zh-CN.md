@@ -20,6 +20,8 @@ Cobalt 在运行时抛出的每个错误，末尾都带着指向本页对应条�
 
 ```
 Config is not registered in scope "app" or its ancestors. Resolving: Api -> Repository -> Config.
+Nothing in this scope tree registers Config. Register it, or if it is a @cobaltInject class, run
+build_runner again.
 ```
 
 请求了一个从当前作用域到根作用域都没有注册的类型。
@@ -27,6 +29,7 @@ Config is not registered in scope "app" or its ancestors. Resolving: Api -> Repo
 - 使用生成器：给这个类加上 `@cobaltInject`，再运行一次 `dart run build_runner build`。如果这个类型是在生成的容器之外手写注册的，把它写进 `@CobaltScopeRoot(provides: [...])`。
 - 手写注册：在该作用域的 `build()` 里注册它，或在上层作用域里注册。
 - `Resolving:` 按先后列出是谁在请求。从第一个名字开始查。
+- 调用链之后是一条提示。如果当前作用域下层或旁支的作用域注册了这个键，消息会列出其中最多三个：解析只向上查找，从不向下，所以把注册移到上层，或从那个作用域解析。如果同一类型以其他名称注册过，消息会列出这些键，例如 `Api, Api(fake)`：检查 `name:`。两者都没有时，消息会说明整个作用域树都没有注册它：参见前两条。错误对象的 `registeredElsewhere` 和 `sameType` 字段提供同样的信息。
 - 如果消息说作用域还在构建中：一个 eager 的 `registerSingleton` 在 `build()` 后面的注册完成之前就解析了它的依赖。把它挪到那些注册之后，或改成 lazy。
 - 作用域只能看到自己和上层作用域。注册在会话或屏幕作用域里的类型，从根作用域看不到。
 

@@ -525,6 +525,8 @@ missing:
 
 ```
 Config is not registered in scope "app" or its ancestors. Resolving: Api -> Repository -> Config.
+Nothing in this scope tree registers Config. Register it, or if it is a @cobaltInject class, run
+build_runner again.
 ```
 
 `Api` is where you start looking; `Config` alone would leave you grepping. Both

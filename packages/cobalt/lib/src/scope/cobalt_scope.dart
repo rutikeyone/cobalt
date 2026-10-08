@@ -958,12 +958,7 @@ final class CobaltScope extends CobaltResolver {
     final key = CobaltKey(T, name: name);
     final found = _lookup(key);
     if (found == null) {
-      throw CobaltNotRegisteredError(
-        key,
-        this.name,
-        resolving: _trail(),
-        whileBuilding: _building,
-      );
+      throw _notRegistered(key, resolving: _trail(), whileBuilding: _building);
     }
     return found.scope._materialize(found.registration) as T;
   }
@@ -974,12 +969,7 @@ final class CobaltScope extends CobaltResolver {
     final key = CobaltKey(T, name: name);
     final found = _lookup(key);
     if (found == null) {
-      throw CobaltNotRegisteredError(
-        key,
-        this.name,
-        resolving: _trail(),
-        whileBuilding: _building,
-      );
+      throw _notRegistered(key, resolving: _trail(), whileBuilding: _building);
     }
     return await found.scope._resolveAsync(found.registration) as T;
   }
@@ -1005,7 +995,7 @@ final class CobaltScope extends CobaltResolver {
     for (final key in keys.toSet()) {
       final found = _lookup(key);
       if (found == null) {
-        throw CobaltNotRegisteredError(key, name);
+        throw _notRegistered(key);
       }
       final registration = found.registration;
       if (registration is! LazyAsyncSingletonRegistration) {
@@ -1060,12 +1050,7 @@ final class CobaltScope extends CobaltResolver {
     final key = CobaltKey(T, name: name);
     final found = _lookup(key);
     if (found == null) {
-      throw CobaltNotRegisteredError(
-        key,
-        this.name,
-        resolving: _trail(),
-        whileBuilding: _building,
-      );
+      throw _notRegistered(key, resolving: _trail(), whileBuilding: _building);
     }
     final registration = found.registration;
     if (registration is AsyncParamRegistration) {
@@ -1104,12 +1089,7 @@ final class CobaltScope extends CobaltResolver {
     final key = CobaltKey(T, name: name);
     final found = _lookup(key);
     if (found == null) {
-      throw CobaltNotRegisteredError(
-        key,
-        this.name,
-        resolving: _trail(),
-        whileBuilding: _building,
-      );
+      throw _notRegistered(key, resolving: _trail(), whileBuilding: _building);
     }
     return await found.scope._resolveWithParamAsync(found.registration, param)
         as T;
@@ -1531,6 +1511,43 @@ final class CobaltScope extends CobaltResolver {
     }
     if (_applyingOverrides) _overriddenKeys.add(key);
     return true;
+  }
+
+  CobaltNotRegisteredError _notRegistered(
+    CobaltKey key, {
+    List<CobaltKey> resolving = const [],
+    bool whileBuilding = false,
+  }) {
+    final above = Set<CobaltScope>.identity();
+    for (CobaltScope? scope = this; scope != null; scope = scope.parent) {
+      above.add(scope);
+    }
+    final elsewhere = <String>[];
+    void visit(CobaltScope scope) {
+      if (elsewhere.length == 3) return;
+      if (!above.contains(scope) &&
+          scope.keys.contains(key) &&
+          !elsewhere.contains(scope.name)) {
+        elsewhere.add(scope.name);
+      }
+      for (final child in scope.children) {
+        visit(child);
+      }
+    }
+
+    visit(root);
+    final sameType = [
+      for (final visible in visibleKeys.keys)
+        if (visible.type == key.type && visible.name != key.name) visible,
+    ]..sort((a, b) => '$a'.compareTo('$b'));
+    return CobaltNotRegisteredError(
+      key,
+      name,
+      resolving: resolving,
+      whileBuilding: whileBuilding,
+      registeredElsewhere: elsewhere,
+      sameType: sameType,
+    );
   }
 
   ({CobaltScope scope, CobaltRegistration registration})? _lookup(
