@@ -1,6 +1,6 @@
 import 'package:cobalt/cobalt.dart';
 import 'package:cobalt_logger/cobalt_logger.dart';
-import 'package:logger/logger.dart' as pretty;
+import 'package:logger/web.dart' as pretty;
 import 'package:test/test.dart';
 
 void main() {

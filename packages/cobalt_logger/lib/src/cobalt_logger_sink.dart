@@ -1,5 +1,5 @@
 import 'package:cobalt/cobalt.dart';
-import 'package:logger/logger.dart' as pretty;
+import 'package:logger/web.dart' as pretty;
 
 /// Writes Cobalt's log records to a `package:logger` logger.
 ///
