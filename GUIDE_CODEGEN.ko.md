@@ -284,10 +284,23 @@ Logger`를 요청하면 빠진 것이 됩니다. 각 환경은 따로 검사되�
 그것에 의존하는 쪽을 충족할 수 없습니다.
 
 다음도 빌드 시점에 거부됩니다. 같은 키의 중복 등록, 의존성 순환(그 순환을 지목합니다), 한 패키지 안의
-`@CobaltScopeRoot` 클래스 두 개, 추상 클래스나 public 생성(generative) 생성자가 없는 클래스의 `@CobaltInject`,
-그리고 **제네릭 클래스**의 `@CobaltInject`입니다. 어떤 인스턴스화를 등록할지 제너레이터에 알려 주는 것이 없으므로,
-구체 하위 타입에 어노테이션을 붙이거나 `exposeAs`로 하나를
-노출하십시오.
+`@CobaltScopeRoot` 클래스 두 개, 추상 클래스나 public 생성(generative) 생성자가 없는 클래스의 `@CobaltInject`입니다.
+
+**제네릭 클래스**는 등록할 인스턴스화를 직접 나열하고, 인스턴스화마다 등록이 하나씩 생깁니다.
+
+```dart
+@CobaltInject(instantiations: [Cache<Note>, Cache<User>])
+class Cache<T> {
+  Cache(this.store);
+  final Store<T> store;
+}
+```
+
+이렇게 하면 `Cache<Note>`와 `Cache<User>`가 등록되고, 각각 자기 `Store<Note>` 또는 `Store<User>`로 만들어집니다.
+`name`, `lifetime`, `dispose`와 환경은 그 각각에 모두 적용됩니다. `instantiations` 없는 제네릭 클래스는
+어떤 인스턴스화를 등록할지 알려 주는 것이 없으므로 빌드 오류입니다. 각 항목에는 모든 타입 인자를 명시해야 하고
+(타입 인자 없는 `Cache`는 `Cache<dynamic>`으로 읽혀 거부됩니다), `exposeAs`는 `instantiations`와 함께 쓸 수
+없으며, 제네릭 클래스에는 `@injected` 필드를 둘 수 없습니다. 생성자로 받으십시오.
 
 그 밖의 곳에서는 제네릭이 문제없습니다. `Repository<User>`와 `Repository<Order>`는 별개의 등록 두 개인데,
 `CobaltKey`가 `Type`으로 만들어지고 이 둘은 서로 다른 타입이기 때문입니다.
@@ -1281,8 +1294,10 @@ git diff --exit-code
   유일하게 실질적인 유지 관리 의무입니다.
 - **한 패키지 안의 `@CobaltScopeRoot` 클래스 두 개.** 빌드 오류이며, 해결책은 패키지 두 개입니다.
   `cobalt_container`는 패키지 전체를 루트 하나로 집계합니다.
-- **제네릭 클래스의 `@CobaltInject`.** 거부됩니다. 어떤 인스턴스화를 등록할지 제너레이터에 알려 주는 것이
-  없습니다. 구체 하위 타입에 어노테이션을 붙이거나, `exposeAs`로 하나를 노출하십시오. 제네릭은 의존성으로도,
+- **`instantiations` 없는 제네릭 클래스의 `@CobaltInject`.** 거부됩니다. 어떤 인스턴스화를 등록할지
+  제너레이터에 알려 주는 것이 없습니다. `@CobaltInject(instantiations: [Cache<Note>, Cache<User>])`처럼
+  모든 타입 인자를 명시해 나열하거나, 구체 하위 타입에 어노테이션을 붙이십시오. `exposeAs`와 `@injected` 필드는
+  `instantiations`와 함께 쓸 수 없습니다. 제네릭은 의존성으로도,
   `exposeAs` 대상으로도 문제없이 동작합니다.
 - **`with _$ClassName` 없는 `@injected`.** 필드는 할당되지 않은 채 남고 첫 읽기가 `LateError`를 던집니다.
   린트가 먼저 알려 줍니다.

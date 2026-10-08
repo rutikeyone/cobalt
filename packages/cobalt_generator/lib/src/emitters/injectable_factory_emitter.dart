@@ -67,7 +67,11 @@ class InjectableFactoryEmitter {
               ..annotations.add(refer('override'))
               ..returns = refer('String', 'dart:core')
               ..lambda = true
-              ..body = literalString(declaration.type.name).code,
+              ..body = literalString(
+                provider == null
+                    ? declaration.type.toString()
+                    : declaration.type.name,
+              ).code,
           ),
         )
         ..methods.add(switch ((args, declaration.isAsyncInit, provider)) {

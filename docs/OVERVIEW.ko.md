@@ -178,8 +178,8 @@ something outside the generated container registers it.
 ```
 
 생성자 파라미터, `@injected` 필드, `@CobaltInit(dependsOn:)` 모두 포함되며, `@Named` 한정자는 키의
-일부이고, 각 환경은 따로 검사됩니다. 중복 등록, 의존성 순환, 한 패키지 안의 스코프 루트 두 개, 제네릭
-주입 가능 클래스와 추상 주입 가능 클래스도 모두 빌드 실패입니다.
+일부이고, 각 환경은 따로 검사됩니다. 중복 등록, 의존성 순환, 한 패키지 안의 스코프 루트 두 개,
+`instantiations`를 나열하지 않은 제네릭 주입 가능 클래스와 추상 주입 가능 클래스도 모두 빌드 실패입니다.
 
 이것은 Code-Gen의 보장이며, 그 경계는 솔직하게 밝힙니다. 직접 작성한 팩토리는 `create` 안에서 해석하므로,
 그것이 무엇을 요청할지는 정적으로 알 수 없습니다. Manual Mode 그래프는 여전히 런타임에 실패하며,
@@ -197,8 +197,18 @@ getter이므로, 재시작하면 이전 시작에서 이미 소비된 단계가 
 
 제네릭 타입은 의존성으로도, `exposeAs` 대상으로도 동작합니다. `Repository<User>`와
 `Repository<Order>`는 두 개의 등록인데, `CobaltKey`가 `Type`으로 만들어지고 이 둘은 서로 다른 타입이기
-때문입니다. 다만 주입 가능 클래스 자체는 제네릭일 수 없습니다. 어떤 인스턴스화를 등록할지 제너레이터에
-알려 주는 것이 없기 때문입니다.
+때문입니다. 주입 가능 클래스 자체도 등록할 인스턴스화를 나열하기만 하면 제네릭일 수 있습니다. 각각이 별개의
+등록이 되고, 자기 `Store<Note>` 또는 `Store<User>`로 만들어집니다.
+
+```dart
+@CobaltInject(instantiations: [Cache<Note>, Cache<User>])
+class Cache<T> {
+  Cache(this.store);
+  final Store<T> store;
+}
+```
+
+모든 타입 인자를 명시해야 하며, `exposeAs`와 `@injected` 필드는 `instantiations`와 함께 쓸 수 없습니다.
 
 `cobalt_analyzer`는 제너레이터와 린트 플러그인이 점점 어긋나는 두 구현이 아니라 하나의 구현으로
 Cobalt 선언을 파싱하도록 하기 위해 존재합니다. IR과 위상 정렬을 담당하며, `build`에도 플러그인 API에도

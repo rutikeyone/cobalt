@@ -10,6 +10,7 @@ import 'package:cobalt_external_consumer/src/audit_sink.dart' as _i604;
 import 'package:cobalt_external_consumer/src/audit_trail.dart' as _i720;
 import 'package:cobalt_external_consumer/src/audited_database.dart' as _i963;
 import 'package:cobalt_external_consumer/src/bind_platform.dart' as _i366;
+import 'package:cobalt_external_consumer/src/cache.dart' as _i108;
 import 'package:cobalt_external_consumer/src/clock.dart' as _i612;
 import 'package:cobalt_external_consumer/src/database.dart' as _i530;
 import 'package:cobalt_external_consumer/src/device_info.dart' as _i829;
@@ -100,6 +101,46 @@ final class _AuditTrailFactory
     await instance.init();
     return instance;
   }
+}
+
+final class _CacheOfOrderFactory
+    implements
+        _i573.CobaltFactory<_i108.Cache<_i242.Order>>,
+        _i573.CobaltDescribedFactory {
+  const _CacheOfOrderFactory();
+
+  @override
+  String get implementation => 'Cache<Order>';
+
+  @override
+  _i108.Cache<_i242.Order> create(_i573.CobaltResolver resolver) =>
+      _i108.Cache<_i242.Order>(resolver.get<_i242.Repository<_i242.Order>>());
+}
+
+final class _CacheOfUserFactory
+    implements
+        _i573.CobaltFactory<_i108.Cache<_i242.User>>,
+        _i573.CobaltDescribedFactory {
+  const _CacheOfUserFactory();
+
+  @override
+  String get implementation => 'Cache<User>';
+
+  @override
+  _i108.Cache<_i242.User> create(_i573.CobaltResolver resolver) =>
+      _i108.Cache<_i242.User>(resolver.get<_i242.Repository<_i242.User>>());
+}
+
+final class _ShelfFactory
+    implements _i573.CobaltFactory<_i108.Shelf>, _i573.CobaltDescribedFactory {
+  const _ShelfFactory();
+
+  @override
+  String get implementation => 'Shelf';
+
+  @override
+  _i108.Shelf create(_i573.CobaltResolver resolver) =>
+      _i108.Shelf(resolver.get<_i108.Cache<_i242.User>>());
 }
 
 final class _SystemClockFactory
@@ -470,6 +511,12 @@ final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
       const _AuditTrailFactory(),
       dependsOn: {const _i573.CobaltKey(_i604.AuditSink)},
     );
+    scope.registerLazySingleton<_i108.Cache<_i242.Order>>(
+      const _CacheOfOrderFactory(),
+    );
+    scope.registerLazySingleton<_i108.Cache<_i242.User>>(
+      const _CacheOfUserFactory(),
+    );
     scope.registerLazySingleton<_i862.Diagnostics>(const _DiagnosticsFactory());
     scope.registerLazySingleton<_i416.Endpoint>(
       const _ApiEndpointApiFactory(),
@@ -487,6 +534,7 @@ final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
     );
     scope.registerLazySingleton<_i879.Reporter>(const _ReporterFactory());
     scope.registerLazySingleton<_i242.Catalog>(const _CatalogFactory());
+    scope.registerLazySingleton<_i108.Shelf>(const _ShelfFactory());
     scope.registerAsyncSingleton<_i530.Database>(const _DatabaseFactory());
     scope.registerLazyAsyncSingleton<_i768.Archive>(const _ArchiveFactory());
     scope.registerAsyncParamFactory<_i601.Document, $DocumentArgs>(

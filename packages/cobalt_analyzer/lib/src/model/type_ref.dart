@@ -27,15 +27,21 @@ class CobaltTypeRef {
   /// `Repository<Order>` are separate registrations at runtime — `CobaltKey`
   /// is built from `Type`, and those are different types. Nullability is not,
   /// because it is never emitted into a resolve: a `Foo?` dependency reads the
-  /// `Foo` registration. Keeping the two rules together is the point of this
-  /// getter — they used to be stated separately in the model and in the
-  /// generator, and disagreed.
+  /// `Foo` registration. That holds for the outermost type only: a type
+  /// argument keeps its `?`, since `Cache<Note?>` and `Cache<Note>` are
+  /// different types at runtime. Keeping the two rules together is the point
+  /// of this getter: they used to be stated separately in the model and in
+  /// the generator, and disagreed.
   String get signature {
     final buffer = StringBuffer('$import#$name');
     if (typeArguments.isNotEmpty) {
       buffer
         ..write('<')
-        ..write(typeArguments.map((a) => a.signature).join(','))
+        ..write(
+          typeArguments
+              .map((a) => a.isNullable ? '${a.signature}?' : a.signature)
+              .join(','),
+        )
         ..write('>');
     }
     return buffer.toString();

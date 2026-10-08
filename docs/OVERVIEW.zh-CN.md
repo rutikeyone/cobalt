@@ -162,7 +162,7 @@ something outside the generated container registers it.
 ```
 
 构造参数、`@injected` 字段和 `@CobaltInit(dependsOn:)` 都算在内，`@Named` 限定符是键的一部分，
-每个环境分别检查。重复注册、依赖环、同一个包里两个作用域根、泛型可注入类、抽象类——同样都是构建失败。
+每个环境分别检查。重复注册、依赖环、同一个包里两个作用域根、没有列出 `instantiations` 的泛型可注入类、抽象类，同样都是构建失败。
 
 这是 Code-Gen 才有的保证，边界也说得很老实：手写工厂在 `create` 内部解析，
 静态分析看不到它将要请求什么。Manual Mode 的图仍然会在运行时失败——
@@ -178,8 +178,18 @@ something outside the generated container registers it.
 所以重启拿到的是新的步骤，而不是上次启动已经用掉的那些。
 
 泛型作为依赖和 `exposeAs` 目标都可用：`Repository<User>` 和 `Repository<Order>` 是两条注册，
-因为 `CobaltKey` 由 `Type` 构成，而它们是不同的类型。但可注入类本身不能是泛型：
-没有人告诉生成器该注册哪些具体实例化。
+因为 `CobaltKey` 由 `Type` 构成，而它们是不同的类型。可注入类本身也可以是泛型，
+只要列出要注册的具体实例化；每一个都会成为独立的注册，并用各自的 `Store<Note>` 或 `Store<User>` 构建：
+
+```dart
+@CobaltInject(instantiations: [Cache<Note>, Cache<User>])
+class Cache<T> {
+  Cache(this.store);
+  final Store<T> store;
+}
+```
+
+每个类型实参都要写全，`exposeAs` 和 `@injected` 字段都不能与 `instantiations` 一起用。
 
 `cobalt_analyzer` 的存在是为了让生成器和 lint 插件用**同一套**实现解析 Cobalt 声明，而不是两套迟早会
 各说各话的实现。它持有 IR 和拓扑排序，并且既不依赖 `build`，也不依赖插件 API。

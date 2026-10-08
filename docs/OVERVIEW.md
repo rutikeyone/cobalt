@@ -177,8 +177,8 @@ something outside the generated container registers it.
 
 Constructor parameters, `@injected` fields and `@CobaltInit(dependsOn:)` all count, a `@Named`
 qualifier is part of the key, and each environment is checked separately. Duplicate registrations,
-dependency cycles, two scope roots in one package, a generic injectable class and an abstract one are
-all build failures too.
+dependency cycles, two scope roots in one package, a generic injectable class that lists no
+instantiations and an abstract one are all build failures too.
 
 This is a Code-Gen guarantee, and the boundary is honest: a hand-written factory resolves inside
 `create`, so nothing static can see what it will ask for. Manual Mode graphs still fail at runtime —
@@ -197,8 +197,20 @@ already consumed.
 
 Generic types work as dependencies and as `exposeAs` targets — `Repository<User>` and
 `Repository<Order>` are two registrations, because `CobaltKey` is built from `Type` and those are
-different types. The injectable class itself may not be generic: nothing tells the generator which
-instantiations to register.
+different types. An injectable class may be generic too, as long as it lists the instantiations to
+register; each one becomes a registration of its own, built with its own `Store<Note>` or
+`Store<User>`:
+
+```dart
+@CobaltInject(instantiations: [Cache<Note>, Cache<User>])
+class Cache<T> {
+  Cache(this.store);
+  final Store<T> store;
+}
+```
+
+Every type argument is spelled out, and neither `exposeAs` nor `@injected` fields combine with
+`instantiations`.
 
 `cobalt_analyzer` exists so the generator and the lint plugin parse Cobalt declarations through one
 implementation instead of two that drift apart. It owns the IR and the topological sort, and depends

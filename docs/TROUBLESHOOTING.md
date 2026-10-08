@@ -231,8 +231,13 @@ The generator stops the build with a message that says what to change. The usual
   `@CobaltScopeRoot(provides: [...])`. The message lists every gap at once.
 - **Two `@CobaltScopeRoot` classes in one package.** A package has one generated root. Keep one.
 - **A dependency cycle.** See [CobaltCycleError](#cobaltcycleerror).
-- **An abstract or generic class with `@CobaltInject`.** The generator cannot build it. Annotate a
-  concrete class and expose it under the interface: `@CobaltInject(exposeAs: ApiClient)`.
+- **An abstract class with `@CobaltInject`.** The generator cannot build it. Annotate a concrete
+  class and expose it under the interface: `@CobaltInject(exposeAs: ApiClient)`.
+- **A generic class with `@CobaltInject`.** The message says the class declares type parameters, so
+  there is no single instantiation to register. Name the ones it registers, every type argument
+  spelled out: `@CobaltInject(instantiations: [Cache<Note>, Cache<User>])`. A raw `Cache` in the list
+  reads as `Cache<dynamic>` and is rejected, and so are `exposeAs` beside `instantiations` and an
+  `@injected` field on a generic class; take that field in the constructor.
 
 [GUIDE_CODEGEN.md](../GUIDE_CODEGEN.md#5-the-graph-has-to-be-complete) explains how the check works,
 and the [lint plugin](../GUIDE_CODEGEN.md#16-the-lint-plugin) shows most of these in the editor before

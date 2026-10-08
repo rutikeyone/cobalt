@@ -184,11 +184,20 @@ Cobalt가 하위 클래스를 생성하는 대신 `const AppModule()`에서 멤�
 순환이 있으면 스택 오버플로까지 재귀하는 대신 그 순환을 지목하며 빌드가
 실패합니다.
 
-**제네릭 클래스는 거부됩니다.** `@CobaltInject class Cache<T>`는 빌드 오류입니다.
-어떤 인스턴스화를 등록할지 제너레이터에 알려 주는 것이 없기 때문입니다.
-구체 하위 타입에 어노테이션을 붙이거나, 하나를 노출하십시오:
-`@CobaltInject(exposeAs: Cache<Note>)`. 제네릭 *의존성*은 평소대로 동작합니다.
-`Repository<User>`와 `Repository<Order>`는 별개의 등록입니다.
+**제네릭 클래스는 자기 인스턴스화를 나열합니다.** 그냥 `@CobaltInject class Cache<T>`만 쓰면
+빌드 오류입니다. 어떤 인스턴스화를 등록할지 제너레이터에 알려 주는 것이 없기 때문입니다.
+인스턴스화를 나열하면 각각이 별개의 등록이 되고, 자기 `Store<Note>` 또는 `Store<User>`로 만들어집니다.
+
+```dart
+@CobaltInject(instantiations: [Cache<Note>, Cache<User>])
+class Cache<T> {
+  Cache(this.store);
+  final Store<T> store;
+}
+```
+
+모든 타입 인자를 명시해야 하며, `exposeAs`와 `@injected` 필드는 `instantiations`와 함께 쓸 수 없습니다.
+제네릭 *의존성*은 평소대로 동작합니다. `Repository<User>`와 `Repository<Order>`는 별개의 등록입니다.
 
 ### 얻는 것
 

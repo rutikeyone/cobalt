@@ -93,6 +93,24 @@ void main() {
     expect(catalog.orders.all().map((order) => order.id), [1, 2]);
   });
 
+  test('a generic class registers each instantiation it lists', () {
+    final users = scope.get<Cache<User>>();
+    final orders = scope.get<Cache<Order>>();
+
+    expect(users.repository, isA<UserRepository>());
+    expect(orders.repository, isA<OrderRepository>());
+    expect(users.entries.single.name, 'ada');
+    expect(orders.entries.map((order) => order.id), [1, 2]);
+    expect(scope.isRegistered<Cache<Object>>(), isFalse);
+  });
+
+  test('a dependency on one instantiation gets that instantiation', () {
+    expect(
+      identical(scope.get<Shelf>().users, scope.get<Cache<User>>()),
+      isTrue,
+    );
+  });
+
   group('a module registers types the package does not own', () {
     test('a member becomes an ordinary registration', () {
       expect(scope.get<Channel>().name, 'channel');

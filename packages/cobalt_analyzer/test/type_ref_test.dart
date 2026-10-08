@@ -25,6 +25,13 @@ void main() {
       expect(ref('Foo', isNullable: true).signature, ref('Foo').signature);
     });
 
+    test('keeps the nullability of a type argument', () {
+      expect(
+        ref('Cache', of: [ref('Note', isNullable: true)]).signature,
+        isNot(ref('Cache', of: [ref('Note')]).signature),
+      );
+    });
+
     test('is recursive', () {
       expect(
         ref(

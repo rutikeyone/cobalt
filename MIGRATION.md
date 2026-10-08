@@ -188,10 +188,21 @@ it. Registrations are sorted by a compile-time topological sort in which
 property-injected fields count as dependency edges, and a cycle fails the build
 naming the cycle instead of recursing until the stack overflows.
 
-**Generic classes are rejected.** `@CobaltInject class Cache<T>` is a build
-error, because nothing tells the generator which instantiations to register.
-Annotate a concrete subtype, or expose one:
-`@CobaltInject(exposeAs: Cache<Note>)`. Generic *dependencies* work normally —
+**Generic classes name their instantiations.** A bare
+`@CobaltInject class Cache<T>` is a build error, because nothing tells the
+generator which instantiations to register. List them, and each one becomes a
+registration of its own, built with its own `Store<Note>` or `Store<User>`:
+
+```dart
+@CobaltInject(instantiations: [Cache<Note>, Cache<User>])
+class Cache<T> {
+  Cache(this.store);
+  final Store<T> store;
+}
+```
+
+Every type argument is spelled out, and neither `exposeAs` nor `@injected`
+fields combine with `instantiations`. Generic *dependencies* work normally:
 `Repository<User>` and `Repository<Order>` are separate registrations.
 
 ### What you gain

@@ -237,7 +237,7 @@ class ContainerSourceEmitter {
           if (available.contains(dependency.key)) continue;
           missing
               .putIfAbsent(
-                '${declaration.type.name}#${dependency.key}',
+                '${_display(declaration.type)}#${dependency.key}',
                 () => _MissingDependency(declaration.label, dependency.label),
               )
               .environments
@@ -772,7 +772,7 @@ class ContainerSourceEmitter {
     CobaltInjectableClass first,
     CobaltInjectableClass second,
   ) {
-    final exposed = first.exposedType.name;
+    final exposed = _display(first.exposedType);
     final named = first.name == null ? '' : " named '${first.name}'";
     final where = _overlapDescription(first.environments, second.environments);
     return '${first.label} and ${second.label} both register '

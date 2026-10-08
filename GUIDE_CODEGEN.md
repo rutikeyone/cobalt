@@ -285,10 +285,25 @@ Logger` where only an unnamed `Logger` exists is a gap. Each environment is chec
 `dev`-only registration cannot satisfy a dependent that also runs in `prod`.
 
 Rejected at build time as well: duplicate registrations of the same key, dependency cycles (naming
-the cycle), two `@CobaltScopeRoot` classes in a package, `@CobaltInject` on an abstract class or one
-with no public generative constructor, and `@CobaltInject` on a **generic class** — nothing tells the
-generator which instantiations to register, so annotate a concrete subtype or expose one with
-`exposeAs`.
+the cycle), two `@CobaltScopeRoot` classes in a package, and `@CobaltInject` on an abstract class or
+one with no public generative constructor.
+
+A **generic class** lists the instantiations it registers, one registration each:
+
+```dart
+@CobaltInject(instantiations: [Cache<Note>, Cache<User>])
+class Cache<T> {
+  Cache(this.store);
+  final Store<T> store;
+}
+```
+
+This registers `Cache<Note>` and `Cache<User>`, and each is built with its own `Store<Note>` or
+`Store<User>`. `name`, `lifetime`, `dispose` and the environments apply to every one of them. A
+generic class without `instantiations` is a build error, since nothing says which ones to register.
+Every entry spells out each type argument (a raw `Cache` reads as `Cache<dynamic>` and is rejected),
+`exposeAs` cannot be combined with `instantiations`, and a generic class cannot have `@injected`
+fields: take them in the constructor.
 
 Generics are fine everywhere else. `Repository<User>` and `Repository<Order>` are two separate
 registrations, because `CobaltKey` is built from `Type` and those are different types.
@@ -1288,9 +1303,11 @@ Each of these was found the hard way, in this repository or in the applications 
   the mode's one real maintenance obligation.
 - **Two `@CobaltScopeRoot` classes in one package.** A build error, and the fix is two packages —
   `cobalt_container` aggregates a whole package into one root.
-- **`@CobaltInject` on a generic class.** Rejected: nothing tells the generator which instantiations
-  to register. Annotate a concrete subtype, or expose one with `exposeAs`. Generics work fine as
-  dependencies and as `exposeAs` targets.
+- **`@CobaltInject` on a generic class without `instantiations`.** Rejected: nothing tells the
+  generator which instantiations to register. List them, as in
+  `@CobaltInject(instantiations: [Cache<Note>, Cache<User>])`, with every type argument spelled out,
+  or annotate a concrete subtype. Neither `exposeAs` nor `@injected` fields combine with
+  `instantiations`. Generics work fine as dependencies and as `exposeAs` targets.
 - **`@injected` without `with _$ClassName`.** The fields stay unassigned and the first read throws
   `LateError`. The lint says so first.
 - **Promising with `provides:` and then not registering it.** The check believed you, so the failure
