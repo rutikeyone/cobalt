@@ -1004,6 +1004,10 @@ plugins:
 | `cobalt_override_needs_type_argument` | `CobaltOverride` или `CobaltParamOverride` без аргумента типа — ключ, который он подменяет, выводит Dart |
 | `cobalt_hook_added_too_late` | `hookAll` после eager-регистрации или `get` на том же скоупе — в одном каскаде или раньше в блоке, — который скоуп отвергает с `CobaltHookError`; добавляйте хуки до того, как что-то построено |
 
+Семь правил предлагают в IDE быструю правку: она сама допишет недостающие `late final`, миксин,
+`@cobaltInject`, `lazy: true` или `implements Disposable`. Какое правило что
+исправляет, перечислено в [README пакета](packages/cobalt_lint/README.md#quick-fixes).
+
 Две вещи про подключение стоят реального времени:
 
 1. Секция `plugins:` **работает только в корне пакета или workspace**. Во вложенном

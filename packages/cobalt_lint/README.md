@@ -83,6 +83,24 @@ The overrides above are gone from this repository's own copy now that `cobalt_li
 All rules are warnings, so they are on by default. Every rule reads annotations through
 `cobalt_analyzer`, the same layer the generator uses.
 
+## Quick fixes
+
+Seven rules come with a quick fix, offered by the IDE on the diagnostic:
+
+| Rule | Fix |
+|---|---|
+| `cobalt_injected_field_must_be_late_final` | declares the field `late final` |
+| `cobalt_missing_injection_mixin` | adds `_$ClassName` to the `with` clause, or writes one |
+| `cobalt_injected_field_needs_an_injectable` | adds `@cobaltInject` above the class |
+| `cobalt_environment_needs_a_registration` | adds `@cobaltInject` above the class |
+| `cobalt_param_needs_an_injectable` | adds `@cobaltInject` above the class |
+| `cobalt_depends_on_lazy_registration` | replaces `dependsOn: [...]` with `lazy: true` |
+| `cobalt_registration_is_never_released` | implements `Disposable`, or `AsyncDisposable` when the teardown returns a `Future`, adds a `dispose()` calling the teardown when it has another name, and imports `package:cobalt/cobalt.dart` if needed |
+
+A fix stays out of the menu where it cannot be sure of the result: `@cobaltInject` is not offered on
+an abstract class or where the annotations are imported with a prefix, and `Disposable` is not
+offered when the class already has a `dispose` that is not its teardown.
+
 ## Why the graph rules report less than the build does
 
 `cobalt_registration_is_never_released` is the one that pays for itself in a Flutter application.

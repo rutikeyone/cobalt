@@ -1005,6 +1005,10 @@ plugins:
 | `cobalt_override_needs_type_argument` | a `CobaltOverride` or `CobaltParamOverride` with no type argument, so Dart infers the key it replaces |
 | `cobalt_hook_added_too_late` | `hookAll` after an eager registration or a `get` on the same scope — in one cascade or earlier in the block — which the scope refuses with `CobaltHookError`; add hooks before anything is built |
 
+Seven of the rules also offer a quick fix in the IDE: it writes the missing `late final`, mixin,
+`@cobaltInject`, `lazy: true` or `implements Disposable` for you. The
+[package README](packages/cobalt_lint/README.md#quick-fixes) lists which rule fixes what.
+
 Two things about wiring it up cost real time:
 
 1. The `plugins:` section **only works at the root of a package or workspace**. In a nested

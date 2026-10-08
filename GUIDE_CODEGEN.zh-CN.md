@@ -948,6 +948,10 @@ plugins:
 | `cobalt_override_needs_type_argument` | `CobaltOverride` 或 `CobaltParamOverride` 没写类型参数，替换哪个键就由 Dart 推断 |
 | `cobalt_hook_added_too_late` | 在同一作用域上、同一级联或同一代码块中较早处已有 eager 注册或 `get` 之后才调用 `hookAll`——作用域会以 `CobaltHookError` 拒绝；请在任何构建之前添加钩子 |
 
+其中七条规则还在 IDE 里提供快速修复：它会替你补上缺少的 `late final`、mixin、`@cobaltInject`、
+`lazy: true` 或 `implements Disposable`。哪条规则修复什么，见
+[包的 README](packages/cobalt_lint/README.md#quick-fixes)。
+
 配置它有两件事会实打实地耗掉你的时间：
 
 1. `plugins:` 一节**只在包或 workspace 的根目录生效**。放在嵌套的 `analysis_options.yaml` 里

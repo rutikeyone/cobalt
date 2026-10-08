@@ -999,6 +999,10 @@ plugins:
 | `cobalt_override_needs_type_argument` | 타입 인자가 없는 `CobaltOverride` 또는 `CobaltParamOverride`. 이 경우 교체할 키를 Dart가 추론합니다 |
 | `cobalt_hook_added_too_late` | 같은 스코프에서 즉시 생성 등록이나 `get` 이후에 호출한 `hookAll`(같은 캐스케이드 안이든 블록의 앞부분이든). 스코프가 `CobaltHookError`로 거부하므로, 무엇이든 빌드되기 전에 훅을 추가하십시오 |
 
+이 중 일곱 개 규칙은 IDE에서 빠른 수정(quick fix)도 제공합니다. 빠진 `late final`, 믹스인, `@cobaltInject`,
+`lazy: true`, `implements Disposable`을 대신 써 줍니다. 어떤 규칙이 무엇을 고치는지는
+[패키지 README](packages/cobalt_lint/README.md#quick-fixes)에 정리되어 있습니다.
+
 플러그인을 연결할 때 실제로 시간을 잡아먹는 것이 두 가지 있습니다:
 
 1. `plugins:` 섹션은 **패키지나 워크스페이스의 루트에서만 동작합니다**. 중첩된 `analysis_options.yaml`에서는

@@ -4,6 +4,10 @@
 /// generator uses, so the IDE and the build agree on what a declaration means.
 library;
 
+import 'package:cobalt_lint/src/fixes/add_cobalt_inject.dart';
+import 'package:cobalt_lint/src/fixes/add_injection_mixin.dart';
+import 'package:cobalt_lint/src/fixes/implement_disposable.dart';
+import 'package:cobalt_lint/src/fixes/make_init_lazy.dart';
 import 'package:cobalt_lint/src/fixes/make_late_final.dart';
 import 'package:cobalt_lint/src/rules/async_transient_read_synchronously.dart';
 import 'package:cobalt_lint/src/rules/bootstrap_requires_run_method.dart';
@@ -61,6 +65,30 @@ class _CobaltPlugin extends Plugin {
     registry.registerFixForRule(
       InjectedFieldMustBeLateFinal.code,
       MakeLateFinal.new,
+    );
+    registry.registerFixForRule(
+      MissingInjectionMixin.code,
+      AddInjectionMixin.new,
+    );
+    registry.registerFixForRule(
+      InjectedFieldNeedsAnInjectable.code,
+      AddCobaltInject.new,
+    );
+    registry.registerFixForRule(
+      EnvironmentNeedsARegistration.code,
+      AddCobaltInject.new,
+    );
+    registry.registerFixForRule(
+      ParamNeedsAnInjectable.code,
+      AddCobaltInject.new,
+    );
+    registry.registerFixForRule(
+      DependsOnLazyRegistration.code,
+      MakeInitLazy.new,
+    );
+    registry.registerFixForRule(
+      RegistrationIsNeverReleased.code,
+      ImplementDisposable.new,
     );
   }
 }
