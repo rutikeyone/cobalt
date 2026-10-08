@@ -11,42 +11,48 @@
 
 # cobalt
 
-Runtime core of [Cobalt](https://github.com/rutikeyone/cobalt), a dependency injection framework for
-Dart and Flutter. Pure Dart — it has no Flutter dependency, so the same graph runs in tests, CLIs
-and servers. For widgets, add `cobalt_flutter`.
+Dependency injection for Dart: register what your program needs in a scope, read it from anywhere
+below, and close all of it with one `dispose()`.
 
-Cobalt works with or without code generation. The generator writes exactly what you would write by
-hand, using only the public API of this package.
+## Why Cobalt
 
-```dart
-final scope = CobaltScope.root(name: 'app')
-  ..registerLazySingleton<Logger>(const LoggerFactory())
-  ..registerAsyncSingleton<Database>(const DatabaseFactory())
-  ..registerAsyncSingleton<SearchIndex>(
-    const SearchIndexFactory(),
-    dependsOn: {const CobaltKey(Database)},
-  );
+- **Scopes end, and take their objects with them.** Sign-out is `await session.dispose()`:
+  everything the session built is closed, newest first.
+- **Async startup in the right order.** Services that must be awaited start in dependency order,
+  independent ones in parallel.
+- **Tests swap a dependency for everyone.** There is no global container, so tests run in parallel.
+- **Pure Dart.** The same graph runs in a Flutter app, a test, a CLI or a server.
+- **Code generation is optional.** The generator writes what you would write by hand, using only
+  the public API of this package.
 
-await scope.init();
-final index = scope.get<SearchIndex>();
-await scope.dispose();
+## Install
+
+```bash
+dart pub add cobalt
 ```
 
-`SearchIndex` states `dependsOn` because both it and `Database` are built during `init()` and one
-has to finish first. `Logger` needs no such line: a factory that wants it simply resolves it.
+Building a Flutter app? Start with [`cobalt_flutter`](https://pub.dev/packages/cobalt_flutter): its
+Quick start is a whole app in one file.
 
 ## Quick start
 
-Both modes build the same graph over the same runtime. Pick one per project, or
-mix them while you migrate.
-
-**By hand** — no build step, nothing generated:
+**1. Describe your classes.** A factory says how to build one type, and asks the resolver for what
+that type needs:
 
 ```dart
 import 'package:cobalt/cobalt.dart';
 
 class Clock {
   DateTime now() => DateTime.now();
+}
+
+class Greeter {
+  Greeter(this.clock);
+
+  final Clock clock;
+
+  String greet(String name) =>
+      clock.now().hour < 12 ? 'Good morning, $name!' : 'Hello, $name!';
 }
 
 class ClockFactory implements CobaltFactory<Clock> {
@@ -56,25 +62,38 @@ class ClockFactory implements CobaltFactory<Clock> {
   Clock create(CobaltResolver resolver) => Clock();
 }
 
-class AppScope implements CobaltScopeBuilder {
-  const AppScope();
+class GreeterFactory implements CobaltFactory<Greeter> {
+  const GreeterFactory();
 
   @override
-  void build(CobaltScope scope) {
-    scope.registerLazySingleton<Clock>(const ClockFactory());
-  }
+  Greeter create(CobaltResolver resolver) => Greeter(resolver.get<Clock>());
 }
+```
 
+**2. Register them in a scope, start it, read from it and dispose it:**
+
+```dart
 Future<void> main() async {
-  final app = await CobaltApplication.start(root: const AppScope());
+  final app = CobaltScope.root(name: 'app')
+    ..registerLazySingleton<Clock>(const ClockFactory())
+    ..registerLazySingleton<Greeter>(const GreeterFactory());
 
-  print(app.get<Clock>().now());
+  await app.init();
+
+  print(app.get<Greeter>().greet('Cobalt'));
 
   await app.dispose();
 }
 ```
 
-**Generated** — the same graph, written for you by `build_runner`:
+**3. Run it** with `dart run`, and it prints a greeting.
+
+`init()` builds whatever has to be awaited before the program starts; there is nothing like that
+here. `get` builds a lazy singleton the first time it is asked for and hands out the same one after.
+`dispose()` closes everything the scope built, newest first.
+
+**Or let the generator write the factories.** Both ways build the same graph over the same runtime,
+and one project can mix them while it migrates. Annotate the classes instead:
 
 ```dart
 import 'package:cobalt/cobalt.dart';
@@ -98,12 +117,58 @@ dart run build_runner build
 That writes `lib/cobalt.g.dart`, and `await $startCobalt()` gives you the same
 scope the hand-written version built.
 
-Full walkthroughs: [Manual Mode](https://github.com/rutikeyone/cobalt/blob/main/GUIDE_MANUAL.md)
-and [Code-Gen Mode](https://github.com/rutikeyone/cobalt/blob/main/GUIDE_CODEGEN.md).
+## Key features
 
-A whole Flutter app, generated container and a test included, is
-[`examples/hello`](https://github.com/rutikeyone/cobalt/tree/main/examples/hello).
+- **Scopes inside scopes.** `app.push('session')` makes a child that sees its parent and ends before
+  it. [Read more](https://github.com/rutikeyone/cobalt/blob/main/GUIDE_MANUAL.md#6-scopes-that-end-before-the-app-does)
+- **Teardown in reverse creation order**, so an object is always closed before what it depends on.
+  [Read more](https://github.com/rutikeyone/cobalt/blob/main/GUIDE_MANUAL.md#7-closing-what-you-registered)
+- **Async startup as a graph.** `dependsOn` orders what `init()` awaits.
+  [Read more](https://github.com/rutikeyone/cobalt/blob/main/GUIDE_MANUAL.md#8-work-that-has-to-finish-before-the-app-starts)
+- **Overrides** replace a registration where it is owned, for a test or a flavour.
+  [Read more](#replacing-a-registration)
+- **Decorators** wrap what a registration hands out without touching its class.
+  [Read more](#wrapping-a-registration)
+- **Errors that name the trail**, not only the missing key.
+  [Read more](#what-a-failed-resolve-tells-you)
+- **Observers** report what the graph builds and closes, to any logger.
+  [Read more](https://github.com/rutikeyone/cobalt/blob/main/GUIDE_MANUAL.md#12-watching-the-graph)
 
+## Learn more
+
+| | |
+|---|---|
+| **Step by step, without code generation** | [GUIDE_MANUAL.md](https://github.com/rutikeyone/cobalt/blob/main/GUIDE_MANUAL.md) |
+| **Step by step, with the generator** | [GUIDE_CODEGEN.md](https://github.com/rutikeyone/cobalt/blob/main/GUIDE_CODEGEN.md) |
+| **Something threw** | [docs/TROUBLESHOOTING.md](https://github.com/rutikeyone/cobalt/blob/main/docs/TROUBLESHOOTING.md) |
+| **Coming from get_it, injectable or provider** | [MIGRATION.md](https://github.com/rutikeyone/cobalt/blob/main/MIGRATION.md) |
+| **A whole Flutter app, with a test** | [`examples/hello`](https://github.com/rutikeyone/cobalt/tree/main/examples/hello) |
+| **Every feature in one app** | [`examples/gallery`](https://github.com/rutikeyone/cobalt/tree/main/examples/gallery) |
+
+## Reference
+
+Everything below describes the package in full.
+
+`cobalt` is the runtime core of [Cobalt](https://github.com/rutikeyone/cobalt). It has no Flutter
+dependency; for widgets, add `cobalt_flutter`. A registration that is built during `init()` states
+what it waits for:
+
+```dart
+final scope = CobaltScope.root(name: 'app')
+  ..registerLazySingleton<Logger>(const LoggerFactory())
+  ..registerAsyncSingleton<Database>(const DatabaseFactory())
+  ..registerAsyncSingleton<SearchIndex>(
+    const SearchIndexFactory(),
+    dependsOn: {const CobaltKey(Database)},
+  );
+
+await scope.init();
+final index = scope.get<SearchIndex>();
+await scope.dispose();
+```
+
+`SearchIndex` states `dependsOn` because both it and `Database` are built during `init()` and one
+has to finish first. `Logger` needs no such line: a factory that wants it simply resolves it.
 ## What it guarantees
 
 - **Hierarchical scopes.** `scope.push('session')` creates a child that sees its parent and can

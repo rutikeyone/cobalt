@@ -1,5 +1,5 @@
 name: cobalt_generator
-description: Code generator for Cobalt. Emits the container, property-injection mixins and the two-phase startup. Use as a dev_dependency.
+description: Code generator for Cobalt dependency injection. Annotate classes with @cobaltInject and build_runner writes the container, failing the build when a dependency is missing.
 version: 1.1.1
 repository: https://github.com/rutikeyone/cobalt
 issue_tracker: https://github.com/rutikeyone/cobalt/issues

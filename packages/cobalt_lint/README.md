@@ -1,12 +1,30 @@
 # cobalt_lint
 
-Analyzer plugin with lint rules for [Cobalt](https://github.com/rutikeyone/cobalt). It surfaces
-invalid annotations in the IDE instead of only when `build_runner` runs.
+Lint rules for [Cobalt](https://github.com/rutikeyone/cobalt) that report a broken annotation or a
+missing registration in the editor, instead of only when `build_runner` runs.
+
+Turn it on in `analysis_options.yaml` at the root of your package or workspace:
 
 ```yaml
 plugins:
   cobalt_lint: ^1.0.0
 ```
+
+The IDE and `dart analyze` then flag a mistake where you make it:
+
+```dart
+@cobaltInject
+class CartController extends ChangeNotifier {}
+// warning: 'CartController' is registered and declares 'dispose()', but nothing
+//          tells the scope to call it. (cobalt_registration_is_never_released)
+```
+
+Its quick fix adds `implements Disposable`, and the scope closes the controller with everything else.
+
+Learn more: [every rule](#rules), [the quick fixes](#quick-fixes), and
+[the lint plugin in the Code-Gen guide](https://github.com/rutikeyone/cobalt/blob/main/GUIDE_CODEGEN.md#16-the-lint-plugin).
+
+## Where the plugin comes from
 
 The `plugins` section only works at the root of a package or workspace — a nested
 `analysis_options.yaml` is silently ignored, and `dart analyze <nested/dir>` will not apply it.

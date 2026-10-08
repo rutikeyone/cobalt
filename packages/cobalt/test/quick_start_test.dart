@@ -16,6 +16,7 @@ void main() {
     'README.ru.md',
     'README.zh-CN.md',
     'README.ko.md',
+    'packages/cobalt_flutter/README.md',
   ]) {
     test('$name shows examples/hello as its Quick start', () {
       expect(

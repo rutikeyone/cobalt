@@ -6,12 +6,41 @@
 # cobalt_inspector
 
 The live scope tree, what [Cobalt](https://pub.dev/packages/cobalt) built and with what lifetime, and
-everything the graph reported — on a screen inside your app, with nothing attached from outside.
+everything the graph reported, on a screen inside your app with nothing attached from outside.
 
-```yaml
-dev_dependencies:
-  cobalt_inspector: ^1.0.0
+```bash
+flutter pub add dev:cobalt_inspector
 ```
+
+Hand the log to the graph when the app starts:
+
+```dart
+final log = CobaltInspectorLog();
+
+void main() => runApp(
+  MaterialApp(
+    builder: CobaltAppScope.builder(
+      root: const $CobaltRootScope(),
+      observers: [log],
+    ),
+    home: const HomeScreen(),
+  ),
+);
+```
+
+Then open the screen from a button in your debug menu:
+
+```dart
+Navigator.of(context).push(
+  MaterialPageRoute<void>(
+    builder: (_) => CobaltInspectorScreen(log: log, scope: context.cobaltScope),
+  ),
+);
+```
+
+Learn more: [the three views](#three-views-and-why-they-read-different-things),
+[your own colours](#dressing-it-in-your-own-colours), and
+[the inspector in the Code-Gen guide](https://github.com/rutikeyone/cobalt/blob/main/GUIDE_CODEGEN.md#on-screen-while-the-app-runs).
 
 ## Wiring
 
@@ -32,11 +61,13 @@ Then push the screen from wherever your debug menu lives:
 
 ```dart
 Navigator.of(context).push(
-  MaterialPageRoute<void>(builder: (_) => CobaltInspectorScreen(log: log)),
+  MaterialPageRoute<void>(
+    builder: (_) => CobaltInspectorScreen(log: log, scope: context.cobaltScope),
+  ),
 );
 ```
 
-It reads the scope above it and climbs to the root, so it shows the whole graph wherever it opens.
+It climbs from that scope to the root, so it shows the whole graph wherever it opens.
 
 ## Three views, and why they read different things
 

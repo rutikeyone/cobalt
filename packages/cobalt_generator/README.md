@@ -1,17 +1,89 @@
 # cobalt_generator
 
-Code generator for [Cobalt](https://github.com/rutikeyone/cobalt). Add it as a `dev_dependency` — it
-never ships in an application.
+Writes the [Cobalt](https://pub.dev/packages/cobalt) container for you: annotate your classes, run
+`build_runner`, and a missing dependency fails the build instead of the app.
 
-```yaml
-dev_dependencies:
-  cobalt_generator: ^1.0.0
-  build_runner: ^2.16.0
+## Install
+
+```bash
+flutter pub add cobalt cobalt_flutter dev:cobalt_generator dev:build_runner
 ```
 
+In a pure Dart package, `dart pub add cobalt dev:cobalt_generator dev:build_runner`. The generator
+is a dev dependency: it never ships in an application.
+
+## Quick start
+
+**1. Annotate** each class the graph should build. Its constructor parameters are its
+dependencies:
+
+```dart
+@cobaltInject
+class Clock {
+  Clock();
+
+  DateTime now() => DateTime.now();
+}
+
+@cobaltInject
+class Greeter {
+  Greeter(this.clock);
+
+  final Clock clock;
+}
 ```
+
+**2. Generate** the container:
+
+```bash
 dart run build_runner build
 ```
+
+It writes `lib/cobalt.g.dart`: a factory per class, and `$CobaltRootScope`, which registers them in
+dependency order.
+
+**3. Start** the generated root. In a Flutter app, hand it to `CobaltAppScope` from
+[`cobalt_flutter`](https://pub.dev/packages/cobalt_flutter):
+
+```dart
+builder: CobaltAppScope.builder(root: const $CobaltRootScope()),
+```
+
+Anywhere else, to `CobaltApplication`:
+
+```dart
+final app = await CobaltApplication.start(root: const $CobaltRootScope());
+final greeter = app.get<Greeter>();
+```
+
+## When a dependency is missing
+
+Take `@cobaltInject` off `Clock` and the build stops, naming the gap:
+
+```
+Greeter requires Clock, which nothing registers. Annotate the class that provides
+it with @CobaltInject, add an @CobaltModule member returning it when the type is
+not yours, or name it in @CobaltScopeRoot(provides: [...]) when something outside
+the generated container registers it.
+```
+
+Every gap is reported in one build, so a graph is fixed in one pass.
+
+## Learn more
+
+| | |
+|---|---|
+| **Step by step, with the generator** | [GUIDE_CODEGEN.md](https://github.com/rutikeyone/cobalt/blob/main/GUIDE_CODEGEN.md) |
+| **What the generated file looks like** | [What comes out](https://github.com/rutikeyone/cobalt/blob/main/GUIDE_CODEGEN.md#3-what-comes-out) |
+| **Registering a type from another package** | [Types you did not write](https://github.com/rutikeyone/cobalt/blob/main/GUIDE_CODEGEN.md#14-types-you-did-not-write) |
+| **Something threw** | [docs/TROUBLESHOOTING.md](https://github.com/rutikeyone/cobalt/blob/main/docs/TROUBLESHOOTING.md) |
+| **A whole Flutter app, with a test** | [`examples/hello`](https://github.com/rutikeyone/cobalt/tree/main/examples/hello) |
+| **Property injection, a decorator, a scope per screen** | [`examples/codegen_basics`](https://github.com/rutikeyone/cobalt/tree/main/examples/codegen_basics) |
+
+## Reference
+
+Everything below describes the generator in full.
+
 
 ## Builders
 

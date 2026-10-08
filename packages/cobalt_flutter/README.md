@@ -1,6 +1,123 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/rutikeyone/cobalt/main/assets/banner.png" alt="Cobalt, dependency injection for Dart and Flutter" width="880">
+</p>
+
+<p align="center">
+  <a href="https://pub.dev/packages/cobalt_flutter"><img src="https://img.shields.io/pub/v/cobalt_flutter?logo=dart&logoColor=white&label=pub&color=5FD4C8" alt="pub package"></a>
+  <a href="https://pub.dev/packages/cobalt_flutter/score"><img src="https://img.shields.io/pub/points/cobalt_flutter?color=5FD4C8" alt="pub points"></a>
+  <a href="https://github.com/rutikeyone/cobalt/actions/workflows/ci.yml"><img src="https://github.com/rutikeyone/cobalt/actions/workflows/ci.yml/badge.svg" alt="ci"></a>
+  <a href="https://github.com/rutikeyone/cobalt/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="licence"></a>
+</p>
+
 # cobalt_flutter
 
-Flutter bindings for [Cobalt](https://github.com/rutikeyone/cobalt).
+Dependency injection for Flutter apps, where the app, a session or a screen owns a scope, and
+everything built in it is closed when that scope ends.
+
+## Why Cobalt
+
+- **Objects go away with the screen, flow or session that needed them.** No `reset()` methods and
+  no listeners waiting for a logout event.
+- **A missing dependency fails the build, not the app.** `build_runner` names every gap at once.
+- **Startup has a loading screen and an error screen.** Services that must be awaited start before
+  the first screen, and a failed start is a screen with a retry instead of a crash.
+- **Tests swap a dependency for everyone.** There is no global container, so tests run in parallel.
+- **The generated code is plain Dart** that you can read, or write by hand instead.
+
+## Install
+
+```bash
+flutter pub add cobalt cobalt_flutter dev:cobalt_generator dev:build_runner
+```
+
+`cobalt` is the runtime: the generated `lib/cobalt.g.dart` imports it, so the app depends on it
+directly.
+
+## Quick start
+
+Replace `lib/main.dart` of a new app (`flutter create my_app`):
+
+```dart
+import 'package:cobalt_flutter/cobalt_flutter.dart';
+import 'package:flutter/material.dart';
+
+import 'cobalt.g.dart';
+
+@cobaltInject
+class Clock {
+  Clock();
+
+  DateTime now() => DateTime.now();
+}
+
+@cobaltInject
+class Greeter {
+  Greeter(this.clock);
+
+  final Clock clock;
+
+  String greet(String name) =>
+      clock.now().hour < 12 ? 'Good morning, $name!' : 'Hello, $name!';
+}
+
+void main() => runApp(
+  MaterialApp(
+    builder: CobaltAppScope.builder(root: const $CobaltRootScope()),
+    home: const HomeScreen(),
+  ),
+);
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final greeter = context.cobalt<Greeter>();
+    return Scaffold(body: Center(child: Text(greeter.greet('Cobalt'))));
+  }
+}
+```
+
+1. **Annotate.** `@cobaltInject` registers `Clock` and `Greeter`. `Greeter` asks for a `Clock` in
+   its constructor, and that is all the wiring you write.
+2. **Generate.** `dart run build_runner build` writes `lib/cobalt.g.dart`, whose `$CobaltRootScope`
+   connects the two. Then `flutter run`.
+3. **Read.** `CobaltAppScope` builds the graph when the app starts and closes it when the app goes,
+   and `context.cobalt<Greeter>()` reads from it in any widget below.
+
+The same app, with a test that swaps the clock, is
+[`examples/hello`](https://github.com/rutikeyone/cobalt/tree/main/examples/hello).
+
+## Key features
+
+- **Scopes owned by widgets.** `CobaltScopedWidget` creates a scope when a screen mounts and closes
+  it when the screen goes.
+  [Read more](https://github.com/rutikeyone/cobalt/blob/main/GUIDE_CODEGEN.md#9-scopes-that-end-before-the-app-does)
+- **Async startup with loading and error screens.** `CobaltAppScope` awaits what must be ready
+  before the first frame and shows `loading`, or `errorBuilder` with a retry.
+  [Read more](https://github.com/rutikeyone/cobalt/blob/main/GUIDE_CODEGEN.md#7-starting-a-flutter-app)
+- **Tests swap a dependency.** `overrides` replaces a registration for every consumer, in a widget
+  test or a debug build.
+  [Read more](https://github.com/rutikeyone/cobalt/blob/main/GUIDE_CODEGEN.md#18-tests)
+- **An inspector inside the app.** The live scope tree and every event the graph reported, on a
+  screen of your debug menu. [Read more](https://pub.dev/packages/cobalt_inspector)
+
+## Learn more
+
+| | |
+|---|---|
+| **Step by step, with the generator** | [GUIDE_CODEGEN.md](https://github.com/rutikeyone/cobalt/blob/main/GUIDE_CODEGEN.md) |
+| **Step by step, without code generation** | [GUIDE_MANUAL.md](https://github.com/rutikeyone/cobalt/blob/main/GUIDE_MANUAL.md) |
+| **Something threw** | [docs/TROUBLESHOOTING.md](https://github.com/rutikeyone/cobalt/blob/main/docs/TROUBLESHOOTING.md) |
+| **Coming from get_it, injectable or provider** | [MIGRATION.md](https://github.com/rutikeyone/cobalt/blob/main/MIGRATION.md) |
+| **The smallest app** | [`examples/hello`](https://github.com/rutikeyone/cobalt/tree/main/examples/hello) |
+| **Every feature in one app** | [`examples/gallery`](https://github.com/rutikeyone/cobalt/tree/main/examples/gallery) |
+
+## Reference
+
+Everything below describes the package in full.
+
+`CobaltScopeProvider` publishes a scope you built yourself:
 
 ```dart
 CobaltScopeProvider(
@@ -14,6 +131,7 @@ Resolve from any descendant:
 ```dart
 final repo = context.cobalt<NoteStore>();
 ```
+
 
 ## Widget-owned scopes
 
