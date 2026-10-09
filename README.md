@@ -19,6 +19,12 @@
 Dependency injection for Flutter and Dart. Objects live in scopes — the app, a signed-in session, a
 checkout flow, a screen — and when a scope ends, everything built in it is closed with it.
 
+<p align="center">
+  <img src="assets/quick-tour.gif" width="300" alt="A tour of the gallery: a session scope opened, then the live scope tree">
+</p>
+
+<p align="center"><sub>The gallery: open a session scope, then look at the live scope tree in <code>cobalt_inspector</code>.</sub></p>
+
 ## Quick start
 
 In a Flutter app — `flutter create my_app` makes one — add the packages:

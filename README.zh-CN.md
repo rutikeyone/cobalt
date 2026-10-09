@@ -21,6 +21,12 @@
 
 面向 Flutter 和 Dart 的依赖注入。对象住在作用域里——整个应用、一次登录会话、一个结账流程、一个屏幕——作用域结束时，在其中构建的一切都随之关闭。
 
+<p align="center">
+  <img src="assets/quick-tour.gif" width="300" alt="gallery 一览：打开一个会话作用域，再看实时作用域树">
+</p>
+
+<p align="center"><sub>gallery：打开一个会话作用域，再在 <code>cobalt_inspector</code> 里看实时作用域树。</sub></p>
+
 ## 快速开始
 
 在一个 Flutter 应用里（用 `flutter create my_app` 创建）添加依赖：

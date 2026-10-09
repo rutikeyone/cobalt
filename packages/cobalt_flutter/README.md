@@ -24,6 +24,12 @@ everything built in it is closed when that scope ends.
 - **Tests swap a dependency for everyone.** There is no global container, so tests run in parallel.
 - **The generated code is plain Dart** that you can read, or write by hand instead.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/rutikeyone/cobalt/main/assets/quick-tour.gif" width="300" alt="A tour of the gallery: a session scope opened, then the live scope tree">
+</p>
+
+<p align="center"><sub>The gallery: open a session scope, then look at the live scope tree in <code>cobalt_inspector</code>.</sub></p>
+
 ## Install
 
 ```bash

@@ -22,6 +22,12 @@
 Flutter와 Dart를 위한 의존성 주입입니다. 객체는 스코프 안에 삽니다. 앱 전체, 로그인한 세션, 결제
 플로우, 화면 하나가 각각 스코프이고, 스코프가 끝나면 그 안에서 만든 모든 것이 함께 닫힙니다.
 
+<p align="center">
+  <img src="assets/quick-tour.gif" width="300" alt="갤러리 둘러보기: 세션 스코프를 열고 실시간 스코프 트리를 봅니다">
+</p>
+
+<p align="center"><sub>갤러리: 세션 스코프를 열고 <code>cobalt_inspector</code>에서 실시간 스코프 트리를 봅니다.</sub></p>
+
 ## 빠른 시작
 
 Flutter 앱(`flutter create my_app`으로 만들 수 있습니다)에 패키지를 추가합니다.
