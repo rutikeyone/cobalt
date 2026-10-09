@@ -90,6 +90,22 @@ connects the two in `lib/cobalt.g.dart`. `CobaltAppScope` builds the graph when 
 closes it when the app goes; `context.cobalt<Greeter>()` reads from it. The same app, with a test
 that swaps the clock, is in [`examples/hello`](examples/hello).
 
+## Next steps
+
+Three steps, each one code you can run:
+
+1. **One graph for the app.** [`examples/hello`](examples/hello): the code above, with its test.
+2. **A scope of your own.** The *Session scope* entry in the gallery
+   (`cd examples/gallery && flutter run`): signing in pushes a scope, signing out closes it with
+   everything it built. The code is in
+   [`examples/notes_app/lib/features/session`](examples/notes_app/lib/features/session).
+3. **A test that swaps a dependency.** [`examples/testing_patterns`](examples/testing_patterns).
+
+To the side: [`examples/codegen_basics`](examples/codegen_basics) shows what else the generator
+does (property injection, a decorator, a scope per screen), and
+[`examples/manual_mode`](examples/manual_mode) with [`examples/teardown`](examples/teardown) show the
+runtime alone, in pure Dart.
+
 ## Why Cobalt
 
 - **Scopes end, and take their objects with them.** Scopes form a tree. Sign-out is

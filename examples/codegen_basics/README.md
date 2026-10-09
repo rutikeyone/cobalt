@@ -37,5 +37,9 @@ screen leaves.
 
 ## Where to go next
 
-- `examples/manual_mode` — the same graph written by hand
-- `examples/notes_app` — one screen per capability, the full surface
+This example is a side step from [`examples/hello`](../hello). The main path goes on to a scope of
+your own, the *Session scope* entry in the gallery, and then to a test that swaps a dependency,
+[`examples/testing_patterns`](../testing_patterns).
+
+- [`examples/manual_mode`](../manual_mode): the same ideas written by hand
+- [`examples/notes_app`](../notes_app): one screen per capability, the full surface

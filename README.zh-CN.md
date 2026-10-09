@@ -87,6 +87,16 @@ flutter run
 
 `@cobaltInject` 注册一个类。`Greeter` 在构造函数里要一个 `Clock`，生成器在 `lib/cobalt.g.dart` 里把两者连起来。`CobaltAppScope` 在应用启动时构建图，在应用退出时关闭它；`context.cobalt<Greeter>()` 从图中读取。同一个应用，外加一个替换时钟的测试，在 [`examples/hello`](examples/hello)。
 
+## 下一步
+
+三步，每一步都有可以运行的代码：
+
+1. **整个应用一张图。** [`examples/hello`](examples/hello)：就是上面的代码，外加它的测试。
+2. **你自己的作用域。** gallery 里的「会话作用域」条目（`cd examples/gallery && flutter run`）：登录时创建一个作用域，退出时把它连同其中构建的一切一起关闭。代码在 [`examples/notes_app/lib/features/session`](examples/notes_app/lib/features/session)。
+3. **替换依赖的测试。** [`examples/testing_patterns`](examples/testing_patterns)。
+
+旁支：[`examples/codegen_basics`](examples/codegen_basics) 展示生成器还能做什么（属性注入、装饰器、每个界面一个作用域）；[`examples/manual_mode`](examples/manual_mode) 和 [`examples/teardown`](examples/teardown) 展示单独使用运行时、纯 Dart 的写法。
+
 ## 为什么用 Cobalt
 
 - **作用域结束时，会带走它的对象。** 作用域构成一棵树。退出登录就是 `await session.dispose()`：会话构建的一切都会被关闭，从新到旧。不需要 `reset()` 方法，也不需要监听退出事件。

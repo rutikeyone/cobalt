@@ -94,6 +94,21 @@ flutter run
 приложение уходит; `context.cobalt<Greeter>()` читает из него. То же приложение с тестом, который
 подменяет часы, лежит в [`examples/hello`](examples/hello).
 
+## Следующие шаги
+
+Три ступени, на каждой код, который можно запустить:
+
+1. **Один граф на приложение.** [`examples/hello`](examples/hello): код выше вместе с тестом.
+2. **Свой скоуп.** Запись «Сессионный скоуп» в галерее (`cd examples/gallery && flutter run`): вход
+   создает скоуп, выход закрывает его вместе со всем, что в нем построено. Код лежит в
+   [`examples/notes_app/lib/features/session`](examples/notes_app/lib/features/session).
+3. **Тест с подменой зависимости.** [`examples/testing_patterns`](examples/testing_patterns).
+
+В сторону от основного пути: [`examples/codegen_basics`](examples/codegen_basics) показывает, что
+еще умеет генератор (property injection, декоратор, скоуп на экран), а
+[`examples/manual_mode`](examples/manual_mode) и [`examples/teardown`](examples/teardown) показывают
+рантайм отдельно, на чистом Dart.
+
 ## Зачем Cobalt
 
 - **Скоуп заканчивается и забирает свои объекты.** Скоупы образуют дерево. Выход из аккаунта — это

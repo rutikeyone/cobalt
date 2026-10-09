@@ -31,6 +31,12 @@ without the generator: [GUIDE_MANUAL.md](GUIDE_MANUAL.md).
 [`examples/hello`](examples/hello) is exactly that, in one file. The rest is for when you need it —
 each section answers one question.
 
+**Then, in this order:** a scope of your own, which is the *Session scope* entry in the gallery and
+[section 9](#9-scopes-that-end-before-the-app-does); then a test that swaps a dependency, which is
+[`examples/testing_patterns`](examples/testing_patterns) and [section 18](#18-tests).
+[`examples/codegen_basics`](examples/codegen_basics) shows what else the generator does: property
+injection, a decorator, a scope per screen.
+
 1. [Install](#1-install)
 2. [Your first generated graph](#2-your-first-generated-graph)
 3. [What comes out](#3-what-comes-out)

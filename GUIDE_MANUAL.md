@@ -25,6 +25,12 @@ are locked into.
 The rest is for when you need it — each section answers one question. The smallest whole app, with
 the generator, is [`examples/hello`](examples/hello).
 
+**Then, in this order:** a scope of your own, which is the *Session scope* entry in the gallery and
+[section 6](#6-scopes-that-end-before-the-app-does); then a test that swaps a dependency, which is
+[`examples/testing_patterns`](examples/testing_patterns) and [section 13](#13-tests). Without
+Flutter: [`examples/manual_mode`](examples/manual_mode) and [`examples/teardown`](examples/teardown),
+both pure Dart.
+
 1. [Install](#1-install)
 2. [Your first graph](#2-your-first-graph)
 3. [Registering and reading](#3-registering-and-reading)

@@ -29,6 +29,8 @@
 
 **写第一个应用，读第 1、2、7、8 节：** 安装、加注解、启动应用、在 widget 中读取。[`examples/hello`](examples/hello) 就是这些内容，放在一个文件里。其余的等需要时再看——每一节只回答一个问题。
 
+**接下来按这个顺序：** 你自己的作用域（gallery 里的「会话作用域」条目和[第 9 节](#9-比应用先结束的作用域)），然后是替换依赖的测试（[`examples/testing_patterns`](examples/testing_patterns) 和[第 18 节](#18-测试)）。[`examples/codegen_basics`](examples/codegen_basics) 展示生成器还能做什么：属性注入、装饰器、每个界面一个作用域。
+
 1. [安装](#1-安装)
 2. [你的第一张生成图](#2-你的第一张生成图)
 3. [产物长什么样](#3-产物长什么样)

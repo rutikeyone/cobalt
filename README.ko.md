@@ -93,6 +93,20 @@ flutter run
 끝날 때 닫으며, `context.cobalt<Greeter>()`는 그래프에서 값을 읽습니다. 시계를 바꿔 끼우는 테스트까지
 포함한 같은 앱이 [`examples/hello`](examples/hello)에 있습니다.
 
+## 다음 단계
+
+세 단계이며, 단계마다 실행할 수 있는 코드가 있습니다.
+
+1. **앱 전체에 그래프 하나.** [`examples/hello`](examples/hello): 위의 코드와 그 테스트입니다.
+2. **나만의 스코프.** 갤러리의 「세션 스코프」 항목(`cd examples/gallery && flutter run`): 로그인하면
+   스코프가 생기고, 로그아웃하면 그 안에서 만든 모든 것과 함께 닫힙니다. 코드는
+   [`examples/notes_app/lib/features/session`](examples/notes_app/lib/features/session)에 있습니다.
+3. **의존성을 바꿔 끼우는 테스트.** [`examples/testing_patterns`](examples/testing_patterns).
+
+곁가지: [`examples/codegen_basics`](examples/codegen_basics)는 제너레이터가 그 밖에 하는 일(프로퍼티
+주입, 데코레이터, 화면별 스코프)을 보여 주고, [`examples/manual_mode`](examples/manual_mode)와
+[`examples/teardown`](examples/teardown)은 런타임만 순수 Dart로 쓰는 모습을 보여 줍니다.
+
 ## 왜 Cobalt인가
 
 - **스코프가 끝나면 객체도 함께 정리됩니다.** 스코프는 트리를 이룹니다. 로그아웃은
