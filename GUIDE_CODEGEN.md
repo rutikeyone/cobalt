@@ -31,6 +31,12 @@ without the generator: [GUIDE_MANUAL.md](GUIDE_MANUAL.md).
 [`examples/hello`](examples/hello) is exactly that, in one file. The rest is for when you need it —
 each section answers one question.
 
+**Then, in this order:** a scope of your own, which is the *Session scope* entry in the gallery and
+[section 9](#9-scopes-that-end-before-the-app-does); then a test that swaps a dependency, which is
+[`examples/testing_patterns`](examples/testing_patterns) and [section 18](#18-tests).
+[`examples/codegen_basics`](examples/codegen_basics) shows what else the generator does: property
+injection, a decorator, a scope per screen.
+
 1. [Install](#1-install)
 2. [Your first generated graph](#2-your-first-generated-graph)
 3. [What comes out](#3-what-comes-out)
@@ -302,8 +308,23 @@ This registers `Cache<Note>` and `Cache<User>`, and each is built with its own `
 `Store<User>`. `name`, `lifetime`, `dispose` and the environments apply to every one of them. A
 generic class without `instantiations` is a build error, since nothing says which ones to register.
 Every entry spells out each type argument (a raw `Cache` reads as `Cache<dynamic>` and is rejected),
-`exposeAs` cannot be combined with `instantiations`, and a generic class cannot have `@injected`
-fields: take them in the constructor.
+and `exposeAs` cannot be combined with `instantiations`.
+
+`@injected` fields work the same way. The class mixes in its generated mixin with its type
+parameters, and each instantiation reads the field under its own type arguments:
+
+```dart
+@CobaltInject(instantiations: [Cache<Note>, Cache<User>])
+class Cache<T> with _$Cache<T> {
+  Cache();
+
+  @injected
+  late final Store<T> store;
+}
+```
+
+`Cache<User>` reads `Store<User>`, and a missing `Store<User>` fails the build for `Cache<User>`
+alone.
 
 Generics are fine everywhere else. `Repository<User>` and `Repository<Order>` are two separate
 registrations, because `CobaltKey` is built from `Type` and those are different types.
@@ -1306,8 +1327,8 @@ Each of these was found the hard way, in this repository or in the applications 
 - **`@CobaltInject` on a generic class without `instantiations`.** Rejected: nothing tells the
   generator which instantiations to register. List them, as in
   `@CobaltInject(instantiations: [Cache<Note>, Cache<User>])`, with every type argument spelled out,
-  or annotate a concrete subtype. Neither `exposeAs` nor `@injected` fields combine with
-  `instantiations`. Generics work fine as dependencies and as `exposeAs` targets.
+  or annotate a concrete subtype. `exposeAs` does not combine with `instantiations`. Generics work
+  fine as dependencies and as `exposeAs` targets.
 - **`@injected` without `with _$ClassName`.** The fields stay unassigned and the first read throws
   `LateError`. The lint says so first.
 - **Promising with `provides:` and then not registering it.** The check believed you, so the failure

@@ -1,3 +1,11 @@
+## 1.3.0
+
+- Internal: an `@injected` field on a generic class with `instantiations`
+  is no longer a build error. Each instantiation reads the field under its
+  own type arguments, and `CobaltInjectableParser.declaredPropertiesOf`
+  returns the fields as the class declares them, for its one mixin.
+  `cobalt_generator` and `cobalt_lint` 1.3.0 require this version.
+
 ## 1.2.0
 
 - Internal: parses `@CobaltInject(instantiations:)` into one declaration

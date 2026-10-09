@@ -209,8 +209,8 @@ class Cache<T> {
 }
 ```
 
-Every type argument is spelled out, and neither `exposeAs` nor `@injected` fields combine with
-`instantiations`.
+Every type argument is spelled out, and `exposeAs` does not combine with `instantiations`.
+`@injected` fields work, with the mixin taking the type parameters: `class Cache<T> with _$Cache<T>`.
 
 `cobalt_analyzer` exists so the generator and the lint plugin parse Cobalt declarations through one
 implementation instead of two that drift apart. It owns the IR and the topological sort, and depends

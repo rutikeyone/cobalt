@@ -1,6 +1,6 @@
 # flow_scopes
 
-An Cobalt example built around one idea: a scope whose lifetime is a navigation flow, wired with
+A Cobalt example built around one idea: a scope whose lifetime is a navigation flow, wired with
 [go_router](https://pub.dev/packages/go_router) through `cobalt_go_router`.
 
 > **Not a runnable app.** This package is a library the gallery mounts — it has no `main.dart`

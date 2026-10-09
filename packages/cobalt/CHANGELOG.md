@@ -1,3 +1,9 @@
+## 1.3.0
+
+- No code changes in this package. The Example tab opens with the Flutter
+  app from the Quick start (`examples/hello`), followed by Manual Mode in
+  pure Dart.
+
 ## 1.2.0
 
 - A stable API for reading a scope's graph. `registrationOf(key)` returns

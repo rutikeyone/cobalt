@@ -27,6 +27,12 @@ Cobalt без кодогенерации: ни аннотаций, ни `build_r
 виджете. Остальное — когда понадобится: каждый раздел отвечает на один вопрос. Самое маленькое целое
 приложение, с генератором, — [`examples/hello`](examples/hello).
 
+**Дальше по порядку:** свой скоуп (запись «Сессионный скоуп» в галерее и
+[раздел 6](#6-скоупы-которые-кончаются-раньше-приложения)), затем тест с подменой зависимости
+([`examples/testing_patterns`](examples/testing_patterns) и [раздел 13](#13-тесты)). Без Flutter:
+[`examples/manual_mode`](examples/manual_mode) и [`examples/teardown`](examples/teardown), оба на
+чистом Dart.
+
 1. [Установка](#1-установка)
 2. [Первый граф](#2-первый-граф)
 3. [Регистрация и чтение](#3-регистрация-и-чтение)
@@ -588,6 +594,14 @@ class CounterCubit extends Cubit<int> with CobaltBloc {
 
 ```dart
 scope.adopt(subscription, dispose: (it) => it.cancel());
+```
+
+`examples/teardown` прогоняет все это в консольной программе и печатает каждый шаг: обратный порядок
+создания, `adopt`, упавший и зависший сервис под общим дедлайном и `CobaltDisposeError`, которым это
+заканчивается:
+
+```bash
+cd examples/teardown && dart run bin/main.dart
 ```
 
 ---

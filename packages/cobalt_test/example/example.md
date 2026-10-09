@@ -33,3 +33,5 @@ resolve the real `Clock` and never see the fake. `scope.ownerOf<Greeter>()` is h
 rather than guessing.
 
 Checking the graph is terminal — it builds every lazy singleton — so keep it in its own test.
+
+More patterns, with the tests that run them: [`examples/testing_patterns`](https://github.com/rutikeyone/cobalt/tree/main/examples/testing_patterns).

@@ -1,3 +1,9 @@
+## 1.3.0
+
+- No code changes in this package. Republished in lockstep with 1.3.0:
+  `cobalt_generator` supports `@injected` fields on generic classes, and
+  `cobalt_lint` checks the instantiations of a generic class.
+
 ## 1.2.0
 
 - Imports `package:logger/web.dart` instead of `package:logger/logger.dart`,

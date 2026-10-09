@@ -46,6 +46,46 @@ class Api {
       );
     });
 
+    test('emits one generic mixin for a class with instantiations', () async {
+      await testBuilder(
+        builder,
+        {
+          ...deps,
+          '$_pkg|lib/cache.dart': '''
+import 'package:cobalt_annotations/cobalt_annotations.dart';
+
+class Note {}
+
+class User {}
+
+class Repo<T> {}
+
+@CobaltInject(instantiations: [Cache<Note>, Cache<User>])
+class Cache<T extends Object> {
+  Cache();
+
+  @injected
+  late final Repo<T> repo;
+}
+''',
+        },
+        packageConfig: packages,
+        generateFor: {'$_pkg|lib/cache.dart'},
+        outputs: {
+          '$_pkg|lib/cache.cobalt.g.part': decodedMatches(
+            allOf(
+              contains(
+                r'mixin _$Cache<T extends Object> implements CobaltInjectable',
+              ),
+              contains('set repo(Repo<T> value)'),
+              contains('repo = resolver.get<Repo<T>>()'),
+              isNot(contains('Note')),
+            ),
+          ),
+        },
+      );
+    });
+
     test('emits a mixin that can assign a private field', () async {
       await testBuilder(
         builder,

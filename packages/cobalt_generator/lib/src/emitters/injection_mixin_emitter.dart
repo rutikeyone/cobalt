@@ -9,10 +9,20 @@ class InjectionMixinEmitter {
 
   /// The mixin for a class of [type] whose `@injected` fields are
   /// [properties] — a registration or a decorator alike.
-  String emitFor(CobaltTypeRef type, List<CobaltInjectedProperty> properties) {
+  ///
+  /// A generic class passes its [typeParameters] as it declares them, bounds
+  /// included, and [properties] in their declared form: one mixin serves every
+  /// instantiation, since `resolver.get<Repo<T>>()` asks for `Repo<Note>` in
+  /// a `Cache<Note>`.
+  String emitFor(
+    CobaltTypeRef type,
+    List<CobaltInjectedProperty> properties, {
+    List<Reference> typeParameters = const [],
+  }) {
     final mixin = Mixin(
       (b) => b
         ..name = '_\$${type.name}'
+        ..types.addAll(typeParameters)
         ..implements.add(refer('CobaltInjectable'))
         ..methods.addAll([
           for (final property in properties) _setter(property),

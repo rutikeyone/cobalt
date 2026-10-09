@@ -23,6 +23,12 @@
 пользователя, флоу оформления заказа, экран, — и когда скоуп заканчивается, всё, что в нём создано,
 закрывается вместе с ним.
 
+<p align="center">
+  <img src="assets/quick-tour.gif" width="300" alt="Тур по галерее: открытый скоуп сессии, затем живое дерево скоупов">
+</p>
+
+<p align="center"><sub>Галерея: открываем скоуп сессии и смотрим живое дерево скоупов в <code>cobalt_inspector</code>.</sub></p>
+
 ## Быстрый старт
 
 Во Flutter-приложении — его создаёт `flutter create my_app` — добавьте пакеты:
@@ -30,6 +36,8 @@
 ```bash
 flutter pub add cobalt cobalt_flutter dev:cobalt_generator dev:build_runner
 ```
+
+`cobalt` нужен отдельно: это рантайм, и сгенерированный код импортирует его напрямую.
 
 Замените `lib/main.dart`:
 
@@ -74,6 +82,9 @@ class HomeScreen extends StatelessWidget {
 }
 ```
 
+Удалите и `test/widget_test.dart`: он проверяет приложение-счетчик, которое написал `flutter create`, а
+его больше нет.
+
 Сгенерируйте связи и запустите:
 
 ```bash
@@ -81,10 +92,28 @@ dart run build_runner build
 flutter run
 ```
 
+Пока сборка не запускалась, редактор подчеркивает `cobalt.g.dart` и `$CobaltRootScope` как
+несуществующие. Так и должно быть: их пишет сборка. Если покраснело что-то еще, смотрите [первую сборку](docs/TROUBLESHOOTING.ru.md#первая-сборка).
+
 `@cobaltInject` регистрирует класс. `Greeter` просит `Clock` в конструкторе, и генератор связывает их
 в `lib/cobalt.g.dart`. `CobaltAppScope` строит граф при старте приложения и закрывает его, когда
 приложение уходит; `context.cobalt<Greeter>()` читает из него. То же приложение с тестом, который
 подменяет часы, лежит в [`examples/hello`](examples/hello).
+
+## Следующие шаги
+
+Три ступени, на каждой код, который можно запустить:
+
+1. **Один граф на приложение.** [`examples/hello`](examples/hello): код выше вместе с тестом.
+2. **Свой скоуп.** Запись «Сессионный скоуп» в галерее (`cd examples/gallery && flutter run`): вход
+   создает скоуп, выход закрывает его вместе со всем, что в нем построено. Код лежит в
+   [`examples/notes_app/lib/features/session`](examples/notes_app/lib/features/session).
+3. **Тест с подменой зависимости.** [`examples/testing_patterns`](examples/testing_patterns).
+
+В сторону от основного пути: [`examples/codegen_basics`](examples/codegen_basics) показывает, что
+еще умеет генератор (property injection, декоратор, скоуп на экран), а
+[`examples/manual_mode`](examples/manual_mode) и [`examples/teardown`](examples/teardown) показывают
+рантайм отдельно, на чистом Dart.
 
 ## Зачем Cobalt
 

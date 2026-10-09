@@ -24,6 +24,8 @@
 
 **写第一个应用，读第 1–5 节就够了：** 安装、注册、启动应用、在 widget 中读取。其余的等需要时再看——每一节只回答一个问题。最小的完整应用（使用生成器）是 [`examples/hello`](examples/hello)。
 
+**接下来按这个顺序：** 你自己的作用域（gallery 里的「会话作用域」条目和[第 6 节](#6-比应用先结束的作用域)），然后是替换依赖的测试（[`examples/testing_patterns`](examples/testing_patterns) 和[第 13 节](#13-测试)）。不用 Flutter 的写法：[`examples/manual_mode`](examples/manual_mode) 和 [`examples/teardown`](examples/teardown)，都是纯 Dart。
+
 1. [安装](#1-安装)
 2. [你的第一张图](#2-你的第一张图)
 3. [注册与读取](#3-注册与读取)
@@ -557,6 +559,13 @@ mixin 够不着的地方，在注册处写 `dispose: closeBloc`。
 
 ```dart
 scope.adopt(subscription, dispose: (it) => it.cancel());
+```
+
+`examples/teardown` 是一个控制台程序，把上面这些都跑一遍并逐步打印出来：按创建的逆序销毁、`adopt`、
+共享同一个截止时间的一个抛错服务和一个卡住的服务，以及最后汇总它们的 `CobaltDisposeError`：
+
+```bash
+cd examples/teardown && dart run bin/main.dart
 ```
 
 ---

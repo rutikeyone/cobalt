@@ -144,18 +144,10 @@ class CobaltInjectableParser {
     final environments = environmentsOf(clazz);
     final properties = injectedFieldsOf(clazz);
 
-    if (clazz.typeParameters.isNotEmpty && properties.isNotEmpty) {
-      throw CobaltParseError(
-        '${clazz.displayName} is generic and has the @injected field '
-        '${properties.first.field}. Property injection fills one mixin per '
-        'class, not one per instantiation. Take it in the constructor.',
-        clazz,
-      );
-    }
-
     CobaltInjectableClass build(
       CobaltTypeRef type,
       List<FormalParameterElement> typed,
+      List<CobaltInjectedProperty> properties,
     ) => CobaltInjectableClass(
       type: type,
       lifetime: lifetime,
@@ -180,7 +172,13 @@ class CobaltInjectableParser {
     );
 
     if (instantiations.isEmpty) {
-      return [build(typeRefOfElement(clazz), constructor.formalParameters)];
+      return [
+        build(
+          typeRefOfElement(clazz),
+          constructor.formalParameters,
+          properties,
+        ),
+      ];
     }
     return [
       for (final instantiation in instantiations)
@@ -190,9 +188,19 @@ class CobaltInjectableParser {
             instantiation,
             constructor,
           ).formalParameters,
+          _instantiatedPropertiesOf(instantiation, properties),
         ),
     ];
   }
+
+  /// The `@injected` fields of [clazz] as it declares them, a type parameter
+  /// still a type parameter.
+  ///
+  /// [parseClass] reads them once per instantiation, `Repo<Note>` where the
+  /// field says `Repo<T>`; the one `_$ClassName` mixin of a generic class is
+  /// written against this declared form instead.
+  List<CobaltInjectedProperty> declaredPropertiesOf(ClassElement clazz) =>
+      injectedFieldsOf(clazz);
 
   /// The instantiations [clazz] registers, empty for a class without type
   /// parameters.
@@ -292,6 +300,18 @@ class CobaltInjectableParser {
   ) => instantiation.constructors.firstWhere(
     (candidate) => candidate.baseElement == constructor.baseElement,
   );
+
+  List<CobaltInjectedProperty> _instantiatedPropertiesOf(
+    InterfaceType instantiation,
+    List<CobaltInjectedProperty> properties,
+  ) => [
+    for (final property in properties)
+      CobaltInjectedProperty(
+        field: property.field,
+        type: typeRefOf(instantiation.getGetter(property.field)!.returnType),
+        name: property.name,
+      ),
+  ];
 
   ConstructorElement _constructorOf(ClassElement clazz) {
     if (clazz.isAbstract) {

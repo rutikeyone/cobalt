@@ -31,11 +31,22 @@ class CobaltRegistrationIndex {
     this.ambiguous,
     this.cycle,
     this.lazy,
-    this.asyncTransients,
-  );
+    this.asyncTransients, [
+    this.instantiations = const {},
+  ]);
 
-  /// Every type name something in the package registers.
+  /// Every type name something in the package registers, except a generic
+  /// class registered only through the `instantiations:` it lists.
   final Set<String> names;
+
+  /// The instantiations each generic class lists, keyed by its bare name:
+  /// `Store` to `{Store<Note>}`.
+  ///
+  /// Spelled as the source spells them, with import prefixes and whitespace
+  /// dropped, so `Store<p.Note>` reads `Store<Note>`. A class whose
+  /// `instantiations:` is not a list literal is in [names] instead, the
+  /// coarser answer.
+  final Map<String, Set<String>> instantiations;
 
   /// What each registration asks for, keyed by the name it registers.
   ///
@@ -86,7 +97,22 @@ class CobaltRegistrationIndex {
   /// [ambiguous] are left out for the same reason as in [lazy].
   final Set<String> asyncTransients;
 
-  bool contains(String typeName) => names.contains(typeName);
+  bool contains(String typeName) =>
+      names.contains(typeName) || instantiations.containsKey(typeName);
+
+  /// Whether something registers the type named [name] and spelled
+  /// [spelling], as in `Store` and `Store<Tag>`.
+  ///
+  /// The spelling only decides for a class registered through its
+  /// `instantiations:` alone; any other registration of [name] answers by
+  /// name, as [contains] does, and so does a [spelling] with no type
+  /// arguments.
+  bool registers(String name, String spelling) {
+    if (names.contains(name)) return true;
+    final listed = instantiations[name];
+    if (listed == null) return false;
+    return !spelling.contains('<') || listed.contains(spelling);
+  }
 
   /// Reads [files], or returns null when any of them will not parse.
   ///
@@ -117,6 +143,7 @@ class _IndexBuilder {
   final ambiguous = <String>{};
   final lazy = <String>{};
   final asyncTransients = <String>{};
+  final instantiations = <String, Set<String>>{};
 
   /// What decorators of each registered name ask for.
   ///
@@ -171,6 +198,7 @@ class _IndexBuilder {
       cycle,
       lazy.difference(ambiguous),
       asyncTransients.difference(ambiguous),
+      instantiations,
     );
   }
 
@@ -211,7 +239,16 @@ class _IndexBuilder {
                 isLazy ||
                 annotation.name.name.endsWith('cobaltLazyInit') ||
                 _isTrue(_namedArgument(annotation, 'lazy'));
-            names.add(declaration.namePart.typeName.lexeme);
+            final listed = _spellingsOf(
+              _namedArgument(annotation, 'instantiations'),
+            );
+            if (listed == null) {
+              names.add(declaration.namePart.typeName.lexeme);
+            } else {
+              instantiations
+                  .putIfAbsent(declaration.namePart.typeName.lexeme, () => {})
+                  .addAll(listed);
+            }
             _addArgument(annotation, 'exposeAs', names);
             exposed ??= _firstName(_namedArgument(annotation, 'exposeAs'));
             _addArgumentList(annotation, 'dependsOn', wanted);
@@ -466,6 +503,17 @@ class _IndexBuilder {
     for (final element in value.elements) {
       if (element is Expression) _addExpression(element, names);
     }
+  }
+
+  static Set<String>? _spellingsOf(Expression? expression) {
+    if (expression is! ListLiteral) return null;
+    return {
+      for (final element in expression.elements)
+        element
+            .toSource()
+            .replaceAll(RegExp(r'\s+'), '')
+            .replaceAll(RegExp(r'[A-Za-z_$][\w$]*\.'), ''),
+    };
   }
 
   static String? _firstName(Expression? expression) {

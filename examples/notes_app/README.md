@@ -1,34 +1,19 @@
 # notes_app
 
-A small multi-screen Flutter app that exercises every capability of
-[Cobalt](https://github.com/rutikeyone/cobalt), one screen per case.
+A library of screens that the gallery mounts, one screen per capability of
+[Cobalt](https://github.com/rutikeyone/cobalt). It has no `main.dart` and no native project of its
+own, so run it from the gallery:
 
-> **Not a runnable app.** This package is a library the gallery mounts — it has no `main.dart`
-> and no native project of its own. Run it, and everything else, from one place:
->
-> ```bash
-> cd examples/gallery && flutter run
-> ```
+```bash
+cd examples/gallery && flutter run
+```
+
+To regenerate its code:
 
 ```
 flutter pub get
 dart run build_runner build
 ```
-
-## Running on a device
-
-`flutter run` picks whatever is already connected. The scripts in `tool/` boot
-something first if nothing is:
-
-```
-tool/run_android.sh      # boots the first defined AVD, then runs on it
-tool/run_ios.sh          # boots an available iPhone simulator, then runs on it
-tool/build_all.sh        # regenerates, then builds APK and an unsigned iOS app
-```
-
-Both scripts pass extra arguments straight through, so `tool/run_ios.sh
---release` works. Android needs an AVD defined in Android Studio; iOS needs
-Xcode with at least one simulator runtime installed.
 
 ## What each screen shows
 
@@ -89,7 +74,6 @@ everything one case needs sits together:
 
 ```
 lib/
-  main.dart                  entry point, nothing else
   app/                       composition root — startup, routes, MaterialApp
   bootstrap/                 @CobaltBootstrap steps, phase 0
   core/                      used by more than one feature

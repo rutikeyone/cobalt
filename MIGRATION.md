@@ -201,8 +201,9 @@ class Cache<T> {
 }
 ```
 
-Every type argument is spelled out, and neither `exposeAs` nor `@injected`
-fields combine with `instantiations`. Generic *dependencies* work normally:
+Every type argument is spelled out, and `exposeAs` does not combine with
+`instantiations`. `@injected` fields work, with the mixin taking the type
+parameters: `class Cache<T> with _$Cache<T>`. Generic *dependencies* work normally:
 `Repository<User>` and `Repository<Order>` are separate registrations.
 
 ### What you gain

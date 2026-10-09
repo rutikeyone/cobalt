@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:cobalt_analyzer/cobalt_analyzer.dart';
 import 'package:cobalt_generator/builder.dart';
 import 'package:cobalt_generator/src/builders/container_builder.dart';
+import 'package:cobalt_generator/src/emitters/container_source_emitter.dart';
+import 'package:cobalt_generator/src/errors/cobalt_generation_error.dart';
 import 'package:build/build.dart';
 import 'package:build_test/build_test.dart';
 import 'package:logging/logging.dart';
@@ -188,6 +190,96 @@ class Cache<T> {
           ),
         );
       }
+    });
+
+    /// Both phases over one source: an `@injected` field of a generic class
+    /// is a dependency of each instantiation, under that instantiation's own
+    /// type arguments.
+    group('an @injected field of a generic class', () {
+      Future<CobaltLibraryDeclarations> scan({required bool userRepo}) async {
+        String? written;
+        await testBuilder(
+          builder,
+          {
+            ...deps,
+            '$_pkg|lib/injected_caches.dart':
+                '''
+import 'package:cobalt_annotations/cobalt_annotations.dart';
+
+class Note {}
+
+class User {}
+
+class Repo<T> {}
+
+@CobaltInject(exposeAs: Repo<Note>)
+class NoteRepo implements Repo<Note> {
+  NoteRepo();
+}
+${userRepo ? '''
+@CobaltInject(exposeAs: Repo<User>)
+class UserRepo implements Repo<User> {
+  UserRepo();
+}
+''' : ''}
+@CobaltInject(instantiations: [Cache<Note>, Cache<User>])
+class Cache<T> {
+  Cache();
+
+  @injected
+  late final Repo<T> repo;
+}
+''',
+          },
+          packageConfig: packages,
+          generateFor: {'$_pkg|lib/injected_caches.dart'},
+          outputs: {
+            '$_pkg|lib/injected_caches.cobalt.json': decodedMatches(
+              predicate<String>((value) {
+                written = value;
+                return true;
+              }),
+            ),
+          },
+        );
+        return CobaltLibraryDeclarations.fromJson(
+          jsonDecode(written!) as Map<String, dynamic>,
+        );
+      }
+
+      test('is read once per instantiation', () async {
+        final declarations = await scan(userRepo: true);
+        final caches = declarations.injectables.where(
+          (declaration) => declaration.type.name == 'Cache',
+        );
+
+        expect(caches.map((cache) => '${cache.properties.single.type}'), [
+          'Repo<Note>',
+          'Repo<User>',
+        ]);
+        expect(
+          () => const ContainerSourceEmitter().emit(declarations),
+          returnsNormally,
+        );
+      });
+
+      test('fails the build for the instantiation missing it', () async {
+        final declarations = await scan(userRepo: false);
+
+        expect(
+          () => const ContainerSourceEmitter().emit(declarations),
+          throwsA(
+            isA<CobaltGenerationError>().having(
+              (error) => error.message,
+              'message',
+              allOf(
+                contains('Cache<User> requires Repo<User>'),
+                isNot(contains('Cache<Note> requires')),
+              ),
+            ),
+          ),
+        );
+      });
     });
 
     /// A parse failure is reported, not thrown: build_runner catches it and

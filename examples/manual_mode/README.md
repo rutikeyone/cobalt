@@ -25,8 +25,10 @@ sign-out; nothing about it is UI-specific.
 
 ## Where to go next
 
-- `examples/codegen_basics` — the same ideas with the generator doing the typing
-- `examples/teardown` — what disposal guarantees when things go wrong
+- [`examples/teardown`](../teardown): what disposal guarantees when things go wrong
+- [`examples/testing_patterns`](../testing_patterns): tests that swap a dependency
+- [`examples/hello`](../hello), then [`examples/codegen_basics`](../codegen_basics): the same ideas
+  with the generator doing the typing
 
 ## Console output stays in English
 

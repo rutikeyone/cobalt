@@ -1,6 +1,6 @@
 name: cobalt_generator
 description: Code generator for Cobalt dependency injection. Annotate classes with @cobaltInject and build_runner writes the container, failing the build when a dependency is missing.
-version: 1.2.0
+version: 1.3.0
 repository: https://github.com/rutikeyone/cobalt
 issue_tracker: https://github.com/rutikeyone/cobalt/issues
 topics:
@@ -14,7 +14,7 @@ environment:
 
 
 dependencies:
-  cobalt_analyzer: ^1.2.0
+  cobalt_analyzer: ^1.3.0
   cobalt_annotations: ^1.2.0
   analyzer: ">=10.0.1 <15.0.0"
   build: ^4.0.4

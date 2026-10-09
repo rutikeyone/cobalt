@@ -107,10 +107,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       for (final parameter in decorator.dependencies) parameter.type,
     ];
     for (final type in wanted) {
-      if (type.isNullable || index.contains(type.name)) continue;
+      if (type.isNullable || index.registers(type.name, _spellingOf(type))) {
+        continue;
+      }
       rule.reportAtNode(
         node.namePart,
-        arguments: [decorator.type.name, type.name],
+        arguments: [decorator.type.name, _shown(type, index)],
       );
       return;
     }
@@ -136,9 +138,25 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     for (final type in wanted) {
       if (type.isNullable) continue;
-      if (!index.contains(type.name)) return type.name;
+      if (!index.registers(type.name, _spellingOf(type))) {
+        return _shown(type, index);
+      }
     }
     return null;
+  }
+
+  static String _shown(CobaltTypeRef type, CobaltRegistrationIndex index) =>
+      index.contains(type.name) ? _spellingOf(type) : type.name;
+
+  static String _spellingOf(CobaltTypeRef type) {
+    if (type.typeArguments.isEmpty) return type.name;
+    final arguments = [
+      for (final argument in type.typeArguments)
+        argument.isNullable
+            ? '${_spellingOf(argument)}?'
+            : _spellingOf(argument),
+    ];
+    return '${type.name}<${arguments.join(',')}>';
   }
 
   CobaltRegistrationIndex? _index() {

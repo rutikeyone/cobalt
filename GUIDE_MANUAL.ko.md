@@ -26,6 +26,11 @@
 읽으면 됩니다. 각 절은 질문 하나에 답합니다. 제너레이터를 쓰는 가장 작은 완성 앱은
 [`examples/hello`](examples/hello)입니다.
 
+**그다음 순서:** 나만의 스코프(갤러리의 「세션 스코프」 항목과 [6절](#6-앱보다-먼저-끝나는-스코프)), 그다음
+의존성을 바꿔 끼우는 테스트([`examples/testing_patterns`](examples/testing_patterns)와 [13절](#13-테스트))입니다.
+Flutter 없이: [`examples/manual_mode`](examples/manual_mode)와 [`examples/teardown`](examples/teardown),
+둘 다 순수 Dart입니다.
+
 1. [설치](#1-설치)
 2. [첫 그래프](#2-첫-그래프)
 3. [등록과 읽기](#3-등록과-읽기)
@@ -583,6 +588,13 @@ class CounterCubit extends Cubit<int> with CobaltBloc {
 
 ```dart
 scope.adopt(subscription, dispose: (it) => it.cancel());
+```
+
+`examples/teardown`은 이 모든 것을 콘솔 프로그램으로 실행하며 단계마다 출력합니다. 생성의 역순, `adopt`,
+하나의 마감 시간 아래에서 실패하는 서비스와 멈춘 서비스, 그리고 그 결과인 `CobaltDisposeError`까지 보여 줍니다:
+
+```bash
+cd examples/teardown && dart run bin/main.dart
 ```
 
 ---

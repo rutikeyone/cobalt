@@ -189,8 +189,8 @@ class Cache<T> {
 }
 ```
 
-Каждый аргумент типа выписывается явно, а ни `exposeAs`, ни поля `@injected` с `instantiations` не
-сочетаются. Дженерик-*зависимости* работают нормально: `Repository<User>` и `Repository<Order>` это
+Каждый аргумент типа выписывается явно, а `exposeAs` с `instantiations` не сочетается. Поля
+`@injected` работают, миксин принимает параметры типа: `class Cache<T> with _$Cache<T>`. Дженерик-*зависимости* работают нормально: `Repository<User>` и `Repository<Order>` это
 разные регистрации.
 
 ### Что вы получаете

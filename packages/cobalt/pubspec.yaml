@@ -1,6 +1,6 @@
 name: cobalt
 description: Dependency injection for Dart and Flutter. Scopes close everything they built when they end, async services start in dependency order, and tests can override any dependency.
-version: 1.2.0
+version: 1.3.0
 repository: https://github.com/rutikeyone/cobalt
 issue_tracker: https://github.com/rutikeyone/cobalt/issues
 topics:

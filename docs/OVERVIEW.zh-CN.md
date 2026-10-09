@@ -189,7 +189,7 @@ class Cache<T> {
 }
 ```
 
-每个类型实参都要写全，`exposeAs` 和 `@injected` 字段都不能与 `instantiations` 一起用。
+每个类型实参都要写全，`exposeAs` 不能与 `instantiations` 一起用。`@injected` 字段可以用，mixin 带上类型参数即可：`class Cache<T> with _$Cache<T>`。
 
 `cobalt_analyzer` 的存在是为了让生成器和 lint 插件用**同一套**实现解析 Cobalt 声明，而不是两套迟早会
 各说各话的实现。它持有 IR 和拓扑排序，并且既不依赖 `build`，也不依赖插件 API。

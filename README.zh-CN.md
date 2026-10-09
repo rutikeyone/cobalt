@@ -21,6 +21,12 @@
 
 面向 Flutter 和 Dart 的依赖注入。对象住在作用域里——整个应用、一次登录会话、一个结账流程、一个屏幕——作用域结束时，在其中构建的一切都随之关闭。
 
+<p align="center">
+  <img src="assets/quick-tour.gif" width="300" alt="gallery 一览：打开一个会话作用域，再看实时作用域树">
+</p>
+
+<p align="center"><sub>gallery：打开一个会话作用域，再在 <code>cobalt_inspector</code> 里看实时作用域树。</sub></p>
+
 ## 快速开始
 
 在一个 Flutter 应用里（用 `flutter create my_app` 创建）添加依赖：
@@ -28,6 +34,8 @@
 ```bash
 flutter pub add cobalt cobalt_flutter dev:cobalt_generator dev:build_runner
 ```
+
+`cobalt` 要单独添加：它是运行时，生成的代码会直接导入它。
 
 替换 `lib/main.dart`：
 
@@ -72,6 +80,8 @@ class HomeScreen extends StatelessWidget {
 }
 ```
 
+同时删除 `test/widget_test.dart`：它测试的是 `flutter create` 生成的计数器应用，而那个应用已经不在了。
+
 生成连接代码并运行：
 
 ```bash
@@ -79,7 +89,19 @@ dart run build_runner build
 flutter run
 ```
 
+构建运行之前，编辑器会把 `cobalt.g.dart` 和 `$CobaltRootScope` 标为不存在。这是正常的：它们由构建生成。如果还有别的地方报红，请看[第一次构建](docs/TROUBLESHOOTING.zh-CN.md#第一次构建)。
+
 `@cobaltInject` 注册一个类。`Greeter` 在构造函数里要一个 `Clock`，生成器在 `lib/cobalt.g.dart` 里把两者连起来。`CobaltAppScope` 在应用启动时构建图，在应用退出时关闭它；`context.cobalt<Greeter>()` 从图中读取。同一个应用，外加一个替换时钟的测试，在 [`examples/hello`](examples/hello)。
+
+## 下一步
+
+三步，每一步都有可以运行的代码：
+
+1. **整个应用一张图。** [`examples/hello`](examples/hello)：就是上面的代码，外加它的测试。
+2. **你自己的作用域。** gallery 里的「会话作用域」条目（`cd examples/gallery && flutter run`）：登录时创建一个作用域，退出时把它连同其中构建的一切一起关闭。代码在 [`examples/notes_app/lib/features/session`](examples/notes_app/lib/features/session)。
+3. **替换依赖的测试。** [`examples/testing_patterns`](examples/testing_patterns)。
+
+旁支：[`examples/codegen_basics`](examples/codegen_basics) 展示生成器还能做什么（属性注入、装饰器、每个界面一个作用域）；[`examples/manual_mode`](examples/manual_mode) 和 [`examples/teardown`](examples/teardown) 展示单独使用运行时、纯 Dart 的写法。
 
 ## 为什么用 Cobalt
 

@@ -408,8 +408,8 @@ class Api {
     );
   }
 
-  /// Same reason: type arguments are not part of the index, so any
-  /// `Repository` registration answers for every instantiation.
+  /// Same reason: an `exposeAs` registration is indexed by its bare name, so
+  /// any `Repository` registration answers for every instantiation.
   void test_anotherInstantiationOfAGeneric_isNotReported() async {
     await assertNoDiagnostics('''
 $cobaltImport
@@ -428,6 +428,125 @@ class Catalog {
   final Repository<Order> orders;
 }
 ''');
+  }
+
+  void test_anInstantiationTheGenericDoesNotList_isReported() async {
+    const source =
+        '''
+$cobaltImport
+
+class Note {}
+class Tag {}
+
+@CobaltInject(instantiations: [Store<Note>])
+class Store<T> {}
+
+@cobaltInject
+class Tagger {
+  Tagger(this.tags);
+  final Store<Tag> tags;
+}
+''';
+    await assertDiagnostics(source, [
+      lint(
+        source.indexOf('Tagger {'),
+        'Tagger'.length,
+        messageContainsAll: ["'Store<Tag>'"],
+      ),
+    ]);
+  }
+
+  void test_anInstantiationTheGenericLists_isClean() async {
+    await assertNoDiagnostics('''
+$cobaltImport
+
+class Note {}
+
+@CobaltInject(instantiations: [Store<Note>])
+class Store<T> {}
+
+@cobaltInject
+class Notebook {
+  Notebook(this.notes);
+
+  final Store<Note> notes;
+
+  @injected
+  late final Store<Note> backup;
+}
+''');
+  }
+
+  void test_anInstantiationWithAPrefix_readsWithoutIt() async {
+    newFile('$testPackageLibPath/store.dart', '''
+$cobaltImport
+import 'dart:core' as core;
+
+@CobaltInject(instantiations: [Store<core.int>, Store< core.String >])
+class Store<T> {}
+''');
+
+    await assertNoDiagnostics('''
+$cobaltImport
+
+import 'store.dart';
+
+@cobaltInject
+class Counter {
+  Counter(this.ints, this.strings);
+  final Store<int> ints;
+  final Store<String> strings;
+}
+''');
+  }
+
+  /// The listed instantiations decide only while nothing else registers the
+  /// name; next to an `exposeAs`, the bare name answers as before.
+  void test_aGenericAlsoExposedElsewhere_isNotReported() async {
+    await assertNoDiagnostics('''
+$cobaltImport
+
+class Note {}
+class Tag {}
+
+@CobaltInject(instantiations: [Store<Note>])
+class Store<T> {}
+
+@CobaltInject(exposeAs: Store<Tag>)
+class TagStore implements Store<Tag> {}
+
+@cobaltInject
+class Tagger {
+  Tagger(this.tags);
+  final Store<Tag> tags;
+}
+''');
+  }
+
+  void test_aDecoratorOfAnUnlistedInstantiation_isReported() async {
+    const source =
+        '''
+$cobaltImport
+
+class Note {}
+class Tag {}
+
+@CobaltInject(instantiations: [Store<Note>])
+class Store<T> {}
+
+@CobaltDecorates(Store<Tag>)
+class LoggedStore implements Store<Tag> {
+  LoggedStore(this.inner);
+  final Store<Tag> inner;
+}
+''';
+    await assertDiagnostics(source, [
+      lint(
+        source.indexOf('class LoggedStore') + 6,
+        'LoggedStore'.length,
+        messageContainsAll: ["'Store<Tag>'"],
+      ),
+    ]);
   }
 
   /// Without the skip, `int` is reported as a dependency nothing registers —

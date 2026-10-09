@@ -33,6 +33,11 @@ flutter run
 
 ## Where to go next
 
-- [GUIDE_CODEGEN.md](../../GUIDE_CODEGEN.md) — the same mode, step by step
-- `examples/codegen_basics` — property injection, a decorator, a scope per screen
-- `examples/gallery` — every feature in one app
+1. **A scope of your own.** The *Session scope* entry in [`examples/gallery`](../gallery): signing
+   in pushes a scope, signing out closes it with everything it built. The code is in
+   [`notes_app/lib/features/session`](../notes_app/lib/features/session).
+2. **A test that swaps a dependency.** [`examples/testing_patterns`](../testing_patterns).
+
+To the side: [`examples/codegen_basics`](../codegen_basics) for what else the generator does
+(property injection, a decorator, a scope per screen), and
+[GUIDE_CODEGEN.md](../../GUIDE_CODEGEN.md) for the same mode, step by step.

@@ -1,6 +1,6 @@
 # graph_events
 
-An Cobalt example about one thing: watching the graph report itself, through
+A Cobalt example about one thing: watching the graph report itself, through
 [talker](https://pub.dev/packages/talker).
 
 > **Not a runnable app.** This package is a library the gallery mounts — it has no `main.dart`

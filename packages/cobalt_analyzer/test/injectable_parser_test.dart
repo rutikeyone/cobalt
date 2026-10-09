@@ -249,25 +249,42 @@ class Cache<T> implements Store {
       );
     });
 
-    test('an @injected field is rejected', () async {
+    test('an @injected field is read once per instantiation', () async {
       final clazz = await classNamed('Cache', '''
 class Note {}
+class Tag {}
 class Clock {}
+class Store<T> {}
 
-@CobaltInject(instantiations: [Cache<Note>])
+@CobaltInject(instantiations: [Cache<Note>, Cache<Tag>])
 class Cache<T> {
   Cache();
+
+  @injected
+  late final Store<T> store;
+
+  @injected
+  late final Store<T>? backup;
 
   @injected
   late final Clock clock;
 }
 ''');
 
+      final parsed = parser.parseClass(clazz);
+
       expect(
-        () => parser.parseClass(clazz),
-        rejects(
-          allOf(contains('@injected field clock'), contains('constructor')),
+        parsed.map(
+          (each) => [for (final p in each.properties) '${p.field}: ${p.type}'],
         ),
+        [
+          ['store: Store<Note>', 'backup: Store<Note>?', 'clock: Clock'],
+          ['store: Store<Tag>', 'backup: Store<Tag>?', 'clock: Clock'],
+        ],
+      );
+      expect(
+        [for (final p in parser.declaredPropertiesOf(clazz)) '${p.type}'],
+        ['Store<T>', 'Store<T>?', 'Clock'],
       );
     });
   });

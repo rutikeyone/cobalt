@@ -29,6 +29,8 @@
 
 **写第一个应用，读第 1、2、7、8 节：** 安装、加注解、启动应用、在 widget 中读取。[`examples/hello`](examples/hello) 就是这些内容，放在一个文件里。其余的等需要时再看——每一节只回答一个问题。
 
+**接下来按这个顺序：** 你自己的作用域（gallery 里的「会话作用域」条目和[第 9 节](#9-比应用先结束的作用域)），然后是替换依赖的测试（[`examples/testing_patterns`](examples/testing_patterns) 和[第 18 节](#18-测试)）。[`examples/codegen_basics`](examples/codegen_basics) 展示生成器还能做什么：属性注入、装饰器、每个界面一个作用域。
+
 1. [安装](#1-安装)
 2. [你的第一张生成图](#2-你的第一张生成图)
 3. [产物长什么样](#3-产物长什么样)
@@ -290,8 +292,21 @@ class Cache<T> {
 这会注册 `Cache<Note>` 和 `Cache<User>`，每个都用自己的 `Store<Note>` 或 `Store<User>` 构建。
 `name`、`lifetime`、`dispose` 和环境对其中每一个都生效。没有 `instantiations` 的泛型类是构建错误，
 因为没有任何地方说明该注册哪些实例化。每一项都要写全所有类型实参（裸写的 `Cache` 会被读成
-`Cache<dynamic>` 并被拒绝），`exposeAs` 不能与 `instantiations` 同时使用，泛型类也不能有
-`@injected` 字段：请改为通过构造函数接收。
+`Cache<dynamic>` 并被拒绝），`exposeAs` 不能与 `instantiations` 同时使用。
+
+`@injected` 字段也是同样的用法。类混入带有自身类型参数的生成 mixin，每个具体化都按自己的类型实参读取字段：
+
+```dart
+@CobaltInject(instantiations: [Cache<Note>, Cache<User>])
+class Cache<T> with _$Cache<T> {
+  Cache();
+
+  @injected
+  late final Store<T> store;
+}
+```
+
+`Cache<User>` 读取的是 `Store<User>`；如果没有注册 `Store<User>`，只有 `Cache<User>` 会让构建失败。
 
 泛型在其他任何地方都没问题。`Repository<User>` 和 `Repository<Order>` 是两条独立的注册，
 因为 `CobaltKey` 由 `Type` 构成，而它们是不同的类型。
@@ -1233,7 +1248,7 @@ git diff --exit-code
   `cobalt_container` 会把整个包聚合成一个根。
 - **在泛型类上用 `@CobaltInject` 却没有 `instantiations`。** 会被拒绝：没有人告诉生成器该注册哪些具体实例化。
   请把它们列出来，例如 `@CobaltInject(instantiations: [Cache<Note>, Cache<User>])`，并写全每个类型实参；
-  或者给具体子类型加注解。`exposeAs` 和 `@injected` 字段都不能与 `instantiations` 一起用。
+  或者给具体子类型加注解。`exposeAs` 不能与 `instantiations` 一起用。
   泛型作为依赖和 `exposeAs` 目标都完全可用。
 - **写了 `@injected` 却没有 `with _$ClassName`。** 字段不会被赋值，第一次读取就抛 `LateError`。
   lint 会更早告诉你。

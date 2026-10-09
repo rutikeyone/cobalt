@@ -208,7 +208,8 @@ class Cache<T> {
 }
 ```
 
-모든 타입 인자를 명시해야 하며, `exposeAs`와 `@injected` 필드는 `instantiations`와 함께 쓸 수 없습니다.
+모든 타입 인자를 명시해야 하며, `exposeAs`는 `instantiations`와 함께 쓸 수 없습니다. `@injected` 필드는
+쓸 수 있고, 믹스인이 타입 매개변수를 받습니다: `class Cache<T> with _$Cache<T>`.
 
 `cobalt_analyzer`는 제너레이터와 린트 플러그인이 점점 어긋나는 두 구현이 아니라 하나의 구현으로
 Cobalt 선언을 파싱하도록 하기 위해 존재합니다. IR과 위상 정렬을 담당하며, `build`에도 플러그인 API에도

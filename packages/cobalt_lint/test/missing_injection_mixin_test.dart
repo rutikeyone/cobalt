@@ -116,6 +116,62 @@ class Orphan {
 ''');
   }
 
+  void test_genericClassWithItsTypeParameters_isClean() async {
+    await assertNoDiagnostics(r'''
+import 'package:cobalt_annotations/cobalt_annotations.dart';
+
+class Repo<T> {}
+
+mixin _$Cache<T> {}
+
+@cobaltInject
+class Cache<T> with _$Cache<T> {
+  @injected
+  late final Repo<T> repo;
+}
+''');
+  }
+
+  void test_genericClassMissingTheMixin_namesItsTypeParameters() async {
+    const source = r'''
+import 'package:cobalt_annotations/cobalt_annotations.dart';
+
+class Repo<T> {}
+
+@cobaltInject
+class Cache<T> {
+  @injected
+  late final Repo<T> repo;
+}
+''';
+    await assertDiagnostics(source, [
+      lint(
+        source.indexOf('Cache<T> {'),
+        'Cache<T>'.length,
+        messageContainsAll: [r"'_$Cache<T>'"],
+      ),
+    ]);
+  }
+
+  void test_genericMixinWithoutTypeArguments_isReported() async {
+    const source = r'''
+import 'package:cobalt_annotations/cobalt_annotations.dart';
+
+class Repo<T> {}
+
+mixin _$Cache<T> {}
+
+@cobaltInject
+class Cache<T> with _$Cache {
+  @injected
+  late final Repo<T> repo;
+}
+''';
+    await assertDiagnostics(source, [
+      lint(source.indexOf('Cache<T> with'), 'Cache<T>'.length),
+    ]);
+  }
+
   void test_asyncInitClass_isReportedToo() async {
     await assertDiagnostics(
       r'''

@@ -22,6 +22,12 @@
 Flutter와 Dart를 위한 의존성 주입입니다. 객체는 스코프 안에 삽니다. 앱 전체, 로그인한 세션, 결제
 플로우, 화면 하나가 각각 스코프이고, 스코프가 끝나면 그 안에서 만든 모든 것이 함께 닫힙니다.
 
+<p align="center">
+  <img src="assets/quick-tour.gif" width="300" alt="갤러리 둘러보기: 세션 스코프를 열고 실시간 스코프 트리를 봅니다">
+</p>
+
+<p align="center"><sub>갤러리: 세션 스코프를 열고 <code>cobalt_inspector</code>에서 실시간 스코프 트리를 봅니다.</sub></p>
+
 ## 빠른 시작
 
 Flutter 앱(`flutter create my_app`으로 만들 수 있습니다)에 패키지를 추가합니다.
@@ -29,6 +35,8 @@ Flutter 앱(`flutter create my_app`으로 만들 수 있습니다)에 패키지�
 ```bash
 flutter pub add cobalt cobalt_flutter dev:cobalt_generator dev:build_runner
 ```
+
+`cobalt`는 런타임이고 생성된 코드가 직접 임포트하므로, 앱이 직접 의존해야 합니다.
 
 `lib/main.dart`를 다음으로 바꿉니다.
 
@@ -73,6 +81,9 @@ class HomeScreen extends StatelessWidget {
 }
 ```
 
+`test/widget_test.dart`도 지웁니다. `flutter create`가 만든 카운터 앱을 테스트하는 파일인데, 그 앱은 이제
+없습니다.
+
 연결 코드를 생성하고 실행합니다.
 
 ```bash
@@ -80,10 +91,27 @@ dart run build_runner build
 flutter run
 ```
 
+빌드를 실행하기 전에는 편집기가 `cobalt.g.dart`와 `$CobaltRootScope`를 없는 것으로 표시합니다. 정상입니다.
+빌드가 이 파일들을 만듭니다. 다른 곳이 빨갛게 표시되면 [첫 빌드](docs/TROUBLESHOOTING.ko.md#첫-빌드)를 보세요.
+
 `@cobaltInject`는 클래스를 등록합니다. `Greeter`는 생성자에서 `Clock`을 요구하고, 제너레이터가
 `lib/cobalt.g.dart`에서 둘을 연결합니다. `CobaltAppScope`는 앱이 시작될 때 그래프를 만들고 앱이
 끝날 때 닫으며, `context.cobalt<Greeter>()`는 그래프에서 값을 읽습니다. 시계를 바꿔 끼우는 테스트까지
 포함한 같은 앱이 [`examples/hello`](examples/hello)에 있습니다.
+
+## 다음 단계
+
+세 단계이며, 단계마다 실행할 수 있는 코드가 있습니다.
+
+1. **앱 전체에 그래프 하나.** [`examples/hello`](examples/hello): 위의 코드와 그 테스트입니다.
+2. **나만의 스코프.** 갤러리의 「세션 스코프」 항목(`cd examples/gallery && flutter run`): 로그인하면
+   스코프가 생기고, 로그아웃하면 그 안에서 만든 모든 것과 함께 닫힙니다. 코드는
+   [`examples/notes_app/lib/features/session`](examples/notes_app/lib/features/session)에 있습니다.
+3. **의존성을 바꿔 끼우는 테스트.** [`examples/testing_patterns`](examples/testing_patterns).
+
+곁가지: [`examples/codegen_basics`](examples/codegen_basics)는 제너레이터가 그 밖에 하는 일(프로퍼티
+주입, 데코레이터, 화면별 스코프)을 보여 주고, [`examples/manual_mode`](examples/manual_mode)와
+[`examples/teardown`](examples/teardown)은 런타임만 순수 Dart로 쓰는 모습을 보여 줍니다.
 
 ## 왜 Cobalt인가
 
