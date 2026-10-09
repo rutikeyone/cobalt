@@ -9,7 +9,8 @@ import 'package:analyzer/error/error.dart';
 const _injectedMatcher = CobaltAnnotationMatcher('Injected');
 
 /// Reports an injectable class with `@injected` fields that does not mix in
-/// its generated `_$ClassName`.
+/// its generated `_$ClassName`, or, for a generic class, mixes it in without
+/// passing its type parameters on: `with _$Cache<T>`.
 ///
 /// Without the mixin the fields are never assigned and the class fails at
 /// runtime with a `LateInitializationError` far from the actual mistake.
@@ -60,13 +61,33 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!hasInjectedFields) return;
 
     final name = node.namePart.typeName.lexeme;
+    final parameters = [
+      for (final parameter in element.typeParameters) parameter.displayName,
+    ];
     final expected = '_\$$name';
     final mixedIn =
         node.withClause?.mixinTypes.any(
-          (type) => type.name.lexeme == expected,
+          (type) => type.name.lexeme == expected && _passes(type, parameters),
         ) ??
         false;
 
-    if (!mixedIn) rule.reportAtNode(node.namePart, arguments: [name]);
+    if (!mixedIn) {
+      rule.reportAtNode(
+        node.namePart,
+        arguments: [
+          parameters.isEmpty ? name : '$name<${parameters.join(', ')}>',
+        ],
+      );
+    }
+  }
+
+  static bool _passes(NamedType type, List<String> parameters) {
+    final arguments = [
+      for (final argument
+          in type.typeArguments?.arguments ?? const <TypeAnnotation>[])
+        argument.toSource(),
+    ];
+    return arguments.length == parameters.length &&
+        arguments.indexed.every((each) => each.$2 == parameters[each.$1]);
   }
 }

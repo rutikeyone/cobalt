@@ -66,7 +66,14 @@ $header {
   void test_typeParametersAndImplements_goesBetweenThem() async {
     await check(
       'class Bloc<T> implements Api',
-      'class Bloc<T> with _\$Bloc implements Api',
+      'class Bloc<T> with _\$Bloc<T> implements Api',
+    );
+  }
+
+  void test_mixinWithoutTypeArguments_getsThem() async {
+    await check(
+      'class Bloc<K, V> with Other, _\$Bloc',
+      'class Bloc<K, V> with Other, _\$Bloc<K, V>',
     );
   }
 

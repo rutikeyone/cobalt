@@ -1,6 +1,7 @@
 import 'package:cobalt_analyzer/cobalt_analyzer.dart';
 import 'package:cobalt_generator/src/emitters/injection_mixin_emitter.dart';
 import 'package:build/build.dart';
+import 'package:code_builder/code_builder.dart';
 import 'package:source_gen/source_gen.dart';
 
 /// Emits the `_$ClassName` mixin that fills `@injected` fields.
@@ -36,7 +37,25 @@ class PropertyInjectionGenerator implements Generator {
       try {
         if (_parser.declares(clazz)) {
           final parsed = _parser.parseClass(clazz).first;
-          if (parsed.hasPropertyInjection) mixins.add(_emitter.emit(parsed));
+          if (parsed.hasPropertyInjection) {
+            mixins.add(
+              _emitter.emitFor(
+                typeRefOfElement(clazz),
+                _parser.declaredPropertiesOf(clazz),
+                typeParameters: [
+                  for (final parameter in clazz.typeParameters)
+                    TypeReference(
+                      (t) => t
+                        ..symbol = parameter.displayName
+                        ..bound = switch (parameter.bound) {
+                          final bound? => refer(bound.getDisplayString()),
+                          null => null,
+                        },
+                    ),
+                ],
+              ),
+            );
+          }
         } else if (_decorators.declares(clazz)) {
           final parsed = _decorators.parseClass(clazz);
           if (parsed.hasPropertyInjection) {

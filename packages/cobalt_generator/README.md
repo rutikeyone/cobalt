@@ -265,7 +265,9 @@ Each instantiation gets its own factory, named after its type arguments (`_Cache
 `_CacheOfUserFactory`; `Pair<String, int>` becomes `_PairOfStringAndIntFactory`), and its
 constructor resolves its own `Store<Note>` or `Store<User>`. A generic class without
 `instantiations` is a build error. Every entry spells out each type argument (a raw `Cache` reads as
-`Cache<dynamic>`), and neither `exposeAs` nor `@injected` fields combine with `instantiations`.
+`Cache<dynamic>`), and `exposeAs` does not combine with `instantiations`. `@injected` fields work
+too: the class mixes in `_$Cache<T>`, one mixin for every instantiation, and each reads the field
+under its own type arguments, so a missing `Store<User>` fails the build for `Cache<User>` alone.
 
 Nullability of the outer type is not part of that identity: a `Foo?` dependency reads the `Foo`
 registration. A type argument keeps its `?`, so `Cache<Note?>` and `Cache<Note>` are two

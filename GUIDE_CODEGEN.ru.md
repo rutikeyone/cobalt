@@ -309,8 +309,23 @@ class Cache<T> {
 `Store<User>`. `name`, `lifetime`, `dispose` и окружения относятся к каждой из них. Generic-класс без
 `instantiations` дает ошибку сборки: ничто не говорит, какие инстанциации регистрировать. В каждой
 записи все аргументы типа выписаны явно (голый `Cache` читается как `Cache<dynamic>` и отвергается),
-`exposeAs` вместе с `instantiations` не допускается, а полей `@injected` у generic-класса быть не
-может: принимайте их в конструкторе.
+а `exposeAs` вместе с `instantiations` не допускается.
+
+Поля `@injected` работают так же. Класс подмешивает сгенерированный миксин со своими параметрами
+типа, и каждая инстанциация читает поле со своими аргументами типа:
+
+```dart
+@CobaltInject(instantiations: [Cache<Note>, Cache<User>])
+class Cache<T> with _$Cache<T> {
+  Cache();
+
+  @injected
+  late final Store<T> store;
+}
+```
+
+`Cache<User>` читает `Store<User>`, и если `Store<User>` никто не регистрирует, сборка падает только
+для `Cache<User>`.
 
 Во всём остальном дженерики работают. `Repository<User>` и `Repository<Order>` — две отдельные
 регистрации, потому что `CobaltKey` строится из `Type`, а это разные типы.
@@ -1312,7 +1327,7 @@ git diff --exit-code
 - **`@CobaltInject` на generic-классе без `instantiations`.** Отвергается: генератору никто не
   говорит, какие инстанциации регистрировать. Перечислите их, как в
   `@CobaltInject(instantiations: [Cache<Note>, Cache<User>])`, выписав каждый аргумент типа, или
-  разметьте конкретный подтип. Ни `exposeAs`, ни поля `@injected` с `instantiations` не сочетаются.
+  разметьте конкретный подтип. `exposeAs` с `instantiations` не сочетается.
   Дженерики прекрасно работают как зависимости и как цели `exposeAs`.
 - **`@injected` без `with _$ClassName`.** Поля остаются незаполненными, и первое же чтение даёт
   `LateError`. Линтер скажет раньше.

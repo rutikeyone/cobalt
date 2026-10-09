@@ -1,6 +1,7 @@
 import 'package:cobalt_analyzer/cobalt_analyzer.dart';
 import 'package:cobalt_generator/src/emitters/injection_mixin_emitter.dart';
 import 'package:cobalt_generator/src/errors/cobalt_generation_error.dart';
+import 'package:code_builder/code_builder.dart';
 import 'package:test/test.dart';
 
 import 'support.dart';
@@ -281,6 +282,47 @@ void main() {
         ).allMatches(source).map((match) => match.group(1)).toSet(),
         hasLength(2),
       );
+    });
+  });
+
+  group('property injection on a generic class', () {
+    final source = const InjectionMixinEmitter().emitFor(
+      ref('Cache'),
+      [
+        CobaltInjectedProperty(
+          field: '_repo',
+          type: ref('Repo', of: [ref('T')]),
+        ),
+        CobaltInjectedProperty(field: 'clock', type: ref('Clock')),
+      ],
+      typeParameters: [
+        TypeReference(
+          (t) => t
+            ..symbol = 'T'
+            ..bound = refer('Object'),
+        ),
+      ],
+    );
+
+    test('one mixin carries the class type parameters, bounds included', () {
+      expect(
+        source,
+        contains(
+          r'mixin _$Cache<T extends Object> implements CobaltInjectable',
+        ),
+      );
+    });
+
+    test(
+      'a field typed by a parameter keeps it in the setter and the read',
+      () {
+        expect(source, contains('set _repo(Repo<T> value)'));
+        expect(source, contains('_repo = resolver.get<Repo<T>>()'));
+      },
+    );
+
+    test('a field that does not mention a parameter is read as before', () {
+      expect(source, contains('clock = resolver.get<Clock>()'));
     });
   });
 

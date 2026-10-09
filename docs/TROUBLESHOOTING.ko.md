@@ -236,8 +236,9 @@ override가 아무것도 바꾸지 않았습니다.
 - **`@CobaltInject`가 붙은 제네릭 클래스.** 메시지는 클래스가 타입 매개변수를 선언하므로 등록할 단일
   인스턴스화가 없다고 알려 줍니다. 등록할 인스턴스화를 모든 타입 인자를 명시해 나열하십시오:
   `@CobaltInject(instantiations: [Cache<Note>, Cache<User>])`. 목록 안의 타입 인자 없는 `Cache`는
-  `Cache<dynamic>`으로 읽혀 거부되며, `instantiations`와 함께 쓴 `exposeAs`, 제네릭 클래스의 `@injected`
-  필드도 거부됩니다. 그런 필드는 생성자로 받으십시오.
+  `Cache<dynamic>`으로 읽혀 거부되며, `instantiations`와 함께 쓴 `exposeAs`도 거부됩니다.
+- **제네릭 클래스의 `@injected` 필드가 컴파일되지 않음.** 클래스는 믹스인을 자신의 타입 매개변수와 함께
+  섞어야 합니다: `class Cache<T> with _$Cache<T>`. 타입 인자 없는 `with _$Cache`는 이를 빠뜨립니다.
 
 검사가 어떻게 동작하는지는 [GUIDE_CODEGEN.ko.md](../GUIDE_CODEGEN.ko.md#5-그래프는-완전해야-합니다)에,
 [린트 플러그인](../GUIDE_CODEGEN.ko.md#16-린트-플러그인)은 빌드 전에 편집기에서 이 중 대부분을 보여 줍니다.

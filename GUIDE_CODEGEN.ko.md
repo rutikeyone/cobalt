@@ -305,7 +305,23 @@ class Cache<T> {
 `name`, `lifetime`, `dispose`와 환경은 그 각각에 모두 적용됩니다. `instantiations` 없는 제네릭 클래스는
 어떤 인스턴스화를 등록할지 알려 주는 것이 없으므로 빌드 오류입니다. 각 항목에는 모든 타입 인자를 명시해야 하고
 (타입 인자 없는 `Cache`는 `Cache<dynamic>`으로 읽혀 거부됩니다), `exposeAs`는 `instantiations`와 함께 쓸 수
-없으며, 제네릭 클래스에는 `@injected` 필드를 둘 수 없습니다. 생성자로 받으십시오.
+없습니다.
+
+`@injected` 필드도 같은 방식으로 동작합니다. 클래스는 생성된 믹스인을 자신의 타입 매개변수와 함께 섞고,
+각 인스턴스화는 자기 타입 인자로 필드를 읽습니다.
+
+```dart
+@CobaltInject(instantiations: [Cache<Note>, Cache<User>])
+class Cache<T> with _$Cache<T> {
+  Cache();
+
+  @injected
+  late final Store<T> store;
+}
+```
+
+`Cache<User>`는 `Store<User>`를 읽고, `Store<User>`를 등록하는 것이 없으면 `Cache<User>`에 대해서만 빌드가
+실패합니다.
 
 그 밖의 곳에서는 제네릭이 문제없습니다. `Repository<User>`와 `Repository<Order>`는 별개의 등록 두 개인데,
 `CobaltKey`가 `Type`으로 만들어지고 이 둘은 서로 다른 타입이기 때문입니다.
@@ -1301,7 +1317,7 @@ git diff --exit-code
   `cobalt_container`는 패키지 전체를 루트 하나로 집계합니다.
 - **`instantiations` 없는 제네릭 클래스의 `@CobaltInject`.** 거부됩니다. 어떤 인스턴스화를 등록할지
   제너레이터에 알려 주는 것이 없습니다. `@CobaltInject(instantiations: [Cache<Note>, Cache<User>])`처럼
-  모든 타입 인자를 명시해 나열하거나, 구체 하위 타입에 어노테이션을 붙이십시오. `exposeAs`와 `@injected` 필드는
+  모든 타입 인자를 명시해 나열하거나, 구체 하위 타입에 어노테이션을 붙이십시오. `exposeAs`는
   `instantiations`와 함께 쓸 수 없습니다. 제네릭은 의존성으로도,
   `exposeAs` 대상으로도 문제없이 동작합니다.
 - **`with _$ClassName` 없는 `@injected`.** 필드는 할당되지 않은 채 남고 첫 읽기가 `LateError`를 던집니다.

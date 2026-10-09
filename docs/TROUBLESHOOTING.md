@@ -237,8 +237,9 @@ The generator stops the build with a message that says what to change. The usual
 - **A generic class with `@CobaltInject`.** The message says the class declares type parameters, so
   there is no single instantiation to register. Name the ones it registers, every type argument
   spelled out: `@CobaltInject(instantiations: [Cache<Note>, Cache<User>])`. A raw `Cache` in the list
-  reads as `Cache<dynamic>` and is rejected, and so are `exposeAs` beside `instantiations` and an
-  `@injected` field on a generic class; take that field in the constructor.
+  reads as `Cache<dynamic>` and is rejected, and so is `exposeAs` beside `instantiations`.
+- **`@injected` fields on a generic class that do not compile.** The class mixes in its mixin with
+  its type parameters: `class Cache<T> with _$Cache<T>`. A bare `with _$Cache` leaves them out.
 
 [GUIDE_CODEGEN.md](../GUIDE_CODEGEN.md#5-the-graph-has-to-be-complete) explains how the check works,
 and the [lint plugin](../GUIDE_CODEGEN.md#16-the-lint-plugin) shows most of these in the editor before
