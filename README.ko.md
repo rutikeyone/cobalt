@@ -30,6 +30,8 @@ Flutter 앱(`flutter create my_app`으로 만들 수 있습니다)에 패키지�
 flutter pub add cobalt cobalt_flutter dev:cobalt_generator dev:build_runner
 ```
 
+`cobalt`는 런타임이고 생성된 코드가 직접 임포트하므로, 앱이 직접 의존해야 합니다.
+
 `lib/main.dart`를 다음으로 바꿉니다.
 
 ```dart
@@ -73,12 +75,18 @@ class HomeScreen extends StatelessWidget {
 }
 ```
 
+`test/widget_test.dart`도 지웁니다. `flutter create`가 만든 카운터 앱을 테스트하는 파일인데, 그 앱은 이제
+없습니다.
+
 연결 코드를 생성하고 실행합니다.
 
 ```bash
 dart run build_runner build
 flutter run
 ```
+
+빌드를 실행하기 전에는 편집기가 `cobalt.g.dart`와 `$CobaltRootScope`를 없는 것으로 표시합니다. 정상입니다.
+빌드가 이 파일들을 만듭니다. 다른 곳이 빨갛게 표시되면 [첫 빌드](docs/TROUBLESHOOTING.ko.md#첫-빌드)를 보세요.
 
 `@cobaltInject`는 클래스를 등록합니다. `Greeter`는 생성자에서 `Clock`을 요구하고, 제너레이터가
 `lib/cobalt.g.dart`에서 둘을 연결합니다. `CobaltAppScope`는 앱이 시작될 때 그래프를 만들고 앱이

@@ -16,6 +16,7 @@ Cobalt가 실행 중에 던지는 모든 오류는 이 페이지의 해당 항�
 - [시작과 종료](#시작과-종료)
 - [Flutter에서](#flutter에서)
 - [`build_runner`가 실패할 때](#build_runner가-실패할-때)
+- [첫 빌드](#첫-빌드)
 
 ## 그래프에서 읽기
 
@@ -240,3 +241,16 @@ override가 아무것도 바꾸지 않았습니다.
 
 검사가 어떻게 동작하는지는 [GUIDE_CODEGEN.ko.md](../GUIDE_CODEGEN.ko.md#5-그래프는-완전해야-합니다)에,
 [린트 플러그인](../GUIDE_CODEGEN.ko.md#16-린트-플러그인)은 빌드 전에 편집기에서 이 중 대부분을 보여 줍니다.
+
+## 첫 빌드
+
+[빠른 시작](../README.ko.md#빠른-시작)을 따라가는 동안 새 앱에서 보일 수 있는 것들입니다.
+
+- **`Target of URI hasn't been generated: 'cobalt.g.dart'`, 그리고 `$CobaltRootScope`가 클래스가 아니라는
+  메시지.** 제너레이터가 아직 실행되지 않았습니다. `dart run build_runner build`를 실행하고, 어노테이션을
+  바꿀 때마다 다시 실행하십시오. 작업하는 동안에는 `dart run build_runner watch`가 파일을 최신으로 유지합니다.
+- **`test/widget_test.dart`의 `The name 'MyApp' isn't a class`.** 이 테스트는 `flutter create`가 만든
+  것으로, 이미 바꾼 카운터 앱을 검사합니다. 지우십시오. 새 앱의 테스트는
+  [`examples/hello/test`](../examples/hello/test)에 있습니다.
+- **`lib/cobalt.g.dart`의 `The imported package 'cobalt' isn't a dependency`.** 생성된 코드가 런타임을 직접
+  임포트하므로 앱이 직접 의존해야 합니다: `flutter pub add cobalt`.

@@ -31,6 +31,8 @@
 flutter pub add cobalt cobalt_flutter dev:cobalt_generator dev:build_runner
 ```
 
+`cobalt` нужен отдельно: это рантайм, и сгенерированный код импортирует его напрямую.
+
 Замените `lib/main.dart`:
 
 ```dart
@@ -74,12 +76,18 @@ class HomeScreen extends StatelessWidget {
 }
 ```
 
+Удалите и `test/widget_test.dart`: он проверяет приложение-счетчик, которое написал `flutter create`, а
+его больше нет.
+
 Сгенерируйте связи и запустите:
 
 ```bash
 dart run build_runner build
 flutter run
 ```
+
+Пока сборка не запускалась, редактор подчеркивает `cobalt.g.dart` и `$CobaltRootScope` как
+несуществующие. Так и должно быть: их пишет сборка. Если покраснело что-то еще, смотрите [первую сборку](docs/TROUBLESHOOTING.ru.md#первая-сборка).
 
 `@cobaltInject` регистрирует класс. `Greeter` просит `Clock` в конструкторе, и генератор связывает их
 в `lib/cobalt.g.dart`. `CobaltAppScope` строит граф при старте приложения и закрывает его, когда

@@ -12,6 +12,7 @@ the error happens and what to do about it.
 - [Starting and stopping](#starting-and-stopping)
 - [In Flutter](#in-flutter)
 - [When `build_runner` fails](#when-build_runner-fails)
+- [The first build](#the-first-build)
 
 ## Reading from the graph
 
@@ -242,3 +243,16 @@ The generator stops the build with a message that says what to change. The usual
 [GUIDE_CODEGEN.md](../GUIDE_CODEGEN.md#5-the-graph-has-to-be-complete) explains how the check works,
 and the [lint plugin](../GUIDE_CODEGEN.md#16-the-lint-plugin) shows most of these in the editor before
 you run the build.
+
+## The first build
+
+What a new app shows on the way through the [Quick start](../README.md#quick-start):
+
+- **`Target of URI hasn't been generated: 'cobalt.g.dart'`, and `$CobaltRootScope` is not a class.**
+  The generator has not run yet. Run `dart run build_runner build`, and again after you change an
+  annotation; `dart run build_runner watch` keeps the file current while you work.
+- **`The name 'MyApp' isn't a class` in `test/widget_test.dart`.** That test came with
+  `flutter create` and checks the counter app you replaced. Delete it;
+  [`examples/hello/test`](../examples/hello/test) has a test for the new app.
+- **`The imported package 'cobalt' isn't a dependency` in `lib/cobalt.g.dart`.** The generated code
+  imports the runtime directly, so the app has to depend on it: `flutter pub add cobalt`.

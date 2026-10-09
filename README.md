@@ -27,6 +27,8 @@ In a Flutter app — `flutter create my_app` makes one — add the packages:
 flutter pub add cobalt cobalt_flutter dev:cobalt_generator dev:build_runner
 ```
 
+`cobalt` is the runtime: the generated code imports it, so the app depends on it directly.
+
 Replace `lib/main.dart`:
 
 ```dart
@@ -70,12 +72,18 @@ class HomeScreen extends StatelessWidget {
 }
 ```
 
+Delete `test/widget_test.dart` too: it tests the counter app that `flutter create` wrote, and that
+app is gone.
+
 Generate the wiring and run:
 
 ```bash
 dart run build_runner build
 flutter run
 ```
+
+Until the build has run, the editor marks `cobalt.g.dart` and `$CobaltRootScope` as missing. That
+is expected: the build writes them. If something else goes red, see [the first build](docs/TROUBLESHOOTING.md#the-first-build).
 
 `@cobaltInject` registers a class. `Greeter` asks for a `Clock` in its constructor, and the generator
 connects the two in `lib/cobalt.g.dart`. `CobaltAppScope` builds the graph when the app starts and
