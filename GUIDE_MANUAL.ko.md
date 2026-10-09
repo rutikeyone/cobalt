@@ -585,6 +585,13 @@ class CounterCubit extends Cubit<int> with CobaltBloc {
 scope.adopt(subscription, dispose: (it) => it.cancel());
 ```
 
+`examples/teardown`은 이 모든 것을 콘솔 프로그램으로 실행하며 단계마다 출력합니다. 생성의 역순, `adopt`,
+하나의 마감 시간 아래에서 실패하는 서비스와 멈춘 서비스, 그리고 그 결과인 `CobaltDisposeError`까지 보여 줍니다:
+
+```bash
+cd examples/teardown && dart run bin/main.dart
+```
+
 ---
 
 ## 8. 앱이 시작되기 전에 끝나야 하는 작업

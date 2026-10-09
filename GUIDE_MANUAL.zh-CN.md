@@ -559,6 +559,13 @@ mixin 够不着的地方，在注册处写 `dispose: closeBloc`。
 scope.adopt(subscription, dispose: (it) => it.cancel());
 ```
 
+`examples/teardown` 是一个控制台程序，把上面这些都跑一遍并逐步打印出来：按创建的逆序销毁、`adopt`、
+共享同一个截止时间的一个抛错服务和一个卡住的服务，以及最后汇总它们的 `CobaltDisposeError`：
+
+```bash
+cd examples/teardown && dart run bin/main.dart
+```
+
 ---
 
 ## 8. 必须在启动前完成的工作

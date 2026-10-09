@@ -1,6 +1,6 @@
 # codegen_basics
 
-The smallest generated setup, and a runnable template to copy.
+What the generator does beyond `examples/hello`: property injection, a decorator, a scope per screen.
 
 > **Not a runnable app.** This package is a library the gallery mounts — it has no `main.dart`
 > and no native project of its own. Run it, and everything else, from one place:

@@ -20,3 +20,5 @@ void main() {
 
 A screen that owns a scope publishes a provider of its own, so `mountedRootScope` climbs past it —
 what it returns is the application's graph, not the screen's.
+
+More patterns, with the tests that run them: [`examples/testing_patterns`](https://github.com/rutikeyone/cobalt/tree/main/examples/testing_patterns).

@@ -587,6 +587,14 @@ a timer that nothing resolves:
 scope.adopt(subscription, dispose: (it) => it.cancel());
 ```
 
+`examples/teardown` runs all of this in a console program and prints each step as it happens: the
+reverse creation order, `adopt`, a failing and a stuck service under one deadline, and the
+`CobaltDisposeError` they end in:
+
+```bash
+cd examples/teardown && dart run bin/main.dart
+```
+
 ---
 
 ## 8. Work that has to finish before the app starts
