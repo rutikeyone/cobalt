@@ -146,14 +146,17 @@ with one `Future` layer removed) and `@CobaltScopeRoot(provides: [...])` entries
 what each registration asks for. A decorator is not a registration, so it adds no name; what its constructor
 asks for, beyond the instance it wraps, joins its target's edges — the decorator runs whenever the
 target is handed out, so a decorator needing something that depends on its own target is a loop. It holds bare names: no library, no type arguments, no `@Named`
-qualifier. Each of those omissions makes the index match **more**, so the rule stays quiet where the
-build still objects:
+qualifier. The one exception is a generic class registered through its `instantiations:` alone,
+which keeps the instantiations it lists, so `Store<Tag>` is reported when only `Store<Note>` is
+listed. Each omission makes the index match **more**, so the rule stays quiet where the build still
+objects:
 
 | Case | Build | Rule |
 |---|---|---|
 | nothing registers `HttpClient` | error | reported |
 | `@Named('audit') Logger` where only an unnamed `Logger` is registered | error | silent |
-| `Repository<Order>` where only `Repository<User>` is registered | error | silent |
+| `Store<Tag>` where `Store` lists only `instantiations: [Store<Note>]` | error | reported |
+| `Repository<Order>` where only `Repository<User>` is registered through `exposeAs` | error | silent |
 | two same-named classes from different libraries, one registered | error | silent |
 
 That asymmetry is deliberate. A false report from an editor that cannot see the whole graph costs
