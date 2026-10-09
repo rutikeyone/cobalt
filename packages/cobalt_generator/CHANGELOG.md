@@ -1,3 +1,12 @@
+## 1.3.0
+
+- `@injected` fields work on a generic class with
+  `@CobaltInject(instantiations: [...])`. The class mixes in one
+  `_$Cache<T>` carrying its type parameters, bounds included; each
+  instantiation resolves the field under its own type arguments, and a
+  dependency missing for one instantiation fails the build for that one
+  alone. Requires `cobalt_analyzer` 1.3.0.
+
 ## 1.2.0
 
 - Generic classes: `@CobaltInject(instantiations: [Cache<Note>,

@@ -1,3 +1,10 @@
+## 1.3.0
+
+- No code changes in this package. The README Quick start says why
+  `cobalt` is a direct dependency and that `test/widget_test.dart` goes,
+  points to what the editor shows before the first build, and opens with a
+  GIF of the gallery.
+
 ## 1.2.0
 
 - On a hot reload, `CobaltAppScope` compares the builder's registrations

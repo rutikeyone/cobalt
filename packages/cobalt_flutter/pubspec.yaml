@@ -1,6 +1,6 @@
 name: cobalt_flutter
 description: Dependency injection for Flutter apps. Widgets own scopes, startup shows loading and error screens, and context.cobalt<T>() reads a dependency in any widget.
-version: 1.2.0
+version: 1.3.0
 repository: https://github.com/rutikeyone/cobalt
 issue_tracker: https://github.com/rutikeyone/cobalt/issues
 topics:

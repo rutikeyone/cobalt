@@ -1,3 +1,8 @@
+## 1.3.0
+
+- No code changes in this package. The Example tab links to
+  `examples/testing_patterns`.
+
 ## 1.2.0
 
 - No code changes in this package. Republished in lockstep with 1.2.0:

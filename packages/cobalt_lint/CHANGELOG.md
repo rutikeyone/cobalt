@@ -1,3 +1,14 @@
+## 1.3.0
+
+- `cobalt_missing_injection_mixin` asks a generic class for
+  `with _$Cache<T>`, and its quick fix writes the type parameters, or adds
+  them to a bare `with _$Cache`.
+- `cobalt_dependency_is_not_registered` reports a dependency on an
+  instantiation a generic class does not list: `Store<Tag>` when only
+  `instantiations: [Store<Note>]` registers `Store`. A generic class
+  registered any other way is still matched by name. Requires
+  `cobalt_analyzer` 1.3.0.
+
 ## 1.2.0
 
 - Quick fixes for seven rules, offered by the IDE on the diagnostic:
