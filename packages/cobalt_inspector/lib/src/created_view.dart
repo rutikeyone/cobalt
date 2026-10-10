@@ -1,4 +1,5 @@
 import 'package:cobalt_flutter/cobalt_flutter.dart';
+import 'package:cobalt_inspector/src/l10n/build_time_strings.dart';
 import 'package:cobalt_inspector/src/build_time.dart';
 import 'package:cobalt_inspector/src/cobalt_inspector_log.dart';
 import 'package:cobalt_inspector/src/l10n/cobalt_inspector_l10n.dart';

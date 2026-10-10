@@ -68,8 +68,6 @@
   "factDecoratedBy": "데코레이터",
   "factImplementation": "빌드 클래스",
   "factBuildTime": "마지막 빌드 시간",
-  "withoutDependencies": "의존성 제외 {time}",
-  "withDependencies": "의존성 포함 {time}",
   "factTornDown": "스코프와 함께 해제",
   "tornDownYes": "예",
   "tornDownNo": "아니요, 호출자 소유",

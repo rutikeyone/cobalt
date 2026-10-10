@@ -220,26 +220,6 @@
   "@factBuildTime": {
     "description": "Label for how long the most recent build of this registration took."
   },
-  "withoutDependencies": "{time} without its dependencies",
-  "@withoutDependencies": {
-    "description": "After how long the most recent build took: how much of it the registration spent on itself, not on the dependencies it built.",
-    "placeholders": {
-      "time": {
-        "type": "String",
-        "example": "0.4 ms"
-      }
-    }
-  },
-  "withDependencies": "{time} with dependencies",
-  "@withDependencies": {
-    "description": "Next to a build's own time: the whole build, the dependencies it built included.",
-    "placeholders": {
-      "time": {
-        "type": "String",
-        "example": "12.3 ms"
-      }
-    }
-  },
   "factTornDown": "Torn down with the scope",
   "@factTornDown": {
     "description": "Fact label: whether the scope releases the instance."

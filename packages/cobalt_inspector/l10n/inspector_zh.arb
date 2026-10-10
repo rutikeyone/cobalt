@@ -68,8 +68,6 @@
   "factDecoratedBy": "装饰器",
   "factImplementation": "构建",
   "factBuildTime": "上次构建耗时",
-  "withoutDependencies": "不含依赖 {time}",
-  "withDependencies": "含依赖 {time}",
   "factTornDown": "随作用域一起释放",
   "tornDownYes": "是",
   "tornDownNo": "否，由调用方持有",

@@ -166,16 +166,6 @@ class CobaltInspectorL10nRu extends CobaltInspectorL10n {
   String get factBuildTime => 'Последняя сборка заняла';
 
   @override
-  String withoutDependencies(String time) {
-    return '$time без зависимостей';
-  }
-
-  @override
-  String withDependencies(String time) {
-    return '$time с зависимостями';
-  }
-
-  @override
   String get factTornDown => 'Разбирается вместе со скоупом';
 
   @override

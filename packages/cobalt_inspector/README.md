@@ -182,7 +182,9 @@ MaterialApp(
 )
 ```
 
-To add a language, drop an `.arb` beside `l10n/inspector_en.arb` and run `flutter gen-l10n`.
+To add a language, drop an `.arb` beside `l10n/inspector_en.arb` and run `flutter gen-l10n`. The two
+build-time phrases added in 1.4.0 live in `lib/src/l10n/build_time_strings.dart` instead, so the
+exported `CobaltInspectorL10n` keeps its members; add the language there too.
 
 **The typeface is the host's too, and that one can go wrong quietly.** The inspector sets its text
 in whatever the ambient `Theme` provides, which is right — it should look like the app it is inside.

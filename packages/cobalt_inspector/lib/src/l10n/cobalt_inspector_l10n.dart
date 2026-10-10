@@ -408,18 +408,6 @@ abstract class CobaltInspectorL10n {
   /// **'Last build took'**
   String get factBuildTime;
 
-  /// After how long the most recent build took: how much of it the registration spent on itself, not on the dependencies it built.
-  ///
-  /// In en, this message translates to:
-  /// **'{time} without its dependencies'**
-  String withoutDependencies(String time);
-
-  /// Next to a build's own time: the whole build, the dependencies it built included.
-  ///
-  /// In en, this message translates to:
-  /// **'{time} with dependencies'**
-  String withDependencies(String time);
-
   /// Fact label: whether the scope releases the instance.
   ///
   /// In en, this message translates to:
