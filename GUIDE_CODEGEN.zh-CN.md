@@ -293,7 +293,8 @@ class Cache<T> {
 这会注册 `Cache<Note>` 和 `Cache<User>`，每个都用自己的 `Store<Note>` 或 `Store<User>` 构建。
 `name`、`lifetime`、`dispose` 和环境对其中每一个都生效。没有 `instantiations` 的泛型类是构建错误，
 因为没有任何地方说明该注册哪些实例化。每一项都要写全所有类型实参（裸写的 `Cache` 会被读成
-`Cache<dynamic>` 并被拒绝），`exposeAs` 不能与 `instantiations` 同时使用。
+`Cache<dynamic>` 并被拒绝）。`exposeAs` 不写类型实参：对 `Cache<T> implements Store<T>` 写 `exposeAs: Store`，
+每个具体化会以各自的 `Store<Note>`、`Store<User>` 注册。
 
 `@injected` 字段也是同样的用法。类混入带有自身类型参数的生成 mixin，每个具体化都按自己的类型实参读取字段：
 
@@ -1263,7 +1264,7 @@ git diff --exit-code
   `cobalt_container` 会把整个包聚合成一个根。
 - **在泛型类上用 `@CobaltInject` 却没有 `instantiations`。** 会被拒绝：没有人告诉生成器该注册哪些具体实例化。
   请把它们列出来，例如 `@CobaltInject(instantiations: [Cache<Note>, Cache<User>])`，并写全每个类型实参；
-  或者给具体子类型加注解。`exposeAs` 不能与 `instantiations` 一起用。
+  或者给具体子类型加注解。与 `instantiations` 一起用时，`exposeAs` 不写类型实参。
   泛型作为依赖和 `exposeAs` 目标都完全可用。
 - **写了 `@injected` 却没有 `with _$ClassName`。** 字段不会被赋值，第一次读取就抛 `LateError`。
   lint 会更早告诉你。

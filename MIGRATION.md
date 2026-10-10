@@ -201,8 +201,8 @@ class Cache<T> {
 }
 ```
 
-Every type argument is spelled out, and `exposeAs` does not combine with
-`instantiations`. `@injected` fields work, with the mixin taking the type
+Every type argument is spelled out, and `exposeAs` is written without them:
+`exposeAs: Store` exposes each instantiation as its own `Store<Note>`. `@injected` fields work, with the mixin taking the type
 parameters: `class Cache<T> with _$Cache<T>`. Generic *dependencies* work normally:
 `Repository<User>` and `Repository<Order>` are separate registrations.
 

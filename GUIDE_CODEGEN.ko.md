@@ -304,8 +304,9 @@ class Cache<T> {
 이렇게 하면 `Cache<Note>`와 `Cache<User>`가 등록되고, 각각 자기 `Store<Note>` 또는 `Store<User>`로 만들어집니다.
 `name`, `lifetime`, `dispose`와 환경은 그 각각에 모두 적용됩니다. `instantiations` 없는 제네릭 클래스는
 어떤 인스턴스화를 등록할지 알려 주는 것이 없으므로 빌드 오류입니다. 각 항목에는 모든 타입 인자를 명시해야 하고
-(타입 인자 없는 `Cache`는 `Cache<dynamic>`으로 읽혀 거부됩니다), `exposeAs`는 `instantiations`와 함께 쓸 수
-없습니다.
+(타입 인자 없는 `Cache`는 `Cache<dynamic>`으로 읽혀 거부됩니다). `exposeAs`는 타입 인자 없이 씁니다.
+`Cache<T> implements Store<T>`에 `exposeAs: Store`를 쓰면 각 인스턴스화가 자기 `Store<Note>`, `Store<User>`로
+등록됩니다.
 
 `@injected` 필드도 같은 방식으로 동작합니다. 클래스는 생성된 믹스인을 자신의 타입 매개변수와 함께 섞고,
 각 인스턴스화는 자기 타입 인자로 필드를 읽습니다.
@@ -1335,8 +1336,8 @@ git diff --exit-code
   `cobalt_container`는 패키지 전체를 루트 하나로 집계합니다.
 - **`instantiations` 없는 제네릭 클래스의 `@CobaltInject`.** 거부됩니다. 어떤 인스턴스화를 등록할지
   제너레이터에 알려 주는 것이 없습니다. `@CobaltInject(instantiations: [Cache<Note>, Cache<User>])`처럼
-  모든 타입 인자를 명시해 나열하거나, 구체 하위 타입에 어노테이션을 붙이십시오. `exposeAs`는
-  `instantiations`와 함께 쓸 수 없습니다. 제네릭은 의존성으로도,
+  모든 타입 인자를 명시해 나열하거나, 구체 하위 타입에 어노테이션을 붙이십시오. `instantiations`와 함께
+  쓰는 `exposeAs`는 타입 인자 없이 씁니다. 제네릭은 의존성으로도,
   `exposeAs` 대상으로도 문제없이 동작합니다.
 - **`with _$ClassName` 없는 `@injected`.** 필드는 할당되지 않은 채 남고 첫 읽기가 `LateError`를 던집니다.
   린트가 먼저 알려 줍니다.

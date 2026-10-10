@@ -209,7 +209,8 @@ class Cache<T> {
 }
 ```
 
-Every type argument is spelled out, and `exposeAs` does not combine with `instantiations`.
+Every type argument is spelled out, and `exposeAs` is written without them: `exposeAs: Store`
+exposes each instantiation as its own `Store<Note>`.
 `@injected` fields work, with the mixin taking the type parameters: `class Cache<T> with _$Cache<T>`.
 
 `cobalt_analyzer` exists so the generator and the lint plugin parse Cobalt declarations through one

@@ -186,7 +186,7 @@ override 什么也没替换。
 - **一个包里有两个 `@CobaltScopeRoot` 类。** 一个包只有一个生成的根。保留一个。
 - **依赖循环。** 见 [CobaltCycleError](#cobaltcycleerror)。
 - **带 `@CobaltInject` 的抽象类。** 生成器无法构建它。给具体类加注解，并以接口暴露它：`@CobaltInject(exposeAs: ApiClient)`。
-- **带 `@CobaltInject` 的泛型类。** 消息会说这个类声明了类型参数，因此没有唯一的具体化可以注册。请列出它要注册的具体化，并写全每个类型实参：`@CobaltInject(instantiations: [Cache<Note>, Cache<User>])`。列表里裸写的 `Cache` 会被读成 `Cache<dynamic>` 并被拒绝；`exposeAs` 与 `instantiations` 同时出现也同样会被拒绝。
+- **带 `@CobaltInject` 的泛型类。** 消息会说这个类声明了类型参数，因此没有唯一的具体化可以注册。请列出它要注册的具体化，并写全每个类型实参：`@CobaltInject(instantiations: [Cache<Note>, Cache<User>])`。列表里裸写的 `Cache` 会被读成 `Cache<dynamic>` 并被拒绝。与 `instantiations` 一起用时，`exposeAs` 不写类型实参，并且要写类实现的泛型类型：`exposeAs: Store`。
 - **泛型类上的 `@injected` 字段编译不过。** 类要带着自己的类型参数混入 mixin：`class Cache<T> with _$Cache<T>`。只写 `with _$Cache` 会丢掉类型参数。
 
 检查如何工作，见 [GUIDE_CODEGEN.zh-CN.md](../GUIDE_CODEGEN.zh-CN.md#5-图必须是完整的)；[lint 插件](../GUIDE_CODEGEN.zh-CN.md#16-lint-插件)能在构建之前就在编辑器里显示其中大部分问题。

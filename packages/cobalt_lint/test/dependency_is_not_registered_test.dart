@@ -536,6 +536,25 @@ class Tagger {
 ''');
   }
 
+  void test_aGenericExposedUnderItsInterface_isClean() async {
+    await assertNoDiagnostics('''
+$cobaltImport
+
+class Note {}
+
+abstract interface class Store<T> {}
+
+@CobaltInject(exposeAs: Store, instantiations: [Cache<Note>])
+class Cache<T> implements Store<T> {}
+
+@cobaltInject
+class Notebook {
+  Notebook(this.notes);
+  final Store<Note> notes;
+}
+''');
+  }
+
   void test_aDecoratorOfAnUnlistedInstantiation_isReported() async {
     const source =
         '''

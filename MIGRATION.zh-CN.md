@@ -171,7 +171,7 @@ class Cache<T> {
 }
 ```
 
-每个类型实参都要写全，`exposeAs` 不能与 `instantiations` 一起用。`@injected` 字段可以用，mixin 带上类型参数即可：`class Cache<T> with _$Cache<T>`。泛型*依赖*则完全正常：
+每个类型实参都要写全，`exposeAs` 则不写：`exposeAs: Store` 会让每个具体化以各自的 `Store<Note>` 暴露。`@injected` 字段可以用，mixin 带上类型参数即可：`class Cache<T> with _$Cache<T>`。泛型*依赖*则完全正常：
 `Repository<User>` 和 `Repository<Order>` 是两个独立的注册。
 
 ### 你得到的东西

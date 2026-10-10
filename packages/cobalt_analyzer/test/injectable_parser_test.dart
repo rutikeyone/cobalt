@@ -232,7 +232,48 @@ class Cache<T> {
       );
     });
 
-    test('exposeAs together with instantiations is rejected', () async {
+    test('exposeAs gives each instantiation its own exposed type', () async {
+      final clazz = await classNamed('Cache', '''
+class Note {}
+class Tag {}
+abstract interface class Store<T> {}
+
+@CobaltInject(exposeAs: Store, instantiations: [Cache<Note>, Cache<Tag>])
+class Cache<T> implements Store<T> {
+  Cache();
+}
+''');
+
+      final parsed = parser.parseClass(clazz);
+
+      expect(parsed.map((each) => '${each.exposedType}'), [
+        'Store<Note>',
+        'Store<Tag>',
+      ]);
+      expect(parsed.map((each) => '${each.type}'), [
+        'Cache<Note>',
+        'Cache<Tag>',
+      ]);
+    });
+
+    test('exposeAs with type arguments written out is rejected', () async {
+      final clazz = await classNamed('Cache', '''
+class Note {}
+abstract interface class Store<T> {}
+
+@CobaltInject(exposeAs: Store<Note>, instantiations: [Cache<Note>])
+class Cache<T> implements Store<T> {
+  Cache();
+}
+''');
+
+      expect(
+        () => parser.parseClass(clazz),
+        rejects(contains('Write exposeAs without type arguments')),
+      );
+    });
+
+    test('exposeAs that is not generic is rejected', () async {
       final clazz = await classNamed('Cache', '''
 class Note {}
 abstract interface class Store {}
@@ -245,7 +286,24 @@ class Cache<T> implements Store {
 
       expect(
         () => parser.parseClass(clazz),
-        rejects(contains('also names exposeAs')),
+        rejects(contains('under the same type')),
+      );
+    });
+
+    test('exposeAs the class does not implement is rejected', () async {
+      final clazz = await classNamed('Cache', '''
+class Note {}
+abstract interface class Store<T> {}
+
+@CobaltInject(exposeAs: Store, instantiations: [Cache<Note>])
+class Cache<T> {
+  Cache();
+}
+''');
+
+      expect(
+        () => parser.parseClass(clazz),
+        rejects(contains('which it does not implement')),
       );
     });
 
