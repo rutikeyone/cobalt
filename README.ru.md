@@ -147,6 +147,7 @@ flutter run
 | **По шагам, с генератором** | [GUIDE_CODEGEN.ru.md](GUIDE_CODEGEN.ru.md) |
 | **По шагам, без кодогенерации** | [GUIDE_MANUAL.ru.md](GUIDE_MANUAL.ru.md) |
 | **Переход с get_it, injectable или provider** | [MIGRATION.ru.md](MIGRATION.ru.md) |
+| **Как сделать X** | [docs/RECIPES.ru.md](docs/RECIPES.ru.md): сессия, скоуп экрана, блок, флоу, тест |
 | **Что-то упало** | [docs/TROUBLESHOOTING.ru.md](docs/TROUBLESHOOTING.ru.md) — все ошибки и что с ними делать |
 | **Все возможности, устройство, совместимость, производительность** | [docs/OVERVIEW.ru.md](docs/OVERVIEW.ru.md) |
 | **Все возможности в одном приложении** | `cd examples/gallery && flutter run` |

@@ -127,6 +127,7 @@ flutter run
 | **一步一步，用生成器** | [GUIDE_CODEGEN.zh-CN.md](GUIDE_CODEGEN.zh-CN.md) |
 | **一步一步，不用代码生成** | [GUIDE_MANUAL.zh-CN.md](GUIDE_MANUAL.zh-CN.md) |
 | **从 get_it、injectable 或 provider 迁移** | [MIGRATION.zh-CN.md](MIGRATION.zh-CN.md) |
+| **怎么做某件事** | [docs/RECIPES.zh-CN.md](docs/RECIPES.zh-CN.md)：会话、界面作用域、bloc、流程、测试 |
 | **出错了** | [docs/TROUBLESHOOTING.zh-CN.md](docs/TROUBLESHOOTING.zh-CN.md)——每个错误，以及怎么处理 |
 | **全部特性、工作原理、兼容性、性能** | [docs/OVERVIEW.zh-CN.md](docs/OVERVIEW.zh-CN.md) |
 | **一个应用看全部特性** | `cd examples/gallery && flutter run` |

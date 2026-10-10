@@ -144,6 +144,7 @@ flutter run
 | **단계별로, 제너레이터와 함께** | [GUIDE_CODEGEN.ko.md](GUIDE_CODEGEN.ko.md) |
 | **단계별로, 코드 생성 없이** | [GUIDE_MANUAL.ko.md](GUIDE_MANUAL.ko.md) |
 | **get_it, injectable, provider에서 옮겨 오기** | [MIGRATION.ko.md](MIGRATION.ko.md) |
+| **X를 하는 방법** | [docs/RECIPES.ko.md](docs/RECIPES.ko.md): 세션, 화면 스코프, bloc, 플로우, 테스트 |
 | **오류가 났을 때** | [docs/TROUBLESHOOTING.ko.md](docs/TROUBLESHOOTING.ko.md): 모든 오류와 해결 방법 |
 | **모든 기능, 동작 방식, 호환성, 성능** | [docs/OVERVIEW.ko.md](docs/OVERVIEW.ko.md) |
 | **모든 기능을 한 앱에서** | `cd examples/gallery && flutter run` |
