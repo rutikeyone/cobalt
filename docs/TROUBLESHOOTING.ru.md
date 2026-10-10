@@ -264,3 +264,7 @@ Override ничего не заменил.
   приложения есть в [`examples/hello/test`](../examples/hello/test).
 - **`The imported package 'cobalt' isn't a dependency` в `lib/cobalt.g.dart`.** Сгенерированный код
   импортирует рантайм напрямую, поэтому приложение должно от него зависеть: `flutter pub add cobalt`.
+- **`Classes can only mix in mixins and classes` или `Undefined class '_$Foo'`.** Класс подмешивает
+  сгенерированный `_$Foo`, но файл не подключает part, где он лежит. Добавьте `part 'foo.g.dart';`
+  под импортами и запустите сборку; quick fix правила `cobalt_missing_injection_mixin` пишет и то,
+  и другое.

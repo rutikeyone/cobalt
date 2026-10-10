@@ -267,7 +267,7 @@ Three things make this safe rather than magic:
 The `part` directive and the `with _$ClassName` are yours to write. Forget the mixin and
 `cobalt_missing_injection_mixin` says so in the editor; put `@injected` on a class the container never
 registers and `cobalt_injected_field_needs_an_injectable` says that instead, because the two mistakes
-have different fixes.
+have different fixes. The quick fix of the first writes the `part` directive too when it is missing.
 
 ---
 

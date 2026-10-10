@@ -265,7 +265,7 @@ class CounterBloc with _$CounterBloc {
 `part` 지시문과 `with _$ClassName`은 여러분이 작성합니다. 믹스인을 빠뜨리면 `cobalt_missing_injection_mixin`이
 에디터에서 알려 주고, 컨테이너가 등록하지 않는 클래스에 `@injected`를 붙이면 대신
 `cobalt_injected_field_needs_an_injectable`이 알려 줍니다. 두 실수는 고치는 방법이 다르기
-때문입니다.
+때문입니다. 앞의 규칙의 빠른 수정은 `part` 지시문이 없으면 그것도 함께 써 줍니다.
 
 ---
 

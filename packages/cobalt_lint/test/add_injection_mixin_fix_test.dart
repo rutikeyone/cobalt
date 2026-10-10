@@ -25,9 +25,9 @@ class AddInjectionMixinTest extends AnalysisRuleTest {
   }
 
   Future<void> check(String header, String expected) async {
-    String source(String header) =>
+    String source(String header, {String part = ''}) =>
         '''
-$cobaltImport
+$cobaltImport$part
 
 class Base {}
 
@@ -44,7 +44,7 @@ $header {
 
     expect(
       await fixed(source(header), AddInjectionMixin.new),
-      source(expected),
+      source(expected, part: "\n\npart 'test.g.dart';"),
     );
   }
 
@@ -74,6 +74,51 @@ $header {
     await check(
       'class Bloc<K, V> with Other, _\$Bloc',
       'class Bloc<K, V> with Other, _\$Bloc<K, V>',
+    );
+  }
+
+  void test_aPartAlreadyDeclared_isKept() async {
+    const source =
+        '''
+$cobaltImport
+
+part 'test.g.dart';
+
+@cobaltInject
+class Bloc {
+  @injected
+  late final String value;
+}
+''';
+
+    expect(
+      await fixed(source, AddInjectionMixin.new),
+      source.replaceFirst('class Bloc', 'class Bloc with _\$Bloc'),
+    );
+  }
+
+  void test_anotherPart_getsOursBesideIt() async {
+    const source =
+        '''
+$cobaltImport
+
+part 'test.freezed.dart';
+
+@cobaltInject
+class Bloc {
+  @injected
+  late final String value;
+}
+''';
+
+    expect(
+      await fixed(source, AddInjectionMixin.new),
+      source
+          .replaceFirst(
+            "part 'test.freezed.dart';",
+            "part 'test.freezed.dart';\n\npart 'test.g.dart';",
+          )
+          .replaceFirst('class Bloc', 'class Bloc with _\$Bloc'),
     );
   }
 

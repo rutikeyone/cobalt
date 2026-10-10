@@ -255,6 +255,7 @@ class CounterBloc with _$CounterBloc {
 `cobalt_missing_injection_mixin` 会在编辑器里告诉你；
 把 `@injected` 放在容器根本不注册的类上，则是
 `cobalt_injected_field_needs_an_injectable` 来说——因为这两个错误的修法不同。
+前一条规则的快速修复在缺少 `part` 指令时也会一并补上。
 
 ---
 

@@ -260,3 +260,7 @@ What a new app shows on the way through the [Quick start](../README.md#quick-sta
   [`examples/hello/test`](../examples/hello/test) has a test for the new app.
 - **`The imported package 'cobalt' isn't a dependency` in `lib/cobalt.g.dart`.** The generated code
   imports the runtime directly, so the app has to depend on it: `flutter pub add cobalt`.
+- **`Classes can only mix in mixins and classes`, or `Undefined class '_$Foo'`.** The class mixes in
+  its generated `_$Foo`, but the file does not include the part it lives in. Add
+  `part 'foo.g.dart';` under the imports and run the build; the quick fix of
+  `cobalt_missing_injection_mixin` writes both.

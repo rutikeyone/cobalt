@@ -269,6 +269,7 @@ class CounterBloc with _$CounterBloc {
 Директиву `part` и `with _$ClassName` пишете вы. Забудете миксин — `cobalt_missing_injection_mixin`
 скажет об этом в редакторе; поставите `@injected` на класс, который контейнер не регистрирует, —
 скажет уже `cobalt_injected_field_needs_an_injectable`, потому что чинятся эти две ошибки по-разному.
+Quick fix первого правила заодно дописывает директиву `part`, если ее нет.
 
 ---
 

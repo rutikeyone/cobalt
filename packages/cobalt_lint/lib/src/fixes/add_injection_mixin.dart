@@ -1,5 +1,6 @@
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/edit/dart/dart_fix_kind_priority.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -48,9 +49,25 @@ class AddInjectionMixin extends ResolvedCorrectionProducer {
     final existing = withClause?.mixinTypes
         .where((type) => type.name.lexeme == name)
         .firstOrNull;
-    if (existing != null && existing.toSource() == mixin) return;
+    final part = _partOf(unitResult);
+    final needsPart = part != null && !_declaresPart(unitResult.unit, part);
+    final mixedIn = existing != null && existing.toSource() == mixin;
+    if (mixedIn && !needsPart) return;
 
     await builder.addDartFileEdit(file, (builder) {
+      if (needsPart) {
+        final directives = unitResult.unit.directives;
+        final eol = defaultEol;
+        if (directives.isEmpty) {
+          builder.addSimpleInsertion(0, "part '$part';$eol$eol");
+        } else {
+          builder.addSimpleInsertion(
+            directives.last.end,
+            "$eol${eol}part '$part';",
+          );
+        }
+      }
+      if (mixedIn) return;
       if (existing != null) {
         builder.addSimpleReplacement(
           SourceRange(existing.offset, existing.length),
@@ -64,6 +81,17 @@ class AddInjectionMixin extends ResolvedCorrectionProducer {
       }
     });
   }
+
+  static String? _partOf(ResolvedUnitResult unit) {
+    final name = unit.uri.pathSegments.lastOrNull;
+    if (name == null || !name.endsWith('.dart')) return null;
+    return '${name.substring(0, name.length - '.dart'.length)}.g.dart';
+  }
+
+  static bool _declaresPart(CompilationUnit unit, String part) => unit
+      .directives
+      .whereType<PartDirective>()
+      .any((directive) => directive.uri.stringValue == part);
 
   static String _mixinOf(ClassDeclaration declaration) {
     final name = '_\$${declaration.namePart.typeName.lexeme}';

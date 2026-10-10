@@ -258,3 +258,6 @@ override가 아무것도 바꾸지 않았습니다.
   [`examples/hello/test`](../examples/hello/test)에 있습니다.
 - **`lib/cobalt.g.dart`의 `The imported package 'cobalt' isn't a dependency`.** 생성된 코드가 런타임을 직접
   임포트하므로 앱이 직접 의존해야 합니다: `flutter pub add cobalt`.
+- **`Classes can only mix in mixins and classes` 또는 `Undefined class '_$Foo'`.** 클래스가 생성된
+  `_$Foo`를 섞지만, 파일이 그 믹스인이 있는 part를 포함하지 않습니다. import 아래에 `part 'foo.g.dart';`를
+  추가하고 빌드를 실행하십시오. `cobalt_missing_injection_mixin`의 빠른 수정은 둘 다 써 줍니다.
