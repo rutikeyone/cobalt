@@ -65,7 +65,7 @@ class Greeter {
 
 void main() => runApp(
   MaterialApp(
-    builder: CobaltAppScope.builder(root: const $CobaltRootScope()),
+    builder: CobaltAppScope.builder(root: const CobaltRoot()),
     home: const HomeScreen(),
   ),
 );
@@ -91,7 +91,7 @@ dart run build_runner build
 flutter run
 ```
 
-빌드를 실행하기 전에는 편집기가 `cobalt.g.dart`와 `$CobaltRootScope`를 없는 것으로 표시합니다. 정상입니다.
+빌드를 실행하기 전에는 편집기가 `cobalt.g.dart`와 `CobaltRoot`를 없는 것으로 표시합니다. 정상입니다.
 빌드가 이 파일들을 만듭니다. 다른 곳이 빨갛게 표시되면 [첫 빌드](docs/TROUBLESHOOTING.ko.md#첫-빌드)를 보세요.
 
 `@cobaltInject`는 클래스를 등록합니다. `Greeter`는 생성자에서 `Clock`을 요구하고, 제너레이터가

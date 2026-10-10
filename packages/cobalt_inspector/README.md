@@ -20,7 +20,7 @@ final log = CobaltInspectorLog();
 void main() => runApp(
   MaterialApp(
     builder: CobaltAppScope.builder(
-      root: const $CobaltRootScope(),
+      root: const CobaltRoot(),
       observers: [log],
     ),
     home: const HomeScreen(),

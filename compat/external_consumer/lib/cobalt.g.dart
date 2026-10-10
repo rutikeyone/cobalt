@@ -563,6 +563,7 @@ final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
   }
 }
 
+typedef CobaltRoot = $CobaltRootScope;
 List<_i573.CobaltBootstrapStep> get $cobaltBootstrap => [_i366.BindPlatform()];
 const String $cobaltRootScopeName = 'consumer';
 _i687.Future<_i573.CobaltScope> $startCobalt({

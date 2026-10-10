@@ -64,7 +64,7 @@ class Greeter {
 
 void main() => runApp(
   MaterialApp(
-    builder: CobaltAppScope.builder(root: const $CobaltRootScope()),
+    builder: CobaltAppScope.builder(root: const CobaltRoot()),
     home: const HomeScreen(),
   ),
 );
@@ -89,7 +89,7 @@ dart run build_runner build
 flutter run
 ```
 
-构建运行之前，编辑器会把 `cobalt.g.dart` 和 `$CobaltRootScope` 标为不存在。这是正常的：它们由构建生成。如果还有别的地方报红，请看[第一次构建](docs/TROUBLESHOOTING.zh-CN.md#第一次构建)。
+构建运行之前，编辑器会把 `cobalt.g.dart` 和 `CobaltRoot` 标为不存在。这是正常的：它们由构建生成。如果还有别的地方报红，请看[第一次构建](docs/TROUBLESHOOTING.zh-CN.md#第一次构建)。
 
 `@cobaltInject` 注册一个类。`Greeter` 在构造函数里要一个 `Clock`，生成器在 `lib/cobalt.g.dart` 里把两者连起来。`CobaltAppScope` 在应用启动时构建图，在应用退出时关闭它；`context.cobalt<Greeter>()` 从图中读取。同一个应用，外加一个替换时钟的测试，在 [`examples/hello`](examples/hello)。
 

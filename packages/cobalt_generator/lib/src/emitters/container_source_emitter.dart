@@ -118,6 +118,12 @@ class ContainerSourceEmitter {
               decorators: decorators,
               hooks: hooks,
             ),
+          if (ordered.isNotEmpty || decorators.isNotEmpty || hooks.isNotEmpty)
+            TypeDef(
+              (t) => t
+                ..name = 'CobaltRoot'
+                ..definition = refer(r'$CobaltRootScope'),
+            ),
           if (hasBootstrap)
             _bootstrap.emit(
               declarations.bootstrapSteps,

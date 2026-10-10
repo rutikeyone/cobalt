@@ -62,7 +62,7 @@ class Greeter {
 
 void main() => runApp(
   MaterialApp(
-    builder: CobaltAppScope.builder(root: const $CobaltRootScope()),
+    builder: CobaltAppScope.builder(root: const CobaltRoot()),
     home: const HomeScreen(),
   ),
 );
@@ -88,7 +88,7 @@ dart run build_runner build
 flutter run
 ```
 
-Until the build has run, the editor marks `cobalt.g.dart` and `$CobaltRootScope` as missing. That
+Until the build has run, the editor marks `cobalt.g.dart` and `CobaltRoot` as missing. That
 is expected: the build writes them. If something else goes red, see [the first build](docs/TROUBLESHOOTING.md#the-first-build).
 
 `@cobaltInject` registers a class. `Greeter` asks for a `Clock` in its constructor, and the generator

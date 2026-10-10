@@ -66,7 +66,7 @@ class Greeter {
 
 void main() => runApp(
   MaterialApp(
-    builder: CobaltAppScope.builder(root: const $CobaltRootScope()),
+    builder: CobaltAppScope.builder(root: const CobaltRoot()),
     home: const HomeScreen(),
   ),
 );
@@ -92,7 +92,7 @@ dart run build_runner build
 flutter run
 ```
 
-Пока сборка не запускалась, редактор подчеркивает `cobalt.g.dart` и `$CobaltRootScope` как
+Пока сборка не запускалась, редактор подчеркивает `cobalt.g.dart` и `CobaltRoot` как
 несуществующие. Так и должно быть: их пишет сборка. Если покраснело что-то еще, смотрите [первую сборку](docs/TROUBLESHOOTING.ru.md#первая-сборка).
 
 `@cobaltInject` регистрирует класс. `Greeter` просит `Clock` в конструкторе, и генератор связывает их

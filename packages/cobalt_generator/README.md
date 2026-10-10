@@ -40,19 +40,19 @@ dart run build_runner build
 ```
 
 It writes `lib/cobalt.g.dart`: a factory per class, and `$CobaltRootScope`, which registers them in
-dependency order.
+dependency order. `CobaltRoot` is the same class under a name without the `$`.
 
 **3. Start** the generated root. In a Flutter app, hand it to `CobaltAppScope` from
 [`cobalt_flutter`](https://pub.dev/packages/cobalt_flutter):
 
 ```dart
-builder: CobaltAppScope.builder(root: const $CobaltRootScope()),
+builder: CobaltAppScope.builder(root: const CobaltRoot()),
 ```
 
 Anywhere else, to `CobaltApplication`:
 
 ```dart
-final app = await CobaltApplication.start(root: const $CobaltRootScope());
+final app = await CobaltApplication.start(root: const CobaltRoot());
 final greeter = app.get<Greeter>();
 ```
 

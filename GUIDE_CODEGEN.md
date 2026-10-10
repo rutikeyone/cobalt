@@ -203,6 +203,8 @@ final class $CobaltRootScope implements CobaltScopeBuilder {
   }
 }
 
+typedef CobaltRoot = $CobaltRootScope;
+
 const String $cobaltRootScopeName = 'app';
 
 Future<CobaltScope> $startCobalt() => CobaltApplication.start(
@@ -214,6 +216,9 @@ Future<CobaltScope> $startCobalt() => CobaltApplication.start(
 ```dart
 final scope = await $startCobalt();
 ```
+
+`CobaltRoot` is the same class under a name without the `$`, so the Quick start's
+`const CobaltRoot()` and `const $CobaltRootScope()` are interchangeable.
 
 Shown without them here for readability, but the real file prefixes every imported name with an
 alias derived from a hash of its URL — `_i178.CobaltFactory`. It is a hash rather than a counter so

@@ -202,6 +202,8 @@ final class $CobaltRootScope implements CobaltScopeBuilder {
   }
 }
 
+typedef CobaltRoot = $CobaltRootScope;
+
 const String $cobaltRootScopeName = 'app';
 
 Future<CobaltScope> $startCobalt() => CobaltApplication.start(
@@ -213,6 +215,9 @@ Future<CobaltScope> $startCobalt() => CobaltApplication.start(
 ```dart
 final scope = await $startCobalt();
 ```
+
+`CobaltRoot`는 `$` 없는 이름의 같은 클래스이므로, 빠른 시작의 `const CobaltRoot()`와
+`const $CobaltRootScope()`는 서로 바꿔 쓸 수 있습니다.
 
 여기서는 읽기 쉽도록 생략했지만, 실제 파일은 import한 모든 이름 앞에 그 URL의 해시에서 만든 별칭을 붙입니다.
 `_i178.CobaltFactory` 같은 식입니다. 카운터가 아니라 해시인 이유는 import 하나를 추가했을 때 다른 모든 번호가

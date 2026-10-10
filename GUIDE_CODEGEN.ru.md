@@ -204,6 +204,8 @@ final class $CobaltRootScope implements CobaltScopeBuilder {
   }
 }
 
+typedef CobaltRoot = $CobaltRootScope;
+
 const String $cobaltRootScopeName = 'app';
 
 Future<CobaltScope> $startCobalt() => CobaltApplication.start(
@@ -215,6 +217,9 @@ Future<CobaltScope> $startCobalt() => CobaltApplication.start(
 ```dart
 final scope = await $startCobalt();
 ```
+
+`CobaltRoot` это тот же класс под именем без `$`, поэтому `const CobaltRoot()` из быстрого старта и
+`const $CobaltRootScope()` взаимозаменяемы.
 
 Здесь они для читаемости опущены, но в настоящем файле каждое импортированное имя носит префикс,
 выведенный из хеша URL библиотеки: `_i178.CobaltFactory`. Именно хеш, а не счётчик, — чтобы

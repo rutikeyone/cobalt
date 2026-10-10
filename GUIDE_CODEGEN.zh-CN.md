@@ -194,6 +194,8 @@ final class $CobaltRootScope implements CobaltScopeBuilder {
   }
 }
 
+typedef CobaltRoot = $CobaltRootScope;
+
 const String $cobaltRootScopeName = 'app';
 
 Future<CobaltScope> $startCobalt() => CobaltApplication.start(
@@ -205,6 +207,8 @@ Future<CobaltScope> $startCobalt() => CobaltApplication.start(
 ```dart
 final scope = await $startCobalt();
 ```
+
+`CobaltRoot` 是同一个类不带 `$` 的名字，所以快速开始里的 `const CobaltRoot()` 和 `const $CobaltRootScope()` 可以互换。
 
 为了便于阅读，这里省略了前缀，但真实文件会给每个导入的名字加上由其 URL 哈希得出的别名——
 `_i178.CobaltFactory`。用哈希而不是计数器，是为了让新增一个导入不会把其余全部重新编号，

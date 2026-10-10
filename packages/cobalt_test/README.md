@@ -26,7 +26,7 @@ class FixedClock implements Clock {
 
 test('greets in the morning', () async {
   final app = await cobaltTestScope(
-    root: const $CobaltRootScope(),
+    root: const CobaltRoot(),
     overrides: [
       CobaltOverride<Clock>.value(FixedClock(DateTime(2026, 10, 7, 9))),
     ],

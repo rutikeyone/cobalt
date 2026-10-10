@@ -253,7 +253,7 @@ you run the build.
 
 What a new app shows on the way through the [Quick start](../README.md#quick-start):
 
-- **`Target of URI hasn't been generated: 'cobalt.g.dart'`, and `$CobaltRootScope` is not a class.**
+- **`Target of URI hasn't been generated: 'cobalt.g.dart'`, and `CobaltRoot` is not a class.**
   The generator has not run yet. Run `dart run build_runner build`, and again after you change an
   annotation; `dart run build_runner watch` keeps the file current while you work.
 - **`The name 'MyApp' isn't a class` in `test/widget_test.dart`.** That test came with

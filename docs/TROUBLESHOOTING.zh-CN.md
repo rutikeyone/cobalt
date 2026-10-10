@@ -195,7 +195,7 @@ override 什么也没替换。
 
 按[快速开始](../README.zh-CN.md#快速开始)走一遍时，新应用可能出现的提示：
 
-- **`Target of URI hasn't been generated: 'cobalt.g.dart'`，以及 `$CobaltRootScope` 不是类。** 生成器还没有运行。执行 `dart run build_runner build`，每次修改注解后再执行一次；开发时用 `dart run build_runner watch` 让文件保持最新。
+- **`Target of URI hasn't been generated: 'cobalt.g.dart'`，以及 `CobaltRoot` 不是类。** 生成器还没有运行。执行 `dart run build_runner build`，每次修改注解后再执行一次；开发时用 `dart run build_runner watch` 让文件保持最新。
 - **`test/widget_test.dart` 里的 `The name 'MyApp' isn't a class`。** 这个测试是 `flutter create` 生成的，测的是你已经替换掉的计数器应用。删掉它；新应用的测试见 [`examples/hello/test`](../examples/hello/test)。
 - **`lib/cobalt.g.dart` 里的 `The imported package 'cobalt' isn't a dependency`。** 生成的代码直接导入运行时，所以应用必须依赖它：`flutter pub add cobalt`。
 - **`Classes can only mix in mixins and classes` 或 `Undefined class '_$Foo'`。** 类混入了生成的 `_$Foo`，但文件没有包含它所在的 part。在 import 下面加上 `part 'foo.g.dart';` 并运行构建；`cobalt_missing_injection_mixin` 的快速修复会把两者都写上。

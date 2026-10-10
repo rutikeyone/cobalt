@@ -18,7 +18,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         builder: CobaltAppScope.builder(
-          root: const $CobaltRootScope(),
+          root: const CobaltRoot(),
           overrides: () => [CobaltOverride<Clock>.value(FixedClock(time))],
         ),
         home: const HomeScreen(),

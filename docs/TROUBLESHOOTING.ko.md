@@ -251,7 +251,7 @@ override가 아무것도 바꾸지 않았습니다.
 
 [빠른 시작](../README.ko.md#빠른-시작)을 따라가는 동안 새 앱에서 보일 수 있는 것들입니다.
 
-- **`Target of URI hasn't been generated: 'cobalt.g.dart'`, 그리고 `$CobaltRootScope`가 클래스가 아니라는
+- **`Target of URI hasn't been generated: 'cobalt.g.dart'`, 그리고 `CobaltRoot`가 클래스가 아니라는
   메시지.** 제너레이터가 아직 실행되지 않았습니다. `dart run build_runner build`를 실행하고, 어노테이션을
   바꿀 때마다 다시 실행하십시오. 작업하는 동안에는 `dart run build_runner watch`가 파일을 최신으로 유지합니다.
 - **`test/widget_test.dart`의 `The name 'MyApp' isn't a class`.** 이 테스트는 `flutter create`가 만든

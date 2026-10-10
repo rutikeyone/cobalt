@@ -257,7 +257,7 @@ Override ничего не заменил.
 
 Что показывает новое приложение по ходу [быстрого старта](../README.ru.md#быстрый-старт):
 
-- **`Target of URI hasn't been generated: 'cobalt.g.dart'`, и `$CobaltRootScope` не класс.**
+- **`Target of URI hasn't been generated: 'cobalt.g.dart'`, и `CobaltRoot` не класс.**
   Генератор еще не запускался. Выполните `dart run build_runner build` и повторяйте после каждой
   правки аннотаций; `dart run build_runner watch` держит файл актуальным, пока вы работаете.
 - **`The name 'MyApp' isn't a class` в `test/widget_test.dart`.** Этот тест пришел с

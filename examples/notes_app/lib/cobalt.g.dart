@@ -276,6 +276,7 @@ final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
   }
 }
 
+typedef CobaltRoot = $CobaltRootScope;
 List<_i573.CobaltBootstrapStep> $cobaltBootstrap(
   _i573.CobaltEnvironment environment,
 ) => [
