@@ -1,3 +1,12 @@
+## 1.4.0
+
+- Internal: a constructor parameter records whether it has a default
+  value (`CobaltInjectedProperty.hasDefault`), and
+  `CobaltInjectableClass.withConstructorParameters` replaces them.
+  `exposeAs` beside `instantiations` is read when written without type
+  arguments, and each instantiation is exposed under its own.
+  `cobalt_generator` and `cobalt_lint` 1.4.0 require this version.
+
 ## 1.3.0
 
 - Internal: an `@injected` field on a generic class with `instantiations`

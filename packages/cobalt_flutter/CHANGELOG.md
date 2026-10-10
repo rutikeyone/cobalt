@@ -1,3 +1,8 @@
+## 1.4.0
+
+- No code changes in this package. The README starts the app with
+  `CobaltRoot`.
+
 ## 1.3.0
 
 - No code changes in this package. The README Quick start says why

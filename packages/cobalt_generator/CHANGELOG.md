@@ -1,3 +1,14 @@
+## 1.4.0
+
+- A constructor parameter with a default value is left out of the call
+  when nothing in the graph registers its type, so the default applies.
+  One that is positional and comes before an injected parameter is still a
+  build error, which now says to make it named.
+- `@CobaltInject(exposeAs: Store, instantiations: [...])` registers each
+  instantiation under its own `Store<Note>`, `Store<User>`.
+- `cobalt.g.dart` also declares `CobaltRoot`, the root scope under a name
+  without a dollar. Requires `cobalt_analyzer` 1.4.0.
+
 ## 1.3.0
 
 - `@injected` fields work on a generic class with

@@ -1,3 +1,11 @@
+## 1.4.0
+
+- `CobaltObserver.onInstanceSelfTime` says how much of a build was spent
+  on the instance itself, without the builds it waited on. It comes
+  between `onInstanceCreated` and `onInstanceBuilt`; `CobaltLogRecord`
+  carries it as `selfTook`, and `toStructured()` as `self_us`.
+- The Example tab starts the app with `CobaltRoot`.
+
 ## 1.3.0
 
 - No code changes in this package. The Example tab opens with the Flutter
