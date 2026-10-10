@@ -93,7 +93,11 @@ final class CobaltResolutionTracker {
   /// Runs [build] as the lazy build of [key], extending [lazyChain].
   ///
   /// Throws [CobaltCycleError] instead when [key] is already in the chain.
-  static Future<T> guardLazy<T>(CobaltKey key, Future<T> Function() build) {
+  static Future<T> guardLazy<T>(
+    CobaltKey key,
+    Future<T> Function() build, {
+    Map<Object?, Object?> zoneValues = const {},
+  }) {
     final chain = lazyChain;
     final index = chain.indexOf(key);
     if (index >= 0) {
@@ -107,6 +111,7 @@ final class CobaltResolutionTracker {
     return runZoned(
       build,
       zoneValues: {
+        ...zoneValues,
         _lazyChainKey: List<CobaltKey>.unmodifiable([...chain, key]),
       },
     );
@@ -118,6 +123,9 @@ final class CobaltResolutionTracker {
   static Object? get phaseOneOwner => Zone.current[_phaseOneKey];
 
   /// Runs [build] as part of [owner]'s phase 1.
-  static Future<T> inPhaseOne<T>(Object owner, Future<T> Function() build) =>
-      runZoned(build, zoneValues: {_phaseOneKey: owner});
+  static Future<T> inPhaseOne<T>(
+    Object owner,
+    Future<T> Function() build, {
+    Map<Object?, Object?> zoneValues = const {},
+  }) => runZoned(build, zoneValues: {...zoneValues, _phaseOneKey: owner});
 }

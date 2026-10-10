@@ -24,8 +24,7 @@ final class BuildTiming {
     }
   }
 
-  Future<T> across<T>(Future<T> Function() body) =>
-      runZoned(() => during(body), zoneValues: {_zoneKey: this});
+  Map<Object?, Object?> get zoneValues => {_zoneKey: this};
 
   void stop() {
     if (_took != null) return;

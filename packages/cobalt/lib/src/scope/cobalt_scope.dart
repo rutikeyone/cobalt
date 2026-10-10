@@ -1666,7 +1666,8 @@ final class CobaltScope extends CobaltResolver {
         final timing = BuildTiming.start();
         final instance = await CobaltResolutionTracker.guardLazy(
           key,
-          () => timing.across(() => registration.factory.create(this)),
+          () => timing.during(() => registration.factory.create(this)),
+          zoneValues: timing.zoneValues,
         );
         _afterCreate(
           instance,
@@ -1732,7 +1733,8 @@ final class CobaltScope extends CobaltResolver {
         final timing = BuildTiming.start();
         final instance = await CobaltResolutionTracker.guardLazy(
           key,
-          () => timing.across(() => registration.factory.create(this, param)),
+          () => timing.during(() => registration.factory.create(this, param)),
+          zoneValues: timing.zoneValues,
         );
         _afterCreate(
           instance,
@@ -1794,34 +1796,38 @@ final class CobaltScope extends CobaltResolver {
       onError: (Object _) => _settleLazy(registration, build),
     );
 
-    CobaltResolutionTracker.guardLazy(registration.key, () async {
-      final timing = BuildTiming.start();
-      final instance = await timing.across(
-        () => registration.factory.create(this),
-      );
-      if (_state == CobaltScopeState.disposing ||
-          _state == CobaltScopeState.disposed) {
-        try {
-          await _releaseLate(instance, registration.teardown);
-        } catch (error, stackTrace) {
-          Zone.current.handleUncaughtError(error, stackTrace);
-        }
-        throw CobaltScopeStateError(
-          'Scope "$name" was disposed while ${registration.key} was being '
-          'built. The instance was closed as soon as it arrived.',
+    final timing = BuildTiming.start();
+    CobaltResolutionTracker.guardLazy(
+      registration.key,
+      () async {
+        final instance = await timing.during(
+          () => registration.factory.create(this),
         );
-      }
-      registration.instance = instance;
-      _afterCreate(
-        instance,
-        registration.key,
-        kind: CobaltRegistrationKind.lazyAsyncSingleton,
-        timing: timing,
-        retain: true,
-        teardown: registration.teardown,
-      );
-      return instance;
-    }).then(completer.complete, onError: completer.completeError);
+        if (_state == CobaltScopeState.disposing ||
+            _state == CobaltScopeState.disposed) {
+          try {
+            await _releaseLate(instance, registration.teardown);
+          } catch (error, stackTrace) {
+            Zone.current.handleUncaughtError(error, stackTrace);
+          }
+          throw CobaltScopeStateError(
+            'Scope "$name" was disposed while ${registration.key} was being '
+            'built. The instance was closed as soon as it arrived.',
+          );
+        }
+        registration.instance = instance;
+        _afterCreate(
+          instance,
+          registration.key,
+          kind: CobaltRegistrationKind.lazyAsyncSingleton,
+          timing: timing,
+          retain: true,
+          teardown: registration.teardown,
+        );
+        return instance;
+      },
+      zoneValues: timing.zoneValues,
+    ).then(completer.complete, onError: completer.completeError);
 
     return build;
   }
@@ -1874,7 +1880,8 @@ final class CobaltScope extends CobaltResolver {
         final timing = BuildTiming.start();
         final instance = await CobaltResolutionTracker.inPhaseOne(
           this,
-          () => timing.across(() => registration.factory.create(this)),
+          () => timing.during(() => registration.factory.create(this)),
+          zoneValues: timing.zoneValues,
         );
         if (_initAbandoned) {
           // init() already failed for want of this: nobody will be handed

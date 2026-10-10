@@ -126,13 +126,13 @@ within ten percent.
 
 | | Cobalt | get_it | Cobalt / get_it |
 |---|---:|---:|---:|
-| get a built singleton | 81 ns | 425 ns | 0.19× |
-| build a transient with two dependencies | 356 ns | 1.22 µs | 0.29× |
-| register 200, then get each once | 137 µs | 386 µs | 0.35× |
-| start 20 async singletons | 24.7 µs | 28.1 µs | 0.88× |
-| the transient, with an empty observer | 374 ns | — | — |
-| the transient, with a recording observer | 860 ns | — | — |
-| the transient, with a log observer at its default level | 385 ns | — | — |
+| get a built singleton | 80 ns | 423 ns | 0.19× |
+| build a transient with two dependencies | 375 ns | 1.21 µs | 0.31× |
+| register 200, then get each once | 137 µs | 374 µs | 0.37× |
+| start 20 async singletons | 26.6 µs | 28.6 µs | 0.93× |
+| the transient, with an empty observer | 403 ns | — | — |
+| the transient, with a recording observer | 884 ns | — | — |
+| the transient, with a log observer at its default level | 418 ns | — | — |
 
 Below 1 in the last column, Cobalt took less time. The absolute numbers belong to this machine; what carries over is the order of
 magnitude. A resolution costs well under a microsecond, a graph of 200 registrations a fraction of a
