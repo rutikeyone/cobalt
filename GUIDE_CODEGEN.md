@@ -839,6 +839,24 @@ an optional dependency is still an ordering edge when something does register it
 null only for "nothing is registered": an async singleton asked for before `init()` still throws,
 because "not ready" and "not there" are different facts.
 
+A **default value** is the other way to make a constructor parameter optional. When nothing in the
+graph registers its type, the generator leaves it out of the call and the default applies; when
+something does, it is injected like any other dependency:
+
+```dart
+@cobaltInject
+class Api {
+  Api(this.client, {this.retries = 3});
+
+  final HttpClient client;
+  final int retries;
+}
+```
+
+`retries` gets 3, since nothing registers an `int`. A positional parameter can be left out only from
+the end: one with a default before an injected one is still a build error, which says to make it
+named.
+
 ---
 
 ## 14. Types you did not write

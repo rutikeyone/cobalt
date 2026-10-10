@@ -7,6 +7,7 @@ class CobaltInjectedProperty {
     this.name,
     this.isNamed = false,
     this.isParam = false,
+    this.hasDefault = false,
   });
 
   factory CobaltInjectedProperty.fromJson(Map<String, dynamic> json) =>
@@ -16,6 +17,7 @@ class CobaltInjectedProperty {
         name: json['name'] as String?,
         isNamed: json['isNamed'] as bool? ?? false,
         isParam: json['isParam'] as bool? ?? false,
+        hasDefault: json['hasDefault'] as bool? ?? false,
       );
 
   final String field;
@@ -35,11 +37,19 @@ class CobaltInjectedProperty {
   /// `getWithParam` instead.
   final bool isParam;
 
+  /// Whether the constructor declares a default value for this parameter.
+  ///
+  /// The generator leaves such a parameter out of the call, so the default
+  /// applies, when nothing in the graph registers its type; registered, it is
+  /// injected like any other.
+  final bool hasDefault;
+
   Map<String, dynamic> toJson() => {
     'field': field,
     'type': type.toJson(),
     'name': name,
     if (isNamed) 'isNamed': true,
     if (isParam) 'isParam': true,
+    if (hasDefault) 'hasDefault': true,
   };
 }

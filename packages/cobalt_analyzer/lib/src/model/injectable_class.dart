@@ -102,6 +102,27 @@ class CobaltInjectableClass {
         dispose: dispose,
       );
 
+  /// The same declaration with [constructorParameters] replaced.
+  ///
+  /// The generator uses this to leave out a parameter whose default value
+  /// applies.
+  CobaltInjectableClass withConstructorParameters(
+    List<CobaltInjectedProperty> constructorParameters,
+  ) => CobaltInjectableClass(
+    type: type,
+    lifetime: lifetime,
+    constructorParameters: constructorParameters,
+    properties: properties,
+    name: name,
+    exposeAs: exposeAs,
+    isAsyncInit: isAsyncInit,
+    isLazyAsync: isLazyAsync,
+    dependsOn: dependsOn,
+    environments: environments,
+    provider: provider,
+    dispose: dispose,
+  );
+
   /// How this declaration is named in diagnostics.
   ///
   /// For a class that is the class itself, with its type arguments when it is

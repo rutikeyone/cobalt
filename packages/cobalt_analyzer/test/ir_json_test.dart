@@ -33,6 +33,33 @@ void main() {
       expect(result.injectables.single.environments, {'prod', 'stage'});
     });
 
+    test('a parameter keeps its default value flag', () {
+      final result = roundTrip(
+        CobaltLibraryDeclarations(
+          injectables: [
+            CobaltInjectableClass(
+              type: ref('Api'),
+              lifetime: CobaltLifetime.lazySingleton,
+              constructorParameters: [
+                CobaltInjectedProperty(
+                  field: 'retries',
+                  type: CobaltTypeRef(name: 'int', import: 'dart:core'),
+                  isNamed: true,
+                  hasDefault: true,
+                ),
+              ],
+              properties: const [],
+            ),
+          ],
+        ),
+      );
+
+      expect(
+        result.injectables.single.constructorParameters.single.hasDefault,
+        isTrue,
+      );
+    });
+
     test('a bootstrap step keeps its environments', () {
       final result = roundTrip(
         CobaltLibraryDeclarations(

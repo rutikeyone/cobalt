@@ -25,11 +25,19 @@ class ContainerSourceEmitter {
   static const _decorators = DecoratorEmitter();
 
   String emit(CobaltLibraryDeclarations declarations) {
-    final injectables = [...declarations.injectables]
+    final sorted = [...declarations.injectables]
       ..sort((a, b) {
         final byKey = _keyOf(a).compareTo(_keyOf(b));
         return byKey != 0 ? byKey : a.type.name.compareTo(b.type.name);
       });
+    final registered = {
+      ..._providedKeys(declarations.scopeRoots),
+      for (final declaration in sorted) _keyOf(declaration),
+    };
+    final injectables = [
+      for (final declaration in sorted)
+        _withDefaultsApplied(declaration, registered),
+    ];
 
     // Grouped by type rather than by key: a decorator of every registration
     // of a type and one of a single key apply to that key in the order they
@@ -218,6 +226,10 @@ class ContainerSourceEmitter {
     final provided = _providedKeys(roots);
     final universe = _environmentUniverse(injectables, decorators);
     final missing = <String, _MissingDependency>{};
+    final everywhere = {
+      ...provided,
+      for (final declaration in injectables) _keyOf(declaration),
+    };
 
     for (final environment in universe) {
       final active = [
@@ -232,7 +244,10 @@ class ContainerSourceEmitter {
       };
 
       for (final declaration in active) {
-        for (final dependency in _dependenciesOf(declaration)) {
+        for (final dependency in _dependenciesOf(
+          declaration,
+          registered: everywhere,
+        )) {
           if (dependency.isOptional) continue;
           if (available.contains(dependency.key)) continue;
           missing
@@ -812,9 +827,20 @@ class ContainerSourceEmitter {
   /// optional one is still an ordering edge when the type happens to be
   /// registered, while a call-site value is no edge at all — nothing registers
   /// an `int`, and demanding one would fail every parameterized graph.
-  Iterable<_Dependency> _dependenciesOf(CobaltInjectableClass declaration) => [
+  Iterable<_Dependency> _dependenciesOf(
+    CobaltInjectableClass declaration, {
+    Set<String>? registered,
+  }) => [
     for (final parameter in declaration.constructorParameters)
-      if (!parameter.isParam) _dependency(parameter.type, parameter.name),
+      if (!parameter.isParam)
+        _dependency(
+          parameter.type,
+          parameter.name,
+          defaultCannotApply:
+              registered != null &&
+              parameter.hasDefault &&
+              !registered.contains(_refKey(parameter.type, parameter.name)),
+        ),
     for (final property in declaration.properties)
       _dependency(property.type, property.name),
     for (final dependency in declaration.dependsOn)
@@ -825,11 +851,43 @@ class ContainerSourceEmitter {
     CobaltTypeRef type,
     String? name, {
     bool isOptional = true,
-  }) => (
-    key: _refKey(type, name),
-    label: name == null ? _display(type) : "${_display(type)} named '$name'",
-    isOptional: isOptional && type.isNullable,
-  );
+    bool defaultCannotApply = false,
+  }) {
+    final label = name == null
+        ? _display(type)
+        : "${_display(type)} named '$name'";
+    return (
+      key: _refKey(type, name),
+      label: defaultCannotApply
+          ? '$label (its default value cannot apply, because a positional '
+                'parameter after it is injected; make it a named parameter)'
+          : label,
+      isOptional: isOptional && type.isNullable,
+    );
+  }
+
+  static CobaltInjectableClass _withDefaultsApplied(
+    CobaltInjectableClass declaration,
+    Set<String> registered,
+  ) {
+    bool appliesDefault(CobaltInjectedProperty parameter) =>
+        parameter.hasDefault &&
+        !parameter.isParam &&
+        !parameter.type.isNullable &&
+        !registered.contains(_refKey(parameter.type, parameter.name));
+
+    final parameters = declaration.constructorParameters;
+    final kept = [
+      for (final parameter in parameters)
+        if (!parameter.isNamed || !appliesDefault(parameter)) parameter,
+    ];
+    while (kept.isNotEmpty && !kept.last.isNamed && appliesDefault(kept.last)) {
+      kept.removeLast();
+    }
+    return kept.length == parameters.length
+        ? declaration
+        : declaration.withConstructorParameters(kept);
+  }
 
   /// The type as a reader recognises it, without nullability.
   ///

@@ -166,6 +166,7 @@ class CobaltInjectableParser {
             name: namedMatcher.firstOf(parameter)?.readString('name'),
             isNamed: parameter.isNamed,
             isParam: paramMatcher.matches(parameter),
+            hasDefault: parameter.hasDefaultValue,
           ),
       ],
       properties: properties,

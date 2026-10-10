@@ -182,6 +182,7 @@ override 什么也没替换。
 生成器会用一条说明要改什么的消息停止构建。常见情况：
 
 - **没人注册的依赖。** 修法和 [CobaltNotRegisteredError](#cobaltnotregisterederror) 一样：给类加注解，或把它写进 `@CobaltScopeRoot(provides: [...])`。消息会一次列出所有缺口。
+- **带默认值的参数报 `requires int`。** 只有生成器能省略的参数才会用上默认值：命名参数，或末尾的位置参数。如果它后面还有要注入的位置参数，就不能跳过，消息会说明这一点；把它改成命名参数。
 - **一个包里有两个 `@CobaltScopeRoot` 类。** 一个包只有一个生成的根。保留一个。
 - **依赖循环。** 见 [CobaltCycleError](#cobaltcycleerror)。
 - **带 `@CobaltInject` 的抽象类。** 生成器无法构建它。给具体类加注解，并以接口暴露它：`@CobaltInject(exposeAs: ApiClient)`。

@@ -794,6 +794,20 @@ class Dashboard with _$Dashboard {
 而当确实有人注册它时，可选依赖依然是一条排序的边。`getOrNull` 只在「没有注册」时返回 null：
 在 `init()` 之前请求异步单例仍然会抛异常，因为「尚未就绪」和「根本没有」是两回事。
 
+**默认值**是让构造参数变成可选的另一种方式。如果图里没有任何东西注册它的类型，生成器会在调用时省略它，于是默认值生效；如果有注册，它就像其他依赖一样被注入：
+
+```dart
+@cobaltInject
+class Api {
+  Api(this.client, {this.retries = 3});
+
+  final HttpClient client;
+  final int retries;
+}
+```
+
+`retries` 得到 3，因为没有人注册 `int`。位置参数只能从末尾开始省略：带默认值的位置参数后面如果还有要注入的参数，仍然是构建错误，错误信息会建议把它改成命名参数。
+
 ---
 
 ## 14. 不是你写的类型

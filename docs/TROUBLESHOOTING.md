@@ -230,6 +230,9 @@ The generator stops the build with a message that says what to change. The usual
 - **A dependency nothing registers.** The same fix as
   [CobaltNotRegisteredError](#cobaltnotregisterederror): annotate the class, or name it in
   `@CobaltScopeRoot(provides: [...])`. The message lists every gap at once.
+- **`requires int` for a parameter with a default value.** A default applies only to a parameter the
+  generator can leave out: a named one, or a positional one at the end. Before an injected
+  positional parameter it cannot be skipped, and the message says so; make it named.
 - **Two `@CobaltScopeRoot` classes in one package.** A package has one generated root. Keep one.
 - **A dependency cycle.** See [CobaltCycleError](#cobaltcycleerror).
 - **An abstract class with `@CobaltInject`.** The generator cannot build it. Annotate a concrete
