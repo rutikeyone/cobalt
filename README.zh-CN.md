@@ -160,6 +160,10 @@ flutter run
 
 </details>
 
+## 去哪里提问
+
+关于怎么做某件事的问题请到 [Discussions](https://github.com/rutikeyone/cobalt/discussions)。和文档描述不符的问题请提交 [issue](https://github.com/rutikeyone/cobalt/issues/new/choose)，不过先看一眼 [docs/TROUBLESHOOTING.zh-CN.md](docs/TROUBLESHOOTING.zh-CN.md)：Cobalt 抛出的每个错误都链接到那里的对应条目。
+
 ## 环境要求
 
 Dart 3.10 和 Flutter 3.38 或更新版本。你的项目会用到哪个 analyzer、为什么：[docs/OVERVIEW.zh-CN.md](docs/OVERVIEW.zh-CN.md#环境要求)。

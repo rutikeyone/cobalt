@@ -178,6 +178,14 @@ use code generation. Everything else is optional.
 
 </details>
 
+## Where to ask
+
+A question about how to do something goes to
+[Discussions](https://github.com/rutikeyone/cobalt/discussions). Something that does not work as the
+docs say goes to [issues](https://github.com/rutikeyone/cobalt/issues/new/choose), after a look at
+[docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md): every error Cobalt throws links to its entry
+there.
+
 ## Requirements
 
 Dart 3.10 and Flutter 3.38, or newer. Which analyzer your project ends up with, and why:

@@ -1,0 +1,31 @@
+name: Bug report
+description: Something in Cobalt does not do what the docs say.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Most errors end with a link to their entry in docs/TROUBLESHOOTING.md; please read it first.
+        A question about how to do something belongs in Discussions.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: The error text in full, or what you saw instead of what you expected.
+    validations:
+      required: true
+  - type: textarea
+    id: code
+    attributes:
+      label: The smallest code that shows it
+      description: Annotated classes and how the scope is started are usually enough.
+      render: dart
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Cobalt packages, and the output of `flutter --version` or `dart --version`.
+    validations:
+      required: true

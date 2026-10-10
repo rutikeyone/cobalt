@@ -178,6 +178,13 @@ flutter run
 
 </details>
 
+## 어디에 물어볼까
+
+무언가를 하는 방법에 대한 질문은 [Discussions](https://github.com/rutikeyone/cobalt/discussions)에
+남겨 주십시오. 문서와 다르게 동작하는 것은 [이슈](https://github.com/rutikeyone/cobalt/issues/new/choose)로
+올려 주시되, 먼저 [docs/TROUBLESHOOTING.ko.md](docs/TROUBLESHOOTING.ko.md)를 확인하십시오. Cobalt가 던지는
+모든 오류가 거기 있는 해당 항목으로 연결됩니다.
+
 ## 요구 사항
 
 Dart 3.10, Flutter 3.38 또는 그 이상. 프로젝트가 어떤 analyzer를 쓰게 되는지와 그 이유:

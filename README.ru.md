@@ -181,6 +181,14 @@ flutter run
 
 </details>
 
+## Где спросить
+
+Вопрос о том, как что-то сделать, задавайте в
+[Discussions](https://github.com/rutikeyone/cobalt/discussions). То, что работает не так, как
+написано в документации, в [issues](https://github.com/rutikeyone/cobalt/issues/new/choose), но
+сначала загляните в [docs/TROUBLESHOOTING.ru.md](docs/TROUBLESHOOTING.ru.md): каждая ошибка Cobalt
+ссылается на свой раздел там.
+
 ## Требования
 
 Dart 3.10 и Flutter 3.38 или новее. Какой analyzer достанется вашему проекту и почему:

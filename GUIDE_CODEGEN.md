@@ -23,6 +23,20 @@ What the build step buys you, and what this document is mostly about:
 If you want none of that, or you are migrating an existing container gradually, everything works
 without the generator: [GUIDE_MANUAL.md](GUIDE_MANUAL.md).
 
+**Words this guide uses.**
+
+- **Scope**: a set of registrations with a lifetime of its own, such as the app, a signed-in
+  session or a screen. Scopes form a tree, a child reads through its parents, and disposing a scope
+  closes everything built in it.
+- **Registration**: what a scope knows about a type: how to build it and how long the result lives.
+- **Resolve**: ask a scope for an instance, with `get`, `getAsync` or `context.cobalt`.
+- **Lifetime**: how long an instance lives. A singleton is built once and held by the scope; a
+  transient is built anew on every resolve and held by whoever asked.
+- **Lazy**: built on the first resolve rather than when the scope starts.
+- **Override**: a replacement for a registration, put in place when a scope is built, mostly in
+  tests.
+- **Bootstrap**: work that has to finish before the graph is built, such as loading a config.
+
 ---
 
 ## Contents
