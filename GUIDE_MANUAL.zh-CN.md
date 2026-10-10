@@ -870,6 +870,8 @@ final app = await CobaltApplication.start(
 每次构建都会计时：`onInstanceCreated` 之后紧跟 `onInstanceBuilt`，带上它耗费的时间——从调用工厂起的全部耗时，
 包含途中解析的其他构建和每一次 `await`——日志观察者会把它写进同一行。
 
+在它之前，`onInstanceSelfTime` 会说明其中有多少是构建自身花的时间，不含它等待的其他构建；日志记录以 `selfTook` 携带这个值。真正能找出慢在哪里的是这个数：一个解析了慢依赖的类，它的总耗时大部分属于那个依赖。
+
 `CobaltLogObserver` 默认保留 `debug` 及以上（`minimumLevel`）；每个实例的记录是 `trace`，这样大图不会淹没日志。
 被它丢弃的记录根本不会格式化——级别在记录创建之前就被询问——所以在降低级别之前，挂上日志几乎不增加每次构建的开销。
 你自己的 `CobaltRecordingObserver` 覆盖 `accepts(level)` 即可获得同样效果。

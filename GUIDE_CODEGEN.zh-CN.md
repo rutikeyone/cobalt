@@ -1040,6 +1040,8 @@ final scope = await CobaltApplication.start(
 每次构建都会计时：`onInstanceCreated` 之后紧跟 `onInstanceBuilt`，带上它耗费的时间——从调用工厂起的全部耗时，
 包含途中解析的其他构建和每一次 `await`——日志观察者会把它写进同一行。
 
+在它之前，`onInstanceSelfTime` 会说明其中有多少是构建自身花的时间，不含它等待的其他构建；日志记录以 `selfTook` 携带这个值。真正能找出慢在哪里的是这个数：一个解析了慢依赖的类，它的总耗时大部分属于那个依赖。
+
 | 包 | 形态 |
 |---|---|
 | `cobalt_talker` | 观察者，每个事件家族一种带颜色的日志类型 |

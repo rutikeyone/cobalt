@@ -1110,6 +1110,10 @@ Each build is timed: `onInstanceBuilt` follows `onInstanceCreated` with how long
 wall time, the builds it resolved and every `await` included — and the log observers write it into the
 same line.
 
+Just before it, `onInstanceSelfTime` says how much of that the build spent on itself, without the
+builds it waited on, and the log record carries it as `selfTook`. That is the number that finds what is
+slow: the whole time of a class that resolves a slow dependency is mostly the dependency's.
+
 | Package | Shape |
 |---|---|
 | `cobalt_talker` | an observer, one coloured log type per event family |

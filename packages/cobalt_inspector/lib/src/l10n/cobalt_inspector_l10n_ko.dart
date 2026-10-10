@@ -166,6 +166,16 @@ class CobaltInspectorL10nKo extends CobaltInspectorL10n {
   String get factBuildTime => '마지막 빌드 시간';
 
   @override
+  String withoutDependencies(String time) {
+    return '의존성 제외 $time';
+  }
+
+  @override
+  String withDependencies(String time) {
+    return '의존성 포함 $time';
+  }
+
+  @override
   String get factTornDown => '스코프와 함께 해제';
 
   @override

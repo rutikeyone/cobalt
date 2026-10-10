@@ -166,6 +166,16 @@ class CobaltInspectorL10nZh extends CobaltInspectorL10n {
   String get factBuildTime => '上次构建耗时';
 
   @override
+  String withoutDependencies(String time) {
+    return '不含依赖 $time';
+  }
+
+  @override
+  String withDependencies(String time) {
+    return '含依赖 $time';
+  }
+
+  @override
   String get factTornDown => '随作用域一起释放';
 
   @override

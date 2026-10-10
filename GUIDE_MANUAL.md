@@ -922,6 +922,10 @@ Each build is timed: `onInstanceBuilt` follows `onInstanceCreated` with how long
 wall time, the builds it resolved and every `await` included — and the log observers write it into the
 same line.
 
+Just before it, `onInstanceSelfTime` says how much of that the build spent on itself, without the
+builds it waited on, and the log record carries it as `selfTook`. That is the number that finds what is
+slow: the whole time of a class that resolves a slow dependency is mostly the dependency's.
+
 `CobaltLogObserver` keeps `debug` and above unless told otherwise (`minimumLevel`); per-instance
 records are `trace`, so a large graph does not flood the log. What it drops is never formatted — the
 level is asked before the record is made — so an attached log costs next to nothing per build until

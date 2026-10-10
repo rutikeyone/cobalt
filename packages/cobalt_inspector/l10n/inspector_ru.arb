@@ -68,6 +68,8 @@
   "factDecoratedBy": "Декораторы",
   "factImplementation": "Строит",
   "factBuildTime": "Последняя сборка заняла",
+  "withoutDependencies": "{time} без зависимостей",
+  "withDependencies": "{time} с зависимостями",
   "factTornDown": "Разбирается вместе со скоупом",
   "tornDownYes": "да",
   "tornDownNo": "нет, владеет вызывающий",
