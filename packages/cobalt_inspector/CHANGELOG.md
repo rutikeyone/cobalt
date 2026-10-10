@@ -1,3 +1,10 @@
+## 1.4.0
+
+- The Built tab shows each build's own time, without the builds it waited
+  on, with the whole time beside it; slowest first and the slow mark use
+  the own time. A registration's sheet adds it after the last build time.
+  Requires `cobalt` 1.4.0.
+
 ## 1.3.0
 
 - No code changes in this package. Republished in lockstep with 1.3.0:

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: A question
+    url: https://github.com/rutikeyone/cobalt/discussions
+    about: How to do something with Cobalt, or why it works the way it does.
+  - name: An error message
+    url: https://github.com/rutikeyone/cobalt/blob/main/docs/TROUBLESHOOTING.md
+    about: Every error Cobalt throws, and what to do about it.

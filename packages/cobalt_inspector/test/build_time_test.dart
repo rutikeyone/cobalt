@@ -17,6 +17,12 @@ class Quick {
   const Quick();
 }
 
+class Wrapper {
+  Wrapper(this.slow);
+
+  final Slow slow;
+}
+
 void main() {
   late CobaltInspectorLog log;
 
@@ -41,7 +47,10 @@ void main() {
         return Slow();
       }),
     )
-    ..registerLazySingleton<Quick>(FnFactory((_) => const Quick()));
+    ..registerLazySingleton<Quick>(FnFactory((_) => const Quick()))
+    ..registerLazySingleton<Wrapper>(
+      FnFactory((resolver) => Wrapper(resolver.get<Slow>())),
+    );
 
   Future<void> openBuilt(WidgetTester tester, CobaltScope scope) async {
     await tester.pumpWidget(inspectorUnderTest(scope, log));
@@ -95,6 +104,44 @@ void main() {
     });
   });
 
+  group('a build that built a slow dependency', () {
+    testWidgets('shows its own time, and the whole build beside it', (
+      tester,
+    ) async {
+      final scope = slowAndQuick()..get<Wrapper>();
+      await openBuilt(tester, scope);
+
+      final palette = CobaltInspectorThemeData.of(ThemeData());
+      expect(
+        took(tester, 'Wrapper').style?.color,
+        palette.muted,
+        reason: 'the slow part was building Slow, which is marked instead',
+      );
+      expect(took(tester, 'Slow').style?.color, palette.warning);
+      expect(
+        find.byKey(const Key('with-dependencies-Wrapper')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('with-dependencies-Slow')), findsNothing);
+    });
+
+    testWidgets('slowest first ranks it by its own time', (tester) async {
+      final scope = slowAndQuick()..get<Wrapper>();
+      await openBuilt(tester, scope);
+
+      await tester.tap(find.byKey(const Key('group-slowest')));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.getTopLeft(find.byKey(const Key('created-Slow'))).dy,
+        lessThan(
+          tester.getTopLeft(find.byKey(const Key('created-Wrapper'))).dy,
+        ),
+        reason: 'counting what it waited on would put Wrapper on top',
+      );
+    });
+  });
+
   group('a registration you tapped', () {
     testWidgets('shows how long its last build took', (tester) async {
       final scope = buildGraph(log);
@@ -114,6 +161,14 @@ void main() {
 
       expect(find.byKey(const Key('build-time-fact')), findsOneWidget);
       expect(find.text('Last build took'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('build-time-fact')),
+          matching: find.textContaining('without its dependencies'),
+        ),
+        findsNothing,
+        reason: 'Clock builds nothing, so the two times are one',
+      );
     });
   });
 }

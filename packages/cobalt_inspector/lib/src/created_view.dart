@@ -1,4 +1,5 @@
 import 'package:cobalt_flutter/cobalt_flutter.dart';
+import 'package:cobalt_inspector/src/l10n/build_time_strings.dart';
 import 'package:cobalt_inspector/src/build_time.dart';
 import 'package:cobalt_inspector/src/cobalt_inspector_log.dart';
 import 'package:cobalt_inspector/src/l10n/cobalt_inspector_l10n.dart';
@@ -109,11 +110,7 @@ class _CreatedViewState extends State<CreatedView> {
     }
     if (_grouping == CreatedGrouping.slowest) {
       final slowest = [...created]
-        ..sort(
-          (a, b) => (b.record.took ?? Duration.zero).compareTo(
-            a.record.took ?? Duration.zero,
-          ),
-        );
+        ..sort((a, b) => _ownTime(b.record).compareTo(_ownTime(a.record)));
       return [
         for (final entry in slowest) _CreatedTile(entry: entry, theme: t),
       ];
@@ -257,19 +254,30 @@ class _CreatedTile extends StatelessWidget {
           ),
           if (record.took case final took?) ...[
             const SizedBox(width: 8),
-            Text(
-              formatBuildTime(took),
-              key: Key('took-${record.key}'),
-              style: (theme.monospace ?? const TextStyle(fontSize: 11))
-                  .copyWith(
-                    fontSize: 11,
-                    color: took >= theme.slowBuild
-                        ? theme.warning
-                        : theme.muted,
-                    fontWeight: took >= theme.slowBuild
-                        ? FontWeight.w600
-                        : FontWeight.normal,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  formatBuildTime(_ownTime(record)),
+                  key: Key('took-${record.key}'),
+                  style: (theme.monospace ?? const TextStyle(fontSize: 11))
+                      .copyWith(
+                        fontSize: 11,
+                        color: _ownTime(record) >= theme.slowBuild
+                            ? theme.warning
+                            : theme.muted,
+                        fontWeight: _ownTime(record) >= theme.slowBuild
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                      ),
+                ),
+                if (_ownTime(record) < took)
+                  Text(
+                    strings.withDependencies(formatBuildTime(took)),
+                    key: Key('with-dependencies-${record.key}'),
+                    style: TextStyle(color: theme.muted, fontSize: 10),
                   ),
+              ],
             ),
           ],
           const SizedBox(width: 8),
@@ -279,3 +287,6 @@ class _CreatedTile extends StatelessWidget {
     );
   }
 }
+
+Duration _ownTime(CobaltLogRecord record) =>
+    record.selfTook ?? record.took ?? Duration.zero;

@@ -108,7 +108,7 @@ Seven rules come with a quick fix, offered by the IDE on the diagnostic:
 | Rule | Fix |
 |---|---|
 | `cobalt_injected_field_must_be_late_final` | declares the field `late final` |
-| `cobalt_missing_injection_mixin` | adds `_$ClassName` to the `with` clause, or writes one |
+| `cobalt_missing_injection_mixin` | adds `_$ClassName` to the `with` clause, or writes one, and the `part` directive when it is missing |
 | `cobalt_injected_field_needs_an_injectable` | adds `@cobaltInject` above the class |
 | `cobalt_environment_needs_a_registration` | adds `@cobaltInject` above the class |
 | `cobalt_param_needs_an_injectable` | adds `@cobaltInject` above the class |

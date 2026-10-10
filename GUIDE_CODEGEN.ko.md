@@ -25,6 +25,18 @@
 이 중 아무것도 필요하지 않거나 기존 컨테이너를 점진적으로 마이그레이션하는 중이라면, 제너레이터 없이도 모든 것이
 동작합니다: [GUIDE_MANUAL.ko.md](GUIDE_MANUAL.ko.md).
 
+**이 가이드가 쓰는 말.**
+
+- **스코프(scope)**: 자기 수명을 가진 등록의 묶음입니다. 앱 전체, 로그인한 세션, 화면 하나 같은 것입니다.
+  스코프는 트리를 이루고, 자식은 부모를 거쳐 읽으며, 스코프를 해제하면 그 안에서 만든 모든 것이 닫힙니다.
+- **등록(registration)**: 스코프가 어떤 타입에 대해 아는 것, 즉 어떻게 만들고 결과가 얼마나 사는지입니다.
+- **해석(resolve)**: `get`, `getAsync`, `context.cobalt`로 스코프에 인스턴스를 요청하는 것입니다.
+- **수명(lifetime)**: 인스턴스가 얼마나 사는지입니다. 싱글턴은 한 번 만들어져 스코프가 가지고, transient는
+  해석할 때마다 새로 만들어져 요청한 쪽이 가집니다.
+- **lazy**: 스코프가 시작될 때가 아니라 처음 해석될 때 만들어집니다.
+- **override**: 스코프를 만들 때 넣는 등록의 대체물로, 주로 테스트에서 씁니다.
+- **bootstrap**: 그래프를 만들기 전에 끝나야 하는 작업으로, 설정 불러오기 같은 것입니다.
+
 ---
 
 ## 목차
@@ -202,6 +214,8 @@ final class $CobaltRootScope implements CobaltScopeBuilder {
   }
 }
 
+typedef CobaltRoot = $CobaltRootScope;
+
 const String $cobaltRootScopeName = 'app';
 
 Future<CobaltScope> $startCobalt() => CobaltApplication.start(
@@ -213,6 +227,9 @@ Future<CobaltScope> $startCobalt() => CobaltApplication.start(
 ```dart
 final scope = await $startCobalt();
 ```
+
+`CobaltRoot`는 `$` 없는 이름의 같은 클래스이므로, 빠른 시작의 `const CobaltRoot()`와
+`const $CobaltRootScope()`는 서로 바꿔 쓸 수 있습니다.
 
 여기서는 읽기 쉽도록 생략했지만, 실제 파일은 import한 모든 이름 앞에 그 URL의 해시에서 만든 별칭을 붙입니다.
 `_i178.CobaltFactory` 같은 식입니다. 카운터가 아니라 해시인 이유는 import 하나를 추가했을 때 다른 모든 번호가
@@ -265,7 +282,7 @@ class CounterBloc with _$CounterBloc {
 `part` 지시문과 `with _$ClassName`은 여러분이 작성합니다. 믹스인을 빠뜨리면 `cobalt_missing_injection_mixin`이
 에디터에서 알려 주고, 컨테이너가 등록하지 않는 클래스에 `@injected`를 붙이면 대신
 `cobalt_injected_field_needs_an_injectable`이 알려 줍니다. 두 실수는 고치는 방법이 다르기
-때문입니다.
+때문입니다. 앞의 규칙의 빠른 수정은 `part` 지시문이 없으면 그것도 함께 써 줍니다.
 
 ---
 
@@ -304,8 +321,9 @@ class Cache<T> {
 이렇게 하면 `Cache<Note>`와 `Cache<User>`가 등록되고, 각각 자기 `Store<Note>` 또는 `Store<User>`로 만들어집니다.
 `name`, `lifetime`, `dispose`와 환경은 그 각각에 모두 적용됩니다. `instantiations` 없는 제네릭 클래스는
 어떤 인스턴스화를 등록할지 알려 주는 것이 없으므로 빌드 오류입니다. 각 항목에는 모든 타입 인자를 명시해야 하고
-(타입 인자 없는 `Cache`는 `Cache<dynamic>`으로 읽혀 거부됩니다), `exposeAs`는 `instantiations`와 함께 쓸 수
-없습니다.
+(타입 인자 없는 `Cache`는 `Cache<dynamic>`으로 읽혀 거부됩니다). `exposeAs`는 타입 인자 없이 씁니다.
+`Cache<T> implements Store<T>`에 `exposeAs: Store`를 쓰면 각 인스턴스화가 자기 `Store<Note>`, `Store<User>`로
+등록됩니다.
 
 `@injected` 필드도 같은 방식으로 동작합니다. 클래스는 생성된 믹스인을 자신의 타입 매개변수와 함께 섞고,
 각 인스턴스화는 자기 타입 인자로 필드를 읽습니다.
@@ -832,6 +850,24 @@ nullable 여부는 등록 **키**의 일부가 아니며(`Foo?`도 `Foo` 등록�
 `init()` 전에 요청한 비동기 싱글턴은 여전히 예외를 던집니다. "준비되지 않음"과 "존재하지 않음"은 서로 다른
 사실이기 때문입니다.
 
+**기본값**은 생성자 매개변수를 선택적으로 만드는 또 다른 방법입니다. 그래프에서 그 타입을 등록하는 것이
+없으면 제너레이터가 호출에서 그 매개변수를 빼고 기본값이 적용됩니다. 등록하는 것이 있으면 다른 의존성처럼
+주입됩니다:
+
+```dart
+@cobaltInject
+class Api {
+  Api(this.client, {this.retries = 3});
+
+  final HttpClient client;
+  final int retries;
+}
+```
+
+`int`를 등록하는 것이 없으므로 `retries`는 3을 받습니다. 위치 매개변수는 끝에서부터만 뺄 수 있습니다.
+기본값이 있는 위치 매개변수 뒤에 주입되는 매개변수가 있으면 여전히 빌드 오류이며, 오류 메시지가 이름 있는
+매개변수로 바꾸라고 알려 줍니다.
+
 ---
 
 ## 14. 직접 작성하지 않은 타입
@@ -1078,6 +1114,10 @@ Flutter 앱에서는 `CobaltAppScope.builder`의 `observers:` 파라미터입니
 해석한 빌드와 모든 `await`를 포함한 전체 경과 시간), 로그 옵저버는 이를 같은
 줄에 기록합니다.
 
+그 직전에 `onInstanceSelfTime`이 그중 빌드가 자기 자신에 쓴 시간, 즉 기다린 다른 빌드를 뺀 시간을 알려 주며,
+로그 기록은 이를 `selfTook`으로 담습니다. 느린 곳을 찾아 주는 것은 이 숫자입니다. 느린 의존성을 해석하는
+클래스의 전체 시간은 대부분 그 의존성의 시간이기 때문입니다.
+
 | 패키지 | 형태 |
 |---|---|
 | `cobalt_talker` | 옵저버, 이벤트 계열마다 색이 다른 로그 타입 하나 |
@@ -1317,8 +1357,8 @@ git diff --exit-code
   `cobalt_container`는 패키지 전체를 루트 하나로 집계합니다.
 - **`instantiations` 없는 제네릭 클래스의 `@CobaltInject`.** 거부됩니다. 어떤 인스턴스화를 등록할지
   제너레이터에 알려 주는 것이 없습니다. `@CobaltInject(instantiations: [Cache<Note>, Cache<User>])`처럼
-  모든 타입 인자를 명시해 나열하거나, 구체 하위 타입에 어노테이션을 붙이십시오. `exposeAs`는
-  `instantiations`와 함께 쓸 수 없습니다. 제네릭은 의존성으로도,
+  모든 타입 인자를 명시해 나열하거나, 구체 하위 타입에 어노테이션을 붙이십시오. `instantiations`와 함께
+  쓰는 `exposeAs`는 타입 인자 없이 씁니다. 제네릭은 의존성으로도,
   `exposeAs` 대상으로도 문제없이 동작합니다.
 - **`with _$ClassName` 없는 `@injected`.** 필드는 할당되지 않은 채 남고 첫 읽기가 `LateError`를 던집니다.
   린트가 먼저 알려 줍니다.

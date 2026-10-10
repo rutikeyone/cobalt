@@ -65,7 +65,7 @@ class Greeter {
 
 void main() => runApp(
   MaterialApp(
-    builder: CobaltAppScope.builder(root: const $CobaltRootScope()),
+    builder: CobaltAppScope.builder(root: const CobaltRoot()),
     home: const HomeScreen(),
   ),
 );
@@ -91,7 +91,7 @@ dart run build_runner build
 flutter run
 ```
 
-빌드를 실행하기 전에는 편집기가 `cobalt.g.dart`와 `$CobaltRootScope`를 없는 것으로 표시합니다. 정상입니다.
+빌드를 실행하기 전에는 편집기가 `cobalt.g.dart`와 `CobaltRoot`를 없는 것으로 표시합니다. 정상입니다.
 빌드가 이 파일들을 만듭니다. 다른 곳이 빨갛게 표시되면 [첫 빌드](docs/TROUBLESHOOTING.ko.md#첫-빌드)를 보세요.
 
 `@cobaltInject`는 클래스를 등록합니다. `Greeter`는 생성자에서 `Clock`을 요구하고, 제너레이터가
@@ -144,6 +144,7 @@ flutter run
 | **단계별로, 제너레이터와 함께** | [GUIDE_CODEGEN.ko.md](GUIDE_CODEGEN.ko.md) |
 | **단계별로, 코드 생성 없이** | [GUIDE_MANUAL.ko.md](GUIDE_MANUAL.ko.md) |
 | **get_it, injectable, provider에서 옮겨 오기** | [MIGRATION.ko.md](MIGRATION.ko.md) |
+| **X를 하는 방법** | [docs/RECIPES.ko.md](docs/RECIPES.ko.md): 세션, 화면 스코프, bloc, 플로우, 테스트 |
 | **오류가 났을 때** | [docs/TROUBLESHOOTING.ko.md](docs/TROUBLESHOOTING.ko.md): 모든 오류와 해결 방법 |
 | **모든 기능, 동작 방식, 호환성, 성능** | [docs/OVERVIEW.ko.md](docs/OVERVIEW.ko.md) |
 | **모든 기능을 한 앱에서** | `cd examples/gallery && flutter run` |
@@ -176,6 +177,13 @@ flutter run
 | `cobalt_talker_flutter` | `cobalt_inspector`, `cobalt_talker`, `talker_flutter` | dev_dependency 전용 |
 
 </details>
+
+## 어디에 물어볼까
+
+무언가를 하는 방법에 대한 질문은 [Discussions](https://github.com/rutikeyone/cobalt/discussions)에
+남겨 주십시오. 문서와 다르게 동작하는 것은 [이슈](https://github.com/rutikeyone/cobalt/issues/new/choose)로
+올려 주시되, 먼저 [docs/TROUBLESHOOTING.ko.md](docs/TROUBLESHOOTING.ko.md)를 확인하십시오. Cobalt가 던지는
+모든 오류가 거기 있는 해당 항목으로 연결됩니다.
 
 ## 요구 사항
 

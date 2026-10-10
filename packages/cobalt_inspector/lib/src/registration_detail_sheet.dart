@@ -4,6 +4,7 @@
 // ignore_for_file: experimental_member_use
 
 import 'package:cobalt_flutter/cobalt_flutter.dart';
+import 'package:cobalt_inspector/src/l10n/build_time_strings.dart';
 import 'package:cobalt_inspector/src/build_time.dart';
 import 'package:cobalt_inspector/src/cobalt_inspector_log.dart';
 import 'package:cobalt_inspector/src/l10n/inspector_strings.dart';
@@ -47,9 +48,9 @@ class _RegistrationDetailSheetState extends State<RegistrationDetailSheet> {
   String? _built;
   String? _failed;
 
-  /// How long the most recent build of this registration took, from the
-  /// log — its own key, built by the scope that owns it.
-  Duration? _lastBuild() {
+  /// The most recent build of this registration, from the log — its own key,
+  /// built by the scope that owns it.
+  CobaltLogRecord? _lastBuild() {
     final log = widget.log;
     if (log == null) return null;
     final registration = widget.registration;
@@ -58,7 +59,7 @@ class _RegistrationDetailSheetState extends State<RegistrationDetailSheet> {
       if (record.kind != CobaltEventKind.instanceCreated) continue;
       if (record.key != registration.key) continue;
       if (record.scope?.name != registration.owner.name) continue;
-      return record.took;
+      return record;
     }
     return null;
   }
@@ -116,11 +117,14 @@ class _RegistrationDetailSheetState extends State<RegistrationDetailSheet> {
               label: strings.factDecoratedBy,
               value: registration.decorators.join(' → '),
             ),
-          if (_lastBuild() case final took?)
+          if (_lastBuild() case CobaltLogRecord(:final took?, :final selfTook))
             _Fact(
               key: const Key('build-time-fact'),
               label: strings.factBuildTime,
-              value: formatBuildTime(took),
+              value: selfTook == null || selfTook >= took
+                  ? formatBuildTime(took)
+                  : '${formatBuildTime(took)}, '
+                        '${strings.withoutDependencies(formatBuildTime(selfTook))}',
             ),
           _Fact(
             label: strings.factTornDown,

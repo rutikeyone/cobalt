@@ -117,13 +117,13 @@ AOT 编译，arm64，Dart SDK 3.10.8（stable，`macos_arm64`）。
 
 | | Cobalt | get_it | Cobalt / get_it |
 |---|---:|---:|---:|
-| get 已构建的单例 | 81 ns | 425 ns | 0.19× |
-| 构建带两个依赖的 transient | 356 ns | 1.22 µs | 0.29× |
-| 注册 200 个，再各 get 一次 | 137 µs | 386 µs | 0.35× |
-| 启动 20 个异步单例 | 24.7 µs | 28.1 µs | 0.88× |
-| 同一 transient，带空观察者 | 374 ns | — | — |
-| 同一 transient，带记录型观察者 | 860 ns | — | — |
-| 同一 transient，带默认级别的日志观察者 | 385 ns | — | — |
+| get 已构建的单例 | 80 ns | 423 ns | 0.19× |
+| 构建带两个依赖的 transient | 375 ns | 1.21 µs | 0.31× |
+| 注册 200 个，再各 get 一次 | 137 µs | 374 µs | 0.37× |
+| 启动 20 个异步单例 | 26.6 µs | 28.6 µs | 0.93× |
+| 同一 transient，带空观察者 | 403 ns | — | — |
+| 同一 transient，带记录型观察者 | 884 ns | — | — |
+| 同一 transient，带默认级别的日志观察者 | 418 ns | — | — |
 
 最后一列小于 1，表示 Cobalt 用时更少。绝对数值只属于这台机器；
 能迁移的是数量级。一次解析远低于一微秒，200 个注册的图不到一毫秒，二十个单例的异步启动在几十微秒——
@@ -189,7 +189,7 @@ class Cache<T> {
 }
 ```
 
-每个类型实参都要写全，`exposeAs` 不能与 `instantiations` 一起用。`@injected` 字段可以用，mixin 带上类型参数即可：`class Cache<T> with _$Cache<T>`。
+每个类型实参都要写全，`exposeAs` 则不写：`exposeAs: Store` 会让每个具体化以各自的 `Store<Note>` 暴露。`@injected` 字段可以用，mixin 带上类型参数即可：`class Cache<T> with _$Cache<T>`。
 
 `cobalt_analyzer` 的存在是为了让生成器和 lint 插件用**同一套**实现解析 Cobalt 声明，而不是两套迟早会
 各说各话的实现。它持有 IR 和拓扑排序，并且既不依赖 `build`，也不依赖插件 API。

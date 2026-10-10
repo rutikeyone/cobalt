@@ -12,6 +12,12 @@ void main() {
       expect(source, contains('const _LoggerFactory();'));
     });
 
+    test('the root scope also goes by a name without a dollar', () {
+      final source = generate([declare('Logger')]);
+
+      expect(source, contains(r'typedef CobaltRoot = $CobaltRootScope;'));
+    });
+
     test('constructor dependencies become resolver calls', () {
       final source = generate([
         declare('Logger'),

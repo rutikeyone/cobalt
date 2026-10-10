@@ -23,6 +23,20 @@ What the build step buys you, and what this document is mostly about:
 If you want none of that, or you are migrating an existing container gradually, everything works
 without the generator: [GUIDE_MANUAL.md](GUIDE_MANUAL.md).
 
+**Words this guide uses.**
+
+- **Scope**: a set of registrations with a lifetime of its own, such as the app, a signed-in
+  session or a screen. Scopes form a tree, a child reads through its parents, and disposing a scope
+  closes everything built in it.
+- **Registration**: what a scope knows about a type: how to build it and how long the result lives.
+- **Resolve**: ask a scope for an instance, with `get`, `getAsync` or `context.cobalt`.
+- **Lifetime**: how long an instance lives. A singleton is built once and held by the scope; a
+  transient is built anew on every resolve and held by whoever asked.
+- **Lazy**: built on the first resolve rather than when the scope starts.
+- **Override**: a replacement for a registration, put in place when a scope is built, mostly in
+  tests.
+- **Bootstrap**: work that has to finish before the graph is built, such as loading a config.
+
 ---
 
 ## Contents
@@ -203,6 +217,8 @@ final class $CobaltRootScope implements CobaltScopeBuilder {
   }
 }
 
+typedef CobaltRoot = $CobaltRootScope;
+
 const String $cobaltRootScopeName = 'app';
 
 Future<CobaltScope> $startCobalt() => CobaltApplication.start(
@@ -214,6 +230,9 @@ Future<CobaltScope> $startCobalt() => CobaltApplication.start(
 ```dart
 final scope = await $startCobalt();
 ```
+
+`CobaltRoot` is the same class under a name without the `$`, so the Quick start's
+`const CobaltRoot()` and `const $CobaltRootScope()` are interchangeable.
 
 Shown without them here for readability, but the real file prefixes every imported name with an
 alias derived from a hash of its URL — `_i178.CobaltFactory`. It is a hash rather than a counter so
@@ -267,7 +286,7 @@ Three things make this safe rather than magic:
 The `part` directive and the `with _$ClassName` are yours to write. Forget the mixin and
 `cobalt_missing_injection_mixin` says so in the editor; put `@injected` on a class the container never
 registers and `cobalt_injected_field_needs_an_injectable` says that instead, because the two mistakes
-have different fixes.
+have different fixes. The quick fix of the first writes the `part` directive too when it is missing.
 
 ---
 
@@ -307,8 +326,9 @@ class Cache<T> {
 This registers `Cache<Note>` and `Cache<User>`, and each is built with its own `Store<Note>` or
 `Store<User>`. `name`, `lifetime`, `dispose` and the environments apply to every one of them. A
 generic class without `instantiations` is a build error, since nothing says which ones to register.
-Every entry spells out each type argument (a raw `Cache` reads as `Cache<dynamic>` and is rejected),
-and `exposeAs` cannot be combined with `instantiations`.
+Every entry spells out each type argument (a raw `Cache` reads as `Cache<dynamic>` and is rejected).
+`exposeAs` is written without type arguments: `exposeAs: Store` for `Cache<T> implements Store<T>`
+registers each instantiation under its own `Store<Note>`, `Store<User>`.
 
 `@injected` fields work the same way. The class mixes in its generated mixin with its type
 parameters, and each instantiation reads the field under its own type arguments:
@@ -839,6 +859,24 @@ an optional dependency is still an ordering edge when something does register it
 null only for "nothing is registered": an async singleton asked for before `init()` still throws,
 because "not ready" and "not there" are different facts.
 
+A **default value** is the other way to make a constructor parameter optional. When nothing in the
+graph registers its type, the generator leaves it out of the call and the default applies; when
+something does, it is injected like any other dependency:
+
+```dart
+@cobaltInject
+class Api {
+  Api(this.client, {this.retries = 3});
+
+  final HttpClient client;
+  final int retries;
+}
+```
+
+`retries` gets 3, since nothing registers an `int`. A positional parameter can be left out only from
+the end: one with a default before an injected one is still a build error, which says to make it
+named.
+
 ---
 
 ## 14. Types you did not write
@@ -1086,6 +1124,10 @@ Each build is timed: `onInstanceBuilt` follows `onInstanceCreated` with how long
 wall time, the builds it resolved and every `await` included — and the log observers write it into the
 same line.
 
+Just before it, `onInstanceSelfTime` says how much of that the build spent on itself, without the
+builds it waited on, and the log record carries it as `selfTook`. That is the number that finds what is
+slow: the whole time of a class that resolves a slow dependency is mostly the dependency's.
+
 | Package | Shape |
 |---|---|
 | `cobalt_talker` | an observer, one coloured log type per event family |
@@ -1327,8 +1369,8 @@ Each of these was found the hard way, in this repository or in the applications 
 - **`@CobaltInject` on a generic class without `instantiations`.** Rejected: nothing tells the
   generator which instantiations to register. List them, as in
   `@CobaltInject(instantiations: [Cache<Note>, Cache<User>])`, with every type argument spelled out,
-  or annotate a concrete subtype. `exposeAs` does not combine with `instantiations`. Generics work
-  fine as dependencies and as `exposeAs` targets.
+  or annotate a concrete subtype. Beside `instantiations`, `exposeAs` is written without type
+  arguments. Generics work fine as dependencies and as `exposeAs` targets.
 - **`@injected` without `with _$ClassName`.** The fields stay unassigned and the first read throws
   `LateError`. The lint says so first.
 - **Promising with `provides:` and then not registering it.** The check believed you, so the failure

@@ -359,6 +359,19 @@ class Api {
 ''');
   }
 
+  /// The generator leaves such a parameter out and the default applies.
+  void test_aParameterWithADefaultValue_isClean() async {
+    await assertNoDiagnostics('''
+$cobaltImport
+
+@cobaltInject
+class Api {
+  Api({this.retries = 3});
+  final int retries;
+}
+''');
+  }
+
   /// `CobaltTypeRef` compares by signature, which ignores nullability, so
   /// collecting dependencies into a set would fold these two into one entry
   /// and let declaration order decide whether the required one is checked.
@@ -519,6 +532,25 @@ class TagStore implements Store<Tag> {}
 class Tagger {
   Tagger(this.tags);
   final Store<Tag> tags;
+}
+''');
+  }
+
+  void test_aGenericExposedUnderItsInterface_isClean() async {
+    await assertNoDiagnostics('''
+$cobaltImport
+
+class Note {}
+
+abstract interface class Store<T> {}
+
+@CobaltInject(exposeAs: Store, instantiations: [Cache<Note>])
+class Cache<T> implements Store<T> {}
+
+@cobaltInject
+class Notebook {
+  Notebook(this.notes);
+  final Store<Note> notes;
 }
 ''');
   }

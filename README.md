@@ -62,7 +62,7 @@ class Greeter {
 
 void main() => runApp(
   MaterialApp(
-    builder: CobaltAppScope.builder(root: const $CobaltRootScope()),
+    builder: CobaltAppScope.builder(root: const CobaltRoot()),
     home: const HomeScreen(),
   ),
 );
@@ -88,7 +88,7 @@ dart run build_runner build
 flutter run
 ```
 
-Until the build has run, the editor marks `cobalt.g.dart` and `$CobaltRootScope` as missing. That
+Until the build has run, the editor marks `cobalt.g.dart` and `CobaltRoot` as missing. That
 is expected: the build writes them. If something else goes red, see [the first build](docs/TROUBLESHOOTING.md#the-first-build).
 
 `@cobaltInject` registers a class. `Greeter` asks for a `Clock` in its constructor, and the generator
@@ -144,6 +144,7 @@ runtime alone, in pure Dart.
 | **Step by step, with the generator** | [GUIDE_CODEGEN.md](GUIDE_CODEGEN.md) |
 | **Step by step, without code generation** | [GUIDE_MANUAL.md](GUIDE_MANUAL.md) |
 | **Coming from get_it, injectable or provider** | [MIGRATION.md](MIGRATION.md) |
+| **How do I do X** | [docs/RECIPES.md](docs/RECIPES.md): a session, a screen scope, a bloc, a flow, a test |
 | **Something threw** | [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) — every error, and what to do |
 | **Every feature, how it works, compatibility, performance** | [docs/OVERVIEW.md](docs/OVERVIEW.md) |
 | **Every feature in one app** | `cd examples/gallery && flutter run` |
@@ -176,6 +177,14 @@ use code generation. Everything else is optional.
 | `cobalt_talker_flutter` | `cobalt_inspector`, `cobalt_talker`, `talker_flutter` | dev_dependency only |
 
 </details>
+
+## Where to ask
+
+A question about how to do something goes to
+[Discussions](https://github.com/rutikeyone/cobalt/discussions). Something that does not work as the
+docs say goes to [issues](https://github.com/rutikeyone/cobalt/issues/new/choose), after a look at
+[docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md): every error Cobalt throws links to its entry
+there.
 
 ## Requirements
 

@@ -229,6 +229,9 @@ override가 아무것도 바꾸지 않았습니다.
 - **아무도 등록하지 않은 의존성.** [CobaltNotRegisteredError](#cobaltnotregisterederror)와 같은 방법으로
   고칩니다. 클래스에 어노테이션을 붙이거나 `@CobaltScopeRoot(provides: [...])`에 적으십시오. 메시지는
   빠진 것을 한 번에 모두 보여 줍니다.
+- **기본값이 있는 매개변수에 `requires int`.** 기본값은 제너레이터가 뺄 수 있는 매개변수에만 적용됩니다.
+  이름 있는 매개변수이거나 끝에 있는 위치 매개변수여야 합니다. 주입되는 위치 매개변수 앞에 있으면 건너뛸 수
+  없고, 메시지가 그렇게 알려 줍니다. 이름 있는 매개변수로 바꾸십시오.
 - **한 패키지에 `@CobaltScopeRoot` 클래스가 둘.** 패키지마다 생성된 루트는 하나입니다. 하나만 남기십시오.
 - **의존성 순환.** [CobaltCycleError](#cobaltcycleerror)를 참고하십시오.
 - **`@CobaltInject`가 붙은 추상 클래스.** 제너레이터가 빌드할 수 없습니다. 구체 클래스에
@@ -236,7 +239,8 @@ override가 아무것도 바꾸지 않았습니다.
 - **`@CobaltInject`가 붙은 제네릭 클래스.** 메시지는 클래스가 타입 매개변수를 선언하므로 등록할 단일
   인스턴스화가 없다고 알려 줍니다. 등록할 인스턴스화를 모든 타입 인자를 명시해 나열하십시오:
   `@CobaltInject(instantiations: [Cache<Note>, Cache<User>])`. 목록 안의 타입 인자 없는 `Cache`는
-  `Cache<dynamic>`으로 읽혀 거부되며, `instantiations`와 함께 쓴 `exposeAs`도 거부됩니다.
+  `Cache<dynamic>`으로 읽혀 거부됩니다. `instantiations`와 함께 쓰는 `exposeAs`는 타입 인자 없이,
+  클래스가 구현하는 제네릭 타입을 적습니다: `exposeAs: Store`.
 - **제네릭 클래스의 `@injected` 필드가 컴파일되지 않음.** 클래스는 믹스인을 자신의 타입 매개변수와 함께
   섞어야 합니다: `class Cache<T> with _$Cache<T>`. 타입 인자 없는 `with _$Cache`는 이를 빠뜨립니다.
 
@@ -247,7 +251,7 @@ override가 아무것도 바꾸지 않았습니다.
 
 [빠른 시작](../README.ko.md#빠른-시작)을 따라가는 동안 새 앱에서 보일 수 있는 것들입니다.
 
-- **`Target of URI hasn't been generated: 'cobalt.g.dart'`, 그리고 `$CobaltRootScope`가 클래스가 아니라는
+- **`Target of URI hasn't been generated: 'cobalt.g.dart'`, 그리고 `CobaltRoot`가 클래스가 아니라는
   메시지.** 제너레이터가 아직 실행되지 않았습니다. `dart run build_runner build`를 실행하고, 어노테이션을
   바꿀 때마다 다시 실행하십시오. 작업하는 동안에는 `dart run build_runner watch`가 파일을 최신으로 유지합니다.
 - **`test/widget_test.dart`의 `The name 'MyApp' isn't a class`.** 이 테스트는 `flutter create`가 만든
@@ -255,3 +259,6 @@ override가 아무것도 바꾸지 않았습니다.
   [`examples/hello/test`](../examples/hello/test)에 있습니다.
 - **`lib/cobalt.g.dart`의 `The imported package 'cobalt' isn't a dependency`.** 생성된 코드가 런타임을 직접
   임포트하므로 앱이 직접 의존해야 합니다: `flutter pub add cobalt`.
+- **`Classes can only mix in mixins and classes` 또는 `Undefined class '_$Foo'`.** 클래스가 생성된
+  `_$Foo`를 섞지만, 파일이 그 믹스인이 있는 part를 포함하지 않습니다. import 아래에 `part 'foo.g.dart';`를
+  추가하고 빌드를 실행하십시오. `cobalt_missing_injection_mixin`의 빠른 수정은 둘 다 써 줍니다.

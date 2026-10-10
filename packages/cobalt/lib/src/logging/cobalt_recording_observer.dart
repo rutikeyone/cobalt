@@ -7,6 +7,8 @@ import 'package:cobalt/src/observer/cobalt_observer.dart';
 import 'package:cobalt/src/observer/cobalt_scope_ref.dart';
 import 'package:cobalt/src/scope/cobalt_registration_kind.dart';
 
+(CobaltKey, Duration)? _lastSelfTime;
+
 /// Turns Cobalt's events into [CobaltLogRecord]s and hands each to [onRecord].
 ///
 /// The wording of every event lives here and only here. Two lenses read the
@@ -43,6 +45,7 @@ abstract base class CobaltRecordingObserver extends CobaltObserver {
     CobaltRegistrationKind? registrationKind,
     bool? retained,
     Duration? took,
+    Duration? selfTook,
     Object? error,
     StackTrace? stackTrace,
   }) {
@@ -57,6 +60,7 @@ abstract base class CobaltRecordingObserver extends CobaltObserver {
         registrationKind: registrationKind,
         retained: retained,
         took: took,
+        selfTook: selfTook,
         error: error,
         stackTrace: stackTrace,
       ),
@@ -121,6 +125,12 @@ abstract base class CobaltRecordingObserver extends CobaltObserver {
     required bool retained,
   }) {}
 
+  /// Held for the [onInstanceBuilt] that follows it for the same build.
+  @override
+  void onInstanceSelfTime(CobaltScopeRef scope, CobaltKey key, Duration self) {
+    _lastSelfTime = (key, self);
+  }
+
   @override
   void onInstanceBuilt(
     CobaltScopeRef scope,
@@ -128,7 +138,20 @@ abstract base class CobaltRecordingObserver extends CobaltObserver {
     required CobaltRegistrationKind kind,
     required bool retained,
     required Duration took,
-  }) => _emit(
+  }) {
+    final last = _lastSelfTime;
+    final selfTook = last != null && last.$1 == key ? last.$2 : null;
+    _emitBuilt(scope, key, kind, retained, took, selfTook);
+  }
+
+  void _emitBuilt(
+    CobaltScopeRef scope,
+    CobaltKey key,
+    CobaltRegistrationKind kind,
+    bool retained,
+    Duration took,
+    Duration? selfTook,
+  ) => _emit(
     CobaltEventKind.instanceCreated,
     CobaltLogLevel.trace,
     () => retained
@@ -140,6 +163,7 @@ abstract base class CobaltRecordingObserver extends CobaltObserver {
     registrationKind: kind,
     retained: retained,
     took: took,
+    selfTook: selfTook,
   );
 
   /// Milliseconds, or microseconds below one — most builds are.

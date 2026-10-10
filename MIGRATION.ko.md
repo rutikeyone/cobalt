@@ -196,7 +196,8 @@ class Cache<T> {
 }
 ```
 
-모든 타입 인자를 명시해야 하며, `exposeAs`는 `instantiations`와 함께 쓸 수 없습니다. `@injected` 필드는
+모든 타입 인자를 명시해야 하며, `exposeAs`는 타입 인자 없이 씁니다. `exposeAs: Store`는 각
+인스턴스화를 자기 `Store<Note>`로 노출합니다. `@injected` 필드는
 쓸 수 있고, 믹스인이 타입 매개변수를 받습니다: `class Cache<T> with _$Cache<T>`.
 제네릭 *의존성*은 평소대로 동작합니다. `Repository<User>`와 `Repository<Order>`는 별개의 등록입니다.
 

@@ -23,6 +23,16 @@
 如果这些你都不需要，或者你正在逐步迁移一个已有的容器，那么不用生成器一切照样能跑：
 [GUIDE_MANUAL.zh-CN.md](GUIDE_MANUAL.zh-CN.md)。
 
+**本指南用到的词。**
+
+- **作用域（scope）**：一组有自己生命周期的注册，比如整个应用、一次登录会话或一个界面。作用域构成一棵树，子作用域会沿父作用域向上读取，销毁一个作用域会关闭其中构建的一切。
+- **注册（registration）**：作用域对某个类型的了解：怎样构建它，以及结果活多久。
+- **解析（resolve）**：向作用域要一个实例，用 `get`、`getAsync` 或 `context.cobalt`。
+- **生命周期（lifetime）**：实例活多久。单例只构建一次，由作用域持有；transient 每次解析都重新构建，由请求者持有。
+- **懒加载（lazy）**：在第一次解析时构建，而不是在作用域启动时。
+- **覆盖（override）**：在创建作用域时放进去的注册替代品，主要用于测试。
+- **启动步骤（bootstrap）**：必须在构建图之前完成的工作，比如加载配置。
+
 ---
 
 ## 目录
@@ -194,6 +204,8 @@ final class $CobaltRootScope implements CobaltScopeBuilder {
   }
 }
 
+typedef CobaltRoot = $CobaltRootScope;
+
 const String $cobaltRootScopeName = 'app';
 
 Future<CobaltScope> $startCobalt() => CobaltApplication.start(
@@ -205,6 +217,8 @@ Future<CobaltScope> $startCobalt() => CobaltApplication.start(
 ```dart
 final scope = await $startCobalt();
 ```
+
+`CobaltRoot` 是同一个类不带 `$` 的名字，所以快速开始里的 `const CobaltRoot()` 和 `const $CobaltRootScope()` 可以互换。
 
 为了便于阅读，这里省略了前缀，但真实文件会给每个导入的名字加上由其 URL 哈希得出的别名——
 `_i178.CobaltFactory`。用哈希而不是计数器，是为了让新增一个导入不会把其余全部重新编号，
@@ -255,6 +269,7 @@ class CounterBloc with _$CounterBloc {
 `cobalt_missing_injection_mixin` 会在编辑器里告诉你；
 把 `@injected` 放在容器根本不注册的类上，则是
 `cobalt_injected_field_needs_an_injectable` 来说——因为这两个错误的修法不同。
+前一条规则的快速修复在缺少 `part` 指令时也会一并补上。
 
 ---
 
@@ -292,7 +307,8 @@ class Cache<T> {
 这会注册 `Cache<Note>` 和 `Cache<User>`，每个都用自己的 `Store<Note>` 或 `Store<User>` 构建。
 `name`、`lifetime`、`dispose` 和环境对其中每一个都生效。没有 `instantiations` 的泛型类是构建错误，
 因为没有任何地方说明该注册哪些实例化。每一项都要写全所有类型实参（裸写的 `Cache` 会被读成
-`Cache<dynamic>` 并被拒绝），`exposeAs` 不能与 `instantiations` 同时使用。
+`Cache<dynamic>` 并被拒绝）。`exposeAs` 不写类型实参：对 `Cache<T> implements Store<T>` 写 `exposeAs: Store`，
+每个具体化会以各自的 `Store<Note>`、`Store<User>` 注册。
 
 `@injected` 字段也是同样的用法。类混入带有自身类型参数的生成 mixin，每个具体化都按自己的类型实参读取字段：
 
@@ -794,6 +810,20 @@ class Dashboard with _$Dashboard {
 而当确实有人注册它时，可选依赖依然是一条排序的边。`getOrNull` 只在「没有注册」时返回 null：
 在 `init()` 之前请求异步单例仍然会抛异常，因为「尚未就绪」和「根本没有」是两回事。
 
+**默认值**是让构造参数变成可选的另一种方式。如果图里没有任何东西注册它的类型，生成器会在调用时省略它，于是默认值生效；如果有注册，它就像其他依赖一样被注入：
+
+```dart
+@cobaltInject
+class Api {
+  Api(this.client, {this.retries = 3});
+
+  final HttpClient client;
+  final int retries;
+}
+```
+
+`retries` 得到 3，因为没有人注册 `int`。位置参数只能从末尾开始省略：带默认值的位置参数后面如果还有要注入的参数，仍然是构建错误，错误信息会建议把它改成命名参数。
+
 ---
 
 ## 14. 不是你写的类型
@@ -1019,6 +1049,8 @@ final scope = await CobaltApplication.start(
 解析不会被上报：命中缓存是热路径，值得看见的是实例**被构建**这件事。
 每次构建都会计时：`onInstanceCreated` 之后紧跟 `onInstanceBuilt`，带上它耗费的时间——从调用工厂起的全部耗时，
 包含途中解析的其他构建和每一次 `await`——日志观察者会把它写进同一行。
+
+在它之前，`onInstanceSelfTime` 会说明其中有多少是构建自身花的时间，不含它等待的其他构建；日志记录以 `selfTook` 携带这个值。真正能找出慢在哪里的是这个数：一个解析了慢依赖的类，它的总耗时大部分属于那个依赖。
 
 | 包 | 形态 |
 |---|---|
@@ -1248,7 +1280,7 @@ git diff --exit-code
   `cobalt_container` 会把整个包聚合成一个根。
 - **在泛型类上用 `@CobaltInject` 却没有 `instantiations`。** 会被拒绝：没有人告诉生成器该注册哪些具体实例化。
   请把它们列出来，例如 `@CobaltInject(instantiations: [Cache<Note>, Cache<User>])`，并写全每个类型实参；
-  或者给具体子类型加注解。`exposeAs` 不能与 `instantiations` 一起用。
+  或者给具体子类型加注解。与 `instantiations` 一起用时，`exposeAs` 不写类型实参。
   泛型作为依赖和 `exposeAs` 目标都完全可用。
 - **写了 `@injected` 却没有 `with _$ClassName`。** 字段不会被赋值，第一次读取就抛 `LateError`。
   lint 会更早告诉你。

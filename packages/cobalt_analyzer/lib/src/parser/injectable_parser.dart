@@ -147,8 +147,9 @@ class CobaltInjectableParser {
     CobaltInjectableClass build(
       CobaltTypeRef type,
       List<FormalParameterElement> typed,
-      List<CobaltInjectedProperty> properties,
-    ) => CobaltInjectableClass(
+      List<CobaltInjectedProperty> properties, {
+      CobaltTypeRef? exposeAs,
+    }) => CobaltInjectableClass(
       type: type,
       lifetime: lifetime,
       name: name,
@@ -166,17 +167,22 @@ class CobaltInjectableParser {
             name: namedMatcher.firstOf(parameter)?.readString('name'),
             isNamed: parameter.isNamed,
             isParam: paramMatcher.matches(parameter),
+            hasDefault: parameter.hasDefaultValue,
           ),
       ],
       properties: properties,
     );
 
+    final exposed = instantiations.isEmpty
+        ? null
+        : _rawExposeAsOf(clazz, injectAnnotation);
     if (instantiations.isEmpty) {
       return [
         build(
           typeRefOfElement(clazz),
           constructor.formalParameters,
           properties,
+          exposeAs: exposeAs,
         ),
       ];
     }
@@ -189,6 +195,9 @@ class CobaltInjectableParser {
             constructor,
           ).formalParameters,
           _instantiatedPropertiesOf(instantiation, properties),
+          exposeAs: exposed == null
+              ? null
+              : _instantiatedExposeAs(clazz, instantiation, exposed),
         ),
     ];
   }
@@ -231,15 +240,6 @@ class CobaltInjectableParser {
         'is no single instantiation to register. Name the ones to register, '
         'as in @CobaltInject(instantiations: [${clazz.displayName}<$example>]), '
         'or annotate a concrete subtype.',
-        clazz,
-      );
-    }
-
-    if (injectAnnotation?.getField('exposeAs')?.toTypeValue() != null) {
-      throw CobaltParseError(
-        '${clazz.displayName} lists instantiations and also names exposeAs. '
-        'One exposed type cannot stand for several instantiations. Drop '
-        'exposeAs, or annotate a concrete subtype that implements it.',
         clazz,
       );
     }
@@ -300,6 +300,56 @@ class CobaltInjectableParser {
   ) => instantiation.constructors.firstWhere(
     (candidate) => candidate.baseElement == constructor.baseElement,
   );
+
+  InterfaceElement? _rawExposeAsOf(
+    ClassElement clazz,
+    DartObject? injectAnnotation,
+  ) {
+    final type = injectAnnotation?.getField('exposeAs')?.toTypeValue();
+    if (type == null) return null;
+    final shown = type.getDisplayString();
+    if (type is! InterfaceType || type.element.typeParameters.isEmpty) {
+      throw CobaltParseError(
+        '${clazz.displayName} lists instantiations and exposes them as $shown, '
+        'which has no type parameters, so every instantiation would be '
+        'registered under the same type. Expose them as a generic type the '
+        'class implements, such as Store for Cache<T> implements Store<T>.',
+        clazz,
+      );
+    }
+    final parameters = type.element.typeParameters;
+    final written = [
+      for (final (index, argument) in type.typeArguments.indexed)
+        if (argument is! DynamicType && argument != parameters[index].bound)
+          argument,
+    ];
+    if (written.isNotEmpty) {
+      throw CobaltParseError(
+        '${clazz.displayName} lists instantiations and exposes them as $shown. '
+        'Write exposeAs without type arguments, as exposeAs: '
+        '${type.element.displayName}: each instantiation is exposed under '
+        'its own, the ones it implements.',
+        clazz,
+      );
+    }
+    return type.element;
+  }
+
+  CobaltTypeRef _instantiatedExposeAs(
+    ClassElement clazz,
+    InterfaceType instantiation,
+    InterfaceElement exposed,
+  ) {
+    final implemented = instantiation.asInstanceOf(exposed);
+    if (implemented == null) {
+      throw CobaltParseError(
+        '${clazz.displayName} exposes ${instantiation.getDisplayString()} as '
+        '${exposed.displayName}, which it does not implement.',
+        clazz,
+      );
+    }
+    return typeRefOf(implemented);
+  }
 
   List<CobaltInjectedProperty> _instantiatedPropertiesOf(
     InterfaceType instantiation,

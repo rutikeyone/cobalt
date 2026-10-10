@@ -1,3 +1,10 @@
+## 1.4.0
+
+- The `cobalt_missing_injection_mixin` quick fix also writes the `part`
+  directive when the file does not have it.
+- `cobalt_dependency_is_not_registered` does not report a constructor
+  parameter with a default value. Requires `cobalt_analyzer` 1.4.0.
+
 ## 1.3.0
 
 - `cobalt_missing_injection_mixin` asks a generic class for

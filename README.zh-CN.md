@@ -64,7 +64,7 @@ class Greeter {
 
 void main() => runApp(
   MaterialApp(
-    builder: CobaltAppScope.builder(root: const $CobaltRootScope()),
+    builder: CobaltAppScope.builder(root: const CobaltRoot()),
     home: const HomeScreen(),
   ),
 );
@@ -89,7 +89,7 @@ dart run build_runner build
 flutter run
 ```
 
-构建运行之前，编辑器会把 `cobalt.g.dart` 和 `$CobaltRootScope` 标为不存在。这是正常的：它们由构建生成。如果还有别的地方报红，请看[第一次构建](docs/TROUBLESHOOTING.zh-CN.md#第一次构建)。
+构建运行之前，编辑器会把 `cobalt.g.dart` 和 `CobaltRoot` 标为不存在。这是正常的：它们由构建生成。如果还有别的地方报红，请看[第一次构建](docs/TROUBLESHOOTING.zh-CN.md#第一次构建)。
 
 `@cobaltInject` 注册一个类。`Greeter` 在构造函数里要一个 `Clock`，生成器在 `lib/cobalt.g.dart` 里把两者连起来。`CobaltAppScope` 在应用启动时构建图，在应用退出时关闭它；`context.cobalt<Greeter>()` 从图中读取。同一个应用，外加一个替换时钟的测试，在 [`examples/hello`](examples/hello)。
 
@@ -127,6 +127,7 @@ flutter run
 | **一步一步，用生成器** | [GUIDE_CODEGEN.zh-CN.md](GUIDE_CODEGEN.zh-CN.md) |
 | **一步一步，不用代码生成** | [GUIDE_MANUAL.zh-CN.md](GUIDE_MANUAL.zh-CN.md) |
 | **从 get_it、injectable 或 provider 迁移** | [MIGRATION.zh-CN.md](MIGRATION.zh-CN.md) |
+| **怎么做某件事** | [docs/RECIPES.zh-CN.md](docs/RECIPES.zh-CN.md)：会话、界面作用域、bloc、流程、测试 |
 | **出错了** | [docs/TROUBLESHOOTING.zh-CN.md](docs/TROUBLESHOOTING.zh-CN.md)——每个错误，以及怎么处理 |
 | **全部特性、工作原理、兼容性、性能** | [docs/OVERVIEW.zh-CN.md](docs/OVERVIEW.zh-CN.md) |
 | **一个应用看全部特性** | `cd examples/gallery && flutter run` |
@@ -158,6 +159,10 @@ flutter run
 | `cobalt_talker_flutter` | `cobalt_inspector`、`cobalt_talker`、`talker_flutter` | 仅 dev_dependency |
 
 </details>
+
+## 去哪里提问
+
+关于怎么做某件事的问题请到 [Discussions](https://github.com/rutikeyone/cobalt/discussions)。和文档描述不符的问题请提交 [issue](https://github.com/rutikeyone/cobalt/issues/new/choose)，不过先看一眼 [docs/TROUBLESHOOTING.zh-CN.md](docs/TROUBLESHOOTING.zh-CN.md)：Cobalt 抛出的每个错误都链接到那里的对应条目。
 
 ## 环境要求
 

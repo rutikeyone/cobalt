@@ -230,6 +230,9 @@ The generator stops the build with a message that says what to change. The usual
 - **A dependency nothing registers.** The same fix as
   [CobaltNotRegisteredError](#cobaltnotregisterederror): annotate the class, or name it in
   `@CobaltScopeRoot(provides: [...])`. The message lists every gap at once.
+- **`requires int` for a parameter with a default value.** A default applies only to a parameter the
+  generator can leave out: a named one, or a positional one at the end. Before an injected
+  positional parameter it cannot be skipped, and the message says so; make it named.
 - **Two `@CobaltScopeRoot` classes in one package.** A package has one generated root. Keep one.
 - **A dependency cycle.** See [CobaltCycleError](#cobaltcycleerror).
 - **An abstract class with `@CobaltInject`.** The generator cannot build it. Annotate a concrete
@@ -237,7 +240,8 @@ The generator stops the build with a message that says what to change. The usual
 - **A generic class with `@CobaltInject`.** The message says the class declares type parameters, so
   there is no single instantiation to register. Name the ones it registers, every type argument
   spelled out: `@CobaltInject(instantiations: [Cache<Note>, Cache<User>])`. A raw `Cache` in the list
-  reads as `Cache<dynamic>` and is rejected, and so is `exposeAs` beside `instantiations`.
+  reads as `Cache<dynamic>` and is rejected. Beside `instantiations`, `exposeAs` is written without
+  type arguments and names a generic type the class implements: `exposeAs: Store`.
 - **`@injected` fields on a generic class that do not compile.** The class mixes in its mixin with
   its type parameters: `class Cache<T> with _$Cache<T>`. A bare `with _$Cache` leaves them out.
 
@@ -249,7 +253,7 @@ you run the build.
 
 What a new app shows on the way through the [Quick start](../README.md#quick-start):
 
-- **`Target of URI hasn't been generated: 'cobalt.g.dart'`, and `$CobaltRootScope` is not a class.**
+- **`Target of URI hasn't been generated: 'cobalt.g.dart'`, and `CobaltRoot` is not a class.**
   The generator has not run yet. Run `dart run build_runner build`, and again after you change an
   annotation; `dart run build_runner watch` keeps the file current while you work.
 - **`The name 'MyApp' isn't a class` in `test/widget_test.dart`.** That test came with
@@ -257,3 +261,7 @@ What a new app shows on the way through the [Quick start](../README.md#quick-sta
   [`examples/hello/test`](../examples/hello/test) has a test for the new app.
 - **`The imported package 'cobalt' isn't a dependency` in `lib/cobalt.g.dart`.** The generated code
   imports the runtime directly, so the app has to depend on it: `flutter pub add cobalt`.
+- **`Classes can only mix in mixins and classes`, or `Undefined class '_$Foo'`.** The class mixes in
+  its generated `_$Foo`, but the file does not include the part it lives in. Add
+  `part 'foo.g.dart';` under the imports and run the build; the quick fix of
+  `cobalt_missing_injection_mixin` writes both.

@@ -68,7 +68,7 @@ class Greeter {
 
 void main() => runApp(
   MaterialApp(
-    builder: CobaltAppScope.builder(root: const $CobaltRootScope()),
+    builder: CobaltAppScope.builder(root: const CobaltRoot()),
     home: const HomeScreen(),
   ),
 );
@@ -86,7 +86,7 @@ class HomeScreen extends StatelessWidget {
 
 1. **Annotate.** `@cobaltInject` registers `Clock` and `Greeter`. `Greeter` asks for a `Clock` in
    its constructor, and that is all the wiring you write.
-2. **Generate.** `dart run build_runner build` writes `lib/cobalt.g.dart`, whose `$CobaltRootScope`
+2. **Generate.** `dart run build_runner build` writes `lib/cobalt.g.dart`, whose `CobaltRoot`
    connects the two. Delete `test/widget_test.dart`, which tests the counter app that is gone, then
    `flutter run`. Anything else in red is in
    [the first build](https://github.com/rutikeyone/cobalt/blob/main/docs/TROUBLESHOOTING.md#the-first-build).

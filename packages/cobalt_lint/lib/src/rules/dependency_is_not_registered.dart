@@ -131,7 +131,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // nothing registers an `int`. Without this the rule reports every
       // parameterized class as broken.
       for (final parameter in declaration.constructorParameters)
-        if (!parameter.isParam) parameter.type,
+        if (!parameter.isParam && !parameter.hasDefault) parameter.type,
       for (final property in declaration.properties) property.type,
       ...declaration.dependsOn,
     ];

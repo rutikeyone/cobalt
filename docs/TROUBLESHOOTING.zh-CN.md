@@ -182,10 +182,11 @@ override 什么也没替换。
 生成器会用一条说明要改什么的消息停止构建。常见情况：
 
 - **没人注册的依赖。** 修法和 [CobaltNotRegisteredError](#cobaltnotregisterederror) 一样：给类加注解，或把它写进 `@CobaltScopeRoot(provides: [...])`。消息会一次列出所有缺口。
+- **带默认值的参数报 `requires int`。** 只有生成器能省略的参数才会用上默认值：命名参数，或末尾的位置参数。如果它后面还有要注入的位置参数，就不能跳过，消息会说明这一点；把它改成命名参数。
 - **一个包里有两个 `@CobaltScopeRoot` 类。** 一个包只有一个生成的根。保留一个。
 - **依赖循环。** 见 [CobaltCycleError](#cobaltcycleerror)。
 - **带 `@CobaltInject` 的抽象类。** 生成器无法构建它。给具体类加注解，并以接口暴露它：`@CobaltInject(exposeAs: ApiClient)`。
-- **带 `@CobaltInject` 的泛型类。** 消息会说这个类声明了类型参数，因此没有唯一的具体化可以注册。请列出它要注册的具体化，并写全每个类型实参：`@CobaltInject(instantiations: [Cache<Note>, Cache<User>])`。列表里裸写的 `Cache` 会被读成 `Cache<dynamic>` 并被拒绝；`exposeAs` 与 `instantiations` 同时出现也同样会被拒绝。
+- **带 `@CobaltInject` 的泛型类。** 消息会说这个类声明了类型参数，因此没有唯一的具体化可以注册。请列出它要注册的具体化，并写全每个类型实参：`@CobaltInject(instantiations: [Cache<Note>, Cache<User>])`。列表里裸写的 `Cache` 会被读成 `Cache<dynamic>` 并被拒绝。与 `instantiations` 一起用时，`exposeAs` 不写类型实参，并且要写类实现的泛型类型：`exposeAs: Store`。
 - **泛型类上的 `@injected` 字段编译不过。** 类要带着自己的类型参数混入 mixin：`class Cache<T> with _$Cache<T>`。只写 `with _$Cache` 会丢掉类型参数。
 
 检查如何工作，见 [GUIDE_CODEGEN.zh-CN.md](../GUIDE_CODEGEN.zh-CN.md#5-图必须是完整的)；[lint 插件](../GUIDE_CODEGEN.zh-CN.md#16-lint-插件)能在构建之前就在编辑器里显示其中大部分问题。
@@ -194,6 +195,7 @@ override 什么也没替换。
 
 按[快速开始](../README.zh-CN.md#快速开始)走一遍时，新应用可能出现的提示：
 
-- **`Target of URI hasn't been generated: 'cobalt.g.dart'`，以及 `$CobaltRootScope` 不是类。** 生成器还没有运行。执行 `dart run build_runner build`，每次修改注解后再执行一次；开发时用 `dart run build_runner watch` 让文件保持最新。
+- **`Target of URI hasn't been generated: 'cobalt.g.dart'`，以及 `CobaltRoot` 不是类。** 生成器还没有运行。执行 `dart run build_runner build`，每次修改注解后再执行一次；开发时用 `dart run build_runner watch` 让文件保持最新。
 - **`test/widget_test.dart` 里的 `The name 'MyApp' isn't a class`。** 这个测试是 `flutter create` 生成的，测的是你已经替换掉的计数器应用。删掉它；新应用的测试见 [`examples/hello/test`](../examples/hello/test)。
 - **`lib/cobalt.g.dart` 里的 `The imported package 'cobalt' isn't a dependency`。** 生成的代码直接导入运行时，所以应用必须依赖它：`flutter pub add cobalt`。
+- **`Classes can only mix in mixins and classes` 或 `Undefined class '_$Foo'`。** 类混入了生成的 `_$Foo`，但文件没有包含它所在的 part。在 import 下面加上 `part 'foo.g.dart';` 并运行构建；`cobalt_missing_injection_mixin` 的快速修复会把两者都写上。

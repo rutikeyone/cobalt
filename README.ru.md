@@ -66,7 +66,7 @@ class Greeter {
 
 void main() => runApp(
   MaterialApp(
-    builder: CobaltAppScope.builder(root: const $CobaltRootScope()),
+    builder: CobaltAppScope.builder(root: const CobaltRoot()),
     home: const HomeScreen(),
   ),
 );
@@ -92,7 +92,7 @@ dart run build_runner build
 flutter run
 ```
 
-Пока сборка не запускалась, редактор подчеркивает `cobalt.g.dart` и `$CobaltRootScope` как
+Пока сборка не запускалась, редактор подчеркивает `cobalt.g.dart` и `CobaltRoot` как
 несуществующие. Так и должно быть: их пишет сборка. Если покраснело что-то еще, смотрите [первую сборку](docs/TROUBLESHOOTING.ru.md#первая-сборка).
 
 `@cobaltInject` регистрирует класс. `Greeter` просит `Clock` в конструкторе, и генератор связывает их
@@ -147,6 +147,7 @@ flutter run
 | **По шагам, с генератором** | [GUIDE_CODEGEN.ru.md](GUIDE_CODEGEN.ru.md) |
 | **По шагам, без кодогенерации** | [GUIDE_MANUAL.ru.md](GUIDE_MANUAL.ru.md) |
 | **Переход с get_it, injectable или provider** | [MIGRATION.ru.md](MIGRATION.ru.md) |
+| **Как сделать X** | [docs/RECIPES.ru.md](docs/RECIPES.ru.md): сессия, скоуп экрана, блок, флоу, тест |
 | **Что-то упало** | [docs/TROUBLESHOOTING.ru.md](docs/TROUBLESHOOTING.ru.md) — все ошибки и что с ними делать |
 | **Все возможности, устройство, совместимость, производительность** | [docs/OVERVIEW.ru.md](docs/OVERVIEW.ru.md) |
 | **Все возможности в одном приложении** | `cd examples/gallery && flutter run` |
@@ -179,6 +180,14 @@ flutter run
 | `cobalt_talker_flutter` | `cobalt_inspector`, `cobalt_talker`, `talker_flutter` | только dev_dependency |
 
 </details>
+
+## Где спросить
+
+Вопрос о том, как что-то сделать, задавайте в
+[Discussions](https://github.com/rutikeyone/cobalt/discussions). То, что работает не так, как
+написано в документации, в [issues](https://github.com/rutikeyone/cobalt/issues/new/choose), но
+сначала загляните в [docs/TROUBLESHOOTING.ru.md](docs/TROUBLESHOOTING.ru.md): каждая ошибка Cobalt
+ссылается на свой раздел там.
 
 ## Требования
 

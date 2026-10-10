@@ -68,10 +68,26 @@ abstract base class CobaltObserver {
     required bool retained,
   }) {}
 
+  /// How much of the build [onInstanceBuilt] reports next was spent on [key]
+  /// itself: its time without the builds it waited on, whether it resolved
+  /// them in its constructor, through `@injected` fields or in an async
+  /// factory.
+  ///
+  /// Comes between [onInstanceCreated] and [onInstanceBuilt] for the same
+  /// build, so an observer can carry it into whatever it writes for the
+  /// build. Dependencies awaited side by side overlap, and their times add up
+  /// to more than the wait, so for such a build [self] is a lower bound; it
+  /// is never below zero.
+  ///
+  /// A separate event rather than a parameter of [onInstanceBuilt], so an
+  /// observer written before it existed keeps compiling.
+  void onInstanceSelfTime(CobaltScopeRef scope, CobaltKey key, Duration self) {}
+
   /// The instance [onInstanceCreated] just reported took [took] to build.
   ///
-  /// Called right after [onInstanceCreated], for the same build and in the
-  /// same order, and only for builds that event reports. [took] is the whole
+  /// Called right after [onInstanceCreated] and [onInstanceSelfTime], for the
+  /// same build and in the same order, and only for builds those events
+  /// report. [took] is the whole
   /// wall time from calling the factory to the instance being ready: the
   /// builds it resolved on the way are inside it, and so is every `await` of
   /// an async factory — a lazy singleton waiting for a slow dependency is slow

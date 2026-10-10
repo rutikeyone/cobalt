@@ -23,6 +23,7 @@ final class CobaltLogRecord {
     this.registrationKind,
     this.retained,
     this.took,
+    this.selfTook,
     this.error,
     this.stackTrace,
   });
@@ -63,6 +64,12 @@ final class CobaltLogRecord {
   /// Null for every other kind.
   final Duration? took;
 
+  /// How much of [took] the build spent on itself, without the builds it
+  /// waited on, for a creation event — see `CobaltObserver.onInstanceSelfTime`.
+  ///
+  /// Null for every other kind.
+  final Duration? selfTook;
+
   /// The failure, for warnings and errors.
   final Object? error;
 
@@ -93,6 +100,7 @@ final class CobaltLogRecord {
     if (registrationKind != null) 'lifetime': registrationKind!.name,
     if (retained != null) 'retained': retained,
     if (took != null) 'took_us': took!.inMicroseconds,
+    if (selfTook != null) 'self_us': selfTook!.inMicroseconds,
     if (error != null) 'error': error.toString(),
     if (stackTrace != null) 'stack_trace': stackTrace.toString(),
   };

@@ -233,6 +233,9 @@ Override ничего не заменил.
 - **Зависимость, которую никто не регистрирует.** Исправляется так же, как
   [CobaltNotRegisteredError](#cobaltnotregisterederror): поставьте аннотацию на класс или перечислите
   его в `@CobaltScopeRoot(provides: [...])`. Сообщение перечисляет все пробелы сразу.
+- **`requires int` у параметра со значением по умолчанию.** Значение по умолчанию работает, только
+  если генератор может параметр опустить: именованный или позиционный в конце. Перед внедряемым
+  позиционным его пропустить нельзя, и сообщение об этом говорит; сделайте параметр именованным.
 - **Два класса с `@CobaltScopeRoot` в одном пакете.** У пакета один сгенерированный корень. Оставьте
   один.
 - **Цикл зависимостей.** См. [CobaltCycleError](#cobaltcycleerror).
@@ -241,7 +244,8 @@ Override ничего не заменил.
 - **Обобщенный класс с `@CobaltInject`.** Сообщение говорит, что класс объявляет параметры типа и
   единственной инстанциации для регистрации нет. Назовите те, что он регистрирует, выписав каждый
   аргумент типа: `@CobaltInject(instantiations: [Cache<Note>, Cache<User>])`. Голый `Cache` в списке
-  читается как `Cache<dynamic>` и отвергается, как и `exposeAs` рядом с `instantiations`.
+  читается как `Cache<dynamic>` и отвергается. Рядом с `instantiations` `exposeAs` пишется без
+  аргументов типа и называет обобщенный тип, который класс реализует: `exposeAs: Store`.
 - **Поля `@injected` у обобщенного класса не компилируются.** Класс подмешивает миксин со своими
   параметрами типа: `class Cache<T> with _$Cache<T>`. Голый `with _$Cache` их теряет.
 
@@ -253,7 +257,7 @@ Override ничего не заменил.
 
 Что показывает новое приложение по ходу [быстрого старта](../README.ru.md#быстрый-старт):
 
-- **`Target of URI hasn't been generated: 'cobalt.g.dart'`, и `$CobaltRootScope` не класс.**
+- **`Target of URI hasn't been generated: 'cobalt.g.dart'`, и `CobaltRoot` не класс.**
   Генератор еще не запускался. Выполните `dart run build_runner build` и повторяйте после каждой
   правки аннотаций; `dart run build_runner watch` держит файл актуальным, пока вы работаете.
 - **`The name 'MyApp' isn't a class` в `test/widget_test.dart`.** Этот тест пришел с
@@ -261,3 +265,7 @@ Override ничего не заменил.
   приложения есть в [`examples/hello/test`](../examples/hello/test).
 - **`The imported package 'cobalt' isn't a dependency` в `lib/cobalt.g.dart`.** Сгенерированный код
   импортирует рантайм напрямую, поэтому приложение должно от него зависеть: `flutter pub add cobalt`.
+- **`Classes can only mix in mixins and classes` или `Undefined class '_$Foo'`.** Класс подмешивает
+  сгенерированный `_$Foo`, но файл не подключает part, где он лежит. Добавьте `part 'foo.g.dart';`
+  под импортами и запустите сборку; quick fix правила `cobalt_missing_injection_mixin` пишет и то,
+  и другое.

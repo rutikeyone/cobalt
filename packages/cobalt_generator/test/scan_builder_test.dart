@@ -282,6 +282,87 @@ class Cache<T> {
       });
     });
 
+    group('a generic class exposed under a generic interface', () {
+      Future<CobaltLibraryDeclarations> scan(String feed) async {
+        String? written;
+        await testBuilder(
+          builder,
+          {
+            ...deps,
+            '$_pkg|lib/exposed_caches.dart':
+                '''
+import 'package:cobalt_annotations/cobalt_annotations.dart';
+
+class Note {}
+
+class Tag {}
+
+abstract interface class Store<T> {}
+
+@CobaltInject(exposeAs: Store, instantiations: [Cache<Note>, Cache<Tag>])
+class Cache<T> implements Store<T> {
+  Cache();
+}
+
+@cobaltInject
+class Feed {
+  Feed(this.store);
+  final $feed store;
+}
+''',
+          },
+          packageConfig: packages,
+          generateFor: {'$_pkg|lib/exposed_caches.dart'},
+          outputs: {
+            '$_pkg|lib/exposed_caches.cobalt.json': decodedMatches(
+              predicate<String>((value) {
+                written = value;
+                return true;
+              }),
+            ),
+          },
+        );
+        return CobaltLibraryDeclarations.fromJson(
+          jsonDecode(written!) as Map<String, dynamic>,
+        );
+      }
+
+      test('registers each instantiation under its own interface', () async {
+        final source = const ContainerSourceEmitter()
+            .emit(await scan('Store<Note>'))
+            .replaceAll(RegExp(r'\s+'), ' ')
+            .replaceAll(RegExp(r'_i\d+\.'), '')
+            .replaceAll('( ', '(')
+            .replaceAll(', )', ')');
+
+        for (final type in ['Note', 'Tag']) {
+          expect(
+            source,
+            contains(
+              'scope.registerLazySingleton<Store<$type>>('
+              'const _CacheOf${type}Factory());',
+            ),
+          );
+        }
+        expect(source, contains('Feed(resolver.get<Store<Note>>())'));
+      });
+
+      test('an instantiation it does not list is missing', () async {
+        final declarations = await scan('Store<int>');
+
+        expect(
+          () => const ContainerSourceEmitter().emit(declarations),
+          throwsA(
+            isA<CobaltGenerationError>().having(
+              (error) => error.message,
+              'message',
+              contains('Feed requires Store<int>'),
+            ),
+          ),
+        );
+      });
+    });
+
     /// A parse failure is reported, not thrown: build_runner catches it and
     /// logs it at severe, which is what fails the build for a real consumer.
     test('reports a declaration it cannot parse, and writes nothing', () async {

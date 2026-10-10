@@ -20,7 +20,7 @@ final log = CobaltInspectorLog();
 void main() => runApp(
   MaterialApp(
     builder: CobaltAppScope.builder(
-      root: const $CobaltRootScope(),
+      root: const CobaltRoot(),
       observers: [log],
     ),
     home: const HomeScreen(),
@@ -88,9 +88,11 @@ with — the annotated class when the container is generated. Both come from `ov
 
 **Built** comes from creation events, and has to. A scope's registrations are what was *declared* —
 a lazy singleton nobody resolved looks there exactly like one that is built — so only an event
-proves an object exists. Each row carries how long its build took, and a build of at least
-`slowBuild` — one 60 Hz frame, 16 ms, by default in `CobaltInspectorThemeData` — is marked. A
-registration's sheet shows how long its last build took.
+proves an object exists. Each row carries how long the build took on its own, without the builds it
+waited on, with the whole time beside it when they differ; a build whose own time is at least
+`slowBuild` — one 60 Hz frame, 16 ms, by default in `CobaltInspectorThemeData` — is marked, so a
+class that only waited on a slow dependency is not. A registration's sheet shows how long its last
+build took, and how much of it without its dependencies.
 
 **Log** is everything, filterable by event kind.
 
@@ -180,7 +182,9 @@ MaterialApp(
 )
 ```
 
-To add a language, drop an `.arb` beside `l10n/inspector_en.arb` and run `flutter gen-l10n`.
+To add a language, drop an `.arb` beside `l10n/inspector_en.arb` and run `flutter gen-l10n`. The two
+build-time phrases added in 1.4.0 live in `lib/src/l10n/build_time_strings.dart` instead, so the
+exported `CobaltInspectorL10n` keeps its members; add the language there too.
 
 **The typeface is the host's too, and that one can go wrong quietly.** The inspector sets its text
 in whatever the ambient `Theme` provides, which is right — it should look like the app it is inside.
@@ -207,7 +211,7 @@ node. Reading it builds nothing: a lazy singleton nobody asked for is still unbu
 looked at it.
 
 **Built** comes from creation events, grouped by scope, by lifetime, or not at all — or sorted
-slowest first, each row with its build time.
+slowest first by their own time, each row with its build time.
 
 **Log** is the event stream, newest first, searchable, filtered by family, each row carrying its
 time and the gap since the one before. Tapping opens the record whole — error, stack and the

@@ -1,3 +1,10 @@
+## 1.4.0
+
+- No code changes in this package. Republished in lockstep with 1.4.0:
+  constructor defaults, `exposeAs` with `instantiations` and `CobaltRoot`
+  in `cobalt_generator`, build time without dependencies in `cobalt` and
+  `cobalt_inspector`, and recipes in the docs.
+
 ## 1.3.0
 
 - No code changes in this package. Republished in lockstep with 1.3.0:

@@ -32,6 +32,27 @@ class NoteEditor {
       );
     });
 
+    test('a default value is recorded on the parameter', () async {
+      final clazz = await classNamed('Api', '''
+class Clock {}
+
+@cobaltInject
+class Api {
+  Api(this.clock, {this.retries = 3});
+
+  final Clock clock;
+  final int retries;
+}
+''');
+
+      final parsed = parser.parseClass(clazz).single;
+
+      expect(parsed.constructorParameters.map((each) => each.hasDefault), [
+        false,
+        true,
+      ]);
+    });
+
     test('records whether the constructor takes it named', () async {
       final clazz = await classNamed('Api', '''
 class Logger {}
