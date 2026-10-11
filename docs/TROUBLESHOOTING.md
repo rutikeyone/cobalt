@@ -262,8 +262,8 @@ What a new app shows on the way through the [Quick start](../README.md#quick-sta
   The generator has not run yet. Run `dart run build_runner build`, and again after you change an
   annotation; `dart run build_runner watch` keeps the file current while you work.
 - **`The name 'MyApp' isn't a class` in `test/widget_test.dart`.** That test came with
-  `flutter create` and checks the counter app you replaced. Delete it;
-  [`examples/hello/test`](../examples/hello/test) has a test for the new app.
+  `flutter create` and checks the counter app you replaced. Replace it with the test in
+  [the Quick start](../README.md#quick-start).
 - **`The imported package 'cobalt' isn't a dependency` in `lib/cobalt.g.dart`.** The generated code
   imports the runtime directly, so the app has to depend on it: `flutter pub add cobalt`.
 - **`Classes can only mix in mixins and classes`, or `Undefined class '_$Foo'`.** The class mixes in

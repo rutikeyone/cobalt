@@ -80,7 +80,51 @@ class HomeScreen extends StatelessWidget {
 }
 ```
 
-同时删除 `test/widget_test.dart`：它测试的是 `flutter create` 生成的计数器应用，而那个应用已经不在了。
+同时替换 `test/widget_test.dart`。它测试的是 `flutter create` 生成的计数器应用；下面这个测试用一个总是报同一时间的时钟启动你的应用：
+
+```dart
+import 'package:cobalt_flutter/cobalt_flutter.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:my_app/cobalt.g.dart';
+import 'package:my_app/main.dart';
+
+class FixedClock implements Clock {
+  FixedClock(this.time);
+
+  final DateTime time;
+
+  @override
+  DateTime now() => time;
+}
+
+void main() {
+  Future<void> pumpAt(WidgetTester tester, DateTime time) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: CobaltAppScope.builder(
+          root: const CobaltRoot(),
+          overrides: () => [CobaltOverride<Clock>.value(FixedClock(time))],
+        ),
+        home: const HomeScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('greets in the morning', (tester) async {
+    await pumpAt(tester, DateTime(2026, 10, 7, 9));
+
+    expect(find.text('Good morning, Cobalt!'), findsOneWidget);
+  });
+
+  testWidgets('greets later in the day', (tester) async {
+    await pumpAt(tester, DateTime(2026, 10, 7, 15));
+
+    expect(find.text('Hello, Cobalt!'), findsOneWidget);
+  });
+}
+```
 
 生成连接代码并运行：
 

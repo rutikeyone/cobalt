@@ -26,4 +26,22 @@ void main() {
       );
     });
   }
+
+  final appTest = File(
+    '${root.path}/examples/hello/test/home_screen_test.dart',
+  ).readAsStringSync().replaceAll('package:hello/', 'package:my_app/');
+
+  for (final name in [
+    'README.md',
+    'README.ru.md',
+    'README.zh-CN.md',
+    'README.ko.md',
+  ]) {
+    test('$name shows the test of examples/hello for my_app', () {
+      expect(
+        File('${root.path}/$name').readAsStringSync(),
+        contains('```dart\n$appTest```'),
+      );
+    });
+  }
 }

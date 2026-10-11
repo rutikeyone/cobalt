@@ -266,8 +266,8 @@ Override ничего не заменил.
   Генератор еще не запускался. Выполните `dart run build_runner build` и повторяйте после каждой
   правки аннотаций; `dart run build_runner watch` держит файл актуальным, пока вы работаете.
 - **`The name 'MyApp' isn't a class` в `test/widget_test.dart`.** Этот тест пришел с
-  `flutter create` и проверяет приложение-счетчик, которое вы заменили. Удалите его; тест для нового
-  приложения есть в [`examples/hello/test`](../examples/hello/test).
+  `flutter create` и проверяет приложение-счетчик, которое вы заменили. Замените его тестом из
+  [быстрого старта](../README.ru.md#быстрый-старт).
 - **`The imported package 'cobalt' isn't a dependency` в `lib/cobalt.g.dart`.** Сгенерированный код
   импортирует рантайм напрямую, поэтому приложение должно от него зависеть: `flutter pub add cobalt`.
 - **`Classes can only mix in mixins and classes` или `Undefined class '_$Foo'`.** Класс подмешивает
