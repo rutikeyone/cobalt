@@ -118,7 +118,7 @@ runtime alone, in pure Dart.
   `await session.dispose()`: everything the session built is closed, newest first. No `reset()`
   methods, no listeners waiting for a logout event.
 - **Mistakes show up at build time.** A dependency nothing registers fails `build_runner` with a
-  message naming every gap at once. [Eighteen lint rules](packages/cobalt_lint/README.md) catch the
+  message naming every gap at once. [Twenty lint rules](packages/cobalt_lint/README.md) catch the
   rest in the editor.
 - **The generated code is plain Dart.** It uses only the public API, so you can read it — or skip the
   generator and write the same thing by hand. Both can live in one graph.

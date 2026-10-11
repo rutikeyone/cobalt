@@ -20,7 +20,7 @@
   빌드를 실패시키며, 빠진 것을 한 번에 모두 알려 줍니다.
 - **프로퍼티 주입**: `late final` 필드를 생성된 믹스인이 채우므로, 협력 객체가 다섯 개인 클래스도 생성자가
   비어 있습니다.
-- **린트 규칙 열여덟 개**: 나머지를 에디터에서 잡아냅니다.
+- **린트 규칙 스무 개**: 나머지를 에디터에서 잡아냅니다.
 
 이 중 아무것도 필요하지 않거나 기존 컨테이너를 점진적으로 마이그레이션하는 중이라면, 제너레이터 없이도 모든 것이
 동작합니다: [GUIDE_MANUAL.ko.md](GUIDE_MANUAL.ko.md).
@@ -1090,7 +1090,7 @@ if (environment.matches(const <String>{'dev', 'test'})) {
 
 ## 16. 린트 플러그인
 
-제너레이터가 쓰는 것과 같은 파싱 계층 위에 만든 규칙 열여덟 개이므로, 실수가 `build_runner`를 실행할 때만이
+제너레이터가 쓰는 것과 같은 파싱 계층 위에 만든 규칙 스무 개이므로, 실수가 `build_runner`를 실행할 때만이
 아니라 에디터에서 바로 드러납니다.
 
 ```yaml
@@ -1119,6 +1119,8 @@ plugins:
 | `cobalt_depends_on_lazy_registration` | 지연 비동기 등록을 지목하는 `@CobaltInit(dependsOn: [...])`. `init()`은 그것을 빌드하지 않습니다 |
 | `cobalt_override_needs_type_argument` | 타입 인자가 없는 `CobaltOverride` 또는 `CobaltParamOverride`. 이 경우 교체할 키를 Dart가 추론합니다 |
 | `cobalt_hook_added_too_late` | 같은 스코프에서 즉시 생성 등록이나 `get` 이후에 호출한 `hookAll`(같은 캐스케이드 안이든 블록의 앞부분이든). 스코프가 `CobaltHookError`로 거부하므로, 무엇이든 빌드되기 전에 훅을 추가하십시오 |
+| `cobalt_registration_is_not_generated` | 마지막 빌드 뒤에 어노테이션을 붙여 `lib/cobalt.g.dart`에 아직 없는 등록된 클래스. `build_runner`를 실행하십시오 |
+| `cobalt_bloc_provider_closes_a_scoped_bloc` | 스코프에서 읽은 bloc을 내주는 `BlocProvider(create:)`. 스코프가 아직 보유한 bloc을 닫으므로 `BlocProvider.value`를 쓰십시오 |
 
 이 중 일곱 개 규칙은 IDE에서 빠른 수정(quick fix)도 제공합니다. 빠진 `late final`, 믹스인, `@cobaltInject`,
 `lazy: true`, `implements Disposable`을 대신 써 줍니다. 어떤 규칙이 무엇을 고치는지는

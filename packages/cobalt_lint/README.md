@@ -97,6 +97,8 @@ The overrides above are gone from this repository's own copy now that `cobalt_li
 | `cobalt_depends_on_lazy_registration` | `@CobaltInit(dependsOn: [...])` naming a lazy async registration, which `init()` never builds |
 | `cobalt_override_needs_type_argument` | a `CobaltOverride` or `CobaltParamOverride` with no type argument, so Dart infers the key it replaces |
 | `cobalt_hook_added_too_late` | `hookAll` after an eager registration or a `get` on the same scope — in one cascade or earlier in the block — which the scope refuses with `CobaltHookError`; add hooks before anything is built |
+| `cobalt_registration_is_not_generated` | a registered class that `lib/cobalt.g.dart` does not mention yet, annotated after the last build: run `build_runner` |
+| `cobalt_bloc_provider_closes_a_scoped_bloc` | `BlocProvider(create:)` handing out a bloc read from a scope, which closes it while the scope still holds it: use `BlocProvider.value` |
 
 All rules are warnings, so they are on by default. Every rule reads annotations through
 `cobalt_analyzer`, the same layer the generator uses.
@@ -114,6 +116,7 @@ Seven rules come with a quick fix, offered by the IDE on the diagnostic:
 | `cobalt_param_needs_an_injectable` | adds `@cobaltInject` above the class |
 | `cobalt_depends_on_lazy_registration` | replaces `dependsOn: [...]` with `lazy: true` |
 | `cobalt_registration_is_never_released` | implements `Disposable`, or `AsyncDisposable` when the teardown returns a `Future`, adds a `dispose()` calling the teardown when it has another name, and imports `package:cobalt/cobalt.dart` if needed |
+| `cobalt_bloc_provider_closes_a_scoped_bloc` | rewrites it to `BlocProvider.value(value: ...)` when `create` returns one expression and takes `_` or `context`, and there is no `lazy:` |
 
 A fix stays out of the menu where it cannot be sure of the result: `@cobaltInject` is not offered on
 an abstract class or where the annotations are imported with a prefix, and `Disposable` is not
@@ -133,7 +136,7 @@ registration are not retained. It also stays quiet when a `Disposable` from some
 the supertypes, because it matches by name rather than by library — a rule that cannot see the
 whole graph should fail towards silence.
 
-Thirteen of the eighteen rules answer a question about one declaration or one expression. The
+Fifteen of the twenty rules answer a question about one declaration or one expression. The
 other five — `cobalt_dependency_is_not_registered`, `cobalt_dependency_cycle`,
 `cobalt_lazy_registration_injected_synchronously`, `cobalt_depends_on_lazy_registration` and
 `cobalt_async_transient_read_synchronously` — answer one about the whole package, and the

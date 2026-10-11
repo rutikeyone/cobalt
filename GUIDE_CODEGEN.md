@@ -18,7 +18,7 @@ What the build step buys you, and what this document is mostly about:
   gap at once, instead of failing on whichever screen resolves it first;
 - **property injection** — `late final` fields filled by a generated mixin, so a class with five
   collaborators has an empty constructor;
-- **eighteen lint rules** that catch the rest in the editor.
+- **twenty lint rules** that catch the rest in the editor.
 
 If you want none of that, or you are migrating an existing container gradually, everything works
 without the generator: [GUIDE_MANUAL.md](GUIDE_MANUAL.md).
@@ -1102,7 +1102,7 @@ nothing registers, where it silently does nothing.
 
 ## 16. The lint plugin
 
-Eighteen rules, built on the same parsing layer the generator uses, so a mistake surfaces in the editor
+Twenty rules, built on the same parsing layer the generator uses, so a mistake surfaces in the editor
 rather than only when `build_runner` runs.
 
 ```yaml
@@ -1131,6 +1131,8 @@ plugins:
 | `cobalt_depends_on_lazy_registration` | `@CobaltInit(dependsOn: [...])` naming a lazy async registration, which `init()` never builds |
 | `cobalt_override_needs_type_argument` | a `CobaltOverride` or `CobaltParamOverride` with no type argument, so Dart infers the key it replaces |
 | `cobalt_hook_added_too_late` | `hookAll` after an eager registration or a `get` on the same scope — in one cascade or earlier in the block — which the scope refuses with `CobaltHookError`; add hooks before anything is built |
+| `cobalt_registration_is_not_generated` | a registered class that `lib/cobalt.g.dart` does not mention yet, annotated after the last build: run `build_runner` |
+| `cobalt_bloc_provider_closes_a_scoped_bloc` | `BlocProvider(create:)` handing out a bloc read from a scope, which closes it while the scope still holds it: use `BlocProvider.value` |
 
 Seven of the rules also offer a quick fix in the IDE: it writes the missing `late final`, mixin,
 `@cobaltInject`, `lazy: true` or `implements Disposable` for you. The

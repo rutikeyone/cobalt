@@ -1236,7 +1236,7 @@ class AppScope implements CobaltScopeBuilder {
 
 - **빌드 시점의 완전성 검사**: 테스트 시점에 `expectGraphResolves`로 하던 검사를 대신합니다.
 - **프로퍼티 주입**: 협력 객체가 다섯 개 이상으로 늘어난 생성자를 비웁니다.
-- **린트 규칙 열여덟 개**: §14의 실수를 에디터에서 잡아냅니다.
+- **린트 규칙 스무 개**: §14의 실수를 에디터에서 잡아냅니다.
 
 그대로 유지되는 것: 스코프, 해제, 두 단계, 파라미터가 있는 등록, 관측성, 테스트. 이어지는 내용은
 [GUIDE_CODEGEN.ko.md](GUIDE_CODEGEN.ko.md)가 다루며, `get_it`이나 `injectable`에서 옮겨 오는 경우는

@@ -111,7 +111,7 @@ class CounterCubit extends Cubit<int> with CobaltBloc {
 }
 ```
 
-像注册其他类一样注册它，用 `@cobaltInject` 或 `registerLazySingleton`。交给控件树时用 `BlocProvider.value`，不要用 `BlocProvider(create:)`：后者会在卸载时关闭 bloc，而作用域仍然持有它。对于无法混入 mixin 的 bloc，在注册处写 `dispose: closeBloc` 效果相同。代码来自 [`packages/cobalt_bloc/test`](../packages/cobalt_bloc/test)。
+像注册其他类一样注册它，用 `@cobaltInject` 或 `registerLazySingleton`。交给控件树时用 `BlocProvider.value`，不要用 `BlocProvider(create:)`：后者会在卸载时关闭 bloc，而作用域仍然持有它；`cobalt_lint` 会在编辑器里指出并改写。对于无法混入 mixin 的 bloc，在注册处写 `dispose: closeBloc` 效果相同。代码来自 [`packages/cobalt_bloc/test`](../packages/cobalt_bloc/test)。
 
 ## go_router 上的流程
 

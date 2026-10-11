@@ -125,7 +125,7 @@ class CounterCubit extends Cubit<int> with CobaltBloc {
 
 다른 클래스처럼 `@cobaltInject`나 `registerLazySingleton`으로 등록합니다. 위젯 트리에는
 `BlocProvider.value`로 넘기고 `BlocProvider(create:)`는 쓰지 마십시오. 후자는 언마운트될 때 bloc을 닫지만
-스코프는 여전히 그것을 들고 있습니다. 믹스인을 섞을 수 없는 bloc에는 등록에서 `dispose: closeBloc`가 같은
+스코프는 여전히 그것을 들고 있습니다. `cobalt_lint`가 에디터에서 이를 알려 주고 고쳐 씁니다. 믹스인을 섞을 수 없는 bloc에는 등록에서 `dispose: closeBloc`가 같은
 일을 합니다. 코드는 [`packages/cobalt_bloc/test`](../packages/cobalt_bloc/test)에서 가져왔습니다.
 
 ## go_router 위의 플로우

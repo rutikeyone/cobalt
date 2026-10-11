@@ -125,7 +125,8 @@ class CounterCubit extends Cubit<int> with CobaltBloc {
 
 Регистрируйте его как любой класс, через `@cobaltInject` или `registerLazySingleton`. В дерево
 виджетов отдавайте через `BlocProvider.value`, а не `BlocProvider(create:)`: второй закроет блок при
-размонтировании, хотя скоуп все еще его держит. Для блока, в который миксин не подмешать, то же самое
+размонтировании, хотя скоуп все еще его держит; `cobalt_lint` показывает это в редакторе и
+переписывает вызов. Для блока, в который миксин не подмешать, то же самое
 делает `dispose: closeBloc` в регистрации. Код взят из
 [`packages/cobalt_bloc/test`](../packages/cobalt_bloc/test).
 

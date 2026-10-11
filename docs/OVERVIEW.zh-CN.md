@@ -41,7 +41,7 @@
 | **可观测性** | 类型化事件而不是字符串——日志、结构化上报，以及带线索的崩溃报告 |
 | **应用内检查器** | 实时作用域树、构建了什么及其生命周期，以及上报过的一切 |
 | **导航流程** | 生命周期即一段 go_router 流程的作用域，并且没有任何东西去镜像路由 |
-| **lint 插件** | 十八条规则，建立在生成器所用的同一套解析层上 |
+| **lint 插件** | 二十条规则，建立在生成器所用的同一套解析层上 |
 | **依赖覆盖** | 在注册所属的作用域里替换它，让每个消费者都看到替身——无论是在测试、风味构建还是调试菜单里 |
 | **测试辅助** | 随测试一起销毁的作用域，以及与生产环境同一套机制的依赖覆盖 |
 | **没有全局容器** | 没有任何东西是环境隐式的，所以测试可以并行，同一进程里的两张图互不相关 |
@@ -255,5 +255,5 @@ cd examples/gallery && flutter run
 [`cobalt_inspector` 的 README](../packages/cobalt_inspector/README.md)；
 示例如何接线，见[画廊的 README](../examples/gallery/README.md)。
 
-lint 插件的十八条规则列在 [`cobalt_lint` README](../packages/cobalt_lint/README.md) 和
+lint 插件的二十条规则列在 [`cobalt_lint` README](../packages/cobalt_lint/README.md) 和
 [GUIDE_CODEGEN.zh-CN.md](../GUIDE_CODEGEN.zh-CN.md#16-lint-插件) 中。

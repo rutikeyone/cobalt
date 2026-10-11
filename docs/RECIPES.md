@@ -125,7 +125,8 @@ class CounterCubit extends Cubit<int> with CobaltBloc {
 
 Register it like any other class, with `@cobaltInject` or `registerLazySingleton`. Hand it to the
 widget tree with `BlocProvider.value`, never `BlocProvider(create:)`: the latter closes the bloc when
-it unmounts, while the scope still holds it. For a bloc you cannot mix into, `dispose: closeBloc` at
+it unmounts, while the scope still holds it; `cobalt_lint` reports that in the editor and rewrites
+it. For a bloc you cannot mix into, `dispose: closeBloc` at
 the registration does the same. The code is from
 [`packages/cobalt_bloc/test`](../packages/cobalt_bloc/test).
 

@@ -9,7 +9,9 @@ import 'package:cobalt_lint/src/fixes/add_injection_mixin.dart';
 import 'package:cobalt_lint/src/fixes/implement_disposable.dart';
 import 'package:cobalt_lint/src/fixes/make_init_lazy.dart';
 import 'package:cobalt_lint/src/fixes/make_late_final.dart';
+import 'package:cobalt_lint/src/fixes/use_bloc_provider_value.dart';
 import 'package:cobalt_lint/src/rules/async_transient_read_synchronously.dart';
+import 'package:cobalt_lint/src/rules/bloc_provider_closes_a_scoped_bloc.dart';
 import 'package:cobalt_lint/src/rules/bootstrap_requires_run_method.dart';
 import 'package:cobalt_lint/src/rules/bootstrap_step_cannot_inject.dart';
 import 'package:cobalt_lint/src/rules/dependency_cycle.dart';
@@ -26,6 +28,7 @@ import 'package:cobalt_lint/src/rules/missing_injection_mixin.dart';
 import 'package:cobalt_lint/src/rules/override_needs_type_argument.dart';
 import 'package:cobalt_lint/src/rules/param_needs_an_injectable.dart';
 import 'package:cobalt_lint/src/rules/registration_is_never_released.dart';
+import 'package:cobalt_lint/src/rules/registration_is_not_generated.dart';
 import 'package:cobalt_lint/src/rules/resource_is_never_closed.dart';
 import 'package:analysis_server_plugin/plugin.dart';
 import 'package:analysis_server_plugin/registry.dart';
@@ -44,6 +47,7 @@ class _CobaltPlugin extends Plugin {
   @override
   void register(PluginRegistry registry) {
     registry.registerWarningRule(AsyncTransientReadSynchronously());
+    registry.registerWarningRule(BlocProviderClosesAScopedBloc());
     registry.registerWarningRule(BootstrapRequiresRunMethod());
     registry.registerWarningRule(BootstrapStepCannotInject());
     registry.registerWarningRule(DependencyCycle());
@@ -60,6 +64,7 @@ class _CobaltPlugin extends Plugin {
     registry.registerWarningRule(OverrideNeedsTypeArgument());
     registry.registerWarningRule(ParamNeedsAnInjectable());
     registry.registerWarningRule(RegistrationIsNeverReleased());
+    registry.registerWarningRule(RegistrationIsNotGenerated());
     registry.registerWarningRule(ResourceIsNeverClosed());
 
     registry.registerFixForRule(
@@ -69,6 +74,10 @@ class _CobaltPlugin extends Plugin {
     registry.registerFixForRule(
       MissingInjectionMixin.code,
       AddInjectionMixin.new,
+    );
+    registry.registerFixForRule(
+      BlocProviderClosesAScopedBloc.code,
+      UseBlocProviderValue.new,
     );
     registry.registerFixForRule(
       InjectedFieldNeedsAnInjectable.code,
