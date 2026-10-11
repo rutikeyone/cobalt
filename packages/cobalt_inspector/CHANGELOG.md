@@ -1,3 +1,8 @@
+## 1.5.0
+
+- A `promiseBroken` event is shown in the failure family. Requires
+  `cobalt` 1.5.0.
+
 ## 1.4.0
 
 - The Built tab shows each build's own time, without the builds it waited

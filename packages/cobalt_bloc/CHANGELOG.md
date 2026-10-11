@@ -1,3 +1,9 @@
+## 1.5.0
+
+- No code changes in this package. Republished in lockstep with 1.5.0:
+  generated child scopes in `cobalt_generator`, `CobaltScope.open` and
+  `CobaltRootBuilder` in `cobalt`, and two rules in `cobalt_lint`.
+
 ## 1.4.0
 
 - No code changes in this package. Republished in lockstep with 1.4.0:

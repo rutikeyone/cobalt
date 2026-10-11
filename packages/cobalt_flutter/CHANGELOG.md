@@ -1,3 +1,10 @@
+## 1.5.0
+
+- No code changes in this package. With `cobalt` 1.5.0, `CobaltAppScope`
+  starts the generated `CobaltRoot` under the name its `@CobaltScopeRoot`
+  gives. The README replaces `test/widget_test.dart` with the Quick start's
+  test rather than deleting it.
+
 ## 1.4.0
 
 - No code changes in this package. The README starts the app with

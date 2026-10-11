@@ -1,3 +1,8 @@
+## 1.5.0
+
+- `CobaltTalkerObserver` logs `onPromiseBroken` as a warning
+  `CobaltFailureLog`. Requires `cobalt` 1.5.0.
+
 ## 1.4.0
 
 - No code changes in this package. Republished in lockstep with 1.4.0:

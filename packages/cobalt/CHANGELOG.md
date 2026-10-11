@@ -1,3 +1,24 @@
+## 1.5.0
+
+- `CobaltScope.open(name, builder)` pushes a child scope, runs the builder
+  against it and initializes it, the three steps a session or a flow
+  needs. If the builder or `init()` throws, the child is disposed before
+  the error is rethrown.
+- `CobaltRootBuilder`, a root builder that names its scope and hands out
+  its bootstrap steps. `CobaltApplication.start` takes the name from it
+  when `rootName` is left at `'root'`. The steps run only where they are
+  passed, as `bootstrap: root.bootstrap`, so a test that starts the root
+  without them keeps doing so. The generated `CobaltRoot` extends it.
+- `CobaltScope.promise<T>()` says a key will be registered in the scope by
+  someone else. Once the builder has run, a promise nobody kept reaches
+  observers as `CobaltObserver.onPromiseBroken`, a new event with an empty
+  body; `CobaltRecordingObserver` writes it as a warning, and a debug build
+  also logs it to `dart:developer`. The generated root promises every type
+  in `@CobaltScopeRoot(provides: [...])`.
+- `CobaltEventKind.promiseBroken`. A new enum value is a minor change, so
+  an exhaustive `switch` over `CobaltEventKind` needs a case for it.
+- Exports `@CobaltChildScope` from `cobalt_annotations`.
+
 ## 1.4.0
 
 - `CobaltObserver.onInstanceSelfTime` says how much of a build was spent

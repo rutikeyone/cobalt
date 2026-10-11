@@ -1,3 +1,23 @@
+## 1.5.0
+
+- Child scopes. Each `@CobaltChildScope` marker gets a builder,
+  `final class SessionScope implements CobaltScopeBuilder`, that registers
+  the marker's values and every class with `scope: Session`. The
+  completeness check runs per scope along its `parent` chain: a
+  registration may inject what its scope, the scopes above it and the root
+  register, and the root injecting what only a child scope registers fails
+  the build naming that scope. Decorators and hooks stay in the root.
+- `$CobaltRootScope`, and with it `CobaltRoot`, extends `CobaltRootBuilder`:
+  it carries the name from `@CobaltScopeRoot` and, when the package has
+  bootstrap steps, a `bootstrap()` that returns new ones.
+  `CobaltAppScope.builder(root: const CobaltRoot())` starts under that
+  name. The root takes an `environment` whenever the bootstrap list
+  depends on one.
+- The root promises each type in `provides` with `scope.promise`, so a
+  promise the wrapping builder does not keep is reported at startup.
+- The generated code needs `cobalt` 1.5.0, which `cobalt_analyzer` 1.5.0
+  requires.
+
 ## 1.4.0
 
 - A constructor parameter with a default value is left out of the call

@@ -1,3 +1,10 @@
+## 1.5.0
+
+- Reads `@CobaltChildScope` into `CobaltChildScopeClass` (values, parent,
+  provides) and `scope:` into `CobaltInjectableClass.scope`;
+  `CobaltLibraryDeclarations.childScopes` carries the markers. Requires
+  `cobalt` and `cobalt_annotations` 1.5.0.
+
 ## 1.4.0
 
 - Internal: a constructor parameter records whether it has a default

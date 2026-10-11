@@ -1,3 +1,15 @@
+## 1.5.0
+
+- `cobalt_registration_is_not_generated` reports a registered class that
+  `lib/cobalt.g.dart` does not mention yet: it was annotated after the last
+  build. Silent before the first build.
+- `cobalt_bloc_provider_closes_a_scoped_bloc` reports
+  `BlocProvider(create:)` handing out a bloc read from a scope, which
+  closes it while the scope still holds it. Its quick fix rewrites the call
+  to `BlocProvider.value`.
+- The values and `provides` of a `@CobaltChildScope` count as registered.
+  Requires `cobalt_analyzer` 1.5.0.
+
 ## 1.4.0
 
 - The `cobalt_missing_injection_mixin` quick fix also writes the `part`
