@@ -403,6 +403,11 @@ A promise registers nothing; it only says something else will. `CobaltProvided(L
 promises a named one. Promise something and then fail to register it and you are back to a runtime
 failure — the list is a statement you are making, not one the generator can verify.
 
+The scope checks it instead, once the builder has run: a promised type nothing registered is reported
+to observers as `onPromiseBroken`, a warning in the log and in `cobalt_inspector`, and in a debug
+build also in the IDE console. It is not an error, because a test that starts `$startCobalt()` or
+`CobaltRoot` on its own breaks the promise on purpose.
+
 ---
 
 ## 7. Starting a Flutter app

@@ -490,6 +490,7 @@ final class $CobaltRootScope extends _i573.CobaltRootBuilder {
 
   @override
   void build(_i573.CobaltScope scope) {
+    scope.promise<_i829.DeviceInfo>();
     scope.hookAll<_i160.Traced>(_i160.LogTraced(), debugLabel: 'LogTraced');
     scope.registerAsyncSingleton<_i604.AuditSink>(const _AuditSinkFactory());
     scope.registerLazySingleton<_i612.Clock>(const _SystemClockFactory());

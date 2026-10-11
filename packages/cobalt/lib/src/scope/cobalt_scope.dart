@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:cobalt/src/bootstrap/cobalt_scope_builder.dart';
 import 'package:cobalt/src/decorator/cobalt_decorator.dart';
@@ -118,6 +119,7 @@ final class CobaltScope extends CobaltResolver {
 
   final _overriddenKeys = <CobaltKey>{};
   final _claimed = <CobaltKey>{};
+  final _promised = <CobaltKey>{};
   var _applyingOverrides = false;
 
   final _decorators = <CobaltKey, List<_Decoration>>{};
@@ -707,6 +709,17 @@ final class CobaltScope extends CobaltResolver {
     if (exact == null) return wide;
     return [...exact, ...wide]..sort((a, b) => a.order.compareTo(b.order));
   }
+
+  /// Says that [T] will be registered in this scope by someone else.
+  ///
+  /// Registers nothing. The generated container calls it for every type in
+  /// `@CobaltScopeRoot(provides: [...])`, which it counts as registered
+  /// without seeing who registers it. Once the builder returns, [runBuilder]
+  /// reports each promised key that was not registered here to observers
+  /// through `onPromiseBroken`, and in debug builds to `dart:developer`'s
+  /// log as well.
+  void promise<T extends Object>({String? name}) =>
+      _promised.add(CobaltKey(T, name: name));
 
   /// Registers [T] so every resolution builds a new instance.
   ///
@@ -2057,6 +2070,24 @@ final class CobaltScope extends CobaltResolver {
     }
     _assertOverridesClaimed();
     _assertDecoratorsOwned();
+    _reportBrokenPromises();
+  }
+
+  void _reportBrokenPromises() {
+    for (final key in _promised) {
+      if (_registrations.containsKey(key)) continue;
+      _notify((observer) => observer.onPromiseBroken(ref, key));
+      assert(() {
+        developer.log(
+          '$key was promised to scope "$name" through provides, but nothing '
+          'in that scope registered it. Register it in the builder that wraps '
+          'the generated one, or take it out of provides.',
+          name: 'cobalt',
+          level: 900,
+        );
+        return true;
+      }());
+    }
   }
 
   void _assertDecoratorsOwned() {

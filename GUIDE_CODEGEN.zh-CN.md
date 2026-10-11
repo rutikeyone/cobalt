@@ -380,6 +380,10 @@ class AppScope {
 承诺了却没有真的去注册，你就又回到了运行期故障——这份列表是你做出的声明，
 不是生成器能够核实的东西。
 
+改由作用域在 builder 运行完之后检查：被承诺却没人注册的类型会以 `onPromiseBroken` 报告给观察者，
+在日志和 `cobalt_inspector` 里是一条警告，debug 构建下还会出现在 IDE 控制台。它不是错误，
+因为单独启动 `$startCobalt()` 或 `CobaltRoot` 的测试是有意不兑现承诺的。
+
 ---
 
 ## 7. 启动 Flutter 应用

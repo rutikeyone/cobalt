@@ -17,6 +17,7 @@ class RootScopeEmitter {
     bool bootstrapUsesEnvironments = false,
     List<CobaltDecoratorClass> decorators = const [],
     List<CobaltHookClass> hooks = const [],
+    List<CobaltProvidedRef> promises = const [],
   }) {
     final takesEnvironment = usesEnvironments || bootstrapUsesEnvironments;
     return Class(
@@ -90,6 +91,7 @@ class RootScopeEmitter {
                 ),
               )
               ..body = Block.of([
+                for (final promise in promises) _promise(promise),
                 for (final hook in hooks)
                   guardedBy(hook.environments, _hook(hook)),
                 for (final declaration in ordered)
@@ -106,6 +108,18 @@ class RootScopeEmitter {
           ),
         ]),
     );
+  }
+
+  Code _promise(CobaltProvidedRef promise) {
+    final name = promise.name;
+    return refer('scope')
+        .property('promise')
+        .call(
+          const [],
+          {if (name != null) 'name': literalString(name)},
+          [typeReferenceOf(promise.type)],
+        )
+        .statement;
   }
 
   Code _hook(CobaltHookClass hook) => refer('scope').property('hookAll').call(

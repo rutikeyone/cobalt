@@ -119,6 +119,9 @@ class ContainerSourceEmitter {
               bootstrapUsesEnvironments: bootstrapUsesEnvironments,
               decorators: decorators,
               hooks: hooks,
+              promises: [
+                for (final root in declarations.scopeRoots) ...root.provides,
+              ],
             ),
           if (ordered.isNotEmpty || decorators.isNotEmpty || hooks.isNotEmpty)
             TypeDef(
