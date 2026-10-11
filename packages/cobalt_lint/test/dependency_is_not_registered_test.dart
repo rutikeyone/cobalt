@@ -112,6 +112,34 @@ class Profile {
 ''');
   }
 
+  void test_valueOfAChildScope_isClean() async {
+    newFile('$testPackageLibPath/session.dart', '''
+$cobaltImport
+
+class SessionUser {}
+class Draft {}
+
+@CobaltChildScope(provides: [Draft])
+class Session {
+  const Session(this.user);
+  final SessionUser user;
+}
+''');
+
+    await assertNoDiagnostics('''
+$cobaltImport
+
+import 'session.dart';
+
+@CobaltInject(scope: Session)
+class ActivityLog {
+  ActivityLog(this.user, this.draft);
+  final SessionUser user;
+  final Draft draft;
+}
+''');
+  }
+
   void test_promisedByName_isClean() async {
     newFile('$testPackageLibPath/app_scope.dart', '''
 $cobaltImport

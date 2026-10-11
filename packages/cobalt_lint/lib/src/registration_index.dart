@@ -254,6 +254,9 @@ class _IndexBuilder {
             _addArgumentList(annotation, 'dependsOn', wanted);
           case 'CobaltScopeRoot':
             _addArgumentList(annotation, 'provides', names);
+          case 'CobaltChildScope':
+            _addArgumentList(annotation, 'provides', names);
+            _addConstructorParameters(declaration, names);
           case 'CobaltModule':
           case 'cobaltModule':
             isModule = true;
