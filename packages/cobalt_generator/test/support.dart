@@ -48,6 +48,7 @@ CobaltInjectableClass declare(
   List<CobaltTypeRef> dependsOn = const [],
   Set<String> environments = const {},
   CobaltFunctionRef? dispose,
+  String? scope,
 }) => CobaltInjectableClass(
   type: ref(type),
   lifetime: lifetime,
@@ -60,6 +61,7 @@ CobaltInjectableClass declare(
   dependsOn: dependsOn,
   environments: environments,
   dispose: dispose,
+  scope: scope == null ? null : ref(scope),
 );
 
 CobaltBootstrapStepClass step(
@@ -101,6 +103,19 @@ CobaltInjectableClass provide(
     isGetter: isGetter,
   ),
   dispose: dispose,
+);
+
+/// A `@CobaltChildScope` marker whose constructor takes [values].
+CobaltChildScopeClass childScope(
+  String type, {
+  String? parent,
+  List<CobaltInjectedProperty> values = const [],
+  List<CobaltProvidedRef> provides = const [],
+}) => CobaltChildScopeClass(
+  type: ref(type),
+  parent: parent == null ? null : ref(parent),
+  values: values,
+  provides: provides,
 );
 
 CobaltProvidedRef provided(String type, {String? name}) =>
@@ -163,6 +178,7 @@ String generate(
   List<CobaltScopeRootClass> scopeRoots = const [],
   List<CobaltDecoratorClass> decorators = const [],
   List<CobaltHookClass> hooks = const [],
+  List<CobaltChildScopeClass> childScopes = const [],
 }) => const ContainerSourceEmitter().emit(
   CobaltLibraryDeclarations(
     injectables: injectables,
@@ -170,8 +186,18 @@ String generate(
     scopeRoots: scopeRoots,
     decorators: decorators,
     hooks: hooks,
+    childScopes: childScopes,
   ),
 );
+
+/// The generated class [name], from its declaration to the closing brace at
+/// the start of a line.
+String classOf(String source, String name) {
+  final start = source.indexOf(RegExp('final class ${RegExp.escape(name)} '));
+  if (start < 0) return '';
+  final end = source.indexOf('\n}\n', start);
+  return source.substring(start, end + 2);
+}
 
 /// Every `scope.hookAll` statement, each joined onto one line.
 List<String> hooksOf(String source) => [

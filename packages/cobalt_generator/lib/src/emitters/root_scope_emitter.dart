@@ -91,13 +91,13 @@ class RootScopeEmitter {
                 ),
               )
               ..body = Block.of([
-                for (final promise in promises) _promise(promise),
+                for (final entry in promises) promise(entry),
                 for (final hook in hooks)
                   guardedBy(hook.environments, _hook(hook)),
                 for (final declaration in ordered)
                   guardedBy(
                     declaration.environments,
-                    _register(declaration, names),
+                    registration(declaration, names),
                   ),
                 for (final decorator in decorators)
                   guardedBy(
@@ -110,14 +110,14 @@ class RootScopeEmitter {
     );
   }
 
-  Code _promise(CobaltProvidedRef promise) {
-    final name = promise.name;
+  Code promise(CobaltProvidedRef entry) {
+    final name = entry.name;
     return refer('scope')
         .property('promise')
         .call(
           const [],
           {if (name != null) 'name': literalString(name)},
-          [typeReferenceOf(promise.type)],
+          [typeReferenceOf(entry.type)],
         )
         .statement;
   }
@@ -141,7 +141,10 @@ class RootScopeEmitter {
     ).statement;
   }
 
-  Code _register(CobaltInjectableClass declaration, CobaltFactoryNames names) {
+  Code registration(
+    CobaltInjectableClass declaration,
+    CobaltFactoryNames names,
+  ) {
     final exposed = typeReferenceOf(declaration.exposedType);
     final factory = refer(names.of(declaration)).constInstance(const []);
 
