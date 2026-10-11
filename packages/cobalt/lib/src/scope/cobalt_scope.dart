@@ -505,6 +505,43 @@ final class CobaltScope extends CobaltResolver {
     return child;
   }
 
+  /// Pushes a child scope, runs [builder] against it and initializes it.
+  ///
+  /// The three steps a session or a flow needs, in the order they must run:
+  ///
+  /// ```dart
+  /// final session = await app.open('session', SessionScope(user));
+  /// // later
+  /// await session.dispose();
+  /// ```
+  ///
+  /// [observers] and [overrides] are as for [push]; [initTimeout] is passed to
+  /// [init]. If the builder or init throws, the child is disposed before the
+  /// error reaches the caller, so nothing it built is left behind. A failure
+  /// of that teardown is reported to observers through `onScopeDisposed` and
+  /// not thrown, because the original error is the one to read.
+  Future<CobaltScope> open(
+    String childName,
+    CobaltScopeBuilder builder, {
+    List<CobaltObserver> observers = const [],
+    List<CobaltOverride<Object>> overrides = const [],
+    Duration? initTimeout,
+  }) async {
+    final child = push(childName, observers: observers, overrides: overrides);
+    try {
+      child.runBuilder(builder);
+      await child.init(timeout: initTimeout);
+    } catch (_) {
+      try {
+        await child.dispose();
+      } on CobaltDisposeError {
+        // Already reported through onScopeDisposed; see above.
+      }
+      rethrow;
+    }
+    return child;
+  }
+
   /// Refuses a list of overrides before any scope exists to hold it.
   ///
   /// Checked up front rather than while applying, because a failure halfway

@@ -436,6 +436,15 @@ it takes everything below it with it.
 ### A session
 
 ```dart
+class SessionScope implements CobaltScopeBuilder {
+  const SessionScope();
+
+  @override
+  void build(CobaltScope scope) => scope
+    ..registerLazySingleton<Draft>(const DraftFactory())
+    ..registerLazySingleton<SyncQueue>(const SyncQueueFactory());
+}
+
 class SessionManager {
   SessionManager(this._root);
 
@@ -443,10 +452,8 @@ class SessionManager {
   CobaltScope? _session;
 
   Future<void> signIn(User user) async {
-    _session = _root.push('session:${user.id}')
-      ..registerLazySingleton<Draft>(const DraftFactory())
-      ..registerLazySingleton<SyncQueue>(const SyncQueueFactory());
-    await _session!.init();
+    await signOut();
+    _session = await _root.open('session:${user.id}', const SessionScope());
   }
 
   Future<void> signOut() async {
@@ -459,9 +466,10 @@ class SessionManager {
 Logout is `await scope.dispose()`. No repository subscribes to a session stream, and no domain
 interface grows a `reset()` method it did not want.
 
-`push` returns the child immediately; `init()` runs its async registrations. Call `init()` even when
-there are none — it is cheap, idempotent, and means adding an async registration later does not
-change the call site.
+`open` pushes the child, runs the builder against it and awaits `init()`, which builds its async
+registrations. If the builder or `init()` throws, the child is disposed before the error reaches you,
+so a failed sign-in leaves nothing behind. The same three steps by hand are `push`, `runBuilder` and
+`init()`, for when something has to happen between them.
 
 ### A screen
 

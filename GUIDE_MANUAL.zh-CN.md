@@ -406,6 +406,15 @@ final scope = context.cobaltScope;
 ### 会话
 
 ```dart
+class SessionScope implements CobaltScopeBuilder {
+  const SessionScope();
+
+  @override
+  void build(CobaltScope scope) => scope
+    ..registerLazySingleton<Draft>(const DraftFactory())
+    ..registerLazySingleton<SyncQueue>(const SyncQueueFactory());
+}
+
 class SessionManager {
   SessionManager(this._root);
 
@@ -413,10 +422,8 @@ class SessionManager {
   CobaltScope? _session;
 
   Future<void> signIn(User user) async {
-    _session = _root.push('session:${user.id}')
-      ..registerLazySingleton<Draft>(const DraftFactory())
-      ..registerLazySingleton<SyncQueue>(const SyncQueueFactory());
-    await _session!.init();
+    await signOut();
+    _session = await _root.open('session:${user.id}', const SessionScope());
   }
 
   Future<void> signOut() async {
@@ -429,9 +436,10 @@ class SessionManager {
 登出就是 `await scope.dispose()`。没有仓储去订阅会话流，
 也没有领域接口被迫长出一个它并不想要的 `reset()`。
 
-`push` 立刻返回子作用域，`init()` 负责构建它的异步注册。
-即使没有异步注册也请调用 `init()`：它很便宜、幂等，
-而且这样一来以后新增一个异步注册就不必改动调用处。
+`open` 压入子作用域，在它上面运行 builder，并等待 `init()` 构建它的异步注册。
+builder 或 `init()` 抛出异常时，子作用域会在错误到达你之前被释放，
+所以登录失败不会留下任何东西。手动完成同样三步是 `push`、`runBuilder` 和 `init()`，
+适用于三步之间还要做别的事的情况。
 
 ### 界面
 

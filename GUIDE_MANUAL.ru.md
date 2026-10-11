@@ -438,6 +438,15 @@ final scope = context.cobaltScope;
 ### Сессия
 
 ```dart
+class SessionScope implements CobaltScopeBuilder {
+  const SessionScope();
+
+  @override
+  void build(CobaltScope scope) => scope
+    ..registerLazySingleton<Draft>(const DraftFactory())
+    ..registerLazySingleton<SyncQueue>(const SyncQueueFactory());
+}
+
 class SessionManager {
   SessionManager(this._root);
 
@@ -445,10 +454,8 @@ class SessionManager {
   CobaltScope? _session;
 
   Future<void> signIn(User user) async {
-    _session = _root.push('session:${user.id}')
-      ..registerLazySingleton<Draft>(const DraftFactory())
-      ..registerLazySingleton<SyncQueue>(const SyncQueueFactory());
-    await _session!.init();
+    await signOut();
+    _session = await _root.open('session:${user.id}', const SessionScope());
   }
 
   Future<void> signOut() async {
@@ -461,8 +468,10 @@ class SessionManager {
 Логаут — это `await scope.dispose()`. Ни один репозиторий не подписывается на сессионный стрим, и ни
 один доменный интерфейс не обрастает методом `reset()`, которого он не хотел.
 
-`push` отдаёт ребёнка сразу, `init()` строит его async-регистрации. Зовите `init()` даже когда их
-нет: он дёшев, идемпотентен, и тогда добавление async-регистрации позже не меняет место вызова.
+`open` создает дочерний скоуп, выполняет над ним builder и ждет `init()`, который строит его
+async-регистрации. Если builder или `init()` бросает исключение, дочерний скоуп закрывается до того,
+как ошибка дойдет до вас, так что неудачный вход ничего после себя не оставляет. Те же три шага вручную:
+`push`, `runBuilder` и `init()`, когда между ними нужно что-то сделать.
 
 ### Экран
 
