@@ -15,40 +15,41 @@ copied from those files and a test checks it against them, so it runs as shown.
 
 ## A signed-in session
 
-What a session holds goes into a scope of its own, pushed when the user signs in and disposed when
+What a session holds goes into a scope of its own, opened when the user signs in and disposed when
 they sign out. Everything built in it is closed with it, newest first, so no repository needs a
-`reset()`. The scope says what a session holds:
+`reset()`. A marker says what the session is opened with:
 
-<!-- from: examples/notes_app/lib/features/session/session_scope.dart -->
+<!-- from: examples/notes_app/lib/features/session/session.dart -->
 
 ```dart
-class SessionScope implements CobaltScopeBuilder {
-  const SessionScope(this.user);
+@CobaltChildScope()
+class Session {
+  const Session(this.user);
 
   final SessionUser user;
-
-  @override
-  void build(CobaltScope scope) {
-    scope
-      ..registerSingleton<SessionUser>(user)
-      ..registerLazySingleton<SessionActivityLog>(
-        const SessionActivityLogFactory(),
-      );
-  }
 }
 ```
 
-Signing in pushes it under the app scope and starts it; signing out disposes it:
+A class that lives in the session names it, and may inject what the session and the app register:
+
+<!-- from: examples/notes_app/lib/features/session/data/session_activity_log.dart -->
+
+```dart
+@CobaltInject(scope: Session)
+class SessionActivityLog implements Disposable {
+  SessionActivityLog(this._user, this._appLog);
+```
+
+From the two the generator writes `SessionScope`: it registers the user and every class marked
+`scope: Session`, and the build fails if one of them asks for something neither the session nor the
+app registers. Signing in opens it under the app scope; signing out disposes it:
 
 <!-- from: examples/notes_app/lib/features/session/session_manager.dart -->
 
 ```dart
 Future<void> signIn(SessionUser user) async {
   await signOut();
-  final scope = _appScope.push('session:${user.id}');
-  SessionScope(user).build(scope);
-  await scope.init();
-  _session = scope;
+  _session = await _appScope.open('session:${user.id}', SessionScope(user));
   notifyListeners();
 }
 
@@ -67,35 +68,45 @@ and the *Session scope* entry in the gallery. More in
 
 ## A screen with its own scope
 
-A widget that extends `CobaltScopedStatefulWidget` pushes a scope when it mounts and disposes it when
-it leaves. What the screen registers there lives exactly as long as the screen:
+A screen whose state should end with it gets a scope the same way. The marker holds nothing here, and
+the classes of the screen name it:
+
+<!-- from: examples/notes_app/lib/features/note_detail/ui/note_detail.dart -->
+
+```dart
+@CobaltChildScope()
+class NoteDetail {}
+```
+
+<!-- from: examples/notes_app/lib/features/note_detail/ui/note_draft.dart -->
+
+```dart
+@CobaltInject(scope: NoteDetail)
+class NoteDraft implements Disposable {
+```
+
+`CobaltScopeWidget` opens the generated `NoteDetailScope` when it mounts and disposes it when it
+leaves, so the draft lives exactly as long as the screen:
 
 <!-- from: examples/notes_app/lib/features/note_detail/ui/note_detail_screen.dart -->
 
 ```dart
-class NoteDetailScreen extends CobaltScopedStatefulWidget {
+class NoteDetailScreen extends StatelessWidget {
   const NoteDetailScreen({super.key});
 
   @override
-  Widget get loading => const Center(child: CircularProgressIndicator());
-
-  @override
-  void registerScope(CobaltScope scope) {
-    scope
-      ..registerLazySingleton<NoteDraft>(const NoteDraftFactory())
-      ..registerParamFactory<NoteTitleCard, String>(
-        const NoteTitleCardFactory(),
-      );
-  }
-
-  @override
-  CobaltScopedState<NoteDetailScreen> createState() => _NoteDetailScreenState();
+  Widget build(BuildContext context) => const CobaltScopeWidget(
+    name: 'NoteDetailScreen',
+    builder: NoteDetailScope(),
+    loading: Center(child: CircularProgressIndicator()),
+    child: _NoteDetailBody(),
+  );
 }
 ```
 
-`buildScoped` runs below the scope, so `context.cobalt<NoteDraft>()` reads from it. Running code:
-[`examples/notes_app/lib/features/note_detail`](../examples/notes_app/lib/features/note_detail) and
-the *Widget-owned scope* entry in the gallery.
+Everything below `child` reads from that scope, so `context.cobalt<NoteDraft>()` finds the draft.
+Running code: [`examples/notes_app/lib/features/note_detail`](../examples/notes_app/lib/features/note_detail)
+and the *Widget-owned scope* entry in the gallery.
 
 ## A bloc the scope closes
 

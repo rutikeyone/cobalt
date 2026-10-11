@@ -482,10 +482,35 @@ throw `CobaltNoScopeError` when the same widget is pushed, if the provider it wa
 
 ## 9. Scopes that end before the app does
 
-The generator writes the **root**. Scopes shorter than the app — a session, a flow, a screen — are
-`CobaltScopeBuilder`s you write, and they register from the same public API the generated file uses.
-That is not a gap in the generator: what belongs in a session scope is a decision about lifetime, and
-nothing in an annotation says when a session ends.
+The generator writes the root, and a scope shorter than the app (a session, a flow, a screen) once
+you declare one. A `@CobaltChildScope` marker names it and says what it is opened with, and `scope:`
+puts a class into it:
+
+```dart
+@CobaltChildScope()
+class Session {
+  const Session(this.user);
+  final User user;
+}
+
+@CobaltInject(scope: Session)
+class Draft {
+  Draft(this.user, this.notes);
+  final User user;
+  final NoteRepository notes;
+}
+```
+
+From these the generator writes `SessionScope`, a `CobaltScopeBuilder` that registers `user` and
+`Draft`. The build checks it the way it checks the root: `Draft` may inject what the session and the
+app register, nothing in the app may inject `Draft`, and a gap fails the build naming both sides. A
+scope opened under another child scope says so with `@CobaltChildScope(parent: Session)`. What
+belongs in a session, and when it ends, stay your decisions: the annotation says neither.
+
+The marker is named without `Scope`, which the generator appends; `SessionScope` as a marker would
+give `SessionScopeScope`, and the build refuses it. Decorators and hooks are generated in the root
+only. A `CobaltScopeBuilder` written by hand still works next to the generated ones, from the same
+public API they use.
 
 ### A session
 
@@ -497,9 +522,8 @@ class SessionManager {
   CobaltScope? _session;
 
   Future<void> signIn(User user) async {
-    _session = _root.push('session:${user.id}')
-      ..registerLazySingleton<Draft>(const DraftFactory());
-    await _session!.init();
+    await signOut();
+    _session = await _root.open('session:${user.id}', SessionScope(user));
   }
 
   Future<void> signOut() async {
@@ -509,12 +533,18 @@ class SessionManager {
 }
 ```
 
+`open` pushes the scope under the app, runs `SessionScope` against it and awaits `init()`; if any of
+that throws, the scope is disposed before the error reaches you.
+
 Logout is `await scope.dispose()`. No repository subscribes to a session stream, and no domain
 interface grows a `reset()` method it did not want.
 
 ### A screen
 
 ```dart
+@CobaltChildScope()
+class Screen {}
+
 CobaltScopeWidget(
   name: 'counter-screen',
   builder: const ScreenScope(),

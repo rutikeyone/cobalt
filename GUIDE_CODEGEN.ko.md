@@ -475,10 +475,34 @@ push하는 화면 *안에* 있다면 같은 위젯을 push했을 때 `CobaltNoSc
 
 ## 9. 앱보다 먼저 끝나는 스코프
 
-제너레이터가 작성하는 것은 **루트**입니다. 앱보다 수명이 짧은 스코프(세션, 플로우, 화면)는 여러분이 작성하는
-`CobaltScopeBuilder`이며, 생성된 파일이 쓰는 것과 같은 공개 API로 등록합니다. 이것은 제너레이터의 빈틈이
-아닙니다. 세션 스코프에 무엇이 들어갈지는 수명에 관한 결정이며, 어노테이션의 어떤 것도 세션이 언제 끝나는지
-말해 주지 않습니다.
+제너레이터는 루트를 작성하고, 앱보다 짧은 스코프(세션, 플로우, 화면)도 선언하면 작성합니다.
+`@CobaltChildScope` 마커가 스코프에 이름을 붙이고 무엇을 가지고 열리는지 말하며, `scope:`가 클래스를 그
+안에 넣습니다:
+
+```dart
+@CobaltChildScope()
+class Session {
+  const Session(this.user);
+  final User user;
+}
+
+@CobaltInject(scope: Session)
+class Draft {
+  Draft(this.user, this.notes);
+  final User user;
+  final NoteRepository notes;
+}
+```
+
+이로부터 제너레이터는 `user`와 `Draft`를 등록하는 `CobaltScopeBuilder`인 `SessionScope`를 작성합니다.
+빌드는 루트와 같은 방식으로 이를 검사합니다. `Draft`는 세션과 앱이 등록한 것을 주입할 수 있고, 앱의 어떤 것도
+`Draft`를 주입할 수 없으며, 빈틈이 있으면 양쪽을 모두 밝히며 빌드가 실패합니다. 다른 자식 스코프 아래에서
+열리는 스코프는 `@CobaltChildScope(parent: Session)`로 그렇다고 말합니다. 세션에 무엇이 들어가고 언제
+끝나는지는 여전히 여러분이 정합니다. 어노테이션은 둘 다 말하지 않습니다.
+
+마커 이름에는 `Scope`를 붙이지 않으며, 제너레이터가 덧붙입니다. 마커를 `SessionScope`라고 하면
+`SessionScopeScope`가 되므로 빌드가 거부합니다. 데코레이터와 훅은 루트에서만 생성됩니다. 직접 작성한
+`CobaltScopeBuilder`도 같은 공개 API로 생성된 것과 나란히 계속 동작합니다.
 
 ### 세션
 
@@ -490,9 +514,8 @@ class SessionManager {
   CobaltScope? _session;
 
   Future<void> signIn(User user) async {
-    _session = _root.push('session:${user.id}')
-      ..registerLazySingleton<Draft>(const DraftFactory());
-    await _session!.init();
+    await signOut();
+    _session = await _root.open('session:${user.id}', SessionScope(user));
   }
 
   Future<void> signOut() async {
@@ -502,12 +525,18 @@ class SessionManager {
 }
 ```
 
+`open`은 앱 아래에 스코프를 만들고, 그 위에서 `SessionScope`를 실행한 뒤 `init()`을 기다립니다. 그중 무엇이든
+예외를 던지면 오류가 여러분에게 닿기 전에 스코프가 해제됩니다.
+
 로그아웃은 `await scope.dispose()`입니다. 세션 스트림을 구독하는 리포지토리도 없고, 원하지 않던 `reset()`
 메서드가 생겨나는 도메인 인터페이스도 없습니다.
 
 ### 화면
 
 ```dart
+@CobaltChildScope()
+class Screen {}
+
 CobaltScopeWidget(
   name: 'counter-screen',
   builder: const ScreenScope(),

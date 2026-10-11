@@ -15,40 +15,41 @@
 
 ## 로그인한 세션
 
-세션이 가진 것은 별도의 스코프에 넣습니다. 사용자가 로그인할 때 만들고 로그아웃할 때 해제합니다. 그 안에서
-만든 모든 것이 최신 것부터 함께 닫히므로, 어떤 저장소에도 `reset()`이 필요 없습니다. 스코프는 세션에 무엇이
-있는지 말합니다:
+세션이 가진 것은 별도의 스코프에 넣습니다. 사용자가 로그인할 때 열고 로그아웃할 때 해제합니다. 그 안에서
+만든 모든 것이 최신 것부터 함께 닫히므로, 어떤 저장소에도 `reset()`이 필요 없습니다. 마커는 세션이 무엇을
+가지고 열리는지 말합니다:
 
-<!-- from: examples/notes_app/lib/features/session/session_scope.dart -->
+<!-- from: examples/notes_app/lib/features/session/session.dart -->
 
 ```dart
-class SessionScope implements CobaltScopeBuilder {
-  const SessionScope(this.user);
+@CobaltChildScope()
+class Session {
+  const Session(this.user);
 
   final SessionUser user;
-
-  @override
-  void build(CobaltScope scope) {
-    scope
-      ..registerSingleton<SessionUser>(user)
-      ..registerLazySingleton<SessionActivityLog>(
-        const SessionActivityLogFactory(),
-      );
-  }
 }
 ```
 
-로그인은 앱 스코프 아래에 스코프를 만들고 시작하며, 로그아웃은 그것을 해제합니다:
+세션에 사는 클래스는 마커를 지정하며, 세션과 앱이 등록한 것을 주입할 수 있습니다:
+
+<!-- from: examples/notes_app/lib/features/session/data/session_activity_log.dart -->
+
+```dart
+@CobaltInject(scope: Session)
+class SessionActivityLog implements Disposable {
+  SessionActivityLog(this._user, this._appLog);
+```
+
+이 둘에서 제너레이터가 `SessionScope`를 씁니다. 사용자와 `scope: Session`이 붙은 모든 클래스를 등록하고,
+그중 하나가 세션도 앱도 등록하지 않는 것을 요구하면 빌드가 실패합니다. 로그인은 앱 스코프 아래에서 그것을
+열고, 로그아웃은 해제합니다:
 
 <!-- from: examples/notes_app/lib/features/session/session_manager.dart -->
 
 ```dart
 Future<void> signIn(SessionUser user) async {
   await signOut();
-  final scope = _appScope.push('session:${user.id}');
-  SessionScope(user).build(scope);
-  await scope.init();
-  _session = scope;
+  _session = await _appScope.open('session:${user.id}', SessionScope(user));
   notifyListeners();
 }
 
@@ -67,33 +68,43 @@ Future<void> signOut() async {
 
 ## 자기 스코프를 가진 화면
 
-`CobaltScopedStatefulWidget`을 상속한 위젯은 마운트될 때 스코프를 만들고 떠날 때 해제합니다. 화면이 거기에
-등록한 것은 정확히 화면이 사는 동안만 삽니다:
+상태가 화면과 함께 끝나야 하는 화면도 같은 방식으로 스코프를 얻습니다. 여기서 마커는 아무것도 가지지 않고,
+화면의 클래스들이 마커를 지정합니다:
+
+<!-- from: examples/notes_app/lib/features/note_detail/ui/note_detail.dart -->
+
+```dart
+@CobaltChildScope()
+class NoteDetail {}
+```
+
+<!-- from: examples/notes_app/lib/features/note_detail/ui/note_draft.dart -->
+
+```dart
+@CobaltInject(scope: NoteDetail)
+class NoteDraft implements Disposable {
+```
+
+`CobaltScopeWidget`은 마운트될 때 생성된 `NoteDetailScope`를 열고 떠날 때 해제하므로, 초안은 정확히 화면이
+사는 동안만 삽니다:
 
 <!-- from: examples/notes_app/lib/features/note_detail/ui/note_detail_screen.dart -->
 
 ```dart
-class NoteDetailScreen extends CobaltScopedStatefulWidget {
+class NoteDetailScreen extends StatelessWidget {
   const NoteDetailScreen({super.key});
 
   @override
-  Widget get loading => const Center(child: CircularProgressIndicator());
-
-  @override
-  void registerScope(CobaltScope scope) {
-    scope
-      ..registerLazySingleton<NoteDraft>(const NoteDraftFactory())
-      ..registerParamFactory<NoteTitleCard, String>(
-        const NoteTitleCardFactory(),
-      );
-  }
-
-  @override
-  CobaltScopedState<NoteDetailScreen> createState() => _NoteDetailScreenState();
+  Widget build(BuildContext context) => const CobaltScopeWidget(
+    name: 'NoteDetailScreen',
+    builder: NoteDetailScope(),
+    loading: Center(child: CircularProgressIndicator()),
+    child: _NoteDetailBody(),
+  );
 }
 ```
 
-`buildScoped`는 그 스코프 아래에서 실행되므로 `context.cobalt<NoteDraft>()`가 거기서 읽습니다. 실행되는
+`child` 아래의 모든 것이 그 스코프에서 읽으므로 `context.cobalt<NoteDraft>()`가 초안을 찾습니다. 실행되는
 코드: [`examples/notes_app/lib/features/note_detail`](../examples/notes_app/lib/features/note_detail),
 그리고 갤러리의 「위젯 소유 스코프」 항목.
 

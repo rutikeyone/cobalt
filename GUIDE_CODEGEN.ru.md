@@ -482,10 +482,36 @@ final scope = context.cobaltScope;
 
 ## 9. Скоупы, которые кончаются раньше приложения
 
-Генератор пишет **корень**. Скоупы короче приложения — сессия, флоу, экран — это
-`CobaltScopeBuilder`'ы, которые пишете вы, и регистрируют они через тот же публичный API, которым
-пользуется сгенерированный файл. Это не пробел генератора: что положить в сессионный скоуп — решение
-о времени жизни, а никакая аннотация не говорит, когда сессия кончается.
+Генератор пишет корень, а скоуп короче приложения (сессию, флоу, экран) тогда, когда вы его объявите.
+Маркер `@CobaltChildScope` называет скоуп и говорит, с чем он открывается, а `scope:` кладет в него
+класс:
+
+```dart
+@CobaltChildScope()
+class Session {
+  const Session(this.user);
+  final User user;
+}
+
+@CobaltInject(scope: Session)
+class Draft {
+  Draft(this.user, this.notes);
+  final User user;
+  final NoteRepository notes;
+}
+```
+
+Из этого генератор пишет `SessionScope`, то есть `CobaltScopeBuilder`, который регистрирует `user` и
+`Draft`. Сборка проверяет его так же, как корень: `Draft` может внедрять то, что регистрируют сессия
+и приложение, ничто в приложении не может внедрять `Draft`, а пробел роняет сборку с указанием обеих
+сторон. Скоуп, который открывается под другим дочерним скоупом, говорит об этом через
+`@CobaltChildScope(parent: Session)`. Что положить в сессию и когда она кончается, решаете по-прежнему
+вы: аннотация не говорит ни того, ни другого.
+
+Маркер называется без `Scope`, генератор дописывает его сам; маркер `SessionScope` дал бы
+`SessionScopeScope`, и сборка его не примет. Декораторы и хуки генерируются только в корне.
+`CobaltScopeBuilder`, написанный руками, по-прежнему работает рядом со сгенерированными, через тот же
+публичный API.
 
 ### Сессия
 
@@ -497,9 +523,8 @@ class SessionManager {
   CobaltScope? _session;
 
   Future<void> signIn(User user) async {
-    _session = _root.push('session:${user.id}')
-      ..registerLazySingleton<Draft>(const DraftFactory());
-    await _session!.init();
+    await signOut();
+    _session = await _root.open('session:${user.id}', SessionScope(user));
   }
 
   Future<void> signOut() async {
@@ -509,12 +534,18 @@ class SessionManager {
 }
 ```
 
+`open` создает скоуп под приложением, выполняет над ним `SessionScope` и ждет `init()`; если что-то
+из этого бросает исключение, скоуп разбирается до того, как ошибка дойдет до вас.
+
 Логаут — это `await scope.dispose()`. Ни один репозиторий не подписывается на сессионный стрим, и ни
 один доменный интерфейс не обрастает методом `reset()`, которого он не хотел.
 
 ### Экран
 
 ```dart
+@CobaltChildScope()
+class Screen {}
+
 CobaltScopeWidget(
   name: 'counter-screen',
   builder: const ScreenScope(),

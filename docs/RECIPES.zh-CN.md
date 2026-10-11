@@ -14,38 +14,37 @@
 
 ## 登录后的会话
 
-会话持有的东西放进它自己的作用域：用户登录时创建，退出时销毁。其中构建的一切都随之关闭，从新到旧，所以没有哪个仓库需要 `reset()`。作用域说明会话里有什么：
+会话持有的东西放进它自己的作用域：用户登录时打开，退出时销毁。其中构建的一切都随之关闭，从新到旧，所以没有哪个仓库需要 `reset()`。一个标记类说明会话打开时带着什么：
 
-<!-- from: examples/notes_app/lib/features/session/session_scope.dart -->
+<!-- from: examples/notes_app/lib/features/session/session.dart -->
 
 ```dart
-class SessionScope implements CobaltScopeBuilder {
-  const SessionScope(this.user);
+@CobaltChildScope()
+class Session {
+  const Session(this.user);
 
   final SessionUser user;
-
-  @override
-  void build(CobaltScope scope) {
-    scope
-      ..registerSingleton<SessionUser>(user)
-      ..registerLazySingleton<SessionActivityLog>(
-        const SessionActivityLogFactory(),
-      );
-  }
 }
 ```
 
-登录时把它创建在应用作用域之下并启动；退出时销毁它：
+住在会话里的类指名这个标记，并且可以注入会话和应用注册的东西：
+
+<!-- from: examples/notes_app/lib/features/session/data/session_activity_log.dart -->
+
+```dart
+@CobaltInject(scope: Session)
+class SessionActivityLog implements Disposable {
+  SessionActivityLog(this._user, this._appLog);
+```
+
+生成器根据这两者写出 `SessionScope`：它注册用户以及每个标了 `scope: Session` 的类；如果其中某个类要的东西会话和应用都不注册，构建就会失败。登录时在应用作用域之下打开它；退出时销毁它：
 
 <!-- from: examples/notes_app/lib/features/session/session_manager.dart -->
 
 ```dart
 Future<void> signIn(SessionUser user) async {
   await signOut();
-  final scope = _appScope.push('session:${user.id}');
-  SessionScope(user).build(scope);
-  await scope.init();
-  _session = scope;
+  _session = await _appScope.open('session:${user.id}', SessionScope(user));
   notifyListeners();
 }
 
@@ -62,32 +61,41 @@ Future<void> signOut() async {
 
 ## 拥有自己作用域的界面
 
-继承 `CobaltScopedStatefulWidget` 的控件在挂载时创建一个作用域，离开时销毁它。界面在那里注册的东西，寿命正好和界面一样长：
+状态应当随界面一起结束的界面，用同样的方式得到一个作用域。这里的标记类什么也不带，界面的类指名它：
+
+<!-- from: examples/notes_app/lib/features/note_detail/ui/note_detail.dart -->
+
+```dart
+@CobaltChildScope()
+class NoteDetail {}
+```
+
+<!-- from: examples/notes_app/lib/features/note_detail/ui/note_draft.dart -->
+
+```dart
+@CobaltInject(scope: NoteDetail)
+class NoteDraft implements Disposable {
+```
+
+`CobaltScopeWidget` 在挂载时打开生成的 `NoteDetailScope`，离开时销毁它，所以草稿的寿命正好和界面一样长：
 
 <!-- from: examples/notes_app/lib/features/note_detail/ui/note_detail_screen.dart -->
 
 ```dart
-class NoteDetailScreen extends CobaltScopedStatefulWidget {
+class NoteDetailScreen extends StatelessWidget {
   const NoteDetailScreen({super.key});
 
   @override
-  Widget get loading => const Center(child: CircularProgressIndicator());
-
-  @override
-  void registerScope(CobaltScope scope) {
-    scope
-      ..registerLazySingleton<NoteDraft>(const NoteDraftFactory())
-      ..registerParamFactory<NoteTitleCard, String>(
-        const NoteTitleCardFactory(),
-      );
-  }
-
-  @override
-  CobaltScopedState<NoteDetailScreen> createState() => _NoteDetailScreenState();
+  Widget build(BuildContext context) => const CobaltScopeWidget(
+    name: 'NoteDetailScreen',
+    builder: NoteDetailScope(),
+    loading: Center(child: CircularProgressIndicator()),
+    child: _NoteDetailBody(),
+  );
 }
 ```
 
-`buildScoped` 运行在这个作用域之下，所以 `context.cobalt<NoteDraft>()` 从它读取。可运行的代码：[`examples/notes_app/lib/features/note_detail`](../examples/notes_app/lib/features/note_detail)，以及 gallery 里的「由控件持有的作用域」条目。
+`child` 之下的一切都从这个作用域读取，所以 `context.cobalt<NoteDraft>()` 能找到草稿。可运行的代码：[`examples/notes_app/lib/features/note_detail`](../examples/notes_app/lib/features/note_detail)，以及 gallery 里的「由控件持有的作用域」条目。
 
 ## 由作用域关闭的 bloc
 

@@ -456,10 +456,31 @@ final scope = context.cobaltScope;
 
 ## 9. 比应用先结束的作用域
 
-生成器写的是**根**。比应用生命周期更短的作用域——会话、流程、界面——
-是由你来写的 `CobaltScopeBuilder`，它们注册时用的是生成文件所用的同一套公开 API。
-这不是生成器的缺失：什么该放进会话作用域，是一个关于生命周期的决定，
-而没有哪个注解能说出会话何时结束。
+生成器写出根，而比应用更短的作用域（会话、流程、界面）只要你声明了，它也会写。
+`@CobaltChildScope` 标记类给作用域命名，并说明它打开时带着什么；`scope:` 把一个类放进去：
+
+```dart
+@CobaltChildScope()
+class Session {
+  const Session(this.user);
+  final User user;
+}
+
+@CobaltInject(scope: Session)
+class Draft {
+  Draft(this.user, this.notes);
+  final User user;
+  final NoteRepository notes;
+}
+```
+
+生成器据此写出 `SessionScope`，一个注册 `user` 和 `Draft` 的 `CobaltScopeBuilder`。
+构建像检查根一样检查它：`Draft` 可以注入会话和应用注册的东西，应用里的任何东西都不能注入 `Draft`，
+有缺口就让构建失败并指出两边。在另一个子作用域之下打开的作用域，用 `@CobaltChildScope(parent: Session)` 说明。
+会话里放什么、何时结束，仍然由你决定：注解对这两者都不作声明。
+
+标记类的名字不带 `Scope`，由生成器补上；把标记类命名为 `SessionScope` 会得到 `SessionScopeScope`，构建会拒绝。
+装饰器和钩子只在根里生成。手写的 `CobaltScopeBuilder` 依然可以和生成的并存，用的是同一套公开 API。
 
 ### 会话
 
@@ -471,9 +492,8 @@ class SessionManager {
   CobaltScope? _session;
 
   Future<void> signIn(User user) async {
-    _session = _root.push('session:${user.id}')
-      ..registerLazySingleton<Draft>(const DraftFactory());
-    await _session!.init();
+    await signOut();
+    _session = await _root.open('session:${user.id}', SessionScope(user));
   }
 
   Future<void> signOut() async {
@@ -483,12 +503,18 @@ class SessionManager {
 }
 ```
 
+`open` 在应用之下压入作用域，在它上面运行 `SessionScope`，并等待 `init()`；其中任何一步抛出异常，
+作用域都会在错误到达你之前被销毁。
+
 登出就是 `await scope.dispose()`。没有仓储去订阅会话流，
 也没有领域接口被迫长出一个它并不想要的 `reset()`。
 
 ### 界面
 
 ```dart
+@CobaltChildScope()
+class Screen {}
+
 CobaltScopeWidget(
   name: 'counter-screen',
   builder: const ScreenScope(),

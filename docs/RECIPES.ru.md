@@ -15,40 +15,41 @@
 
 ## Сессия после входа
 
-То, что принадлежит сессии, живет в отдельном скоупе: он создается при входе пользователя и
+То, что принадлежит сессии, живет в отдельном скоупе: он открывается при входе пользователя и
 разбирается при выходе. Все, что в нем построено, закрывается вместе с ним, от новых к старым, так что
-ни одному репозиторию не нужен `reset()`. Скоуп описывает, что лежит в сессии:
+ни одному репозиторию не нужен `reset()`. Маркер говорит, с чем сессия открывается:
 
-<!-- from: examples/notes_app/lib/features/session/session_scope.dart -->
+<!-- from: examples/notes_app/lib/features/session/session.dart -->
 
 ```dart
-class SessionScope implements CobaltScopeBuilder {
-  const SessionScope(this.user);
+@CobaltChildScope()
+class Session {
+  const Session(this.user);
 
   final SessionUser user;
-
-  @override
-  void build(CobaltScope scope) {
-    scope
-      ..registerSingleton<SessionUser>(user)
-      ..registerLazySingleton<SessionActivityLog>(
-        const SessionActivityLogFactory(),
-      );
-  }
 }
 ```
 
-Вход создает его под скоупом приложения и запускает; выход его разбирает:
+Класс, который живет в сессии, называет ее и может внедрять то, что регистрируют сессия и приложение:
+
+<!-- from: examples/notes_app/lib/features/session/data/session_activity_log.dart -->
+
+```dart
+@CobaltInject(scope: Session)
+class SessionActivityLog implements Disposable {
+  SessionActivityLog(this._user, this._appLog);
+```
+
+Из этих двух генератор пишет `SessionScope`: он регистрирует пользователя и каждый класс с
+`scope: Session`, а сборка падает, если кто-то из них просит то, чего не регистрируют ни сессия, ни
+приложение. Вход открывает его под скоупом приложения, выход разбирает:
 
 <!-- from: examples/notes_app/lib/features/session/session_manager.dart -->
 
 ```dart
 Future<void> signIn(SessionUser user) async {
   await signOut();
-  final scope = _appScope.push('session:${user.id}');
-  SessionScope(user).build(scope);
-  await scope.init();
-  _session = scope;
+  _session = await _appScope.open('session:${user.id}', SessionScope(user));
   notifyListeners();
 }
 
@@ -67,34 +68,44 @@ Future<void> signOut() async {
 
 ## Экран со своим скоупом
 
-Виджет-наследник `CobaltScopedStatefulWidget` создает скоуп при монтировании и разбирает его, когда
-уходит. То, что экран там регистрирует, живет ровно столько, сколько экран:
+Экран, чье состояние должно закончиться вместе с ним, получает скоуп так же. Маркер здесь ничего не
+хранит, а классы экрана называют его:
+
+<!-- from: examples/notes_app/lib/features/note_detail/ui/note_detail.dart -->
+
+```dart
+@CobaltChildScope()
+class NoteDetail {}
+```
+
+<!-- from: examples/notes_app/lib/features/note_detail/ui/note_draft.dart -->
+
+```dart
+@CobaltInject(scope: NoteDetail)
+class NoteDraft implements Disposable {
+```
+
+`CobaltScopeWidget` открывает сгенерированный `NoteDetailScope` при монтировании и разбирает, когда
+уходит, поэтому черновик живет ровно столько, сколько экран:
 
 <!-- from: examples/notes_app/lib/features/note_detail/ui/note_detail_screen.dart -->
 
 ```dart
-class NoteDetailScreen extends CobaltScopedStatefulWidget {
+class NoteDetailScreen extends StatelessWidget {
   const NoteDetailScreen({super.key});
 
   @override
-  Widget get loading => const Center(child: CircularProgressIndicator());
-
-  @override
-  void registerScope(CobaltScope scope) {
-    scope
-      ..registerLazySingleton<NoteDraft>(const NoteDraftFactory())
-      ..registerParamFactory<NoteTitleCard, String>(
-        const NoteTitleCardFactory(),
-      );
-  }
-
-  @override
-  CobaltScopedState<NoteDetailScreen> createState() => _NoteDetailScreenState();
+  Widget build(BuildContext context) => const CobaltScopeWidget(
+    name: 'NoteDetailScreen',
+    builder: NoteDetailScope(),
+    loading: Center(child: CircularProgressIndicator()),
+    child: _NoteDetailBody(),
+  );
 }
 ```
 
-`buildScoped` работает под скоупом, поэтому `context.cobalt<NoteDraft>()` читает из него. Рабочий
-код: [`examples/notes_app/lib/features/note_detail`](../examples/notes_app/lib/features/note_detail)
+Все, что ниже `child`, читает из этого скоупа, поэтому `context.cobalt<NoteDraft>()` находит
+черновик. Рабочий код: [`examples/notes_app/lib/features/note_detail`](../examples/notes_app/lib/features/note_detail)
 и запись «Скоуп, которым владеет виджет» в галерее.
 
 ## Блок, который закрывает скоуп

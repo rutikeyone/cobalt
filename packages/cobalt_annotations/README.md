@@ -9,7 +9,7 @@ re-exports everything here.
 
 | Annotation | Applies to | Effect |
 |---|---|---|
-| `@CobaltInject` / `@cobaltInject` | class | registers the class; `lifetime`, `name`, `exposeAs`, and `lazyInit` on an async module member |
+| `@CobaltInject` / `@cobaltInject` | class | registers the class; `lifetime`, `name`, `exposeAs`, `scope` for a child scope, and `lazyInit` on an async module member |
 | `@cobaltSingleton` / `@cobaltTransient` | class | shorthands for the other two lifetimes |
 | `@Injected` / `@injected` | `late final` field | fills the field through the generated mixin |
 | `@Named` | parameter or field | selects a named registration |
@@ -22,4 +22,5 @@ re-exports everything here.
 | `@CobaltHookAll` / `@cobaltHookAll` | class | a `CobaltHook<T>` the root scope runs on every `T` it builds; `order` among several |
 | `@CobaltScopeRoot` | class | names the root scope; `provides` declares registrations made by hand |
 | `CobaltProvided` | inside `provides` | a hand-made registration that carries a `@Named` qualifier |
+| `@CobaltChildScope` | class | a scope shorter than the app; `Session` generates `SessionScope`, its constructor's values are registered in it, `parent` and `provides` as for the root |
 | `@CobaltEnvironment` | class | optional — restricts the registration to an environment; repeat it for several |
