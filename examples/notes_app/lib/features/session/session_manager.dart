@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:cobalt/cobalt.dart';
 import 'package:flutter/foundation.dart';
+import 'package:notes_app/cobalt.g.dart';
 import 'package:notes_app/features/session/domain/session_user.dart';
-import 'package:notes_app/features/session/session_scope.dart';
 
 class SessionManager extends ChangeNotifier {
   SessionManager(this._appScope);
@@ -19,10 +19,7 @@ class SessionManager extends ChangeNotifier {
 
   Future<void> signIn(SessionUser user) async {
     await signOut();
-    final scope = _appScope.push('session:${user.id}');
-    SessionScope(user).build(scope);
-    await scope.init();
-    _session = scope;
+    _session = await _appScope.open('session:${user.id}', SessionScope(user));
     notifyListeners();
   }
 

@@ -20,7 +20,7 @@
   빌드를 실패시키며, 빠진 것을 한 번에 모두 알려 줍니다.
 - **프로퍼티 주입**: `late final` 필드를 생성된 믹스인이 채우므로, 협력 객체가 다섯 개인 클래스도 생성자가
   비어 있습니다.
-- **린트 규칙 열여덟 개**: 나머지를 에디터에서 잡아냅니다.
+- **린트 규칙 스무 개**: 나머지를 에디터에서 잡아냅니다.
 
 이 중 아무것도 필요하지 않거나 기존 컨테이너를 점진적으로 마이그레이션하는 중이라면, 제너레이터 없이도 모든 것이
 동작합니다: [GUIDE_MANUAL.ko.md](GUIDE_MANUAL.ko.md).
@@ -203,8 +203,11 @@ final class _RepositoryFactory implements CobaltFactory<Repository> {
   Repository create(CobaltResolver resolver) => Repository(resolver.get<Config>());
 }
 
-final class $CobaltRootScope implements CobaltScopeBuilder {
+final class $CobaltRootScope extends CobaltRootBuilder {
   const $CobaltRootScope();
+
+  @override
+  String get name => $cobaltRootScopeName;
 
   @override
   void build(CobaltScope scope) {
@@ -229,7 +232,9 @@ final scope = await $startCobalt();
 ```
 
 `CobaltRoot`는 `$` 없는 이름의 같은 클래스이므로, 빠른 시작의 `const CobaltRoot()`와
-`const $CobaltRootScope()`는 서로 바꿔 쓸 수 있습니다.
+`const $CobaltRootScope()`는 서로 바꿔 쓸 수 있습니다. `CobaltRootBuilder`를 상속하므로
+`@CobaltScopeRoot`의 이름을 지니고, bootstrap 단계가 있으면 그것을 내주는 `bootstrap()`도 지닙니다.
+사용법은 [§7](#7-flutter-앱-시작하기)에 있습니다.
 
 여기서는 읽기 쉽도록 생략했지만, 실제 파일은 import한 모든 이름 앞에 그 URL의 해시에서 만든 별칭을 붙입니다.
 `_i178.CobaltFactory` 같은 식입니다. 카운터가 아니라 해시인 이유는 import 하나를 추가했을 때 다른 모든 번호가
@@ -392,6 +397,10 @@ class AppScope {
 이름 있는 등록을 약속합니다. 약속해 놓고 등록하지 않으면 다시 런타임 실패로 돌아갑니다. 이 리스트는 제너레이터가
 검증할 수 있는 것이 아니라 여러분이 하는 진술입니다.
 
+대신 builder가 실행된 뒤 스코프가 확인합니다. 약속했지만 아무도 등록하지 않은 타입은 옵저버에 `onPromiseBroken`으로
+전달되어 로그와 `cobalt_inspector`에서 경고가 되고, debug 빌드에서는 IDE 콘솔에도 나타납니다. 오류가 아닌 이유는
+`$startCobalt()`나 `CobaltRoot`를 래퍼 없이 시작하는 테스트가 일부러 약속을 지키지 않기 때문입니다.
+
 ---
 
 ## 7. Flutter 앱 시작하기
@@ -423,6 +432,19 @@ void main() => runApp(
 `bootstrap`이 리스트가 아니라 함수인 것은 의도적이며, 제너레이터가 `$cobaltBootstrap`을 getter로 내보내는 것도
 같은 이유입니다. 단계는 리소스를 보유하며, 재시작하면 새 단계를 받아야 합니다.
 
+직접 만든 래퍼가 없으면 생성된 루트가 둘 다 지닙니다. 스코프는 `rootName` 없이도
+`@CobaltScopeRoot`의 이름을 쓰고, `bootstrap()`은 호출할 때마다 새 단계를 내줍니다.
+
+```dart
+builder: CobaltAppScope.builder(
+  root: const CobaltRoot(),
+  bootstrap: const CobaltRoot().bootstrap,
+),
+```
+
+이름은 자동으로 적용되지만 단계는 그렇지 않으므로, `bootstrap` 없이 앱을 띄우는 위젯 테스트는 계속 단계 없이
+시작합니다.
+
 `CobaltAppScope.of(context).restart()`는 그래프를 다시 빌드합니다. 실패한 시작을 재시도하는 것도 같은 호출입니다.
 
 Flutter 밖에서는 `await $startCobalt()`가 전부입니다.
@@ -453,10 +475,34 @@ push하는 화면 *안에* 있다면 같은 위젯을 push했을 때 `CobaltNoSc
 
 ## 9. 앱보다 먼저 끝나는 스코프
 
-제너레이터가 작성하는 것은 **루트**입니다. 앱보다 수명이 짧은 스코프(세션, 플로우, 화면)는 여러분이 작성하는
-`CobaltScopeBuilder`이며, 생성된 파일이 쓰는 것과 같은 공개 API로 등록합니다. 이것은 제너레이터의 빈틈이
-아닙니다. 세션 스코프에 무엇이 들어갈지는 수명에 관한 결정이며, 어노테이션의 어떤 것도 세션이 언제 끝나는지
-말해 주지 않습니다.
+제너레이터는 루트를 작성하고, 앱보다 짧은 스코프(세션, 플로우, 화면)도 선언하면 작성합니다.
+`@CobaltChildScope` 마커가 스코프에 이름을 붙이고 무엇을 가지고 열리는지 말하며, `scope:`가 클래스를 그
+안에 넣습니다:
+
+```dart
+@CobaltChildScope()
+class Session {
+  const Session(this.user);
+  final User user;
+}
+
+@CobaltInject(scope: Session)
+class Draft {
+  Draft(this.user, this.notes);
+  final User user;
+  final NoteRepository notes;
+}
+```
+
+이로부터 제너레이터는 `user`와 `Draft`를 등록하는 `CobaltScopeBuilder`인 `SessionScope`를 작성합니다.
+빌드는 루트와 같은 방식으로 이를 검사합니다. `Draft`는 세션과 앱이 등록한 것을 주입할 수 있고, 앱의 어떤 것도
+`Draft`를 주입할 수 없으며, 빈틈이 있으면 양쪽을 모두 밝히며 빌드가 실패합니다. 다른 자식 스코프 아래에서
+열리는 스코프는 `@CobaltChildScope(parent: Session)`로 그렇다고 말합니다. 세션에 무엇이 들어가고 언제
+끝나는지는 여전히 여러분이 정합니다. 어노테이션은 둘 다 말하지 않습니다.
+
+마커 이름에는 `Scope`를 붙이지 않으며, 제너레이터가 덧붙입니다. 마커를 `SessionScope`라고 하면
+`SessionScopeScope`가 되므로 빌드가 거부합니다. 데코레이터와 훅은 루트에서만 생성됩니다. 직접 작성한
+`CobaltScopeBuilder`도 같은 공개 API로 생성된 것과 나란히 계속 동작합니다.
 
 ### 세션
 
@@ -468,9 +514,8 @@ class SessionManager {
   CobaltScope? _session;
 
   Future<void> signIn(User user) async {
-    _session = _root.push('session:${user.id}')
-      ..registerLazySingleton<Draft>(const DraftFactory());
-    await _session!.init();
+    await signOut();
+    _session = await _root.open('session:${user.id}', SessionScope(user));
   }
 
   Future<void> signOut() async {
@@ -480,12 +525,18 @@ class SessionManager {
 }
 ```
 
+`open`은 앱 아래에 스코프를 만들고, 그 위에서 `SessionScope`를 실행한 뒤 `init()`을 기다립니다. 그중 무엇이든
+예외를 던지면 오류가 여러분에게 닿기 전에 스코프가 해제됩니다.
+
 로그아웃은 `await scope.dispose()`입니다. 세션 스트림을 구독하는 리포지토리도 없고, 원하지 않던 `reset()`
 메서드가 생겨나는 도메인 인터페이스도 없습니다.
 
 ### 화면
 
 ```dart
+@CobaltChildScope()
+class Screen {}
+
 CobaltScopeWidget(
   name: 'counter-screen',
   builder: const ScreenScope(),
@@ -1039,7 +1090,7 @@ if (environment.matches(const <String>{'dev', 'test'})) {
 
 ## 16. 린트 플러그인
 
-제너레이터가 쓰는 것과 같은 파싱 계층 위에 만든 규칙 열여덟 개이므로, 실수가 `build_runner`를 실행할 때만이
+제너레이터가 쓰는 것과 같은 파싱 계층 위에 만든 규칙 스무 개이므로, 실수가 `build_runner`를 실행할 때만이
 아니라 에디터에서 바로 드러납니다.
 
 ```yaml
@@ -1068,6 +1119,8 @@ plugins:
 | `cobalt_depends_on_lazy_registration` | 지연 비동기 등록을 지목하는 `@CobaltInit(dependsOn: [...])`. `init()`은 그것을 빌드하지 않습니다 |
 | `cobalt_override_needs_type_argument` | 타입 인자가 없는 `CobaltOverride` 또는 `CobaltParamOverride`. 이 경우 교체할 키를 Dart가 추론합니다 |
 | `cobalt_hook_added_too_late` | 같은 스코프에서 즉시 생성 등록이나 `get` 이후에 호출한 `hookAll`(같은 캐스케이드 안이든 블록의 앞부분이든). 스코프가 `CobaltHookError`로 거부하므로, 무엇이든 빌드되기 전에 훅을 추가하십시오 |
+| `cobalt_registration_is_not_generated` | 마지막 빌드 뒤에 어노테이션을 붙여 `lib/cobalt.g.dart`에 아직 없는 등록된 클래스. `build_runner`를 실행하십시오 |
+| `cobalt_bloc_provider_closes_a_scoped_bloc` | 스코프에서 읽은 bloc을 내주는 `BlocProvider(create:)`. 스코프가 아직 보유한 bloc을 닫으므로 `BlocProvider.value`를 쓰십시오 |
 
 이 중 일곱 개 규칙은 IDE에서 빠른 수정(quick fix)도 제공합니다. 빠진 `late final`, 믹스인, `@cobaltInject`,
 `lazy: true`, `implements Disposable`을 대신 써 줍니다. 어떤 규칙이 무엇을 고치는지는

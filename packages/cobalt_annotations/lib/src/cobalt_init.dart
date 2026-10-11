@@ -28,7 +28,11 @@ import 'package:meta/meta_meta.dart';
 @Target({TargetKind.classType})
 class CobaltInit {
   /// Creates an annotation marking an async initializer.
-  const CobaltInit({this.dependsOn = const <Type>[], this.lazy = false});
+  const CobaltInit({
+    this.dependsOn = const <Type>[],
+    this.lazy = false,
+    this.scope,
+  });
 
   /// Types whose initialization must complete before this one starts.
   ///
@@ -45,6 +49,11 @@ class CobaltInit {
   /// generated factory — and nothing synchronous may inject it, because there
   /// is nothing to hand over until someone awaits it. Both are build errors.
   final bool lazy;
+
+  /// The `@CobaltChildScope` marker of the scope this is registered in, or
+  /// null for the root. Its `init()` runs when that scope is initialized, as
+  /// `CobaltScope.open` and `CobaltScopeWidget` do.
+  final Type? scope;
 }
 
 /// Registers the class as an async singleton with no ordering constraints.

@@ -65,7 +65,7 @@ void main() {
       expect(seen, mine);
     });
 
-    /// Fourteen kinds, four families: a kind added without a colour should
+    /// Fifteen kinds, four families: a kind added without a colour should
     /// fail here rather than paint itself grey in a corner of a screen.
     test('every event kind lands in a family', () {
       for (final kind in CobaltEventKind.values) {

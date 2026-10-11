@@ -18,7 +18,7 @@
 - **图在构建期被检查**——没有人注册的依赖会让构建失败，并一次性点出所有缺口，
   而不是等到某个界面第一个解析到它时才失败；
 - **属性注入**——`late final` 字段由生成的 mixin 填充，于是有五个协作对象的类拥有一个空构造函数；
-- **十八条 lint 规则**，在编辑器里抓住其余的问题。
+- **二十条 lint 规则**，在编辑器里抓住其余的问题。
 
 如果这些你都不需要，或者你正在逐步迁移一个已有的容器，那么不用生成器一切照样能跑：
 [GUIDE_MANUAL.zh-CN.md](GUIDE_MANUAL.zh-CN.md)。
@@ -193,8 +193,11 @@ final class _RepositoryFactory implements CobaltFactory<Repository> {
   Repository create(CobaltResolver resolver) => Repository(resolver.get<Config>());
 }
 
-final class $CobaltRootScope implements CobaltScopeBuilder {
+final class $CobaltRootScope extends CobaltRootBuilder {
   const $CobaltRootScope();
+
+  @override
+  String get name => $cobaltRootScopeName;
 
   @override
   void build(CobaltScope scope) {
@@ -219,6 +222,8 @@ final scope = await $startCobalt();
 ```
 
 `CobaltRoot` 是同一个类不带 `$` 的名字，所以快速开始里的 `const CobaltRoot()` 和 `const $CobaltRootScope()` 可以互换。
+它继承 `CobaltRootBuilder`，因此带着 `@CobaltScopeRoot` 给出的名字；有 bootstrap 步骤时，
+还带一个交出这些步骤的 `bootstrap()`。用法见 [§7](#7-启动-flutter-应用)。
 
 为了便于阅读，这里省略了前缀，但真实文件会给每个导入的名字加上由其 URL 哈希得出的别名——
 `_i178.CobaltFactory`。用哈希而不是计数器，是为了让新增一个导入不会把其余全部重新编号，
@@ -375,6 +380,10 @@ class AppScope {
 承诺了却没有真的去注册，你就又回到了运行期故障——这份列表是你做出的声明，
 不是生成器能够核实的东西。
 
+改由作用域在 builder 运行完之后检查：被承诺却没人注册的类型会以 `onPromiseBroken` 报告给观察者，
+在日志和 `cobalt_inspector` 里是一条警告，debug 构建下还会出现在 IDE 控制台。它不是错误，
+因为单独启动 `$startCobalt()` 或 `CobaltRoot` 的测试是有意不兑现承诺的。
+
 ---
 
 ## 7. 启动 Flutter 应用
@@ -404,6 +413,18 @@ void main() => runApp(
 
 `bootstrap` 是函数而不是列表，生成器把 `$cobaltBootstrap` 写成 getter 也是同一个原因：
 步骤持有资源，重启必须拿到新的。
+
+没有自己的包装类时，生成的根同时带着这两样东西。作用域无需 `rootName` 就会采用
+`@CobaltScopeRoot` 给出的名字，而 `bootstrap()` 每次调用都交出新的步骤：
+
+```dart
+builder: CobaltAppScope.builder(
+  root: const CobaltRoot(),
+  bootstrap: const CobaltRoot().bootstrap,
+),
+```
+
+名字会自动采用，步骤不会，所以不传 `bootstrap` 就启动应用的 widget 测试依然不会运行它们。
 
 `CobaltAppScope.of(context).restart()` 重建整张图——同一个调用也用于重试失败的启动。
 
@@ -435,10 +456,31 @@ final scope = context.cobaltScope;
 
 ## 9. 比应用先结束的作用域
 
-生成器写的是**根**。比应用生命周期更短的作用域——会话、流程、界面——
-是由你来写的 `CobaltScopeBuilder`，它们注册时用的是生成文件所用的同一套公开 API。
-这不是生成器的缺失：什么该放进会话作用域，是一个关于生命周期的决定，
-而没有哪个注解能说出会话何时结束。
+生成器写出根，而比应用更短的作用域（会话、流程、界面）只要你声明了，它也会写。
+`@CobaltChildScope` 标记类给作用域命名，并说明它打开时带着什么；`scope:` 把一个类放进去：
+
+```dart
+@CobaltChildScope()
+class Session {
+  const Session(this.user);
+  final User user;
+}
+
+@CobaltInject(scope: Session)
+class Draft {
+  Draft(this.user, this.notes);
+  final User user;
+  final NoteRepository notes;
+}
+```
+
+生成器据此写出 `SessionScope`，一个注册 `user` 和 `Draft` 的 `CobaltScopeBuilder`。
+构建像检查根一样检查它：`Draft` 可以注入会话和应用注册的东西，应用里的任何东西都不能注入 `Draft`，
+有缺口就让构建失败并指出两边。在另一个子作用域之下打开的作用域，用 `@CobaltChildScope(parent: Session)` 说明。
+会话里放什么、何时结束，仍然由你决定：注解对这两者都不作声明。
+
+标记类的名字不带 `Scope`，由生成器补上；把标记类命名为 `SessionScope` 会得到 `SessionScopeScope`，构建会拒绝。
+装饰器和钩子只在根里生成。手写的 `CobaltScopeBuilder` 依然可以和生成的并存，用的是同一套公开 API。
 
 ### 会话
 
@@ -450,9 +492,8 @@ class SessionManager {
   CobaltScope? _session;
 
   Future<void> signIn(User user) async {
-    _session = _root.push('session:${user.id}')
-      ..registerLazySingleton<Draft>(const DraftFactory());
-    await _session!.init();
+    await signOut();
+    _session = await _root.open('session:${user.id}', SessionScope(user));
   }
 
   Future<void> signOut() async {
@@ -462,12 +503,18 @@ class SessionManager {
 }
 ```
 
+`open` 在应用之下压入作用域，在它上面运行 `SessionScope`，并等待 `init()`；其中任何一步抛出异常，
+作用域都会在错误到达你之前被销毁。
+
 登出就是 `await scope.dispose()`。没有仓储去订阅会话流，
 也没有领域接口被迫长出一个它并不想要的 `reset()`。
 
 ### 界面
 
 ```dart
+@CobaltChildScope()
+class Screen {}
+
 CobaltScopeWidget(
   name: 'counter-screen',
   builder: const ScreenScope(),
@@ -977,7 +1024,7 @@ bootstrap 步骤同样接受环境。只要其中任何一个用到，`$cobaltBo
 
 ## 16. lint 插件
 
-十八条规则，建立在生成器所用的同一套解析层之上，
+二十条规则，建立在生成器所用的同一套解析层之上，
 因此错误会在编辑器里出现，而不是非等到 `build_runner` 跑完。
 
 ```yaml
@@ -1006,6 +1053,8 @@ plugins:
 | `cobalt_depends_on_lazy_registration` | `@CobaltInit(dependsOn: [...])` 指向惰性异步注册，而 `init()` 从不构建它 |
 | `cobalt_override_needs_type_argument` | `CobaltOverride` 或 `CobaltParamOverride` 没写类型参数，替换哪个键就由 Dart 推断 |
 | `cobalt_hook_added_too_late` | 在同一作用域上、同一级联或同一代码块中较早处已有 eager 注册或 `get` 之后才调用 `hookAll`——作用域会以 `CobaltHookError` 拒绝；请在任何构建之前添加钩子 |
+| `cobalt_registration_is_not_generated` | 上次构建之后才加注解、`lib/cobalt.g.dart` 里还没有的已注册类：运行 `build_runner` |
+| `cobalt_bloc_provider_closes_a_scoped_bloc` | `BlocProvider(create:)` 交出从作用域读取的 bloc，会在作用域仍持有它时把它关掉：应使用 `BlocProvider.value` |
 
 其中七条规则还在 IDE 里提供快速修复：它会替你补上缺少的 `late final`、mixin、`@cobaltInject`、
 `lazy: true` 或 `implements Disposable`。哪条规则修复什么，见

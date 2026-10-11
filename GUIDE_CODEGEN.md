@@ -18,7 +18,7 @@ What the build step buys you, and what this document is mostly about:
   gap at once, instead of failing on whichever screen resolves it first;
 - **property injection** — `late final` fields filled by a generated mixin, so a class with five
   collaborators has an empty constructor;
-- **eighteen lint rules** that catch the rest in the editor.
+- **twenty lint rules** that catch the rest in the editor.
 
 If you want none of that, or you are migrating an existing container gradually, everything works
 without the generator: [GUIDE_MANUAL.md](GUIDE_MANUAL.md).
@@ -206,8 +206,11 @@ final class _RepositoryFactory implements CobaltFactory<Repository> {
   Repository create(CobaltResolver resolver) => Repository(resolver.get<Config>());
 }
 
-final class $CobaltRootScope implements CobaltScopeBuilder {
+final class $CobaltRootScope extends CobaltRootBuilder {
   const $CobaltRootScope();
+
+  @override
+  String get name => $cobaltRootScopeName;
 
   @override
   void build(CobaltScope scope) {
@@ -232,7 +235,9 @@ final scope = await $startCobalt();
 ```
 
 `CobaltRoot` is the same class under a name without the `$`, so the Quick start's
-`const CobaltRoot()` and `const $CobaltRootScope()` are interchangeable.
+`const CobaltRoot()` and `const $CobaltRootScope()` are interchangeable. It extends
+`CobaltRootBuilder`, so it carries the name from `@CobaltScopeRoot`, and with bootstrap steps a
+`bootstrap()` that hands them out; [§7](#7-starting-a-flutter-app) shows both in use.
 
 Shown without them here for readability, but the real file prefixes every imported name with an
 alias derived from a hash of its URL — `_i178.CobaltFactory`. It is a hash rather than a counter so
@@ -398,6 +403,11 @@ A promise registers nothing; it only says something else will. `CobaltProvided(L
 promises a named one. Promise something and then fail to register it and you are back to a runtime
 failure — the list is a statement you are making, not one the generator can verify.
 
+The scope checks it instead, once the builder has run: a promised type nothing registered is reported
+to observers as `onPromiseBroken`, a warning in the log and in `cobalt_inspector`, and in a debug
+build also in the IDE console. It is not an error, because a test that starts `$startCobalt()` or
+`CobaltRoot` on its own breaks the promise on purpose.
+
 ---
 
 ## 7. Starting a Flutter app
@@ -429,6 +439,19 @@ void main() => runApp(
 `bootstrap` is a function rather than a list on purpose, and the generator emits `$cobaltBootstrap` as
 a getter for the same reason: steps hold resources, and a restart has to get new ones.
 
+Without a wrapper of your own, the generated root carries both. The scope takes the name from
+`@CobaltScopeRoot` without `rootName`, and `bootstrap()` hands out new steps on every call:
+
+```dart
+builder: CobaltAppScope.builder(
+  root: const CobaltRoot(),
+  bootstrap: const CobaltRoot().bootstrap,
+),
+```
+
+The name is picked up on its own and the steps are not, so a widget test that pumps the app without
+`bootstrap` keeps starting without them.
+
 `CobaltAppScope.of(context).restart()` rebuilds the graph — the same call retries a failed start.
 
 Outside Flutter, `await $startCobalt()` is the whole of it.
@@ -459,10 +482,35 @@ throw `CobaltNoScopeError` when the same widget is pushed, if the provider it wa
 
 ## 9. Scopes that end before the app does
 
-The generator writes the **root**. Scopes shorter than the app — a session, a flow, a screen — are
-`CobaltScopeBuilder`s you write, and they register from the same public API the generated file uses.
-That is not a gap in the generator: what belongs in a session scope is a decision about lifetime, and
-nothing in an annotation says when a session ends.
+The generator writes the root, and a scope shorter than the app (a session, a flow, a screen) once
+you declare one. A `@CobaltChildScope` marker names it and says what it is opened with, and `scope:`
+puts a class into it:
+
+```dart
+@CobaltChildScope()
+class Session {
+  const Session(this.user);
+  final User user;
+}
+
+@CobaltInject(scope: Session)
+class Draft {
+  Draft(this.user, this.notes);
+  final User user;
+  final NoteRepository notes;
+}
+```
+
+From these the generator writes `SessionScope`, a `CobaltScopeBuilder` that registers `user` and
+`Draft`. The build checks it the way it checks the root: `Draft` may inject what the session and the
+app register, nothing in the app may inject `Draft`, and a gap fails the build naming both sides. A
+scope opened under another child scope says so with `@CobaltChildScope(parent: Session)`. What
+belongs in a session, and when it ends, stay your decisions: the annotation says neither.
+
+The marker is named without `Scope`, which the generator appends; `SessionScope` as a marker would
+give `SessionScopeScope`, and the build refuses it. Decorators and hooks are generated in the root
+only. A `CobaltScopeBuilder` written by hand still works next to the generated ones, from the same
+public API they use.
 
 ### A session
 
@@ -474,9 +522,8 @@ class SessionManager {
   CobaltScope? _session;
 
   Future<void> signIn(User user) async {
-    _session = _root.push('session:${user.id}')
-      ..registerLazySingleton<Draft>(const DraftFactory());
-    await _session!.init();
+    await signOut();
+    _session = await _root.open('session:${user.id}', SessionScope(user));
   }
 
   Future<void> signOut() async {
@@ -486,12 +533,18 @@ class SessionManager {
 }
 ```
 
+`open` pushes the scope under the app, runs `SessionScope` against it and awaits `init()`; if any of
+that throws, the scope is disposed before the error reaches you.
+
 Logout is `await scope.dispose()`. No repository subscribes to a session stream, and no domain
 interface grows a `reset()` method it did not want.
 
 ### A screen
 
 ```dart
+@CobaltChildScope()
+class Screen {}
+
 CobaltScopeWidget(
   name: 'counter-screen',
   builder: const ScreenScope(),
@@ -1049,7 +1102,7 @@ nothing registers, where it silently does nothing.
 
 ## 16. The lint plugin
 
-Eighteen rules, built on the same parsing layer the generator uses, so a mistake surfaces in the editor
+Twenty rules, built on the same parsing layer the generator uses, so a mistake surfaces in the editor
 rather than only when `build_runner` runs.
 
 ```yaml
@@ -1078,6 +1131,8 @@ plugins:
 | `cobalt_depends_on_lazy_registration` | `@CobaltInit(dependsOn: [...])` naming a lazy async registration, which `init()` never builds |
 | `cobalt_override_needs_type_argument` | a `CobaltOverride` or `CobaltParamOverride` with no type argument, so Dart infers the key it replaces |
 | `cobalt_hook_added_too_late` | `hookAll` after an eager registration or a `get` on the same scope — in one cascade or earlier in the block — which the scope refuses with `CobaltHookError`; add hooks before anything is built |
+| `cobalt_registration_is_not_generated` | a registered class that `lib/cobalt.g.dart` does not mention yet, annotated after the last build: run `build_runner` |
+| `cobalt_bloc_provider_closes_a_scoped_bloc` | `BlocProvider(create:)` handing out a bloc read from a scope, which closes it while the scope still holds it: use `BlocProvider.value` |
 
 Seven of the rules also offer a quick fix in the IDE: it writes the missing `late final`, mixin,
 `@cobaltInject`, `lazy: true` or `implements Disposable` for you. The

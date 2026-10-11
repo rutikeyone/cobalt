@@ -35,6 +35,16 @@ abstract base class CobaltObserver {
   /// running with a replacement never does so silently.
   void onRegistrationOverridden(CobaltScopeRef scope, CobaltKey key) {}
 
+  /// [key] was promised to [scope] with `CobaltScope.promise`, and the
+  /// builder that ran against it returned without registering it.
+  ///
+  /// The generated container promises every type in
+  /// `@CobaltScopeRoot(provides: [...])`, so this is a type listed there that
+  /// the builder wrapping the generated one forgot. A warning rather than an
+  /// error: a test that starts the generated root on its own breaks the
+  /// promise on purpose and never resolves the key.
+  void onPromiseBroken(CobaltScopeRef scope, CobaltKey key) {}
+
   /// `init()` started, with [levels] levels of async singletons to build.
   ///
   /// Not called when the scope has no async registrations.

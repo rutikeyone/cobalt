@@ -580,7 +580,8 @@ scope and initialize that.
 ```
 
 The way out the message names is the ordinary one: a child scope has its own phase 1, so
-`parent.push('session')`, register, `await child.init()`. Sync registrations are unaffected at any
+`parent.push('session')`, register, `await child.init()`, or all three at once with
+`await parent.open('session', builder)`. Sync registrations are unaffected at any
 point — they are built on demand and have no phase to miss.
 
 ## What a failed resolve tells you

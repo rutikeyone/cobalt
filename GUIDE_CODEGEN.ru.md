@@ -20,7 +20,7 @@ Cobalt с генератором: вы размечаете классы, `build
   все пробелы разом, вместо того чтобы упасть на том экране, который первым до неё дойдёт;
 - **property injection** — поля `late final`, заполняемые сгенерированным миксином, так что у класса
   с пятью зависимостями пустой конструктор;
-- **восемнадцать правил линтера**, ловящих остальное в редакторе.
+- **двадцать правил линтера**, ловящих остальное в редакторе.
 
 Если ничего из этого не нужно или вы постепенно мигрируете существующий контейнер — всё работает и
 без генератора: [GUIDE_MANUAL.ru.md](GUIDE_MANUAL.ru.md).
@@ -206,8 +206,11 @@ final class _RepositoryFactory implements CobaltFactory<Repository> {
   Repository create(CobaltResolver resolver) => Repository(resolver.get<Config>());
 }
 
-final class $CobaltRootScope implements CobaltScopeBuilder {
+final class $CobaltRootScope extends CobaltRootBuilder {
   const $CobaltRootScope();
+
+  @override
+  String get name => $cobaltRootScopeName;
 
   @override
   void build(CobaltScope scope) {
@@ -232,7 +235,9 @@ final scope = await $startCobalt();
 ```
 
 `CobaltRoot` это тот же класс под именем без `$`, поэтому `const CobaltRoot()` из быстрого старта и
-`const $CobaltRootScope()` взаимозаменяемы.
+`const $CobaltRootScope()` взаимозаменяемы. Он наследует `CobaltRootBuilder`, поэтому несет имя из
+`@CobaltScopeRoot`, а при наличии bootstrap-шагов и метод `bootstrap()`, который их отдает; как ими
+пользоваться, показано в [§7](#7-запуск-flutter-приложения).
 
 Здесь они для читаемости опущены, но в настоящем файле каждое импортированное имя носит префикс,
 выведенный из хеша URL библиотеки: `_i178.CobaltFactory`. Именно хеш, а не счётчик, — чтобы
@@ -399,6 +404,11 @@ class AppScope {
 `CobaltProvided(Logger, name: 'audit')` обещает именованную. Пообещать и не зарегистрировать — значит
 вернуться к отказу в рантайме: этот список ваше утверждение, а не то, что генератор может проверить.
 
+Вместо генератора его проверяет скоуп, когда builder отработал: обещанный тип, который никто не
+зарегистрировал, приходит наблюдателям как `onPromiseBroken`, то есть предупреждение в логе и в
+`cobalt_inspector`, а в debug-сборке еще и в консоли IDE. Это не ошибка, потому что тест, который
+запускает `$startCobalt()` или `CobaltRoot` без обертки, нарушает обещание намеренно.
+
 ---
 
 ## 7. Запуск Flutter-приложения
@@ -428,6 +438,19 @@ void main() => runApp(
 
 `bootstrap` — функция, а не список, и генератор эмитит `$cobaltBootstrap` геттером по той же причине:
 шаги держат ресурсы, и рестарт обязан получить новые.
+
+Без собственной обертки сгенерированный root несет и то и другое. Скоуп берет имя из
+`@CobaltScopeRoot` без `rootName`, а `bootstrap()` при каждом вызове отдает новые шаги:
+
+```dart
+builder: CobaltAppScope.builder(
+  root: const CobaltRoot(),
+  bootstrap: const CobaltRoot().bootstrap,
+),
+```
+
+Имя подхватывается само, а шаги нет, поэтому виджет-тест, который поднимает приложение без
+`bootstrap`, по-прежнему стартует без них.
 
 `CobaltAppScope.of(context).restart()` пересобирает граф — тот же вызов повторяет упавший старт.
 
@@ -459,10 +482,36 @@ final scope = context.cobaltScope;
 
 ## 9. Скоупы, которые кончаются раньше приложения
 
-Генератор пишет **корень**. Скоупы короче приложения — сессия, флоу, экран — это
-`CobaltScopeBuilder`'ы, которые пишете вы, и регистрируют они через тот же публичный API, которым
-пользуется сгенерированный файл. Это не пробел генератора: что положить в сессионный скоуп — решение
-о времени жизни, а никакая аннотация не говорит, когда сессия кончается.
+Генератор пишет корень, а скоуп короче приложения (сессию, флоу, экран) тогда, когда вы его объявите.
+Маркер `@CobaltChildScope` называет скоуп и говорит, с чем он открывается, а `scope:` кладет в него
+класс:
+
+```dart
+@CobaltChildScope()
+class Session {
+  const Session(this.user);
+  final User user;
+}
+
+@CobaltInject(scope: Session)
+class Draft {
+  Draft(this.user, this.notes);
+  final User user;
+  final NoteRepository notes;
+}
+```
+
+Из этого генератор пишет `SessionScope`, то есть `CobaltScopeBuilder`, который регистрирует `user` и
+`Draft`. Сборка проверяет его так же, как корень: `Draft` может внедрять то, что регистрируют сессия
+и приложение, ничто в приложении не может внедрять `Draft`, а пробел роняет сборку с указанием обеих
+сторон. Скоуп, который открывается под другим дочерним скоупом, говорит об этом через
+`@CobaltChildScope(parent: Session)`. Что положить в сессию и когда она кончается, решаете по-прежнему
+вы: аннотация не говорит ни того, ни другого.
+
+Маркер называется без `Scope`, генератор дописывает его сам; маркер `SessionScope` дал бы
+`SessionScopeScope`, и сборка его не примет. Декораторы и хуки генерируются только в корне.
+`CobaltScopeBuilder`, написанный руками, по-прежнему работает рядом со сгенерированными, через тот же
+публичный API.
 
 ### Сессия
 
@@ -474,9 +523,8 @@ class SessionManager {
   CobaltScope? _session;
 
   Future<void> signIn(User user) async {
-    _session = _root.push('session:${user.id}')
-      ..registerLazySingleton<Draft>(const DraftFactory());
-    await _session!.init();
+    await signOut();
+    _session = await _root.open('session:${user.id}', SessionScope(user));
   }
 
   Future<void> signOut() async {
@@ -486,12 +534,18 @@ class SessionManager {
 }
 ```
 
+`open` создает скоуп под приложением, выполняет над ним `SessionScope` и ждет `init()`; если что-то
+из этого бросает исключение, скоуп разбирается до того, как ошибка дойдет до вас.
+
 Логаут — это `await scope.dispose()`. Ни один репозиторий не подписывается на сессионный стрим, и ни
 один доменный интерфейс не обрастает методом `reset()`, которого он не хотел.
 
 ### Экран
 
 ```dart
+@CobaltChildScope()
+class Screen {}
+
 CobaltScopeWidget(
   name: 'counter-screen',
   builder: const ScreenScope(),
@@ -1048,7 +1102,7 @@ Bootstrap-шаги тоже принимают окружения. Когда х
 
 ## 16. Плагин линтера
 
-Восемнадцать правил на том же слое разбора, которым пользуется генератор, — ошибка видна в редакторе,
+Двадцать правил на том же слое разбора, которым пользуется генератор, — ошибка видна в редакторе,
 а не только когда отработает `build_runner`.
 
 ```yaml
@@ -1077,6 +1131,8 @@ plugins:
 | `cobalt_depends_on_lazy_registration` | `@CobaltInit(dependsOn: [...])` с ленивой async-регистрацией, которую `init()` никогда не строит |
 | `cobalt_override_needs_type_argument` | `CobaltOverride` или `CobaltParamOverride` без аргумента типа — ключ, который он подменяет, выводит Dart |
 | `cobalt_hook_added_too_late` | `hookAll` после eager-регистрации или `get` на том же скоупе — в одном каскаде или раньше в блоке, — который скоуп отвергает с `CobaltHookError`; добавляйте хуки до того, как что-то построено |
+| `cobalt_registration_is_not_generated` | зарегистрированный класс, которого еще нет в `lib/cobalt.g.dart`, аннотированный после последней сборки: запустите `build_runner` |
+| `cobalt_bloc_provider_closes_a_scoped_bloc` | `BlocProvider(create:)`, который отдает bloc из скоупа и закрывает его, пока скоуп его держит: нужен `BlocProvider.value` |
 
 Семь правил предлагают в IDE быструю правку: она сама допишет недостающие `late final`, миксин,
 `@cobaltInject`, `lazy: true` или `implements Disposable`. Какое правило что

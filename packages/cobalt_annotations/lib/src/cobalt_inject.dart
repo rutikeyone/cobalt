@@ -23,6 +23,7 @@ class CobaltInject {
     this.dispose,
     this.lazyInit = false,
     this.instantiations = const <Type>[],
+    this.scope,
   });
 
   /// How long the instance lives. Defaults to [CobaltLifetime.lazySingleton].
@@ -84,6 +85,14 @@ class CobaltInject {
   ///
   /// Leave it empty on a class without type parameters.
   final List<Type> instantiations;
+
+  /// The `@CobaltChildScope` marker of the scope this is registered in, or
+  /// null for the root.
+  ///
+  /// `@CobaltInject(scope: Session)` puts the registration into the generated
+  /// `SessionScope`, where it may inject what that scope and the ones above
+  /// it register.
+  final Type? scope;
 }
 
 /// Registers the class as a lazy singleton — one instance per scope, built on

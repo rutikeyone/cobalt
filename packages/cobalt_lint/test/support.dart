@@ -14,6 +14,7 @@ class CobaltInject {
     this.lifetime = CobaltLifetime.lazySingleton,
     this.lazyInit = false,
     this.instantiations = const <Type>[],
+    this.scope,
   });
   final String? name;
   final Type? exposeAs;
@@ -21,6 +22,7 @@ class CobaltInject {
   final CobaltLifetime lifetime;
   final bool lazyInit;
   final List<Type> instantiations;
+  final Type? scope;
 }
 
 const cobaltInject = CobaltInject();
@@ -78,9 +80,20 @@ class CobaltBootstrap {
 const cobaltBootstrap = CobaltBootstrap();
 
 class CobaltInit {
-  const CobaltInit({this.dependsOn = const <Type>[], this.lazy = false});
+  const CobaltInit({
+    this.dependsOn = const <Type>[],
+    this.lazy = false,
+    this.scope,
+  });
   final List<Type> dependsOn;
   final bool lazy;
+  final Type? scope;
+}
+
+class CobaltChildScope {
+  const CobaltChildScope({this.parent, this.provides = const <Object>[]});
+  final Type? parent;
+  final List<Object> provides;
 }
 
 const cobaltInit = CobaltInit();

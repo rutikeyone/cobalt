@@ -1,3 +1,9 @@
+## 1.5.0
+
+- No code changes in this package. With `cobalt` 1.5.0, `cobaltTestScope`
+  starts a `CobaltRootBuilder` root, such as the generated `CobaltRoot`,
+  under the name it gives.
+
 ## 1.4.0
 
 - No code changes in this package. The README starts the app with

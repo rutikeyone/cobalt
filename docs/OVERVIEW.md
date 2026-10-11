@@ -41,7 +41,7 @@ graph.
 | **Observability** | typed events, not strings — logging, structured intake and crash reports with a trail |
 | **In-app inspector** | the live scope tree, what was built and with what lifetime, and everything reported |
 | **Navigation flows** | a scope whose lifetime is a go_router flow, without anything mirroring the router |
-| **Lint plugin** | eighteen rules on the same parsing layer the generator uses |
+| **Lint plugin** | twenty rules on the same parsing layer the generator uses |
 | **Overrides** | replace a registration where it is owned, so every consumer sees the double — in a test, a flavour or a debug menu |
 | **Test helpers** | scopes that dispose with the test, overrides that work the way production ones do |
 | **No global container** | nothing is ambient, so tests run in parallel and two graphs in one process are unrelated |
@@ -282,5 +282,5 @@ scope names, registration keys, lifetimes. See the
 [`cobalt_inspector` README](../packages/cobalt_inspector/README.md) for what stays in Cobalt's own words
 and why, and the [gallery's](../examples/gallery/README.md) for how the examples are wired.
 
-The eighteen rules of the lint plugin are listed in the
+The twenty rules of the lint plugin are listed in the
 [`cobalt_lint` README](../packages/cobalt_lint/README.md).

@@ -13,7 +13,7 @@ import 'package:cobalt/src/scope/cobalt_registration_kind.dart';
 ///
 /// The wording of every event lives here and only here. Two lenses read the
 /// same stream — one writes lines, one collects failures with the events that
-/// led to them — and if each carried its own copy of these fourteen mappings the
+/// led to them — and if each carried its own copy of these fifteen mappings the
 /// two would drift apart on the first reworded sentence.
 ///
 /// Deliberately stateless, so a subclass that needs no state of its own can
@@ -80,6 +80,15 @@ abstract base class CobaltRecordingObserver extends CobaltObserver {
     CobaltEventKind.registrationOverridden,
     CobaltLogLevel.info,
     () => 'registration of $key in "$scope" replaced by an override',
+    scope: scope,
+    key: key,
+  );
+
+  @override
+  void onPromiseBroken(CobaltScopeRef scope, CobaltKey key) => _emit(
+    CobaltEventKind.promiseBroken,
+    CobaltLogLevel.warning,
+    () => '$key was promised to "$scope" but nothing there registered it',
     scope: scope,
     key: key,
   );

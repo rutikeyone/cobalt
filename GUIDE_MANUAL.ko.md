@@ -431,6 +431,15 @@ push하는 화면 *안에* 있다면 같은 위젯을 push했을 때 `CobaltNoSc
 ### 세션
 
 ```dart
+class SessionScope implements CobaltScopeBuilder {
+  const SessionScope();
+
+  @override
+  void build(CobaltScope scope) => scope
+    ..registerLazySingleton<Draft>(const DraftFactory())
+    ..registerLazySingleton<SyncQueue>(const SyncQueueFactory());
+}
+
 class SessionManager {
   SessionManager(this._root);
 
@@ -438,10 +447,8 @@ class SessionManager {
   CobaltScope? _session;
 
   Future<void> signIn(User user) async {
-    _session = _root.push('session:${user.id}')
-      ..registerLazySingleton<Draft>(const DraftFactory())
-      ..registerLazySingleton<SyncQueue>(const SyncQueueFactory());
-    await _session!.init();
+    await signOut();
+    _session = await _root.open('session:${user.id}', const SessionScope());
   }
 
   Future<void> signOut() async {
@@ -454,9 +461,10 @@ class SessionManager {
 로그아웃은 `await scope.dispose()`입니다. 세션 스트림을 구독하는 리포지토리도 없고, 원하지 않던 `reset()`
 메서드가 생겨나는 도메인 인터페이스도 없습니다.
 
-`push`는 자식을 즉시 반환하고, `init()`은 그 비동기 등록을 실행합니다. 비동기 등록이 없더라도 `init()`을
-호출하십시오. 비용이 적고 멱등이며, 나중에 비동기 등록을 추가해도 호출하는 코드를 바꿀 필요가
-없습니다.
+`open`은 자식을 만들고, 그 위에서 builder를 실행한 뒤, 비동기 등록을 만드는 `init()`을 기다립니다.
+builder나 `init()`이 예외를 던지면 오류가 호출한 쪽에 닿기 전에 자식이 해제되므로, 로그인에 실패해도
+아무것도 남지 않습니다. 같은 세 단계를 직접 하려면 `push`, `runBuilder`, `init()`을 쓰며, 단계 사이에
+해야 할 일이 있을 때 씁니다.
 
 ### 화면
 
@@ -1228,7 +1236,7 @@ class AppScope implements CobaltScopeBuilder {
 
 - **빌드 시점의 완전성 검사**: 테스트 시점에 `expectGraphResolves`로 하던 검사를 대신합니다.
 - **프로퍼티 주입**: 협력 객체가 다섯 개 이상으로 늘어난 생성자를 비웁니다.
-- **린트 규칙 열여덟 개**: §14의 실수를 에디터에서 잡아냅니다.
+- **린트 규칙 스무 개**: §14의 실수를 에디터에서 잡아냅니다.
 
 그대로 유지되는 것: 스코프, 해제, 두 단계, 파라미터가 있는 등록, 관측성, 테스트. 이어지는 내용은
 [GUIDE_CODEGEN.ko.md](GUIDE_CODEGEN.ko.md)가 다루며, `get_it`이나 `injectable`에서 옮겨 오는 경우는

@@ -182,6 +182,8 @@ override 什么也没替换。
 生成器会用一条说明要改什么的消息停止构建。常见情况：
 
 - **没人注册的依赖。** 修法和 [CobaltNotRegisteredError](#cobaltnotregisterederror) 一样：给类加注解，或把它写进 `@CobaltScopeRoot(provides: [...])`。消息会一次列出所有缺口。
+- **`which only scope Session registers`。** 一个注册能注入的是它自己的作用域以及上方作用域注册的东西。把这个类放进那个作用域，`@CobaltInject(scope: Session)`，或者把它需要的东西注册到它看得见的地方。见 [GUIDE_CODEGEN.zh-CN.md](../GUIDE_CODEGEN.zh-CN.md#9-比应用先结束的作用域)。
+- **名字以 `Scope` 结尾的 `@CobaltChildScope` 标记类。** 生成器会自己给 builder 的名字补上 `Scope`。把标记类叫作 `Session`，打开的是 `SessionScope`。
 - **带默认值的参数报 `requires int`。** 只有生成器能省略的参数才会用上默认值：命名参数，或末尾的位置参数。如果它后面还有要注入的位置参数，就不能跳过，消息会说明这一点；把它改成命名参数。
 - **一个包里有两个 `@CobaltScopeRoot` 类。** 一个包只有一个生成的根。保留一个。
 - **依赖循环。** 见 [CobaltCycleError](#cobaltcycleerror)。
@@ -196,6 +198,6 @@ override 什么也没替换。
 按[快速开始](../README.zh-CN.md#快速开始)走一遍时，新应用可能出现的提示：
 
 - **`Target of URI hasn't been generated: 'cobalt.g.dart'`，以及 `CobaltRoot` 不是类。** 生成器还没有运行。执行 `dart run build_runner build`，每次修改注解后再执行一次；开发时用 `dart run build_runner watch` 让文件保持最新。
-- **`test/widget_test.dart` 里的 `The name 'MyApp' isn't a class`。** 这个测试是 `flutter create` 生成的，测的是你已经替换掉的计数器应用。删掉它；新应用的测试见 [`examples/hello/test`](../examples/hello/test)。
+- **`test/widget_test.dart` 里的 `The name 'MyApp' isn't a class`。** 这个测试是 `flutter create` 生成的，测的是你已经替换掉的计数器应用。把它换成[快速开始](../README.zh-CN.md#快速开始)里的测试。
 - **`lib/cobalt.g.dart` 里的 `The imported package 'cobalt' isn't a dependency`。** 生成的代码直接导入运行时，所以应用必须依赖它：`flutter pub add cobalt`。
 - **`Classes can only mix in mixins and classes` 或 `Undefined class '_$Foo'`。** 类混入了生成的 `_$Foo`，但文件没有包含它所在的 part。在 import 下面加上 `part 'foo.g.dart';` 并运行构建；`cobalt_missing_injection_mixin` 的快速修复会把两者都写上。

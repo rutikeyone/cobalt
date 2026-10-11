@@ -7,6 +7,7 @@ import 'package:cobalt_analyzer/src/parser/dart_object_reader.dart';
 import 'package:cobalt_analyzer/src/parser/dispose_reader.dart';
 import 'package:cobalt_analyzer/src/parser/environment_reader.dart';
 import 'package:cobalt_analyzer/src/parser/parse_error.dart';
+import 'package:cobalt_analyzer/src/parser/scope_reader.dart';
 import 'package:cobalt_analyzer/src/parser/type_ref_resolver.dart';
 import 'package:cobalt_annotations/cobalt_annotations.dart';
 import 'package:analyzer/dart/constant/value.dart';
@@ -169,6 +170,7 @@ class CobaltModuleParser {
         isGetter: member is GetterElement,
       ),
       dispose: dispose,
+      scope: scopeOf(annotation, where, member),
     );
   }
 

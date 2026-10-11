@@ -1,36 +1,37 @@
 import 'package:cobalt_flutter/cobalt_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:notes_app/cobalt.g.dart';
 import 'package:notes_app/features/note_detail/ui/note_draft.dart';
 import 'package:notes_app/features/note_detail/ui/note_title_card.dart';
 import 'package:notes_app/l10n/notes_app_l10n.dart';
 
-class NoteDetailScreen extends CobaltScopedStatefulWidget {
+class NoteDetailScreen extends StatelessWidget {
   const NoteDetailScreen({super.key});
 
   @override
-  Widget get loading => const Center(child: CircularProgressIndicator());
-
-  @override
-  void registerScope(CobaltScope scope) {
-    scope
-      ..registerLazySingleton<NoteDraft>(const NoteDraftFactory())
-      ..registerParamFactory<NoteTitleCard, String>(
-        const NoteTitleCardFactory(),
-      );
-  }
-
-  @override
-  CobaltScopedState<NoteDetailScreen> createState() => _NoteDetailScreenState();
+  Widget build(BuildContext context) => const CobaltScopeWidget(
+    name: 'NoteDetailScreen',
+    builder: NoteDetailScope(),
+    loading: Center(child: CircularProgressIndicator()),
+    child: _NoteDetailBody(),
+  );
 }
 
-class _NoteDetailScreenState extends CobaltScopedState<NoteDetailScreen> {
+class _NoteDetailBody extends StatefulWidget {
+  const _NoteDetailBody();
+
   @override
-  Widget buildScoped(BuildContext context) {
+  State<_NoteDetailBody> createState() => _NoteDetailBodyState();
+}
+
+class _NoteDetailBodyState extends State<_NoteDetailBody> {
+  @override
+  Widget build(BuildContext context) {
     final l10n = NotesL10n.of(context);
     final draft = context.cobalt<NoteDraft>();
-    final card = context.cobaltWithParam<NoteTitleCard, String>(
-      draft.text.isEmpty ? l10n.untitled : draft.text,
-    );
+    final card = context.cobaltWithParam<NoteTitleCard, $NoteTitleCardArgs>((
+      title: draft.text.isEmpty ? l10n.untitled : draft.text,
+    ));
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.widgetOwnedScope)),

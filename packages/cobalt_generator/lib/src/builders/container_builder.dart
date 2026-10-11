@@ -26,6 +26,7 @@ class CobaltContainerBuilder implements Builder {
     final scopeRoots = <CobaltScopeRootClass>[];
     final decorators = <CobaltDecoratorClass>[];
     final hooks = <CobaltHookClass>[];
+    final childScopes = <CobaltChildScopeClass>[];
 
     await for (final id in buildStep.findAssets(Glob('lib/**.cobalt.json'))) {
       final decoded = CobaltLibraryDeclarations.fromJson(
@@ -36,6 +37,7 @@ class CobaltContainerBuilder implements Builder {
       scopeRoots.addAll(decoded.scopeRoots);
       decorators.addAll(decoded.decorators);
       hooks.addAll(decoded.hooks);
+      childScopes.addAll(decoded.childScopes);
     }
 
     final declarations = CobaltLibraryDeclarations(
@@ -44,6 +46,7 @@ class CobaltContainerBuilder implements Builder {
       scopeRoots: scopeRoots,
       decorators: decorators,
       hooks: hooks,
+      childScopes: childScopes,
     );
     if (declarations.isEmpty) return;
 

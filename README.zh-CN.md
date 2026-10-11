@@ -80,7 +80,51 @@ class HomeScreen extends StatelessWidget {
 }
 ```
 
-同时删除 `test/widget_test.dart`：它测试的是 `flutter create` 生成的计数器应用，而那个应用已经不在了。
+同时替换 `test/widget_test.dart`。它测试的是 `flutter create` 生成的计数器应用；下面这个测试用一个总是报同一时间的时钟启动你的应用：
+
+```dart
+import 'package:cobalt_flutter/cobalt_flutter.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:my_app/cobalt.g.dart';
+import 'package:my_app/main.dart';
+
+class FixedClock implements Clock {
+  FixedClock(this.time);
+
+  final DateTime time;
+
+  @override
+  DateTime now() => time;
+}
+
+void main() {
+  Future<void> pumpAt(WidgetTester tester, DateTime time) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: CobaltAppScope.builder(
+          root: const CobaltRoot(),
+          overrides: () => [CobaltOverride<Clock>.value(FixedClock(time))],
+        ),
+        home: const HomeScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('greets in the morning', (tester) async {
+    await pumpAt(tester, DateTime(2026, 10, 7, 9));
+
+    expect(find.text('Good morning, Cobalt!'), findsOneWidget);
+  });
+
+  testWidgets('greets later in the day', (tester) async {
+    await pumpAt(tester, DateTime(2026, 10, 7, 15));
+
+    expect(find.text('Hello, Cobalt!'), findsOneWidget);
+  });
+}
+```
 
 生成连接代码并运行：
 
@@ -106,7 +150,7 @@ flutter run
 ## 为什么用 Cobalt
 
 - **作用域结束时，会带走它的对象。** 作用域构成一棵树。退出登录就是 `await session.dispose()`：会话构建的一切都会被关闭，从新到旧。不需要 `reset()` 方法，也不需要监听退出事件。
-- **错误在构建期暴露。** 没人注册的依赖会让 `build_runner` 失败，消息一次列出所有缺口。[十八条 lint 规则](packages/cobalt_lint/README.md)在编辑器里抓住其余问题。
+- **错误在构建期暴露。** 没人注册的依赖会让 `build_runner` 失败，消息一次列出所有缺口。[二十条 lint 规则](packages/cobalt_lint/README.md)在编辑器里抓住其余问题。
 - **生成的代码就是普通 Dart。** 它只用公开 API，所以你可以读它——也可以不用生成器，手写同样的东西。两种方式可以共存于一个图。
 - **异步启动按正确顺序进行。** 必须在第一个屏幕之前等待的服务按依赖顺序启动，相互独立的并行启动。
 - **测试替换的依赖对所有人生效。** override 在注册所在的地方替换它。没有全局容器，所以测试可以并行运行。

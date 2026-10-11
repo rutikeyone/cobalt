@@ -78,8 +78,52 @@ class HomeScreen extends StatelessWidget {
 }
 ```
 
-Delete `test/widget_test.dart` too: it tests the counter app that `flutter create` wrote, and that
-app is gone.
+Replace `test/widget_test.dart` too. It tested the counter app that `flutter create` wrote; this one
+starts your app with a clock that always says the same time:
+
+```dart
+import 'package:cobalt_flutter/cobalt_flutter.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:my_app/cobalt.g.dart';
+import 'package:my_app/main.dart';
+
+class FixedClock implements Clock {
+  FixedClock(this.time);
+
+  final DateTime time;
+
+  @override
+  DateTime now() => time;
+}
+
+void main() {
+  Future<void> pumpAt(WidgetTester tester, DateTime time) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: CobaltAppScope.builder(
+          root: const CobaltRoot(),
+          overrides: () => [CobaltOverride<Clock>.value(FixedClock(time))],
+        ),
+        home: const HomeScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('greets in the morning', (tester) async {
+    await pumpAt(tester, DateTime(2026, 10, 7, 9));
+
+    expect(find.text('Good morning, Cobalt!'), findsOneWidget);
+  });
+
+  testWidgets('greets later in the day', (tester) async {
+    await pumpAt(tester, DateTime(2026, 10, 7, 15));
+
+    expect(find.text('Hello, Cobalt!'), findsOneWidget);
+  });
+}
+```
 
 Generate the wiring and run:
 
@@ -118,7 +162,7 @@ runtime alone, in pure Dart.
   `await session.dispose()`: everything the session built is closed, newest first. No `reset()`
   methods, no listeners waiting for a logout event.
 - **Mistakes show up at build time.** A dependency nothing registers fails `build_runner` with a
-  message naming every gap at once. [Eighteen lint rules](packages/cobalt_lint/README.md) catch the
+  message naming every gap at once. [Twenty lint rules](packages/cobalt_lint/README.md) catch the
   rest in the editor.
 - **The generated code is plain Dart.** It uses only the public API, so you can read it — or skip the
   generator and write the same thing by hand. Both can live in one graph.

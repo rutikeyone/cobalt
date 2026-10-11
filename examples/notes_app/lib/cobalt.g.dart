@@ -27,11 +27,19 @@ import 'package:notes_app/features/formatting/data/shouting_formatter.dart'
     as _i652;
 import 'package:notes_app/features/formatting/domain/note_formatter.dart'
     as _i293;
+import 'package:notes_app/features/note_detail/ui/note_draft.dart' as _i682;
+import 'package:notes_app/features/note_detail/ui/note_title_card.dart'
+    as _i485;
 import 'package:notes_app/features/notes/data/note_database.dart' as _i41;
 import 'package:notes_app/features/notes/data/note_repository.dart' as _i98;
 import 'package:notes_app/features/notes/data/search_index.dart' as _i501;
 import 'package:notes_app/features/notes/domain/note_store.dart' as _i387;
 import 'package:notes_app/features/notes/ui/notes_controller.dart' as _i1050;
+import 'package:notes_app/features/session/data/session_activity_log.dart'
+    as _i832;
+import 'package:notes_app/features/session/domain/session_user.dart' as _i630;
+
+typedef $NoteTitleCardArgs = ({String title});
 
 final class _AppConfigFactory
     implements
@@ -225,12 +233,68 @@ final class _NotesControllerFactory
       _i1050.NotesController();
 }
 
-final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
+final class _NoteDraftFactory
+    implements
+        _i573.CobaltFactory<_i682.NoteDraft>,
+        _i573.CobaltDescribedFactory {
+  const _NoteDraftFactory();
+
+  @override
+  String get implementation => 'NoteDraft';
+
+  @override
+  _i682.NoteDraft create(_i573.CobaltResolver resolver) =>
+      _i682.NoteDraft(resolver.get<_i153.EventLog>());
+}
+
+final class _NoteTitleCardFactory
+    implements
+        _i573.CobaltParamFactory<_i485.NoteTitleCard, $NoteTitleCardArgs>,
+        _i573.CobaltDescribedFactory {
+  const _NoteTitleCardFactory();
+
+  @override
+  String get implementation => 'NoteTitleCard';
+
+  @override
+  _i485.NoteTitleCard create(
+    _i573.CobaltResolver resolver,
+    $NoteTitleCardArgs args,
+  ) => _i485.NoteTitleCard(
+    resolver.get<_i293.NoteFormatter>(name: 'markdown'),
+    args.title,
+  );
+}
+
+final class _SessionActivityLogFactory
+    implements
+        _i573.CobaltFactory<_i832.SessionActivityLog>,
+        _i573.CobaltDescribedFactory {
+  const _SessionActivityLogFactory();
+
+  @override
+  String get implementation => 'SessionActivityLog';
+
+  @override
+  _i832.SessionActivityLog create(_i573.CobaltResolver resolver) =>
+      _i832.SessionActivityLog(
+        resolver.get<_i630.SessionUser>(),
+        resolver.get<_i153.EventLog>(),
+      );
+}
+
+final class $CobaltRootScope extends _i573.CobaltRootBuilder {
   const $CobaltRootScope({
     this.environment = _i573.CobaltEnvironment.defaultEnvironment,
   });
 
   final _i573.CobaltEnvironment environment;
+
+  @override
+  String get name => $cobaltRootScopeName;
+
+  @override
+  List<_i573.CobaltBootstrapStep> bootstrap() => $cobaltBootstrap(environment);
 
   @override
   void build(_i573.CobaltScope scope) {
@@ -277,6 +341,33 @@ final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
 }
 
 typedef CobaltRoot = $CobaltRootScope;
+
+final class NoteDetailScope implements _i573.CobaltScopeBuilder {
+  const NoteDetailScope();
+
+  @override
+  void build(_i573.CobaltScope scope) {
+    scope.registerLazySingleton<_i682.NoteDraft>(const _NoteDraftFactory());
+    scope.registerParamFactory<_i485.NoteTitleCard, $NoteTitleCardArgs>(
+      const _NoteTitleCardFactory(),
+    );
+  }
+}
+
+final class SessionScope implements _i573.CobaltScopeBuilder {
+  const SessionScope(this.user);
+
+  final _i630.SessionUser user;
+
+  @override
+  void build(_i573.CobaltScope scope) {
+    scope.registerSingleton<_i630.SessionUser>(user);
+    scope.registerLazySingleton<_i832.SessionActivityLog>(
+      const _SessionActivityLogFactory(),
+    );
+  }
+}
+
 List<_i573.CobaltBootstrapStep> $cobaltBootstrap(
   _i573.CobaltEnvironment environment,
 ) => [

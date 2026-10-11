@@ -230,6 +230,11 @@ The generator stops the build with a message that says what to change. The usual
 - **A dependency nothing registers.** The same fix as
   [CobaltNotRegisteredError](#cobaltnotregisterederror): annotate the class, or name it in
   `@CobaltScopeRoot(provides: [...])`. The message lists every gap at once.
+- **`which only scope Session registers`.** A registration injects what its own scope and the scopes
+  above it register. Put the class into that scope, `@CobaltInject(scope: Session)`, or register what
+  it needs where it can see it. See [GUIDE_CODEGEN.md](../GUIDE_CODEGEN.md#9-scopes-that-end-before-the-app-does).
+- **A `@CobaltChildScope` marker whose name ends in `Scope`.** The generator appends `Scope` to name
+  the builder. Call the marker `Session`, and open `SessionScope`.
 - **`requires int` for a parameter with a default value.** A default applies only to a parameter the
   generator can leave out: a named one, or a positional one at the end. Before an injected
   positional parameter it cannot be skipped, and the message says so; make it named.
@@ -257,8 +262,8 @@ What a new app shows on the way through the [Quick start](../README.md#quick-sta
   The generator has not run yet. Run `dart run build_runner build`, and again after you change an
   annotation; `dart run build_runner watch` keeps the file current while you work.
 - **`The name 'MyApp' isn't a class` in `test/widget_test.dart`.** That test came with
-  `flutter create` and checks the counter app you replaced. Delete it;
-  [`examples/hello/test`](../examples/hello/test) has a test for the new app.
+  `flutter create` and checks the counter app you replaced. Replace it with the test in
+  [the Quick start](../README.md#quick-start).
 - **`The imported package 'cobalt' isn't a dependency` in `lib/cobalt.g.dart`.** The generated code
   imports the runtime directly, so the app has to depend on it: `flutter pub add cobalt`.
 - **`Classes can only mix in mixins and classes`, or `Undefined class '_$Foo'`.** The class mixes in

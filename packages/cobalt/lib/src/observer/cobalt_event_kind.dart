@@ -10,6 +10,7 @@
 enum CobaltEventKind {
   scopePushed,
   registrationOverridden,
+  promiseBroken,
   scopeInitStarted,
   scopeInitCompleted,
   scopeInitFailed,

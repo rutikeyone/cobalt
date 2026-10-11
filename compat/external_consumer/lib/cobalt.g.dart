@@ -479,11 +479,18 @@ final class _TracedEndpointDecorator
   ) => _i416.TracedEndpoint(inner)..onInject(resolver);
 }
 
-final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
+final class $CobaltRootScope extends _i573.CobaltRootBuilder {
   const $CobaltRootScope();
 
   @override
+  String get name => $cobaltRootScopeName;
+
+  @override
+  List<_i573.CobaltBootstrapStep> bootstrap() => $cobaltBootstrap;
+
+  @override
   void build(_i573.CobaltScope scope) {
+    scope.promise<_i829.DeviceInfo>();
     scope.hookAll<_i160.Traced>(_i160.LogTraced(), debugLabel: 'LogTraced');
     scope.registerAsyncSingleton<_i604.AuditSink>(const _AuditSinkFactory());
     scope.registerLazySingleton<_i612.Clock>(const _SystemClockFactory());

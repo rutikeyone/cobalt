@@ -1,5 +1,6 @@
 import 'package:cobalt_analyzer/src/model/library_declarations.dart';
 import 'package:cobalt_analyzer/src/parser/bootstrap_parser.dart';
+import 'package:cobalt_analyzer/src/parser/child_scope_parser.dart';
 import 'package:cobalt_analyzer/src/parser/decorator_parser.dart';
 import 'package:cobalt_analyzer/src/parser/hook_parser.dart';
 import 'package:cobalt_analyzer/src/parser/injectable_parser.dart';
@@ -17,9 +18,10 @@ class CobaltParser {
   static const _modules = CobaltModuleParser();
   static const _decorators = CobaltDecoratorParser();
   static const _hooks = CobaltHookParser();
+  static const _childScopes = CobaltChildScopeParser();
 
-  /// Collects the injectables, bootstrap steps, scope roots, decorators and
-  /// hooks
+  /// Collects the injectables, bootstrap steps, scope roots, decorators,
+  /// hooks and child scopes
   /// declared in [library]. Throws `CobaltParseError` for a declaration Cobalt cannot use.
   CobaltLibraryDeclarations parseLibrary(LibraryElement library) {
     final classes = library.classes;
@@ -46,6 +48,10 @@ class CobaltParser {
       hooks: [
         for (final clazz in classes)
           if (_hooks.declares(clazz)) _hooks.parseClass(clazz),
+      ],
+      childScopes: [
+        for (final clazz in classes)
+          if (_childScopes.declares(clazz)) _childScopes.parseClass(clazz),
       ],
     );
   }

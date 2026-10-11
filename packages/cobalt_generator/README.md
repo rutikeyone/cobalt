@@ -230,9 +230,15 @@ class AppScope {
 }
 ```
 
-Nothing is emitted for a promise; it only stops the build from failing. Use
+Nothing is registered for a promise; the root only says it expects one, and a scope whose builder
+did not keep it reports `onPromiseBroken` to its observers. Use
 `CobaltProvided(Logger, name: 'audit')` in the same list when the hand-written registration is
 named.
+
+**Child scopes are checked along their parents.** A class with `@CobaltInject(scope: Session)` is
+registered in the generated `SessionScope` and may inject what that scope, its `parent` chain and the
+root register. The root cannot inject what only a child scope registers; the message names the
+scope that does.
 
 **Environments are checked one at a time.** A registration restricted to `prod` is absent from
 `dev`, so a dependent that is not equally restricted fails naming where the gap is (`in dev`).

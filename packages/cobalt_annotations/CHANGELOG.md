@@ -1,3 +1,13 @@
+## 1.5.0
+
+- `@CobaltChildScope` declares a scope shorter than the app, whose builder
+  the generator writes: the marker `Session` gives `SessionScope`, and each
+  parameter of the marker's constructor is registered in it as a value.
+  `parent` names the child scope it opens under, `provides` what is
+  registered in it by hand.
+- `scope:` on `@CobaltInject` and `@CobaltInit` puts a registration into a
+  child scope.
+
 ## 1.4.0
 
 - No code changes in this package. Republished in lockstep with 1.4.0:

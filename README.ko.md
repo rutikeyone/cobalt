@@ -81,8 +81,52 @@ class HomeScreen extends StatelessWidget {
 }
 ```
 
-`test/widget_test.dart`도 지웁니다. `flutter create`가 만든 카운터 앱을 테스트하는 파일인데, 그 앱은 이제
-없습니다.
+`test/widget_test.dart`도 바꿉니다. 그 파일은 `flutter create`가 만든 카운터 앱을 테스트했습니다. 아래 테스트는
+항상 같은 시각을 알려 주는 시계로 앱을 시작합니다.
+
+```dart
+import 'package:cobalt_flutter/cobalt_flutter.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:my_app/cobalt.g.dart';
+import 'package:my_app/main.dart';
+
+class FixedClock implements Clock {
+  FixedClock(this.time);
+
+  final DateTime time;
+
+  @override
+  DateTime now() => time;
+}
+
+void main() {
+  Future<void> pumpAt(WidgetTester tester, DateTime time) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: CobaltAppScope.builder(
+          root: const CobaltRoot(),
+          overrides: () => [CobaltOverride<Clock>.value(FixedClock(time))],
+        ),
+        home: const HomeScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('greets in the morning', (tester) async {
+    await pumpAt(tester, DateTime(2026, 10, 7, 9));
+
+    expect(find.text('Good morning, Cobalt!'), findsOneWidget);
+  });
+
+  testWidgets('greets later in the day', (tester) async {
+    await pumpAt(tester, DateTime(2026, 10, 7, 15));
+
+    expect(find.text('Hello, Cobalt!'), findsOneWidget);
+  });
+}
+```
 
 연결 코드를 생성하고 실행합니다.
 
@@ -119,7 +163,7 @@ flutter run
   `await session.dispose()`이고, 세션이 만든 모든 것이 최신 것부터 닫힙니다. `reset()` 메서드도,
   로그아웃 이벤트 구독도 필요 없습니다.
 - **실수는 빌드 시점에 드러납니다.** 아무도 등록하지 않은 의존성이 있으면 `build_runner`가 실패하고,
-  메시지 하나에 빠진 것을 모두 보여 줍니다. 나머지는 [열여덟 개의 린트 규칙](packages/cobalt_lint/README.md)이 편집기에서 잡습니다.
+  메시지 하나에 빠진 것을 모두 보여 줍니다. 나머지는 [스무 개의 린트 규칙](packages/cobalt_lint/README.md)이 편집기에서 잡습니다.
 - **생성된 코드는 평범한 Dart입니다.** 공개 API만 사용하므로 읽을 수 있고, 제너레이터 없이 같은 코드를
   직접 작성할 수도 있습니다. 두 방식은 한 그래프 안에 함께 있을 수 있습니다.
 - **비동기 시작이 올바른 순서로 진행됩니다.** 첫 화면 전에 기다려야 하는 서비스는 의존성 순서대로,

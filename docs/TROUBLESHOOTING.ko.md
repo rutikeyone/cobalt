@@ -229,6 +229,11 @@ override가 아무것도 바꾸지 않았습니다.
 - **아무도 등록하지 않은 의존성.** [CobaltNotRegisteredError](#cobaltnotregisterederror)와 같은 방법으로
   고칩니다. 클래스에 어노테이션을 붙이거나 `@CobaltScopeRoot(provides: [...])`에 적으십시오. 메시지는
   빠진 것을 한 번에 모두 보여 줍니다.
+- **`which only scope Session registers`.** 등록은 자기 스코프와 그 위 스코프들이 등록한 것을 주입합니다.
+  클래스를 그 스코프에 넣거나(`@CobaltInject(scope: Session)`), 필요한 것을 그 클래스가 볼 수 있는 곳에
+  등록하십시오. [GUIDE_CODEGEN.ko.md](../GUIDE_CODEGEN.ko.md#9-앱보다-먼저-끝나는-스코프)를 참고하십시오.
+- **이름이 `Scope`로 끝나는 `@CobaltChildScope` 마커.** 제너레이터가 builder 이름에 `Scope`를 덧붙입니다.
+  마커는 `Session`이라고 하고 `SessionScope`를 여십시오.
 - **기본값이 있는 매개변수에 `requires int`.** 기본값은 제너레이터가 뺄 수 있는 매개변수에만 적용됩니다.
   이름 있는 매개변수이거나 끝에 있는 위치 매개변수여야 합니다. 주입되는 위치 매개변수 앞에 있으면 건너뛸 수
   없고, 메시지가 그렇게 알려 줍니다. 이름 있는 매개변수로 바꾸십시오.
@@ -255,8 +260,8 @@ override가 아무것도 바꾸지 않았습니다.
   메시지.** 제너레이터가 아직 실행되지 않았습니다. `dart run build_runner build`를 실행하고, 어노테이션을
   바꿀 때마다 다시 실행하십시오. 작업하는 동안에는 `dart run build_runner watch`가 파일을 최신으로 유지합니다.
 - **`test/widget_test.dart`의 `The name 'MyApp' isn't a class`.** 이 테스트는 `flutter create`가 만든
-  것으로, 이미 바꾼 카운터 앱을 검사합니다. 지우십시오. 새 앱의 테스트는
-  [`examples/hello/test`](../examples/hello/test)에 있습니다.
+  것으로, 이미 바꾼 카운터 앱을 검사합니다. [빠른 시작](../README.ko.md#빠른-시작)의 테스트로
+  바꾸십시오.
 - **`lib/cobalt.g.dart`의 `The imported package 'cobalt' isn't a dependency`.** 생성된 코드가 런타임을 직접
   임포트하므로 앱이 직접 의존해야 합니다: `flutter pub add cobalt`.
 - **`Classes can only mix in mixins and classes` 또는 `Undefined class '_$Foo'`.** 클래스가 생성된

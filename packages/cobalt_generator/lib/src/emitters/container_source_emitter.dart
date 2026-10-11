@@ -3,6 +3,7 @@ import 'package:cobalt_annotations/cobalt_annotations.dart';
 import 'package:cobalt_generator/src/emitters/cobalt_factory_names.dart';
 import 'package:cobalt_generator/src/emitters/cobalt_references.dart';
 import 'package:cobalt_generator/src/emitters/bootstrap_emitter.dart';
+import 'package:cobalt_generator/src/emitters/child_scope_emitter.dart';
 import 'package:cobalt_generator/src/emitters/decorator_emitter.dart';
 import 'package:cobalt_generator/src/emitters/injectable_factory_emitter.dart';
 import 'package:cobalt_generator/src/emitters/root_scope_emitter.dart';
@@ -23,6 +24,7 @@ class ContainerSourceEmitter {
   static const _bootstrap = BootstrapEmitter();
   static const _start = StartFunctionEmitter();
   static const _decorators = DecoratorEmitter();
+  static const _childScope = ChildScopeEmitter();
 
   String emit(CobaltLibraryDeclarations declarations) {
     final sorted = [...declarations.injectables]
@@ -30,13 +32,22 @@ class ContainerSourceEmitter {
         final byKey = _keyOf(a).compareTo(_keyOf(b));
         return byKey != 0 ? byKey : a.type.name.compareTo(b.type.name);
       });
+    final childScopes = [...declarations.childScopes]
+      ..sort((a, b) => a.type.name.compareTo(b.type.name));
+    _assertChildScopes(childScopes, sorted);
+
     final registered = {
       ..._providedKeys(declarations.scopeRoots),
+      for (final scope in childScopes) ..._ownKeysOf(scope),
       for (final declaration in sorted) _keyOf(declaration),
     };
     final injectables = [
       for (final declaration in sorted)
         _withDefaultsApplied(declaration, registered),
+    ];
+    final rootInjectables = [
+      for (final declaration in injectables)
+        if (declaration.scope == null) declaration,
     ];
 
     // Grouped by type rather than by key: a decorator of every registration
@@ -60,22 +71,24 @@ class ContainerSourceEmitter {
         return byOrder != 0 ? byOrder : a.type.name.compareTo(b.type.name);
       });
 
-    final keysByType = _keysByType(injectables, declarations.scopeRoots);
+    final keysByType = _keysByType(rootInjectables, declarations.scopeRoots);
 
-    _assertNoEnvironmentConflicts(injectables);
+    _assertNoEnvironmentConflicts(injectables, childScopes);
 
     final scopeName = _start.resolveName(declarations.scopeRoots);
 
     _assertDecoratorsHaveTargets(
-      injectables,
+      rootInjectables,
       decorators,
       declarations.scopeRoots,
+      injectables,
     );
 
     _assertNoMissingDependencies(
       injectables,
       declarations.scopeRoots,
       decorators,
+      childScopes,
     );
 
     _assertDecoratorOrder(decorators, keysByType);
@@ -88,17 +101,43 @@ class ContainerSourceEmitter {
     };
     _assertLazyIsAwaited(injectables, lazyKeys, decorators);
 
-    final ordered = _withDerivedDependsOn(injectables, decorators, keysByType);
+    final universe = _environmentUniverse(injectables, decorators);
+    final rootOrdered = _withDerivedDependsOn(
+      rootInjectables,
+      decorators,
+      keysByType,
+      universe,
+    );
+    final childOrdered = {
+      for (final scope in childScopes)
+        _scopeIdOf(scope.type): _withDerivedDependsOn(
+          [
+            for (final declaration in injectables)
+              if (_inScope(declaration, scope)) declaration,
+          ],
+          const [],
+          const {},
+          universe,
+        ),
+    };
+    final ordered = [
+      ...rootOrdered,
+      for (final group in childOrdered.values) ...group,
+    ];
     final names = CobaltFactoryNames(ordered, decorators: decorators);
 
     final hasBootstrap = declarations.bootstrapSteps.isNotEmpty;
     final scopeUsesEnvironments =
-        injectables.any((declaration) => declaration.environments.isNotEmpty) ||
+        rootInjectables.any(
+          (declaration) => declaration.environments.isNotEmpty,
+        ) ||
         decorators.any((decorator) => decorator.environments.isNotEmpty) ||
         hooks.any((hook) => hook.environments.isNotEmpty);
     final bootstrapUsesEnvironments = declarations.bootstrapSteps.any(
       (step) => step.environments.isNotEmpty,
     );
+    final hasRoot =
+        injectables.isNotEmpty || decorators.isNotEmpty || hooks.isNotEmpty;
 
     final library = Library(
       (b) => b
@@ -110,28 +149,41 @@ class ContainerSourceEmitter {
             _factories.emit(declaration, names, awaited: lazyKeys),
           for (final decorator in decorators)
             _decorators.emit(decorator, names),
-          if (ordered.isNotEmpty || decorators.isNotEmpty || hooks.isNotEmpty)
+          if (hasRoot)
             _rootScope.emit(
-              _ordered(ordered, decorators, keysByType),
+              _ordered(rootOrdered, decorators, keysByType),
               names,
               usesEnvironments: scopeUsesEnvironments,
+              hasBootstrap: hasBootstrap,
+              bootstrapUsesEnvironments: bootstrapUsesEnvironments,
               decorators: decorators,
               hooks: hooks,
+              promises: [
+                for (final root in declarations.scopeRoots) ...root.provides,
+              ],
             ),
-          if (ordered.isNotEmpty || decorators.isNotEmpty || hooks.isNotEmpty)
+          if (hasRoot)
             TypeDef(
               (t) => t
                 ..name = 'CobaltRoot'
                 ..definition = refer(r'$CobaltRootScope'),
+            ),
+          for (final scope in childScopes)
+            _childScope.emit(
+              scope,
+              _ordered(
+                childOrdered[_scopeIdOf(scope.type)]!,
+                const [],
+                const {},
+              ),
+              names,
             ),
           if (hasBootstrap)
             _bootstrap.emit(
               declarations.bootstrapSteps,
               usesEnvironments: bootstrapUsesEnvironments,
             ),
-          if (injectables.isNotEmpty ||
-              decorators.isNotEmpty ||
-              hooks.isNotEmpty) ...[
+          if (hasRoot) ...[
             _start.emitName(scopeName),
             _start.emitStart(
               hasBootstrap: hasBootstrap,
@@ -228,13 +280,24 @@ class ContainerSourceEmitter {
     List<CobaltInjectableClass> injectables,
     List<CobaltScopeRootClass> roots,
     List<CobaltDecoratorClass> decorators,
+    List<CobaltChildScopeClass> childScopes,
   ) {
     final provided = _providedKeys(roots);
     final universe = _environmentUniverse(injectables, decorators);
     final missing = <String, _MissingDependency>{};
     final everywhere = {
       ...provided,
+      for (final scope in childScopes) ..._ownKeysOf(scope),
       for (final declaration in injectables) _keyOf(declaration),
+    };
+    final parents = {
+      for (final scope in childScopes)
+        _scopeIdOf(scope.type): scope.parent == null
+            ? _rootId
+            : _scopeIdOf(scope.parent!),
+    };
+    final scopeNames = {
+      for (final scope in childScopes) _scopeIdOf(scope.type): scope.type.name,
     };
 
     for (final environment in universe) {
@@ -244,12 +307,26 @@ class ContainerSourceEmitter {
               declaration.environments.contains(environment))
             declaration,
       ];
-      final available = {
-        ...provided,
-        for (final declaration in active) _keyOf(declaration),
+      final own = <String, Set<String>>{
+        _rootId: {...provided},
+        for (final scope in childScopes)
+          _scopeIdOf(scope.type): _ownKeysOf(scope),
       };
+      for (final declaration in active) {
+        own[_scopeIdOfDeclaration(declaration)]!.add(_keyOf(declaration));
+      }
+      final visible = <String, Set<String>>{};
+      Set<String> visibleFrom(String id) => visible.putIfAbsent(id, () {
+        final parent = parents[id];
+        return {...own[id]!, if (parent != null) ...visibleFrom(parent)};
+      });
+      List<String> registeringScopes(String key) => [
+        for (final MapEntry(key: id, value: keys) in own.entries)
+          if (id != _rootId && keys.contains(key)) scopeNames[id]!,
+      ]..sort();
 
       for (final declaration in active) {
+        final available = visibleFrom(_scopeIdOfDeclaration(declaration));
         for (final dependency in _dependenciesOf(
           declaration,
           registered: everywhere,
@@ -259,23 +336,32 @@ class ContainerSourceEmitter {
           missing
               .putIfAbsent(
                 '${_display(declaration.type)}#${dependency.key}',
-                () => _MissingDependency(declaration.label, dependency.label),
+                () => _MissingDependency(
+                  _dependentLabel(declaration),
+                  dependency.label,
+                  onlyIn: registeringScopes(dependency.key),
+                ),
               )
               .environments
               .add(environment);
         }
       }
 
+      final rootAvailable = visibleFrom(_rootId);
       for (final decorator in decorators) {
         if (!_activeIn(decorator.environments, environment)) continue;
         for (final parameter in decorator.dependencies) {
           final dependency = _dependency(parameter.type, parameter.name);
           if (dependency.isOptional) continue;
-          if (available.contains(dependency.key)) continue;
+          if (rootAvailable.contains(dependency.key)) continue;
           missing
               .putIfAbsent(
                 '${decorator.type.name}#${dependency.key}',
-                () => _MissingDependency(decorator.type.name, dependency.label),
+                () => _MissingDependency(
+                  decorator.type.name,
+                  dependency.label,
+                  onlyIn: registeringScopes(dependency.key),
+                ),
               )
               .environments
               .add(environment);
@@ -289,6 +375,57 @@ class ContainerSourceEmitter {
     );
   }
 
+  void _assertChildScopes(
+    List<CobaltChildScopeClass> childScopes,
+    List<CobaltInjectableClass> injectables,
+  ) {
+    final declared = {
+      for (final scope in childScopes) _scopeIdOf(scope.type): scope,
+    };
+    final byName = <String, List<CobaltChildScopeClass>>{};
+    for (final scope in childScopes) {
+      byName.putIfAbsent(scope.builderName, () => []).add(scope);
+    }
+    for (final MapEntry(key: name, value: scopes) in byName.entries) {
+      if (scopes.length < 2) continue;
+      throw CobaltGenerationError(
+        'Two @CobaltChildScope markers are called ${scopes.first.type.name}, in '
+        '${scopes.map((scope) => scope.type.import).join(' and ')}, and both '
+        'would generate $name. Rename one of them.',
+      );
+    }
+    for (final declaration in injectables) {
+      final scope = declaration.scope;
+      if (scope == null || declared.containsKey(_scopeIdOf(scope))) continue;
+      throw CobaltGenerationError(
+        '${declaration.label} is registered in scope ${scope.name}, which is '
+        'declared in another package. A child scope is generated in the '
+        'package that declares its @CobaltChildScope marker, so its '
+        'registrations have to live there too.',
+      );
+    }
+    for (final scope in childScopes) {
+      final seen = <String>{_scopeIdOf(scope.type)};
+      for (var parent = scope.parent; parent != null;) {
+        final next = declared[_scopeIdOf(parent)];
+        if (next == null) {
+          throw CobaltGenerationError(
+            '${scope.type.name} opens under ${parent.name}, which is declared '
+            'in another package. Declare the scopes of one chain in one '
+            'package.',
+          );
+        }
+        if (!seen.add(_scopeIdOf(parent))) {
+          throw CobaltGenerationError(
+            '${scope.type.name} is its own ancestor through parent: '
+            '${parent.name}. A chain of child scopes has to end at the root.',
+          );
+        }
+        parent = next.parent;
+      }
+    }
+  }
+
   /// Rejects a decorator of something nothing registers.
   ///
   /// At runtime this is the owner check at the end of `runBuilder`; here it
@@ -299,8 +436,33 @@ class ContainerSourceEmitter {
     List<CobaltInjectableClass> injectables,
     List<CobaltDecoratorClass> decorators,
     List<CobaltScopeRootClass> roots,
+    List<CobaltInjectableClass> everywhere,
   ) {
     if (decorators.isEmpty) return;
+    for (final decorator in decorators) {
+      final inChild = [
+        for (final declaration in everywhere)
+          if (declaration.scope != null &&
+              (decorator.allNames
+                  ? _refKey(declaration.exposedType, null) ==
+                        _typeKeyOf(decorator)
+                  : _keyOf(declaration) == _targetOf(decorator)))
+            declaration.scope!.name,
+      ];
+      final inRoot = injectables.any(
+        (declaration) => decorator.allNames
+            ? _refKey(declaration.exposedType, null) == _typeKeyOf(decorator)
+            : _keyOf(declaration) == _targetOf(decorator),
+      );
+      if (inChild.isEmpty || inRoot) continue;
+      throw CobaltGenerationError(
+        '${decorator.type.name} decorates ${_targetLabel(decorator)}, which '
+        'only scope ${(inChild.toSet().toList()..sort()).join(', ')} '
+        'registers. The generator applies decorators in the root only; '
+        'register what it decorates in the root, or decorate it by hand in a '
+        'builder that wraps the generated scope.',
+      );
+    }
     final provided = _providedKeys(roots);
     final universe = _environmentUniverse(injectables, decorators);
     final missing = <CobaltDecoratorClass, Set<String>>{};
@@ -401,6 +563,35 @@ class ContainerSourceEmitter {
   /// environment is left alone — a registration split across builds is not a
   /// mistake, and this check refuses only what is async nowhere.
   void _assertDependsOnIsAsync(List<CobaltInjectableClass> injectables) {
+    final byScope = <String, List<CobaltInjectableClass>>{};
+    for (final declaration in injectables) {
+      byScope
+          .putIfAbsent(_scopeIdOfDeclaration(declaration), () => [])
+          .add(declaration);
+    }
+    final elsewhere = <String>[];
+    for (final members in byScope.values) {
+      final own = {for (final declaration in members) _keyOf(declaration)};
+      for (final declaration in members) {
+        for (final dependency in declaration.dependsOn) {
+          final key = _refKey(dependency, null);
+          if (own.contains(key)) continue;
+          if (!injectables.any((other) => _keyOf(other) == key)) continue;
+          elsewhere.add('${declaration.label} waits for ${dependency.name}');
+        }
+      }
+      _assertDependsOnIsAsyncIn(members);
+    }
+    if (elsewhere.isEmpty) return;
+    throw CobaltGenerationError(
+      'dependsOn can only wait for a registration of the same scope.\n'
+      '${elsewhere.map((line) => '  $line').join('\n')}\n'
+      'It orders init() of one scope, and a scope above is already '
+      'initialized by the time this one starts. Drop the dependsOn.',
+    );
+  }
+
+  void _assertDependsOnIsAsyncIn(List<CobaltInjectableClass> injectables) {
     final registered = {
       for (final declaration in injectables) _keyOf(declaration),
     };
@@ -575,6 +766,7 @@ class ContainerSourceEmitter {
     List<CobaltInjectableClass> injectables,
     List<CobaltDecoratorClass> decorators,
     Map<String, Set<String>> keysByType,
+    List<String> universe,
   ) {
     final asyncKeys = {
       for (final declaration in injectables)
@@ -582,7 +774,6 @@ class ContainerSourceEmitter {
     };
     final decoratorsByTarget = _decoratorsByTarget(decorators, keysByType);
     final byKey = _groupByKey(injectables);
-    final universe = _environmentUniverse(injectables, decorators);
     Set<String> presentIn(Set<String> environments) =>
         environments.isEmpty ? universe.toSet() : environments;
     final asyncPresence = <String, Set<String>>{};
@@ -742,8 +933,18 @@ class ContainerSourceEmitter {
     List<_MissingDependency> missing,
     List<String> universe,
   ) {
+    final scoped = missing.any((entry) => entry.onlyIn.isNotEmpty);
+    const scopeHint =
+        ' A registration can inject what its own scope and the scopes above it '
+        'register: put it into the scope that registers what it needs, with '
+        '@CobaltInject(scope: ...), or register that where it can see it.';
     if (missing.length == 1) {
       final only = missing.single;
+      if (only.onlyIn.isNotEmpty) {
+        return '${only.dependent} requires ${only.label}'
+            '${_whereMissing(only, universe)}, which only scope '
+            '${only.onlyIn.join(', ')} registers.$scopeHint';
+      }
       return '${only.dependent} requires ${only.label}'
           '${_whereMissing(only, universe)}, which nothing registers. '
           'Annotate the class that provides it with @CobaltInject, add an '
@@ -754,13 +955,15 @@ class ContainerSourceEmitter {
     final lines = [
       for (final entry in missing)
         '  ${entry.dependent} requires ${entry.label}'
-            '${_whereMissing(entry, universe)}',
+            '${_whereMissing(entry, universe)}'
+            '${entry.onlyIn.isEmpty ? '' : ', registered only in scope ${entry.onlyIn.join(', ')}'}',
     ].join('\n');
     return 'The graph is missing ${missing.length} registrations.\n$lines\n'
         'Annotate the classes that provide them with @CobaltInject, add '
         '@CobaltModule members returning them when the types are not yours, or '
         'name them in @CobaltScopeRoot(provides: [...]) when something outside '
-        'the generated container registers them.';
+        'the generated container registers them.'
+        '${scoped ? scopeHint : ''}';
   }
 
   static String _whereMissing(
@@ -776,8 +979,31 @@ class ContainerSourceEmitter {
   /// Without environments a duplicate is always a mistake. With them it is a
   /// mistake only when the environments overlap — or when one side names none,
   /// since an unrestricted registration is present in every environment.
-  void _assertNoEnvironmentConflicts(List<CobaltInjectableClass> injectables) {
-    for (final group in _groupByKey(injectables).values) {
+  void _assertNoEnvironmentConflicts(
+    List<CobaltInjectableClass> injectables,
+    List<CobaltChildScopeClass> childScopes,
+  ) {
+    for (final scope in childScopes) {
+      final values = _ownKeysOf(scope, provides: false);
+      for (final declaration in injectables) {
+        if (!_inScope(declaration, scope)) continue;
+        if (!values.contains(_keyOf(declaration))) continue;
+        throw CobaltGenerationError(
+          '${declaration.label} registers ${_display(declaration.exposedType)} '
+          'in scope ${scope.type.name}, which already registers it as a value '
+          'of its constructor. Keep one of them.',
+        );
+      }
+    }
+    final byScope = <String, List<CobaltInjectableClass>>{};
+    for (final declaration in injectables) {
+      byScope
+          .putIfAbsent(_scopeIdOfDeclaration(declaration), () => [])
+          .add(declaration);
+    }
+    for (final group in [
+      for (final members in byScope.values) ..._groupByKey(members).values,
+    ]) {
       for (var i = 0; i < group.length; i++) {
         for (var j = i + 1; j < group.length; j++) {
           final first = group[i];
@@ -906,6 +1132,36 @@ class ContainerSourceEmitter {
     return '${type.name}<$arguments>';
   }
 
+  static const _rootId = '';
+
+  static String _scopeIdOf(CobaltTypeRef marker) => marker.signature;
+
+  static String _scopeIdOfDeclaration(CobaltInjectableClass declaration) {
+    final scope = declaration.scope;
+    return scope == null ? _rootId : _scopeIdOf(scope);
+  }
+
+  static bool _inScope(
+    CobaltInjectableClass declaration,
+    CobaltChildScopeClass scope,
+  ) => _scopeIdOfDeclaration(declaration) == _scopeIdOf(scope.type);
+
+  static Set<String> _ownKeysOf(
+    CobaltChildScopeClass scope, {
+    bool provides = true,
+  }) => {
+    for (final value in scope.values) _refKey(value.type, value.name),
+    if (provides)
+      for (final ref in scope.provides) _refKey(ref.type, ref.name),
+  };
+
+  static String _dependentLabel(CobaltInjectableClass declaration) {
+    final scope = declaration.scope;
+    return scope == null
+        ? declaration.label
+        : '${declaration.label} in scope ${scope.name}';
+  }
+
   static String _keyOf(CobaltInjectableClass declaration) =>
       _refKey(declaration.exposedType, declaration.name);
 
@@ -916,9 +1172,11 @@ class ContainerSourceEmitter {
 typedef _Dependency = ({String key, String label, bool isOptional});
 
 class _MissingDependency {
-  _MissingDependency(this.dependent, this.label);
+  _MissingDependency(this.dependent, this.label, {this.onlyIn = const []});
 
   final String dependent;
   final String label;
+
+  final List<String> onlyIn;
   final Set<String> environments = {};
 }

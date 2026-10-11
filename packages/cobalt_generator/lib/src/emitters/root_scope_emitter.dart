@@ -13,65 +13,114 @@ class RootScopeEmitter {
     List<CobaltInjectableClass> ordered,
     CobaltFactoryNames names, {
     required bool usesEnvironments,
+    bool hasBootstrap = false,
+    bool bootstrapUsesEnvironments = false,
     List<CobaltDecoratorClass> decorators = const [],
     List<CobaltHookClass> hooks = const [],
-  }) => Class(
-    (b) => b
-      ..name = r'$CobaltRootScope'
-      ..modifier = ClassModifier.final$
-      ..implements.add(cobaltRef('CobaltScopeBuilder'))
-      ..constructors.add(
-        Constructor(
-          (c) => c
-            ..constant = true
-            ..optionalParameters.addAll([
-              if (usesEnvironments)
+    List<CobaltProvidedRef> promises = const [],
+  }) {
+    final takesEnvironment = usesEnvironments || bootstrapUsesEnvironments;
+    return Class(
+      (b) => b
+        ..name = r'$CobaltRootScope'
+        ..modifier = ClassModifier.final$
+        ..extend = cobaltRef('CobaltRootBuilder')
+        ..constructors.add(
+          Constructor(
+            (c) => c
+              ..constant = true
+              ..optionalParameters.addAll([
+                if (takesEnvironment)
+                  Parameter(
+                    (p) => p
+                      ..name = 'environment'
+                      ..named = true
+                      ..toThis = true
+                      ..defaultTo = defaultEnvironment.code,
+                  ),
+              ]),
+          ),
+        )
+        ..fields.addAll([
+          if (takesEnvironment)
+            Field(
+              (f) => f
+                ..name = 'environment'
+                ..modifier = FieldModifier.final$
+                ..type = cobaltRef('CobaltEnvironment'),
+            ),
+        ])
+        ..methods.addAll([
+          Method(
+            (m) => m
+              ..name = 'name'
+              ..annotations.add(refer('override'))
+              ..type = MethodType.getter
+              ..returns = refer('String', 'dart:core')
+              ..lambda = true
+              ..body = refer(r'$cobaltRootScopeName').code,
+          ),
+          if (hasBootstrap)
+            Method(
+              (m) => m
+                ..name = 'bootstrap'
+                ..annotations.add(refer('override'))
+                ..returns = TypeReference(
+                  (t) => t
+                    ..symbol = 'List'
+                    ..url = 'dart:core'
+                    ..types.add(cobaltRef('CobaltBootstrapStep')),
+                )
+                ..lambda = true
+                ..body = bootstrapUsesEnvironments
+                    ? refer(
+                        r'$cobaltBootstrap',
+                      ).call([refer('environment')]).code
+                    : refer(r'$cobaltBootstrap').code,
+            ),
+          Method(
+            (m) => m
+              ..name = 'build'
+              ..annotations.add(refer('override'))
+              ..returns = refer('void')
+              ..requiredParameters.add(
                 Parameter(
                   (p) => p
-                    ..name = 'environment'
-                    ..named = true
-                    ..toThis = true
-                    ..defaultTo = defaultEnvironment.code,
+                    ..name = 'scope'
+                    ..type = cobaltRef('CobaltScope'),
                 ),
-            ]),
-        ),
-      )
-      ..fields.addAll([
-        if (usesEnvironments)
-          Field(
-            (f) => f
-              ..name = 'environment'
-              ..modifier = FieldModifier.final$
-              ..type = cobaltRef('CobaltEnvironment'),
+              )
+              ..body = Block.of([
+                for (final entry in promises) promise(entry),
+                for (final hook in hooks)
+                  guardedBy(hook.environments, _hook(hook)),
+                for (final declaration in ordered)
+                  guardedBy(
+                    declaration.environments,
+                    registration(declaration, names),
+                  ),
+                for (final decorator in decorators)
+                  guardedBy(
+                    decorator.environments,
+                    _decorate(decorator, names),
+                  ),
+              ]),
           ),
-      ])
-      ..methods.add(
-        Method(
-          (m) => m
-            ..name = 'build'
-            ..annotations.add(refer('override'))
-            ..returns = refer('void')
-            ..requiredParameters.add(
-              Parameter(
-                (p) => p
-                  ..name = 'scope'
-                  ..type = cobaltRef('CobaltScope'),
-              ),
-            )
-            ..body = Block.of([
-              for (final hook in hooks)
-                guardedBy(hook.environments, _hook(hook)),
-              for (final declaration in ordered)
-                guardedBy(
-                  declaration.environments,
-                  _register(declaration, names),
-                ),
-              for (final decorator in decorators)
-                guardedBy(decorator.environments, _decorate(decorator, names)),
-            ]),
-        ),
-      ),
-  );
+        ]),
+    );
+  }
+
+  Code promise(CobaltProvidedRef entry) {
+    final name = entry.name;
+    return refer('scope')
+        .property('promise')
+        .call(
+          const [],
+          {if (name != null) 'name': literalString(name)},
+          [typeReferenceOf(entry.type)],
+        )
+        .statement;
+  }
 
   Code _hook(CobaltHookClass hook) => refer('scope').property('hookAll').call(
     [typeReferenceOf(hook.type).newInstance(const [])],
@@ -92,7 +141,10 @@ class RootScopeEmitter {
     ).statement;
   }
 
-  Code _register(CobaltInjectableClass declaration, CobaltFactoryNames names) {
+  Code registration(
+    CobaltInjectableClass declaration,
+    CobaltFactoryNames names,
+  ) {
     final exposed = typeReferenceOf(declaration.exposedType);
     final factory = refer(names.of(declaration)).constInstance(const []);
 

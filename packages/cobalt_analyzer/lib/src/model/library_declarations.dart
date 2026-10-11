@@ -1,4 +1,5 @@
 import 'package:cobalt_analyzer/src/model/bootstrap_step_class.dart';
+import 'package:cobalt_analyzer/src/model/child_scope_class.dart';
 import 'package:cobalt_analyzer/src/model/decorator_class.dart';
 import 'package:cobalt_analyzer/src/model/hook_class.dart';
 import 'package:cobalt_analyzer/src/model/injectable_class.dart';
@@ -11,6 +12,7 @@ class CobaltLibraryDeclarations {
     this.scopeRoots = const [],
     this.decorators = const [],
     this.hooks = const [],
+    this.childScopes = const [],
   });
 
   factory CobaltLibraryDeclarations.fromJson(Map<String, dynamic> json) =>
@@ -35,6 +37,10 @@ class CobaltLibraryDeclarations {
           for (final h in json['hooks'] as List<dynamic>? ?? const [])
             CobaltHookClass.fromJson(h as Map<String, dynamic>),
         ],
+        childScopes: [
+          for (final c in json['childScopes'] as List<dynamic>? ?? const [])
+            CobaltChildScopeClass.fromJson(c as Map<String, dynamic>),
+        ],
       );
 
   final List<CobaltInjectableClass> injectables;
@@ -42,13 +48,15 @@ class CobaltLibraryDeclarations {
   final List<CobaltScopeRootClass> scopeRoots;
   final List<CobaltDecoratorClass> decorators;
   final List<CobaltHookClass> hooks;
+  final List<CobaltChildScopeClass> childScopes;
 
   bool get isEmpty =>
       injectables.isEmpty &&
       bootstrapSteps.isEmpty &&
       scopeRoots.isEmpty &&
       decorators.isEmpty &&
-      hooks.isEmpty;
+      hooks.isEmpty &&
+      childScopes.isEmpty;
 
   Map<String, dynamic> toJson() => {
     'injectables': [for (final i in injectables) i.toJson()],
@@ -57,5 +65,7 @@ class CobaltLibraryDeclarations {
     if (decorators.isNotEmpty)
       'decorators': [for (final d in decorators) d.toJson()],
     if (hooks.isNotEmpty) 'hooks': [for (final h in hooks) h.toJson()],
+    if (childScopes.isNotEmpty)
+      'childScopes': [for (final c in childScopes) c.toJson()],
   };
 }

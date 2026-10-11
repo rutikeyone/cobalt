@@ -43,6 +43,14 @@ final class CobaltTalkerObserver extends CobaltObserver {
       );
 
   @override
+  void onPromiseBroken(CobaltScopeRef scope, CobaltKey key) => talker.logCustom(
+    CobaltFailureLog(
+      '$key was promised to "$scope" but nothing there registered it',
+      logLevel: LogLevel.warning,
+    ),
+  );
+
+  @override
   void onScopeInitStarted(CobaltScopeRef scope, int levels) => talker.logCustom(
     CobaltStartupLog(
       'scope "$scope" initializing, $levels level(s)',

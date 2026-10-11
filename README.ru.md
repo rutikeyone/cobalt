@@ -82,8 +82,52 @@ class HomeScreen extends StatelessWidget {
 }
 ```
 
-Удалите и `test/widget_test.dart`: он проверяет приложение-счетчик, которое написал `flutter create`, а
-его больше нет.
+Замените и `test/widget_test.dart`. Он проверял приложение-счетчик, которое написал `flutter create`;
+этот тест запускает ваше приложение с часами, которые всегда показывают одно и то же время:
+
+```dart
+import 'package:cobalt_flutter/cobalt_flutter.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:my_app/cobalt.g.dart';
+import 'package:my_app/main.dart';
+
+class FixedClock implements Clock {
+  FixedClock(this.time);
+
+  final DateTime time;
+
+  @override
+  DateTime now() => time;
+}
+
+void main() {
+  Future<void> pumpAt(WidgetTester tester, DateTime time) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: CobaltAppScope.builder(
+          root: const CobaltRoot(),
+          overrides: () => [CobaltOverride<Clock>.value(FixedClock(time))],
+        ),
+        home: const HomeScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('greets in the morning', (tester) async {
+    await pumpAt(tester, DateTime(2026, 10, 7, 9));
+
+    expect(find.text('Good morning, Cobalt!'), findsOneWidget);
+  });
+
+  testWidgets('greets later in the day', (tester) async {
+    await pumpAt(tester, DateTime(2026, 10, 7, 15));
+
+    expect(find.text('Hello, Cobalt!'), findsOneWidget);
+  });
+}
+```
 
 Сгенерируйте связи и запустите:
 
@@ -121,7 +165,7 @@ flutter run
   `await session.dispose()`: всё, что создала сессия, закрывается, от новых к старым. Никаких
   методов `reset()` и подписок на событие выхода.
 - **Ошибки видны на сборке.** Зависимость, которую никто не зарегистрировал, роняет `build_runner`
-  с сообщением, где перечислены все пробелы сразу. [Восемнадцать правил линтера](packages/cobalt_lint/README.md) ловят остальное прямо
+  с сообщением, где перечислены все пробелы сразу. [Двадцать правил линтера](packages/cobalt_lint/README.md) ловят остальное прямо
   в редакторе.
 - **Сгенерированный код — обычный Dart.** Он использует только публичный API: его можно прочитать
   или обойтись без генератора и написать то же самое руками. Оба способа уживаются в одном графе.

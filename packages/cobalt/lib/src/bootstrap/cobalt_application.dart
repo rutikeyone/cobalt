@@ -1,4 +1,5 @@
 import 'package:cobalt/src/bootstrap/cobalt_bootstrap_step.dart';
+import 'package:cobalt/src/bootstrap/cobalt_root_builder.dart';
 import 'package:cobalt/src/bootstrap/cobalt_scope_builder.dart';
 import 'package:cobalt/src/errors/cobalt_bootstrap_error.dart';
 import 'package:cobalt/src/errors/cobalt_dispose_error.dart';
@@ -43,6 +44,10 @@ final class CobaltApplication {
   /// disposed like any other that failed to start. Null — the default — waits
   /// as long as it takes.
   ///
+  /// [rootName] left at `'root'` takes the name of a [CobaltRootBuilder]
+  /// root, so the generated `CobaltRoot` starts under the name its
+  /// `@CobaltScopeRoot` gives without repeating it here.
+  ///
   /// The caller owns the returned scope and must dispose it. In Code-Gen Mode
   /// the generated `$startCobalt()` is this call with the generated container,
   /// bootstrap list and root name already filled in.
@@ -82,7 +87,9 @@ final class CobaltApplication {
     }
 
     final scope = CobaltScope.root(
-      name: rootName,
+      name: rootName == 'root' && root is CobaltRootBuilder
+          ? root.name
+          : rootName,
       observers: observers,
       overrides: overrides,
     );

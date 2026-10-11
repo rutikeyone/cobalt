@@ -7,6 +7,7 @@
 library;
 
 export 'package:cobalt_annotations/src/cobalt_bootstrap.dart';
+export 'package:cobalt_annotations/src/cobalt_child_scope.dart';
 export 'package:cobalt_annotations/src/cobalt_decorates.dart';
 export 'package:cobalt_annotations/src/cobalt_environment.dart';
 export 'package:cobalt_annotations/src/cobalt_hook_all.dart';

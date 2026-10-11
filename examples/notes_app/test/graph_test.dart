@@ -1,6 +1,7 @@
 import 'package:cobalt/cobalt.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:notes_app/bootstrap/boot_log.dart';
+import 'package:notes_app/cobalt.g.dart';
 import 'package:notes_app/core/app_config.dart';
 import 'package:notes_app/core/clock.dart';
 import 'package:notes_app/core/event_log.dart';
@@ -118,6 +119,5 @@ void main() {
 }
 
 extension on CobaltScope {
-  void registerScope() =>
-      registerLazySingleton<NoteDraft>(const NoteDraftFactory());
+  void registerScope() => runBuilder(const NoteDetailScope());
 }

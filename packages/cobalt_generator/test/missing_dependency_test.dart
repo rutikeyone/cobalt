@@ -168,6 +168,45 @@ void main() {
 
       expect(source, isNot(contains('HttpClientFactory')));
     });
+
+    test('each listed type is promised to the root, by name if it has one', () {
+      final source = generate(
+        [
+          declare(
+            'Api',
+            constructor: [
+              dep('HttpClient'),
+              dep('Logger', name: 'audit'),
+            ],
+          ),
+        ],
+        scopeRoots: [
+          scopeRoot(
+            'AppScope',
+            provides: [
+              provided('HttpClient'),
+              provided('Logger', name: 'audit'),
+            ],
+          ),
+        ],
+      );
+
+      final promises = source
+          .split('\n')
+          .map((line) => line.trim())
+          .where((line) => line.startsWith('scope.promise'))
+          .toList();
+      expect(promises, [
+        matches(r'^scope\.promise<_i\d+\.HttpClient>\(\);$'),
+        matches(r"^scope\.promise<_i\d+\.Logger>\(name: 'audit'\);$"),
+      ]);
+    });
+
+    test('nothing listed, nothing promised', () {
+      final source = generate([declare('Api')]);
+
+      expect(source, isNot(contains('scope.promise')));
+    });
   });
 
   group('environments', () {
