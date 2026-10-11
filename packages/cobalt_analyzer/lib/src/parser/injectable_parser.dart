@@ -7,6 +7,7 @@ import 'package:cobalt_analyzer/src/parser/dispose_reader.dart';
 import 'package:cobalt_analyzer/src/parser/environment_reader.dart';
 import 'package:cobalt_analyzer/src/parser/injected_field_reader.dart';
 import 'package:cobalt_analyzer/src/parser/parse_error.dart';
+import 'package:cobalt_analyzer/src/parser/scope_reader.dart';
 import 'package:cobalt_analyzer/src/parser/type_ref_resolver.dart';
 import 'package:cobalt_annotations/cobalt_annotations.dart';
 import 'package:analyzer/dart/constant/value.dart';
@@ -140,6 +141,7 @@ class CobaltInjectableParser {
     }
 
     final name = annotation.readString('name');
+    final scope = _scopeOf(clazz, injectAnnotation, initAnnotation);
     final exposeAs = _exposeAsOf(annotation);
     final environments = environmentsOf(clazz);
     final properties = injectedFieldsOf(clazz);
@@ -159,6 +161,7 @@ class CobaltInjectableParser {
       dependsOn: dependsOn,
       environments: environments,
       dispose: dispose,
+      scope: scope,
       constructorParameters: [
         for (final (index, parameter) in constructor.formalParameters.indexed)
           CobaltInjectedProperty(
@@ -200,6 +203,25 @@ class CobaltInjectableParser {
               : _instantiatedExposeAs(clazz, instantiation, exposed),
         ),
     ];
+  }
+
+  CobaltTypeRef? _scopeOf(
+    ClassElement clazz,
+    DartObject? injectAnnotation,
+    DartObject? initAnnotation,
+  ) {
+    final fromInject = scopeOf(injectAnnotation, clazz.displayName, clazz);
+    final fromInit = scopeOf(initAnnotation, clazz.displayName, clazz);
+    if (fromInject != null &&
+        fromInit != null &&
+        fromInject.signature != fromInit.signature) {
+      throw CobaltParseError(
+        '${clazz.displayName} names scope ${fromInject.name} in @CobaltInject '
+        'and ${fromInit.name} in @CobaltInit. Name it once.',
+        clazz,
+      );
+    }
+    return fromInject ?? fromInit;
   }
 
   /// The `@injected` fields of [clazz] as it declares them, a type parameter

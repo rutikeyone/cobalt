@@ -18,6 +18,7 @@ class CobaltInjectableClass {
     this.environments = const {},
     this.provider,
     this.dispose,
+    this.scope,
   });
 
   factory CobaltInjectableClass.fromJson(
@@ -53,6 +54,9 @@ class CobaltInjectableClass {
     dispose: json['dispose'] == null
         ? null
         : CobaltFunctionRef.fromJson(json['dispose'] as Map<String, dynamic>),
+    scope: json['scope'] == null
+        ? null
+        : CobaltTypeRef.fromJson(json['scope'] as Map<String, dynamic>),
   );
 
   final CobaltTypeRef type;
@@ -80,6 +84,10 @@ class CobaltInjectableClass {
   /// say how itself.
   final CobaltFunctionRef? dispose;
 
+  /// The `@CobaltChildScope` marker of the scope this is registered in, or
+  /// null for the root.
+  final CobaltTypeRef? scope;
+
   CobaltTypeRef get exposedType => exposeAs ?? type;
 
   /// The same declaration with [dependsOn] replaced.
@@ -100,6 +108,7 @@ class CobaltInjectableClass {
         environments: environments,
         provider: provider,
         dispose: dispose,
+        scope: scope,
       );
 
   /// The same declaration with [constructorParameters] replaced.
@@ -121,6 +130,7 @@ class CobaltInjectableClass {
     environments: environments,
     provider: provider,
     dispose: dispose,
+    scope: scope,
   );
 
   /// How this declaration is named in diagnostics.
@@ -194,5 +204,6 @@ class CobaltInjectableClass {
     'environments': [...environments],
     'provider': provider?.toJson(),
     'dispose': dispose?.toJson(),
+    if (scope != null) 'scope': scope!.toJson(),
   };
 }

@@ -1,10 +1,8 @@
-import 'package:cobalt_analyzer/src/model/provided_ref.dart';
 import 'package:cobalt_analyzer/src/model/scope_root_class.dart';
 import 'package:cobalt_analyzer/src/parser/cobalt_matchers.dart';
 import 'package:cobalt_analyzer/src/parser/dart_object_reader.dart';
-import 'package:cobalt_analyzer/src/parser/parse_error.dart';
+import 'package:cobalt_analyzer/src/parser/provides_reader.dart';
 import 'package:cobalt_analyzer/src/parser/type_ref_resolver.dart';
-import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 class CobaltScopeRootParser {
@@ -17,34 +15,7 @@ class CobaltScopeRootParser {
     return CobaltScopeRootClass(
       type: typeRefOfElement(clazz),
       name: annotation.readString('name') ?? 'root',
-      provides: _providesOf(annotation, clazz),
-    );
-  }
-
-  List<CobaltProvidedRef> _providesOf(
-    DartObject annotation,
-    ClassElement clazz,
-  ) {
-    final values = annotation.getField('provides')?.toListValue();
-    if (values == null) return const [];
-    return [for (final value in values) _provided(value, clazz)];
-  }
-
-  CobaltProvidedRef _provided(DartObject value, ClassElement clazz) {
-    if (value.toTypeValue() case final type?) {
-      return CobaltProvidedRef(type: typeRefOf(type));
-    }
-    if (value.getField('type')?.toTypeValue() case final type?) {
-      return CobaltProvidedRef(
-        type: typeRefOf(type),
-        name: value.readString('name'),
-      );
-    }
-    throw CobaltParseError(
-      '${clazz.displayName} lists something in provides that is neither a '
-      'type nor an CobaltProvided. Write the type itself, or '
-      "CobaltProvided(Type, name: 'qualifier') when the registration is named.",
-      clazz,
+      provides: providesOf(annotation, clazz),
     );
   }
 }

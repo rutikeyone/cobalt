@@ -65,6 +65,8 @@ cobalt  Disposable  abstract interface class
 cobalt_analyzer  CobaltAnnotationMatcher  class
 cobalt_analyzer  CobaltBootstrapParser  class
 cobalt_analyzer  CobaltBootstrapStepClass  class
+cobalt_analyzer  CobaltChildScopeClass  class
+cobalt_analyzer  CobaltChildScopeParser  class
 cobalt_analyzer  CobaltDartObject  extension
 cobalt_analyzer  CobaltDecoratorClass  class
 cobalt_analyzer  CobaltDecoratorParser  class
@@ -84,6 +86,7 @@ cobalt_analyzer  CobaltScopeRootClass  class
 cobalt_analyzer  CobaltScopeRootParser  class
 cobalt_analyzer  CobaltTypeRef  class
 cobalt_annotations  CobaltBootstrap  class
+cobalt_annotations  CobaltChildScope  class
 cobalt_annotations  CobaltDecorates  class
 cobalt_annotations  CobaltEnvironment  class
 cobalt_annotations  CobaltHookAll  class
