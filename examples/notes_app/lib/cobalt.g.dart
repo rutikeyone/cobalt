@@ -225,12 +225,18 @@ final class _NotesControllerFactory
       _i1050.NotesController();
 }
 
-final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
+final class $CobaltRootScope extends _i573.CobaltRootBuilder {
   const $CobaltRootScope({
     this.environment = _i573.CobaltEnvironment.defaultEnvironment,
   });
 
   final _i573.CobaltEnvironment environment;
+
+  @override
+  String get name => $cobaltRootScopeName;
+
+  @override
+  List<_i573.CobaltBootstrapStep> bootstrap() => $cobaltBootstrap(environment);
 
   @override
   void build(_i573.CobaltScope scope) {

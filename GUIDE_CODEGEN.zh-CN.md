@@ -193,8 +193,11 @@ final class _RepositoryFactory implements CobaltFactory<Repository> {
   Repository create(CobaltResolver resolver) => Repository(resolver.get<Config>());
 }
 
-final class $CobaltRootScope implements CobaltScopeBuilder {
+final class $CobaltRootScope extends CobaltRootBuilder {
   const $CobaltRootScope();
+
+  @override
+  String get name => $cobaltRootScopeName;
 
   @override
   void build(CobaltScope scope) {
@@ -219,6 +222,8 @@ final scope = await $startCobalt();
 ```
 
 `CobaltRoot` 是同一个类不带 `$` 的名字，所以快速开始里的 `const CobaltRoot()` 和 `const $CobaltRootScope()` 可以互换。
+它继承 `CobaltRootBuilder`，因此带着 `@CobaltScopeRoot` 给出的名字；有 bootstrap 步骤时，
+还带一个交出这些步骤的 `bootstrap()`。用法见 [§7](#7-启动-flutter-应用)。
 
 为了便于阅读，这里省略了前缀，但真实文件会给每个导入的名字加上由其 URL 哈希得出的别名——
 `_i178.CobaltFactory`。用哈希而不是计数器，是为了让新增一个导入不会把其余全部重新编号，
@@ -404,6 +409,18 @@ void main() => runApp(
 
 `bootstrap` 是函数而不是列表，生成器把 `$cobaltBootstrap` 写成 getter 也是同一个原因：
 步骤持有资源，重启必须拿到新的。
+
+没有自己的包装类时，生成的根同时带着这两样东西。作用域无需 `rootName` 就会采用
+`@CobaltScopeRoot` 给出的名字，而 `bootstrap()` 每次调用都交出新的步骤：
+
+```dart
+builder: CobaltAppScope.builder(
+  root: const CobaltRoot(),
+  bootstrap: const CobaltRoot().bootstrap,
+),
+```
+
+名字会自动采用，步骤不会，所以不传 `bootstrap` 就启动应用的 widget 测试依然不会运行它们。
 
 `CobaltAppScope.of(context).restart()` 重建整张图——同一个调用也用于重试失败的启动。
 

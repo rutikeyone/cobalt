@@ -32,8 +32,11 @@ final class _GreeterFactory
       _i583.Greeter(resolver.get<_i583.Clock>());
 }
 
-final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
+final class $CobaltRootScope extends _i573.CobaltRootBuilder {
   const $CobaltRootScope();
+
+  @override
+  String get name => $cobaltRootScopeName;
 
   @override
   void build(_i573.CobaltScope scope) {

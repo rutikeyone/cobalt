@@ -115,6 +115,8 @@ class ContainerSourceEmitter {
               _ordered(ordered, decorators, keysByType),
               names,
               usesEnvironments: scopeUsesEnvironments,
+              hasBootstrap: hasBootstrap,
+              bootstrapUsesEnvironments: bootstrapUsesEnvironments,
               decorators: decorators,
               hooks: hooks,
             ),

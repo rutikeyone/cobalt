@@ -52,10 +52,7 @@ class _NeverFactory implements CobaltAsyncFactory<SlowService> {
 
   @override
   Future<SlowService> create(CobaltResolver resolver) =>
-      Future.delayed(
-        const Duration(hours: 1),
-        () => SlowService('never'),
-      );
+      Future.delayed(const Duration(hours: 1), () => SlowService('never'));
 }
 
 final class _Pushes extends CobaltObserver {

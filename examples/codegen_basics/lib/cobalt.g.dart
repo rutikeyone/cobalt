@@ -139,8 +139,11 @@ final class _TrackedRepositoryDecorator
   ) => _i421.TrackedRepository(inner);
 }
 
-final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
+final class $CobaltRootScope extends _i573.CobaltRootBuilder {
   const $CobaltRootScope();
+
+  @override
+  String get name => $cobaltRootScopeName;
 
   @override
   void build(_i573.CobaltScope scope) {

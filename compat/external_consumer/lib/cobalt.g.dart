@@ -479,8 +479,14 @@ final class _TracedEndpointDecorator
   ) => _i416.TracedEndpoint(inner)..onInject(resolver);
 }
 
-final class $CobaltRootScope implements _i573.CobaltScopeBuilder {
+final class $CobaltRootScope extends _i573.CobaltRootBuilder {
   const $CobaltRootScope();
+
+  @override
+  String get name => $cobaltRootScopeName;
+
+  @override
+  List<_i573.CobaltBootstrapStep> bootstrap() => $cobaltBootstrap;
 
   @override
   void build(_i573.CobaltScope scope) {

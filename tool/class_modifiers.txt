@@ -54,6 +54,7 @@ cobalt  CobaltRecordingObserver  abstract base class
 cobalt  CobaltRegistrationInfo  final class
 cobalt  CobaltRegistrationKind  enum
 cobalt  CobaltResolver  abstract base class
+cobalt  CobaltRootBuilder  abstract base class
 cobalt  CobaltScope  final class
 cobalt  CobaltScopeBuilder  abstract interface class
 cobalt  CobaltScopeRef  final class

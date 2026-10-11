@@ -91,7 +91,7 @@ class StartFunctionEmitter {
         ..body = cobaltRef('CobaltApplication').property('start').call(
           const [],
           {
-            'root': scopeUsesEnvironments
+            'root': usesEnvironments
                 ? refer(
                     r'$CobaltRootScope',
                   ).newInstance(const [], {'environment': environment})

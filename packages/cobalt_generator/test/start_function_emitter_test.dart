@@ -45,6 +45,53 @@ void main() {
       expect(withoutSteps, isNot(contains('bootstrap:')));
     });
 
+    test('the root carries its name and, with steps, its bootstrap', () {
+      final withSteps = generate(
+        [declare('Logger')],
+        bootstrap: [step('BindPlatform')],
+      );
+      final withoutSteps = generate([declare('Logger')]);
+
+      expect(
+        withSteps,
+        contains(
+          r'final class $CobaltRootScope extends _i573.CobaltRootBuilder',
+        ),
+      );
+      expect(withSteps, contains(r'String get name => $cobaltRootScopeName;'));
+      expect(
+        withSteps,
+        contains(
+          r'List<_i573.CobaltBootstrapStep> bootstrap() => $cobaltBootstrap;',
+        ),
+      );
+      expect(
+        withoutSteps,
+        contains(r'String get name => $cobaltRootScopeName;'),
+      );
+      expect(withoutSteps, isNot(contains('bootstrap()')));
+    });
+
+    test('a bootstrap list split by environment makes the root take one', () {
+      final source = generate(
+        [declare('Logger')],
+        bootstrap: [
+          step('BindPlatform', environments: {'prod'}),
+        ],
+      );
+
+      expect(source, contains(r'const $CobaltRootScope({'));
+      expect(source, contains('this.environment = '));
+      expect(
+        source,
+        contains(r'bootstrap() => $cobaltBootstrap(environment);'),
+      );
+      expect(
+        source,
+        contains(r'root: $CobaltRootScope(environment: environment)'),
+      );
+    });
+
     test('two roots in one package is a generation error', () {
       expect(
         () => generate(

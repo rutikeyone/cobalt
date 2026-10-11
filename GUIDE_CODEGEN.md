@@ -206,8 +206,11 @@ final class _RepositoryFactory implements CobaltFactory<Repository> {
   Repository create(CobaltResolver resolver) => Repository(resolver.get<Config>());
 }
 
-final class $CobaltRootScope implements CobaltScopeBuilder {
+final class $CobaltRootScope extends CobaltRootBuilder {
   const $CobaltRootScope();
+
+  @override
+  String get name => $cobaltRootScopeName;
 
   @override
   void build(CobaltScope scope) {
@@ -232,7 +235,9 @@ final scope = await $startCobalt();
 ```
 
 `CobaltRoot` is the same class under a name without the `$`, so the Quick start's
-`const CobaltRoot()` and `const $CobaltRootScope()` are interchangeable.
+`const CobaltRoot()` and `const $CobaltRootScope()` are interchangeable. It extends
+`CobaltRootBuilder`, so it carries the name from `@CobaltScopeRoot`, and with bootstrap steps a
+`bootstrap()` that hands them out; [§7](#7-starting-a-flutter-app) shows both in use.
 
 Shown without them here for readability, but the real file prefixes every imported name with an
 alias derived from a hash of its URL — `_i178.CobaltFactory`. It is a hash rather than a counter so
@@ -428,6 +433,19 @@ void main() => runApp(
 
 `bootstrap` is a function rather than a list on purpose, and the generator emits `$cobaltBootstrap` as
 a getter for the same reason: steps hold resources, and a restart has to get new ones.
+
+Without a wrapper of your own, the generated root carries both. The scope takes the name from
+`@CobaltScopeRoot` without `rootName`, and `bootstrap()` hands out new steps on every call:
+
+```dart
+builder: CobaltAppScope.builder(
+  root: const CobaltRoot(),
+  bootstrap: const CobaltRoot().bootstrap,
+),
+```
+
+The name is picked up on its own and the steps are not, so a widget test that pumps the app without
+`bootstrap` keeps starting without them.
 
 `CobaltAppScope.of(context).restart()` rebuilds the graph — the same call retries a failed start.
 

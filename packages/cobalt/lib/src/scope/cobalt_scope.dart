@@ -532,11 +532,10 @@ final class CobaltScope extends CobaltResolver {
       child.runBuilder(builder);
       await child.init(timeout: initTimeout);
     } catch (_) {
-      try {
-        await child.dispose();
-      } on CobaltDisposeError {
-        // Already reported through onScopeDisposed; see above.
-      }
+      await child.dispose().catchError(
+        (_) {},
+        test: (error) => error is CobaltDisposeError,
+      );
       rethrow;
     }
     return child;

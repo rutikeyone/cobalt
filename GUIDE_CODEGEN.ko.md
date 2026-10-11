@@ -203,8 +203,11 @@ final class _RepositoryFactory implements CobaltFactory<Repository> {
   Repository create(CobaltResolver resolver) => Repository(resolver.get<Config>());
 }
 
-final class $CobaltRootScope implements CobaltScopeBuilder {
+final class $CobaltRootScope extends CobaltRootBuilder {
   const $CobaltRootScope();
+
+  @override
+  String get name => $cobaltRootScopeName;
 
   @override
   void build(CobaltScope scope) {
@@ -229,7 +232,9 @@ final scope = await $startCobalt();
 ```
 
 `CobaltRoot`는 `$` 없는 이름의 같은 클래스이므로, 빠른 시작의 `const CobaltRoot()`와
-`const $CobaltRootScope()`는 서로 바꿔 쓸 수 있습니다.
+`const $CobaltRootScope()`는 서로 바꿔 쓸 수 있습니다. `CobaltRootBuilder`를 상속하므로
+`@CobaltScopeRoot`의 이름을 지니고, bootstrap 단계가 있으면 그것을 내주는 `bootstrap()`도 지닙니다.
+사용법은 [§7](#7-flutter-앱-시작하기)에 있습니다.
 
 여기서는 읽기 쉽도록 생략했지만, 실제 파일은 import한 모든 이름 앞에 그 URL의 해시에서 만든 별칭을 붙입니다.
 `_i178.CobaltFactory` 같은 식입니다. 카운터가 아니라 해시인 이유는 import 하나를 추가했을 때 다른 모든 번호가
@@ -422,6 +427,19 @@ void main() => runApp(
 
 `bootstrap`이 리스트가 아니라 함수인 것은 의도적이며, 제너레이터가 `$cobaltBootstrap`을 getter로 내보내는 것도
 같은 이유입니다. 단계는 리소스를 보유하며, 재시작하면 새 단계를 받아야 합니다.
+
+직접 만든 래퍼가 없으면 생성된 루트가 둘 다 지닙니다. 스코프는 `rootName` 없이도
+`@CobaltScopeRoot`의 이름을 쓰고, `bootstrap()`은 호출할 때마다 새 단계를 내줍니다.
+
+```dart
+builder: CobaltAppScope.builder(
+  root: const CobaltRoot(),
+  bootstrap: const CobaltRoot().bootstrap,
+),
+```
+
+이름은 자동으로 적용되지만 단계는 그렇지 않으므로, `bootstrap` 없이 앱을 띄우는 위젯 테스트는 계속 단계 없이
+시작합니다.
 
 `CobaltAppScope.of(context).restart()`는 그래프를 다시 빌드합니다. 실패한 시작을 재시도하는 것도 같은 호출입니다.
 

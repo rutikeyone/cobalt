@@ -206,8 +206,11 @@ final class _RepositoryFactory implements CobaltFactory<Repository> {
   Repository create(CobaltResolver resolver) => Repository(resolver.get<Config>());
 }
 
-final class $CobaltRootScope implements CobaltScopeBuilder {
+final class $CobaltRootScope extends CobaltRootBuilder {
   const $CobaltRootScope();
+
+  @override
+  String get name => $cobaltRootScopeName;
 
   @override
   void build(CobaltScope scope) {
@@ -232,7 +235,9 @@ final scope = await $startCobalt();
 ```
 
 `CobaltRoot` это тот же класс под именем без `$`, поэтому `const CobaltRoot()` из быстрого старта и
-`const $CobaltRootScope()` взаимозаменяемы.
+`const $CobaltRootScope()` взаимозаменяемы. Он наследует `CobaltRootBuilder`, поэтому несет имя из
+`@CobaltScopeRoot`, а при наличии bootstrap-шагов и метод `bootstrap()`, который их отдает; как ими
+пользоваться, показано в [§7](#7-запуск-flutter-приложения).
 
 Здесь они для читаемости опущены, но в настоящем файле каждое импортированное имя носит префикс,
 выведенный из хеша URL библиотеки: `_i178.CobaltFactory`. Именно хеш, а не счётчик, — чтобы
@@ -428,6 +433,19 @@ void main() => runApp(
 
 `bootstrap` — функция, а не список, и генератор эмитит `$cobaltBootstrap` геттером по той же причине:
 шаги держат ресурсы, и рестарт обязан получить новые.
+
+Без собственной обертки сгенерированный root несет и то и другое. Скоуп берет имя из
+`@CobaltScopeRoot` без `rootName`, а `bootstrap()` при каждом вызове отдает новые шаги:
+
+```dart
+builder: CobaltAppScope.builder(
+  root: const CobaltRoot(),
+  bootstrap: const CobaltRoot().bootstrap,
+),
+```
+
+Имя подхватывается само, а шаги нет, поэтому виджет-тест, который поднимает приложение без
+`bootstrap`, по-прежнему стартует без них.
 
 `CobaltAppScope.of(context).restart()` пересобирает граф — тот же вызов повторяет упавший старт.
 
