@@ -38,7 +38,7 @@ class UseBlocProviderValue extends ResolvedCorrectionProducer {
     if (call == null) return;
     final create = blocProviderCreate(call)!;
 
-    final function = create.expression;
+    final function = create.value;
     if (function is! FunctionExpression) return;
     final body = function.body;
     if (body is! ExpressionFunctionBody) return;
@@ -61,8 +61,7 @@ class UseBlocProviderValue extends ResolvedCorrectionProducer {
         return;
     }
     final hasLazy = arguments.arguments.any(
-      (argument) =>
-          argument is NamedExpression && argument.name.label.name == 'lazy',
+      (AstNode argument) => labelOf(argument) == 'lazy',
     );
     if (hasLazy) return;
 
@@ -71,7 +70,7 @@ class UseBlocProviderValue extends ResolvedCorrectionProducer {
       builder
         ..addSimpleInsertion(nameEnd, '.value')
         ..addSimpleReplacement(
-          SourceRange(create.offset, create.length),
+          SourceRange(create.argument.offset, create.argument.length),
           'value: $value',
         );
     });

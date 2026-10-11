@@ -83,7 +83,7 @@ class CobaltChildScopeParser {
     FormalParameterElement parameter,
   ) {
     final where = '${clazz.displayName}(${parameter.displayName})';
-    if (!parameter.isInitializingFormal) {
+    if (parameter is! FieldFormalParameterElement) {
       throw CobaltParseError(
         '$where is not an initializing formal. Write this.${parameter.displayName}: '
         'each constructor parameter of a @CobaltChildScope marker is a value '

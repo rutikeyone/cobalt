@@ -2,6 +2,7 @@ import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
@@ -43,9 +44,12 @@ class BlocProviderClosesAScopedBloc extends AnalysisRule {
   }
 }
 
-/// The `create:` argument of a `BlocProvider(...)` call, or null when [node]
-/// is not one.
-NamedExpression? blocProviderCreate(AstNode node) {
+/// The `create:` argument of a `BlocProvider(...)` call and the value it
+/// passes, or null when [node] is not one.
+///
+/// A named argument is read by its tokens rather than by its node type: it is
+/// a `NamedExpression` up to analyzer 13 and a `NamedArgument` from 14.
+({AstNode argument, Expression value})? blocProviderCreate(AstNode node) {
   final ArgumentList arguments;
   switch (node) {
     case InstanceCreationExpression(
@@ -59,12 +63,18 @@ NamedExpression? blocProviderCreate(AstNode node) {
     default:
       return null;
   }
-  for (final argument in arguments.arguments) {
-    if (argument is NamedExpression && argument.name.label.name == 'create') {
-      return argument;
-    }
+  for (final AstNode argument in arguments.arguments) {
+    if (labelOf(argument) != 'create') continue;
+    final value = argument.childEntities.whereType<Expression>().lastOrNull;
+    return value == null ? null : (argument: argument, value: value);
   }
   return null;
+}
+
+/// The label of a named argument, or null for a positional one.
+String? labelOf(AstNode argument) {
+  final name = argument.beginToken;
+  return name.next?.type == TokenType.COLON ? name.lexeme : null;
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
@@ -83,8 +93,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     final create = blocProviderCreate(node);
     if (create == null) return;
     final finder = _ReadsFromScope();
-    create.expression.accept(finder);
-    if (finder.found) rule.reportAtNode(create);
+    create.value.accept(finder);
+    if (finder.found) rule.reportAtNode(create.argument);
   }
 }
 
