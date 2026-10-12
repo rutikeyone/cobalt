@@ -90,7 +90,7 @@
   "decoratorsStationCalls": "{count, plural, =0{아직 호출되지 않음} other{{count}회 호출됨}}",
   "widgetScopeTitle": "위젯 소유 스코프",
   "widgetScopeTeaches": "딱 한 화면만큼 사는 그래프.",
-  "widgetScopePoint1": "CobaltScopedStatefulWidget은 자신이 소유한 스코프에 등록합니다",
+  "widgetScopePoint1": "CobaltScopeWidget은 생성된 NoteDetailScope로 만든 스코프를 소유합니다",
   "widgetScopePoint2": "화면을 떠나면 화면이 빌드한 모든 것이 해제됩니다",
   "widgetScopePoint3": "registerParamFactory는 값을 생성 과정에 전달합니다",
   "widgetScopePoint4": "부모 그래프는 그대로입니다. 이것은 변경이 아니라 하위 스코프입니다",

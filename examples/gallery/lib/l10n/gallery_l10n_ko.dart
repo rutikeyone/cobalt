@@ -329,7 +329,7 @@ class GalleryL10nKo extends GalleryL10n {
 
   @override
   String get widgetScopePoint1 =>
-      'CobaltScopedStatefulWidget은 자신이 소유한 스코프에 등록합니다';
+      'CobaltScopeWidget은 생성된 NoteDetailScope로 만든 스코프를 소유합니다';
 
   @override
   String get widgetScopePoint2 => '화면을 떠나면 화면이 빌드한 모든 것이 해제됩니다';

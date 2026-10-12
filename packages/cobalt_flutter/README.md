@@ -168,9 +168,8 @@ class NoteDetailScreen extends CobaltScopedWidget {
 `loading`, `errorBuilder` or `overrides` when the defaults do not fit; the scope is otherwise named after the
 widget, which is what shows up in the scope tree.
 
-`CobaltScopedStatefulWidget` is the stateful counterpart — the widget declares the scope, its
-`CobaltScopedState` overrides `buildScoped`, and `setState` rebuilds only the content. The scope is
-created once on mount, not on every rebuild.
+For stateful content, wrap a `StatefulWidget` in `CobaltScopeWidget`, below. The older
+`CobaltScopedStatefulWidget` is deprecated since 1.6.0 and goes in 2.0.
 
 Use `CobaltScopeWidget` directly when the scope has to wrap part of a subtree rather than a whole
 widget:

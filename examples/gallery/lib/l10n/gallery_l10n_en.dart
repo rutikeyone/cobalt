@@ -357,7 +357,7 @@ class GalleryL10nEn extends GalleryL10n {
 
   @override
   String get widgetScopePoint1 =>
-      'CobaltScopedStatefulWidget registers into a scope it owns';
+      'CobaltScopeWidget owns a scope built from the generated NoteDetailScope';
 
   @override
   String get widgetScopePoint2 =>

@@ -645,7 +645,7 @@ abstract class GalleryL10n {
   /// No description provided for @widgetScopePoint1.
   ///
   /// In en, this message translates to:
-  /// **'CobaltScopedStatefulWidget registers into a scope it owns'**
+  /// **'CobaltScopeWidget owns a scope built from the generated NoteDetailScope'**
   String get widgetScopePoint1;
 
   /// No description provided for @widgetScopePoint2.

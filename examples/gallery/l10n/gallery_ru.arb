@@ -90,7 +90,7 @@
   "decoratorsStationCalls": "{count, plural, =0{ещё не вызывалась} one{вызвана {count} раз} few{вызвана {count} раза} many{вызвана {count} раз} other{вызвана {count} раза}}",
   "widgetScopeTitle": "Скоуп, которым владеет виджет",
   "widgetScopeTeaches": "Граф, который живёт ровно столько, сколько один экран.",
-  "widgetScopePoint1": "CobaltScopedStatefulWidget регистрирует в скоуп, которым владеет сам",
+  "widgetScopePoint1": "CobaltScopeWidget владеет скоупом из сгенерированного NoteDetailScope",
   "widgetScopePoint2": "Уход с экрана разбирает всё, что экран построил",
   "widgetScopePoint3": "registerParamFactory передаёт значение в конструктор",
   "widgetScopePoint4": "Родительский граф не трогается: это ребёнок, а не изменение",

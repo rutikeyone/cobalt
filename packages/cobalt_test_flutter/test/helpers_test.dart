@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:cobalt_flutter/cobalt_flutter.dart';
 import 'package:cobalt_test/cobalt_test.dart';
 import 'package:cobalt_test_flutter/cobalt_test_flutter.dart';
