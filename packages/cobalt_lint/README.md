@@ -88,7 +88,7 @@ The overrides above are gone from this repository's own copy now that `cobalt_li
 | `cobalt_bootstrap_requires_run_method` | `@CobaltBootstrap` on a class with no `run()` |
 | `cobalt_bootstrap_step_cannot_inject` | a bootstrap step whose constructor takes required parameters |
 | `cobalt_environment_needs_a_registration` | `@CobaltEnvironment` on a class nothing registers, where it silently does nothing |
-| `cobalt_dependency_is_not_registered` | an injected dependency nothing in the package registers, or a decorator's target or dependency nothing registers |
+| `cobalt_dependency_is_not_registered` | an injected dependency nothing in the package registers, or a decorator's target or dependency nothing registers, or one only a child scope the class cannot see registers |
 | `cobalt_dependency_cycle` | an injectable class that depends, eventually, on itself — including through a decorator of it |
 | `cobalt_registration_is_never_released` | a registered class with a `dispose()` or `close()` the scope cannot see |
 | `cobalt_resource_is_never_closed` | A registration holds something closeable and offers no way to close it. |
@@ -117,6 +117,7 @@ Seven rules come with a quick fix, offered by the IDE on the diagnostic:
 | `cobalt_depends_on_lazy_registration` | replaces `dependsOn: [...]` with `lazy: true` |
 | `cobalt_registration_is_never_released` | implements `Disposable`, or `AsyncDisposable` when the teardown returns a `Future`, adds a `dispose()` calling the teardown when it has another name, and imports `package:cobalt/cobalt.dart` if needed |
 | `cobalt_bloc_provider_closes_a_scoped_bloc` | rewrites it to `BlocProvider.value(value: ...)` when `create` returns one expression and takes `_` or `context`, and there is no `lazy:` |
+| `cobalt_dependency_is_not_registered` | for a dependency only one child scope registers, moves a root class into it: `@cobaltInject` becomes `@CobaltInject(scope: Session)`, when the marker is visible in the library |
 
 A fix stays out of the menu where it cannot be sure of the result: `@cobaltInject` is not offered on
 an abstract class or where the annotations are imported with a prefix, and `Disposable` is not

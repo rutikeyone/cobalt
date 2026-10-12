@@ -62,7 +62,7 @@ void main() {
 /// seventeen rules, deliberately — but the reverse has to hold: nothing here
 /// may report code the generator is happy with.
 abstract class _QuietTest extends AnalysisRuleTest {
-  AnalysisRule makeRule();
+  AbstractAnalysisRule makeRule();
 
   /// One package touching every shape the generator accepts: a plain
   /// injectable, a named one, `exposeAs`, an async init with `dependsOn`, a
@@ -236,7 +236,7 @@ class DependencyCycleIsQuiet extends _QuietTest {
 @reflectiveTest
 class DependencyIsNotRegisteredIsQuiet extends _QuietTest {
   @override
-  AnalysisRule makeRule() => DependencyIsNotRegistered();
+  AbstractAnalysisRule makeRule() => DependencyIsNotRegistered();
 }
 
 @reflectiveTest

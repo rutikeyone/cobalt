@@ -231,7 +231,7 @@ override가 아무것도 바꾸지 않았습니다.
   빠진 것을 한 번에 모두 보여 줍니다.
 - **`which only scope Session registers`.** 등록은 자기 스코프와 그 위 스코프들이 등록한 것을 주입합니다.
   클래스를 그 스코프에 넣거나(`@CobaltInject(scope: Session)`), 필요한 것을 그 클래스가 볼 수 있는 곳에
-  등록하십시오. [GUIDE_CODEGEN.ko.md](../GUIDE_CODEGEN.ko.md#9-앱보다-먼저-끝나는-스코프)를 참고하십시오.
+  등록하십시오. `cobalt_lint`가 에디터에서 이를 알려 주고 옮기기를 제안합니다. [GUIDE_CODEGEN.ko.md](../GUIDE_CODEGEN.ko.md#9-앱보다-먼저-끝나는-스코프)를 참고하십시오.
 - **이름이 `Scope`로 끝나는 `@CobaltChildScope` 마커.** 제너레이터가 builder 이름에 `Scope`를 덧붙입니다.
   마커는 `Session`이라고 하고 `SessionScope`를 여십시오.
 - **기본값이 있는 매개변수에 `requires int`.** 기본값은 제너레이터가 뺄 수 있는 매개변수에만 적용됩니다.

@@ -232,7 +232,7 @@ The generator stops the build with a message that says what to change. The usual
   `@CobaltScopeRoot(provides: [...])`. The message lists every gap at once.
 - **`which only scope Session registers`.** A registration injects what its own scope and the scopes
   above it register. Put the class into that scope, `@CobaltInject(scope: Session)`, or register what
-  it needs where it can see it. See [GUIDE_CODEGEN.md](../GUIDE_CODEGEN.md#9-scopes-that-end-before-the-app-does).
+  it needs where it can see it. `cobalt_lint` reports it in the editor and offers the move. See [GUIDE_CODEGEN.md](../GUIDE_CODEGEN.md#9-scopes-that-end-before-the-app-does).
 - **A `@CobaltChildScope` marker whose name ends in `Scope`.** The generator appends `Scope` to name
   the builder. Call the marker `Session`, and open `SessionScope`.
 - **`requires int` for a parameter with a default value.** A default applies only to a parameter the

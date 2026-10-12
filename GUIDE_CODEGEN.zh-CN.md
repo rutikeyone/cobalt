@@ -1044,7 +1044,7 @@ plugins:
 | `cobalt_bootstrap_requires_run_method` | `@CobaltBootstrap` 用在没有 `run()` 的类上 |
 | `cobalt_bootstrap_step_cannot_inject` | 构造函数带必填参数的 bootstrap 步骤 |
 | `cobalt_environment_needs_a_registration` | `@CobaltEnvironment` 用在无人注册的类上 |
-| `cobalt_dependency_is_not_registered` | 包内无人注册的被注入依赖，或无人注册的装饰器目标或依赖 |
+| `cobalt_dependency_is_not_registered` | 包内无人注册的被注入依赖，或无人注册的装饰器目标或依赖，或只有该类看不到的子作用域才注册的依赖 |
 | `cobalt_dependency_cycle` | 最终依赖到自身的可注入类，包括经由它的装饰器 |
 | `cobalt_registration_is_never_released` | 已注册的类带有作用域看不见的 `dispose()` 或 `close()` |
 | `cobalt_resource_is_never_closed` | 注册项持有需要关闭的东西，却没有提供关闭它的办法 |

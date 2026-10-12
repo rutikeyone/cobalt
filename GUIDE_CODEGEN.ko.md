@@ -1110,7 +1110,7 @@ plugins:
 | `cobalt_bootstrap_requires_run_method` | `run()`이 없는 클래스의 `@CobaltBootstrap` |
 | `cobalt_bootstrap_step_cannot_inject` | 생성자가 필수 파라미터를 받는 부트스트랩 단계 |
 | `cobalt_environment_needs_a_registration` | 아무것도 등록하지 않는 클래스의 `@CobaltEnvironment` |
-| `cobalt_dependency_is_not_registered` | 패키지 안에서 아무것도 등록하지 않는 주입 의존성, 또는 아무것도 등록하지 않는 데코레이터의 대상이나 의존성 |
+| `cobalt_dependency_is_not_registered` | 패키지 안에서 아무것도 등록하지 않는 주입 의존성, 또는 아무것도 등록하지 않는 데코레이터의 대상이나 의존성. 또는 클래스가 볼 수 없는 자식 스코프만 등록하는 의존성 |
 | `cobalt_dependency_cycle` | 결국 자기 자신에 의존하는 주입 가능 클래스. 자신의 데코레이터를 거치는 경우도 포함합니다 |
 | `cobalt_registration_is_never_released` | 스코프가 볼 수 없는 `dispose()` 또는 `close()`를 가진 등록된 클래스 |
 | `cobalt_resource_is_never_closed` | 등록이 닫아야 하는 무언가를 보유하면서 그것을 닫을 방법을 제공하지 않음 |

@@ -140,6 +140,147 @@ class ActivityLog {
 ''');
   }
 
+  void _session() => newFile('$testPackageLibPath/session.dart', '''
+$cobaltImport
+
+class SessionUser {}
+
+@CobaltChildScope()
+class Session {
+  const Session(this.user);
+  final SessionUser user;
+}
+
+@CobaltChildScope(parent: Session)
+class Editor {}
+
+@CobaltChildScope()
+class Checkout {}
+''');
+
+  void test_aRootClassInjectingAChildValue_isReported() async {
+    _session();
+    const source =
+        '''
+$cobaltImport
+
+import 'session.dart';
+
+@cobaltInject
+class Audit {
+  Audit(this.user);
+  final SessionUser user;
+}
+''';
+
+    await assertDiagnostics(source, [
+      lint(
+        source.indexOf('Audit {'),
+        5,
+        messageContainsAll: ['which only scope Session registers'],
+      ),
+    ]);
+  }
+
+  void test_aChildOfTheScopeThatRegistersIt_isClean() async {
+    _session();
+    await assertNoDiagnostics('''
+$cobaltImport
+
+import 'session.dart';
+
+@CobaltInject(scope: Editor)
+class Draft {
+  Draft(this.user);
+  final SessionUser user;
+}
+''');
+  }
+
+  void test_aSiblingScope_isReported() async {
+    _session();
+    const source =
+        '''
+$cobaltImport
+
+import 'session.dart';
+
+@CobaltInject(scope: Checkout)
+class Basket {
+  Basket(this.user);
+  final SessionUser user;
+}
+''';
+
+    await assertDiagnostics(source, [
+      lint(
+        source.indexOf('Basket {'),
+        6,
+        messageContainsAll: ['which only scope Session registers'],
+      ),
+    ]);
+  }
+
+  void test_aNameTheRootAlsoRegisters_isClean() async {
+    _session();
+    await assertNoDiagnostics('''
+$cobaltImport
+
+import 'session.dart';
+
+@cobaltInject
+class Clock {}
+
+@CobaltInject(scope: Session, exposeAs: Clock)
+class SessionClock implements Clock {}
+
+@cobaltInject
+class Report {
+  Report(this.clock);
+  final Clock clock;
+}
+''');
+  }
+
+  void test_aModuleMemberInAChildScope_isSeenByThatScopeOnly() async {
+    _session();
+    newFile('$testPackageLibPath/module.dart', '''
+$cobaltImport
+
+import 'session.dart';
+
+class Cart {}
+
+@cobaltModule
+class CartModule {
+  const CartModule();
+
+  @CobaltInject(scope: Checkout)
+  Cart get cart => Cart();
+}
+''');
+    const source =
+        '''
+$cobaltImport
+
+import 'module.dart';
+
+@cobaltInject
+class Pricing {
+  Pricing(this.cart);
+  final Cart cart;
+}
+''';
+
+    await assertDiagnostics(source, [
+      lint(
+        source.indexOf('Pricing {'),
+        7,
+        messageContainsAll: ['which only scope Checkout registers'],
+      ),
+    ]);
+  }
+
   void test_promisedByName_isClean() async {
     newFile('$testPackageLibPath/app_scope.dart', '''
 $cobaltImport

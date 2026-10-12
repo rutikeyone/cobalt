@@ -1122,7 +1122,7 @@ plugins:
 | `cobalt_bootstrap_requires_run_method` | `@CobaltBootstrap` on a class with no `run()` |
 | `cobalt_bootstrap_step_cannot_inject` | a bootstrap step whose constructor takes required parameters |
 | `cobalt_environment_needs_a_registration` | `@CobaltEnvironment` on a class nothing registers |
-| `cobalt_dependency_is_not_registered` | an injected dependency nothing in the package registers, or a decorator's target or dependency nothing registers |
+| `cobalt_dependency_is_not_registered` | an injected dependency nothing in the package registers, or a decorator's target or dependency nothing registers, or one only a child scope the class cannot see registers |
 | `cobalt_dependency_cycle` | an injectable class that depends, eventually, on itself — including through a decorator of it |
 | `cobalt_registration_is_never_released` | a registered class with a `dispose()` or `close()` the scope cannot see |
 | `cobalt_resource_is_never_closed` | A registration holds something closeable and offers no way to close it |

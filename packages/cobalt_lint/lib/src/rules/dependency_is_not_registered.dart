@@ -15,7 +15,11 @@ import 'package:analyzer/error/error.dart';
 /// The build already rejects such a graph. This is the same answer earlier, in
 /// the editor, from a coarser view — see [CobaltRegistrationIndex] for what the
 /// rule cannot see and why it errs towards silence.
-class DependencyIsNotRegistered extends AnalysisRule {
+///
+/// A dependency registered only by a child scope the class cannot see, as a
+/// root class injecting a value of `@CobaltChildScope class Session`, is
+/// reported as [outOfScope].
+class DependencyIsNotRegistered extends MultiAnalysisRule {
   /// Creates the rule.
   DependencyIsNotRegistered()
     : super(name: code.lowerCaseName, description: code.problemMessage);
@@ -30,10 +34,20 @@ class DependencyIsNotRegistered extends AnalysisRule {
         'container registers it.',
   );
 
+  /// The diagnostic for a dependency only another child scope registers.
+  static const outOfScope = LintCode(
+    'cobalt_dependency_is_not_registered',
+    "'{0}' needs '{1}', which only scope {2} registers.",
+    correctionMessage:
+        'A registration can inject what its own scope and the scopes above it '
+        'register. Put it into that scope with @CobaltInject(scope: ...).',
+    uniqueName: 'LintCode.cobalt_dependency_is_not_registered_out_of_scope',
+  );
+
   final _cache = CobaltRegistrationIndexCache();
 
   @override
-  DiagnosticCode get diagnosticCode => code;
+  List<DiagnosticCode> get diagnosticCodes => const [code, outOfScope];
 
   @override
   void registerNodeProcessors(
@@ -49,7 +63,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   static const _modules = CobaltModuleParser();
   static const _decorators = CobaltDecoratorParser();
 
-  final AnalysisRule rule;
+  final MultiAnalysisRule rule;
   final RuleContext context;
   final CobaltRegistrationIndexCache _cache;
 
@@ -83,8 +97,25 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     for (final declaration in declarations) {
       final missing = _firstMissing(declaration, index);
-      if (missing == null) continue;
-      rule.reportAtNode(node.namePart, arguments: [declaration.label, missing]);
+      if (missing != null) {
+        rule.reportAtNode(
+          node.namePart,
+          arguments: [declaration.label, missing],
+          diagnosticCode: DependencyIsNotRegistered.code,
+        );
+        return;
+      }
+      final outside = firstOutOfScope(declaration, index);
+      if (outside == null) continue;
+      rule.reportAtNode(
+        node.namePart,
+        arguments: [
+          declaration.label,
+          outside.type,
+          (outside.scopes.toList()..sort()).join(', '),
+        ],
+        diagnosticCode: DependencyIsNotRegistered.outOfScope,
+      );
       return;
     }
   }
@@ -113,6 +144,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtNode(
         node.namePart,
         arguments: [decorator.type.name, _shown(type, index)],
+        diagnosticCode: DependencyIsNotRegistered.code,
       );
       return;
     }
@@ -122,20 +154,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     CobaltInjectableClass declaration,
     CobaltRegistrationIndex index,
   ) {
-    // A list, not a set. `CobaltTypeRef` compares by signature, which ignores
-    // nullability, so a class taking both `Foo` and `Foo?` would collapse into
-    // one entry and whichever came first would decide whether the required one
-    // is checked at all.
-    final wanted = <CobaltTypeRef>[
-      // An `@CobaltParam` is not a dependency: the call site supplies it, and
-      // nothing registers an `int`. Without this the rule reports every
-      // parameterized class as broken.
-      for (final parameter in declaration.constructorParameters)
-        if (!parameter.isParam && !parameter.hasDefault) parameter.type,
-      for (final property in declaration.properties) property.type,
-      ...declaration.dependsOn,
-    ];
-
+    final wanted = dependenciesOf(declaration);
     for (final type in wanted) {
       if (type.isNullable) continue;
       if (!index.registers(type.name, _spellingOf(type))) {
@@ -165,4 +184,36 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (root == null || session == null) return null;
     return _cache.of(root, session);
   }
+}
+
+/// What [declaration] injects: its constructor parameters without call-site
+/// values and defaults, its `@injected` fields and its `dependsOn`.
+List<CobaltTypeRef> dependenciesOf(CobaltInjectableClass declaration) {
+  // A list, not a set. `CobaltTypeRef` compares by signature, which ignores
+  // nullability, so a class taking both `Foo` and `Foo?` would collapse into
+  // one entry and whichever came first would decide whether the required one
+  // is checked at all.
+  return <CobaltTypeRef>[
+    // An `@CobaltParam` is not a dependency: the call site supplies it, and
+    // nothing registers an `int`. Without this the rule reports every
+    // parameterized class as broken.
+    for (final parameter in declaration.constructorParameters)
+      if (!parameter.isParam && !parameter.hasDefault) parameter.type,
+    for (final property in declaration.properties) property.type,
+    ...declaration.dependsOn,
+  ];
+}
+
+/// The first dependency of [declaration] that only child scopes it cannot see
+/// register, with the markers of those scopes, or null when there is none.
+({String type, Set<String> scopes})? firstOutOfScope(
+  CobaltInjectableClass declaration,
+  CobaltRegistrationIndex index,
+) {
+  final scope = declaration.scope?.name;
+  for (final type in dependenciesOf(declaration)) {
+    if (type.isNullable || index.reaches(scope, type.name)) continue;
+    return (type: type.name, scopes: index.scopesRegistering(type.name)!);
+  }
+  return null;
 }

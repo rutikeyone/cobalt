@@ -6,6 +6,7 @@ library;
 
 import 'package:cobalt_lint/src/fixes/add_cobalt_inject.dart';
 import 'package:cobalt_lint/src/fixes/add_injection_mixin.dart';
+import 'package:cobalt_lint/src/fixes/add_scope_argument.dart';
 import 'package:cobalt_lint/src/fixes/implement_disposable.dart';
 import 'package:cobalt_lint/src/fixes/make_init_lazy.dart';
 import 'package:cobalt_lint/src/fixes/make_late_final.dart';
@@ -74,6 +75,10 @@ class _CobaltPlugin extends Plugin {
     registry.registerFixForRule(
       MissingInjectionMixin.code,
       AddInjectionMixin.new,
+    );
+    registry.registerFixForRule(
+      DependencyIsNotRegistered.outOfScope,
+      AddScopeArgument.new,
     );
     registry.registerFixForRule(
       BlocProviderClosesAScopedBloc.code,
