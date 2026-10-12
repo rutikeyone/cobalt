@@ -363,7 +363,7 @@ class GalleryL10nRu extends GalleryL10n {
 
   @override
   String get widgetScopePoint1 =>
-      'CobaltScopedStatefulWidget регистрирует в скоуп, которым владеет сам';
+      'CobaltScopeWidget владеет скоупом из сгенерированного NoteDetailScope';
 
   @override
   String get widgetScopePoint2 =>

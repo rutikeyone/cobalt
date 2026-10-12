@@ -317,7 +317,8 @@ class GalleryL10nZh extends GalleryL10n {
   String get widgetScopeTeaches => '生命周期正好等于一个界面的依赖图。';
 
   @override
-  String get widgetScopePoint1 => 'CobaltScopedStatefulWidget 把注册写进它自己持有的作用域';
+  String get widgetScopePoint1 =>
+      'CobaltScopeWidget 持有一个由生成的 NoteDetailScope 构建的作用域';
 
   @override
   String get widgetScopePoint2 => '离开界面时，界面构建的一切都会被释放';

@@ -347,6 +347,7 @@ the container as a **named record** built from the marked parameters:
 
 ```dart
 typedef $NoteEditorArgs = ({int id, bool draft});
+typedef NoteEditorArgs = $NoteEditorArgs;
 
 final class _NoteEditorFactory implements CobaltParamFactory<NoteEditor, $NoteEditorArgs> {
   const _NoteEditorFactory();
@@ -357,8 +358,11 @@ final class _NoteEditorFactory implements CobaltParamFactory<NoteEditor, $NoteEd
 ```
 
 ```dart
-context.cobaltWithParam<NoteEditor, $NoteEditorArgs>((id: 7, draft: true));
+context.cobaltWithParam<NoteEditor, NoteEditorArgs>((id: 7, draft: true));
 ```
+
+`NoteEditorArgs` is the name to use; the `$` one stays until 2.0. When two classes would share the
+plain name, only the `$` names are written.
 
 A record even for a single value, and a named one: adding a second argument then changes what the
 call site passes rather than the name of the type, and the call keeps reading like the constructor

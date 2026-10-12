@@ -4,7 +4,7 @@ import 'package:codegen_basics/services.dart';
 /// Half from the graph, half from whoever built the widget.
 ///
 /// `@cobaltParam` marks what the container cannot know. The generator writes
-/// `$GreetingArgs` beside the container as a named record, and registers this
+/// `GreetingArgs` beside the container as a named record, and registers this
 /// as a parameterized factory rather than a singleton.
 @cobaltInject
 class Greeting {

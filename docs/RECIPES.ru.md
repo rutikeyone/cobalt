@@ -62,6 +62,17 @@ Future<void> signOut() async {
 }
 ```
 
+Скоупа из `open` нет в дереве виджетов, поэтому виджеты ниже читают скоуп приложения. Покажите им
+сессию или отдайте ее виджету, если она живет столько же, сколько часть интерфейса:
+
+```dart
+CobaltScopeProvider(scope: session, child: const HomeScreen())
+```
+
+```dart
+CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
+```
+
 Рабочий код: [`examples/notes_app/lib/features/session`](../examples/notes_app/lib/features/session)
 и запись «Сессионный скоуп» в галерее. Подробнее в
 [GUIDE_CODEGEN.ru.md](../GUIDE_CODEGEN.ru.md#9-скоупы-которые-кончаются-раньше-приложения).
@@ -182,6 +193,57 @@ class OrderFlowRoute extends CobaltShellRoute {
 Каждый экран под этим маршрутом читает `context.cobalt<OrderDraft>()`, а выход из флоу разбирает
 черновик. Рабочий код: [`examples/flow_scopes`](../examples/flow_scopes) и запись «Навигационные
 флоу» в галерее.
+
+### С генератором
+
+Флоу выше написан руками, потому что `examples/flow_scopes` посвящен навигации и остается в ручном
+режиме. С генератором маркер говорит, с чем открывается флоу, а классы флоу называют его:
+
+<!-- from: examples/notes_app/lib/features/order_flow/order_flow.dart -->
+
+```dart
+@CobaltChildScope()
+class OrderFlow {
+  const OrderFlow(this.orderId);
+
+  final String orderId;
+}
+```
+
+<!-- from: examples/notes_app/lib/features/order_flow/order_note.dart -->
+
+```dart
+@CobaltInject(scope: OrderFlow)
+class OrderNote implements Disposable {
+  OrderNote(this.orderId, this._log) {
+```
+
+Маршрут отдает сгенерированный `OrderFlowScope` в `CobaltShellRoute`, который принимает любой
+builder скоупа:
+
+<!-- from: examples/notes_app/lib/features/order_flow/order_flow_route.dart -->
+
+```dart
+class OrderFlowRoute extends CobaltShellRoute {
+  OrderFlowRoute()
+    : super(
+        name: 'order',
+        identity: _orderId,
+        scope: (state) => OrderFlowScope(_orderId(state)),
+        routes: [
+          GoRoute(
+            path: '/orders/:orderId',
+            builder: (_, _) => const OrderNoteText(),
+          ),
+        ],
+      );
+
+  static String _orderId(GoRouterState state) =>
+      state.pathParameters['orderId']!;
+}
+```
+
+Рабочий код: [`examples/notes_app/lib/features/order_flow`](../examples/notes_app/lib/features/order_flow).
 
 ## Подмена зависимости в тесте
 

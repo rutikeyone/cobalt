@@ -82,6 +82,24 @@ void main() {
       expect(source, contains(r'typedef $DetailArgs = ({int id});'));
     });
 
+    test('the record has a name without the dollar sign too', () {
+      final source = generate([
+        declare('NoteEditor', constructor: [arg('id', 'int')]),
+      ]);
+
+      expect(source, contains(r'typedef NoteEditorArgs = $NoteEditorArgs;'));
+    });
+
+    test('the plain name is left out when a class already has it', () {
+      final source = generate([
+        declare('NoteEditor', constructor: [arg('id', 'int')]),
+        declare('NoteEditorArgs'),
+      ]);
+
+      expect(source, contains(r'typedef $NoteEditorArgs ='));
+      expect(source, isNot(contains('typedef NoteEditorArgs =')));
+    });
+
     test('a named registration keeps its name in both places', () {
       final source = generate([
         declare('Detail', name: 'wide', constructor: [arg('id', 'int')]),

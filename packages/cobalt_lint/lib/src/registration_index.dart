@@ -33,6 +33,9 @@ class CobaltRegistrationIndex {
     this.lazy,
     this.asyncTransients, [
     this.instantiations = const {},
+    this.rootNames = const {},
+    this.scopedNames = const {},
+    this.parents = const {},
   ]);
 
   /// Every type name something in the package registers, except a generic
@@ -97,6 +100,42 @@ class CobaltRegistrationIndex {
   /// [ambiguous] are left out for the same reason as in [lazy].
   final Set<String> asyncTransients;
 
+  /// Names the root registers: a class or module member without `scope:`,
+  /// and what `@CobaltScopeRoot(provides: [...])` promises.
+  final Set<String> rootNames;
+
+  /// Names only child scopes register, with the markers of those scopes: a
+  /// registration with `scope:`, and the values and `provides` of a
+  /// `@CobaltChildScope` marker.
+  final Map<String, Set<String>> scopedNames;
+
+  /// The parent marker of each `@CobaltChildScope` marker, null for a scope
+  /// opened under the root.
+  final Map<String, String?> parents;
+
+  /// The child scopes that register [name], when the root does not.
+  ///
+  /// Null when the root registers it, or when no child scope does, so a rule
+  /// asking only reports a name the index has placed.
+  Set<String>? scopesRegistering(String name) =>
+      rootNames.contains(name) ? null : scopedNames[name];
+
+  /// Whether a registration in [scope], or in the root when it is null, can
+  /// inject [name]: its own scope, the scopes above it and the root.
+  ///
+  /// True for a name the index has not placed in any scope, so a name read
+  /// some other way never becomes a report.
+  bool reaches(String? scope, String name) {
+    final registering = scopesRegistering(name);
+    if (registering == null) return true;
+    final seen = <String>{};
+    for (var current = scope; current != null && seen.add(current);) {
+      if (registering.contains(current)) return true;
+      current = parents[current];
+    }
+    return false;
+  }
+
   bool contains(String typeName) =>
       names.contains(typeName) || instantiations.containsKey(typeName);
 
@@ -144,6 +183,19 @@ class _IndexBuilder {
   final lazy = <String>{};
   final asyncTransients = <String>{};
   final instantiations = <String, Set<String>>{};
+  final rootNames = <String>{};
+  final scopedNames = <String, Set<String>>{};
+  final parents = <String, String?>{};
+
+  void _place(String? scope, Iterable<String> registered) {
+    for (final name in registered) {
+      if (scope == null) {
+        rootNames.add(name);
+      } else {
+        scopedNames.putIfAbsent(name, () => {}).add(scope);
+      }
+    }
+  }
 
   /// What decorators of each registered name ask for.
   ///
@@ -199,6 +251,12 @@ class _IndexBuilder {
       lazy.difference(ambiguous),
       asyncTransients.difference(ambiguous),
       instantiations,
+      rootNames,
+      {
+        for (final MapEntry(key: name, value: scopes) in scopedNames.entries)
+          if (!rootNames.contains(name)) name: scopes,
+      },
+      parents,
     );
   }
 
@@ -216,6 +274,7 @@ class _IndexBuilder {
       var isAsync = false;
       var isTransient = false;
       String? exposed;
+      String? scope;
       final wanted = <String>{};
 
       for (final annotation in declaration.metadata) {
@@ -251,12 +310,21 @@ class _IndexBuilder {
             }
             _addArgument(annotation, 'exposeAs', names);
             exposed ??= _firstName(_namedArgument(annotation, 'exposeAs'));
+            scope ??= _firstName(_namedArgument(annotation, 'scope'));
             _addArgumentList(annotation, 'dependsOn', wanted);
           case 'CobaltScopeRoot':
-            _addArgumentList(annotation, 'provides', names);
+            final provided = <String>{};
+            _addArgumentList(annotation, 'provides', provided);
+            names.addAll(provided);
+            _place(null, provided);
           case 'CobaltChildScope':
-            _addArgumentList(annotation, 'provides', names);
-            _addConstructorParameters(declaration, names);
+            final marker = declaration.namePart.typeName.lexeme;
+            final held = <String>{};
+            _addArgumentList(annotation, 'provides', held);
+            _addConstructorParameters(declaration, held);
+            names.addAll(held);
+            _place(marker, held);
+            parents[marker] = _firstName(_namedArgument(annotation, 'parent'));
           case 'CobaltModule':
           case 'cobaltModule':
             isModule = true;
@@ -278,6 +346,7 @@ class _IndexBuilder {
       }
 
       if (registers) {
+        _place(scope, {declaration.namePart.typeName.lexeme, ?exposed});
         final node = exposed ?? declaration.namePart.typeName.lexeme;
         _addConstructorParameters(declaration, wanted);
         _addInjectedFields(declaration, wanted);
@@ -310,6 +379,11 @@ class _IndexBuilder {
           case 'cobaltTransient':
             _addTypeAnnotation(member.returnType, names);
             _addArgument(annotation, 'exposeAs', names);
+            final returned = _returnedName(member.returnType);
+            _place(_firstName(_namedArgument(annotation, 'scope')), {
+              ?returned,
+              ?_firstName(_namedArgument(annotation, 'exposeAs')),
+            });
 
             final node =
                 _firstName(_namedArgument(annotation, 'exposeAs')) ??

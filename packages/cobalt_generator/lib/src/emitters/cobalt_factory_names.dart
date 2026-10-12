@@ -69,6 +69,15 @@ class CobaltFactoryNames {
     return '$name\$${_suffixOf(declaration)}';
   }
 
+  /// [argsOf] without its leading `\$`, or null when that name is contested.
+  ///
+  /// The generator emits it as a second name for the same record type, so a
+  /// call site reads `NoteEditorArgs` rather than `\$NoteEditorArgs`.
+  String? plainArgsOf(CobaltInjectableClass declaration) {
+    if (_contested.contains(_baseNameOf(declaration))) return null;
+    return argsOf(declaration).substring(1);
+  }
+
   static Set<String> _contestedIn(
     Iterable<CobaltInjectableClass> declarations,
   ) => _twiceIn(declarations.map(_baseNameOf));

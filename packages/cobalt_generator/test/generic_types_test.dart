@@ -262,6 +262,24 @@ void main() {
       expect(source, contains(r'typedef $CacheOfUserArgs'));
     });
 
+    test('a contested record gets no plain name', () {
+      final source = generate([
+        cacheOf(
+          ref('Note'),
+          import: 'package:app/a.dart',
+          constructor: [arg('limit', 'int')],
+        ),
+        cacheOf(
+          ref('Note'),
+          import: 'package:app/b.dart',
+          constructor: [arg('limit', 'int')],
+        ),
+      ]);
+
+      expect(source, contains(r'typedef $CacheOfNoteArgs$'));
+      expect(source, isNot(contains('typedef CacheOfNoteArgs')));
+    });
+
     test('one instantiation of two same-named classes is told apart', () {
       final source = generate([
         cacheOf(

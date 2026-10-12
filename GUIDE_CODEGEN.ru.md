@@ -450,7 +450,8 @@ builder: CobaltAppScope.builder(
 ```
 
 Имя подхватывается само, а шаги нет, поэтому виджет-тест, который поднимает приложение без
-`bootstrap`, по-прежнему стартует без них.
+`bootstrap`, по-прежнему стартует без них. В debug-сборке `CobaltAppScope` печатает напоминание, если
+root со шагами стартует без них; `bootstrap: () => const []` говорит, что так задумано.
 
 `CobaltAppScope.of(context).restart()` пересобирает граф — тот же вызов повторяет упавший старт.
 
@@ -466,7 +467,7 @@ builder: CobaltAppScope.builder(
 ```dart
 final repository = context.cobalt<Repository>();
 final formatters = context.cobaltAll<NoteFormatter>();
-final editor = context.cobaltWithParam<NoteEditor, $NoteEditorArgs>((id: 7, draft: true));
+final editor = context.cobaltWithParam<NoteEditor, NoteEditorArgs>((id: 7, draft: true));
 final scope = context.cobaltScope;
 ```
 
@@ -539,6 +540,21 @@ class SessionManager {
 
 Логаут — это `await scope.dispose()`. Ни один репозиторий не подписывается на сессионный стрим, и ни
 один доменный интерфейс не обрастает методом `reset()`, которого он не хотел.
+
+Скоупа из `open` нет в дереве виджетов. Ниже него `context.cobalt<T>()` по-прежнему читает скоуп
+приложения, и все, что регистрирует только сессия, падает с `CobaltNotRegisteredError`. Покажите
+сессию виджетам, которым она нужна:
+
+```dart
+CobaltScopeProvider(scope: session, child: const HomeScreen())
+```
+
+Если сессия живет ровно столько, сколько часть интерфейса, пусть ею владеет виджет. Скоуп
+открывается, когда виджет монтируется, и закрывается, когда он уходит:
+
+```dart
+CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
+```
 
 ### Экран
 
@@ -836,8 +852,12 @@ class Greeting {
 
 ```dart
 // typedef $GreetingArgs = ({String name, bool loud});
-final greeting = context.cobaltWithParam<Greeting, $GreetingArgs>((name: 'Cobalt', loud: false));
+// typedef GreetingArgs = $GreetingArgs;
+final greeting = context.cobaltWithParam<Greeting, GreetingArgs>((name: 'Cobalt', loud: false));
 ```
+
+`GreetingArgs` это тот же тип под именем без `$`, его и пишут в местах вызова. Имя с `$` останется
+до 2.0. Если простое имя досталось бы двум классам, пишутся только имена с `$`.
 
 Именованная запись, а не позиционная, даже для одного аргумента: добавление второго меняет
 содержимое типа, а не его имя и не форму вызова.
@@ -872,7 +892,8 @@ class Document implements AsyncInitializable {
 }
 
 // typedef $DocumentArgs = ({int id});
-final document = await scope.getAsyncWithParam<Document, $DocumentArgs>((id: 42));
+// typedef DocumentArgs = $DocumentArgs;
+final document = await scope.getAsyncWithParam<Document, DocumentArgs>((id: 42));
 ```
 
 Генератор пишет `CobaltAsyncParamFactory` и регистрирует её через `registerAsyncParamFactory`.
@@ -1122,7 +1143,7 @@ plugins:
 | `cobalt_bootstrap_requires_run_method` | `@CobaltBootstrap` на классе без `run()` |
 | `cobalt_bootstrap_step_cannot_inject` | bootstrap-шаг, чей конструктор берёт обязательные параметры |
 | `cobalt_environment_needs_a_registration` | `@CobaltEnvironment` на классе, который никто не регистрирует |
-| `cobalt_dependency_is_not_registered` | инъектируемая зависимость, которую ничто в пакете не регистрирует, либо цель или зависимость декоратора, которую никто не регистрирует |
+| `cobalt_dependency_is_not_registered` | инъектируемая зависимость, которую ничто в пакете не регистрирует, либо цель или зависимость декоратора, которую никто не регистрирует, или зависимость, которую регистрирует только дочерний скоуп, невидимый классу |
 | `cobalt_dependency_cycle` | инъектируемый класс, который в итоге зависит от самого себя, в том числе через свой декоратор |
 | `cobalt_registration_is_never_released` | зарегистрированный класс с `dispose()` или `close()`, которых скоуп не видит |
 | `cobalt_resource_is_never_closed` | Регистрация держит то, что надо закрывать, и не предлагает способа закрыть |
@@ -1298,6 +1319,19 @@ final overrides = scope.pushForTest()
 ```dart
 expect(scope.ownerOf<Repository>(), same(scope.root));
 ```
+
+Сгенерированный дочерний скоуп в тесте открывается так же, как в приложении, через `openForTest`
+из `cobalt_test`, и разбирается, когда тест заканчивается:
+
+```dart
+final session = await app.openForTest(
+  SessionScope(user),
+  overrides: [CobaltOverride<SessionActivityLog>.value(FakeActivityLog())],
+);
+```
+
+Подмены заменяют то, что регистрирует `SessionScope`, поэтому их видит каждый потребитель внутри
+сессии.
 
 ### Что всё ещё требует проверки в рантайме
 

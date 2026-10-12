@@ -443,7 +443,8 @@ builder: CobaltAppScope.builder(
 ```
 
 이름은 자동으로 적용되지만 단계는 그렇지 않으므로, `bootstrap` 없이 앱을 띄우는 위젯 테스트는 계속 단계 없이
-시작합니다.
+시작합니다. 디버그 빌드에서는 단계가 있는 루트가 단계 없이 시작되면 `CobaltAppScope`가 알림을 출력합니다.
+`bootstrap: () => const []`를 넘기면 의도한 것으로 봅니다.
 
 `CobaltAppScope.of(context).restart()`는 그래프를 다시 빌드합니다. 실패한 시작을 재시도하는 것도 같은 호출입니다.
 
@@ -459,7 +460,7 @@ Flutter 밖에서는 `await $startCobalt()`가 전부입니다.
 ```dart
 final repository = context.cobalt<Repository>();
 final formatters = context.cobaltAll<NoteFormatter>();
-final editor = context.cobaltWithParam<NoteEditor, $NoteEditorArgs>((id: 7, draft: true));
+final editor = context.cobaltWithParam<NoteEditor, NoteEditorArgs>((id: 7, draft: true));
 final scope = context.cobaltScope;
 ```
 
@@ -530,6 +531,20 @@ class SessionManager {
 
 로그아웃은 `await scope.dispose()`입니다. 세션 스트림을 구독하는 리포지토리도 없고, 원하지 않던 `reset()`
 메서드가 생겨나는 도메인 인터페이스도 없습니다.
+
+`open`으로 연 스코프는 위젯 트리에 없습니다. 그 아래에서 `context.cobalt<T>()`는 여전히 앱 스코프를 읽고,
+세션만 등록한 것은 `CobaltNotRegisteredError`로 실패합니다. 세션이 필요한 위젯에 공개하십시오.
+
+```dart
+CobaltScopeProvider(scope: session, child: const HomeScreen())
+```
+
+세션이 UI의 일부와 수명이 정확히 같다면 위젯이 소유하게 하십시오. 위젯이 마운트될 때 열리고 사라질 때
+해제됩니다.
+
+```dart
+CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
+```
 
 ### 화면
 
@@ -825,8 +840,12 @@ class Greeting {
 
 ```dart
 // typedef $GreetingArgs = ({String name, bool loud});
-final greeting = context.cobaltWithParam<Greeting, $GreetingArgs>((name: 'Cobalt', loud: false));
+// typedef GreetingArgs = $GreetingArgs;
+final greeting = context.cobaltWithParam<Greeting, GreetingArgs>((name: 'Cobalt', loud: false));
 ```
+
+`GreetingArgs`는 같은 타입에 `$` 없이 붙은 이름이며, 호출하는 곳에서는 이 이름을 씁니다. `$`가 붙은 이름은
+2.0까지 유지됩니다. 두 클래스가 같은 일반 이름을 갖게 되면 `$` 이름만 생성됩니다.
 
 인자가 하나뿐이어도 위치 기반이 아니라 이름 있는 레코드입니다. 두 번째 인자를 추가해도 바뀌는 것은 타입의
 내용이지, 타입의 이름이나 호출의 형태가 아닙니다.
@@ -861,7 +880,8 @@ class Document implements AsyncInitializable {
 }
 
 // typedef $DocumentArgs = ({int id});
-final document = await scope.getAsyncWithParam<Document, $DocumentArgs>((id: 42));
+// typedef DocumentArgs = $DocumentArgs;
+final document = await scope.getAsyncWithParam<Document, DocumentArgs>((id: 42));
 ```
 
 제너레이터는 `CobaltAsyncParamFactory`를 내보내고 `registerAsyncParamFactory`로 등록합니다. 호출마다 빌드되며
@@ -1110,7 +1130,7 @@ plugins:
 | `cobalt_bootstrap_requires_run_method` | `run()`이 없는 클래스의 `@CobaltBootstrap` |
 | `cobalt_bootstrap_step_cannot_inject` | 생성자가 필수 파라미터를 받는 부트스트랩 단계 |
 | `cobalt_environment_needs_a_registration` | 아무것도 등록하지 않는 클래스의 `@CobaltEnvironment` |
-| `cobalt_dependency_is_not_registered` | 패키지 안에서 아무것도 등록하지 않는 주입 의존성, 또는 아무것도 등록하지 않는 데코레이터의 대상이나 의존성 |
+| `cobalt_dependency_is_not_registered` | 패키지 안에서 아무것도 등록하지 않는 주입 의존성, 또는 아무것도 등록하지 않는 데코레이터의 대상이나 의존성. 또는 클래스가 볼 수 없는 자식 스코프만 등록하는 의존성 |
 | `cobalt_dependency_cycle` | 결국 자기 자신에 의존하는 주입 가능 클래스. 자신의 데코레이터를 거치는 경우도 포함합니다 |
 | `cobalt_registration_is_never_released` | 스코프가 볼 수 없는 `dispose()` 또는 `close()`를 가진 등록된 클래스 |
 | `cobalt_resource_is_never_closed` | 등록이 닫아야 하는 무언가를 보유하면서 그것을 닫을 방법을 제공하지 않음 |
@@ -1283,6 +1303,18 @@ final overrides = scope.pushForTest()
 ```dart
 expect(scope.ownerOf<Repository>(), same(scope.root));
 ```
+
+생성된 자식 스코프는 테스트에서도 앱과 같은 방식으로, `cobalt_test`의 `openForTest`로 열리고 테스트가 끝나면
+해제됩니다:
+
+```dart
+final session = await app.openForTest(
+  SessionScope(user),
+  overrides: [CobaltOverride<SessionActivityLog>.value(FakeActivityLog())],
+);
+```
+
+재정의는 `SessionScope`가 등록하는 것을 바꾸므로, 세션 안의 모든 소비자가 그것을 봅니다.
 
 ### 런타임에 여전히 검사해야 하는 것
 

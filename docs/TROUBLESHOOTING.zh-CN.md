@@ -33,6 +33,7 @@ build_runner again.
 - 调用链之后是一条提示。如果当前作用域下层或旁支的作用域注册了这个键，消息会列出其中最多三个：解析只向上查找，从不向下，所以把注册移到上层，或从那个作用域解析。如果同一类型以其他名称注册过，消息会列出这些键，例如 `Api, Api(fake)`：检查 `name:`。两者都没有时，消息会说明整个作用域树都没有注册它：参见前两条。错误对象的 `registeredElsewhere` 和 `sameType` 字段提供同样的信息。
 - 如果消息说作用域还在构建中：一个 eager 的 `registerSingleton` 在 `build()` 后面的注册完成之前就解析了它的依赖。把它挪到那些注册之后，或改成 lazy。
 - 作用域只能看到自己和上层作用域。注册在会话或屏幕作用域里的类型，从根作用域看不到。
+- 在 Flutter 中，用 `open` 打开的作用域不在 widget 树里：它下面的 `context.cobalt<T>()` 读的是上层作用域。用 `CobaltScopeProvider(scope: session, child: ...)` 包住这些 widget，或者让 `CobaltScopeWidget(builder: SessionScope(user), child: ...)` 拥有会话。
 
 ### CobaltNotReadyError
 
@@ -182,7 +183,7 @@ override 什么也没替换。
 生成器会用一条说明要改什么的消息停止构建。常见情况：
 
 - **没人注册的依赖。** 修法和 [CobaltNotRegisteredError](#cobaltnotregisterederror) 一样：给类加注解，或把它写进 `@CobaltScopeRoot(provides: [...])`。消息会一次列出所有缺口。
-- **`which only scope Session registers`。** 一个注册能注入的是它自己的作用域以及上方作用域注册的东西。把这个类放进那个作用域，`@CobaltInject(scope: Session)`，或者把它需要的东西注册到它看得见的地方。见 [GUIDE_CODEGEN.zh-CN.md](../GUIDE_CODEGEN.zh-CN.md#9-比应用先结束的作用域)。
+- **`which only scope Session registers`。** 一个注册能注入的是它自己的作用域以及上方作用域注册的东西。把这个类放进那个作用域，`@CobaltInject(scope: Session)`，或者把它需要的东西注册到它看得见的地方。`cobalt_lint` 会在编辑器里指出并提供移动。见 [GUIDE_CODEGEN.zh-CN.md](../GUIDE_CODEGEN.zh-CN.md#9-比应用先结束的作用域)。
 - **名字以 `Scope` 结尾的 `@CobaltChildScope` 标记类。** 生成器会自己给 builder 的名字补上 `Scope`。把标记类叫作 `Session`，打开的是 `SessionScope`。
 - **带默认值的参数报 `requires int`。** 只有生成器能省略的参数才会用上默认值：命名参数，或末尾的位置参数。如果它后面还有要注入的位置参数，就不能跳过，消息会说明这一点；把它改成命名参数。
 - **一个包里有两个 `@CobaltScopeRoot` 类。** 一个包只有一个生成的根。保留一个。

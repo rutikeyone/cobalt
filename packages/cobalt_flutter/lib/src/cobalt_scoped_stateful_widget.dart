@@ -1,8 +1,21 @@
+// ignore_for_file: deprecated_member_use_from_same_package
+
 import 'package:cobalt/cobalt.dart';
 import 'package:cobalt_flutter/src/cobalt_scope_widget.dart';
 import 'package:flutter/widgets.dart';
 
 /// A stateful widget that owns a scope for as long as it is mounted.
+///
+/// Deprecated: wrap the stateful content in a [CobaltScopeWidget] instead.
+/// The scope and the state then stay two separate things, and the scope can
+/// come from a generated `@CobaltChildScope`:
+///
+/// ```dart
+/// CobaltScopeWidget(
+///   builder: const NoteDetailScope(),
+///   child: const NoteDetailBody(),
+/// )
+/// ```
 ///
 /// The stateful counterpart of `CobaltScopedWidget`: the widget declares what
 /// the scope holds, and its [CobaltScopedState] builds the UI below that scope.
@@ -27,6 +40,7 @@ import 'package:flutter/widgets.dart';
 ///       Text(context.cobalt<NoteDraft>().text);
 /// }
 /// ```
+@Deprecated('Use CobaltScopeWidget around a StatefulWidget. Removed in 2.0.')
 abstract class CobaltScopedStatefulWidget extends StatefulWidget {
   /// Creates a widget owning a scope.
   const CobaltScopedStatefulWidget({super.key});
@@ -55,6 +69,7 @@ abstract class CobaltScopedStatefulWidget extends StatefulWidget {
 ///
 /// Override [buildScoped] instead of `build`; it runs below the scope, so
 /// `context.cobalt<T>()` there resolves from it.
+@Deprecated('Use CobaltScopeWidget around a StatefulWidget. Removed in 2.0.')
 abstract class CobaltScopedState<W extends CobaltScopedStatefulWidget>
     extends State<W> {
   /// Builds the UI, with the scope available on [context].

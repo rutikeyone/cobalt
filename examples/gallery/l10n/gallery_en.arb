@@ -250,7 +250,7 @@
   "@widgetScopeTeaches": {
     "description": "One line: what \"Widget-owned scope\" exists to show."
   },
-  "widgetScopePoint1": "CobaltScopedStatefulWidget registers into a scope it owns",
+  "widgetScopePoint1": "CobaltScopeWidget owns a scope built from the generated NoteDetailScope",
   "widgetScopePoint2": "Leaving the screen disposes everything the screen built",
   "widgetScopePoint3": "registerParamFactory passes a value into construction",
   "widgetScopePoint4": "The parent graph stays untouched — this is a child, not a mutation",

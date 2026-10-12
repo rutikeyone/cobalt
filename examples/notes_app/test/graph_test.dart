@@ -1,4 +1,5 @@
 import 'package:cobalt/cobalt.dart';
+import 'package:cobalt_test/cobalt_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:notes_app/bootstrap/boot_log.dart';
 import 'package:notes_app/cobalt.g.dart';
@@ -76,13 +77,16 @@ void main() {
   });
 
   group('scopes', () {
-    test('a child scope adds its own registrations over the app graph', () {
-      final detail = app.push('note-detail')..registerScope();
+    test(
+      'a child scope adds its own registrations over the app graph',
+      () async {
+        final detail = await app.openForTest(const NoteDetailScope());
 
-      expect(detail.get<NoteDraft>(), isNotNull);
-      expect(app.isRegistered<NoteDraft>(), isFalse);
-      expect(detail.get<NoteStore>(), same(app.get<NoteStore>()));
-    });
+        expect(detail.get<NoteDraft>(), isNotNull);
+        expect(app.isRegistered<NoteDraft>(), isFalse);
+        expect(detail.get<NoteStore>(), same(app.get<NoteStore>()));
+      },
+    );
 
     test('closing a child disposes only what the child owns', () async {
       final detail = app.push('note-detail')..registerScope();

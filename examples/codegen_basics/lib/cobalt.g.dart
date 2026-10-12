@@ -14,6 +14,7 @@ import 'package:codegen_basics/services.dart' as _i700;
 import 'package:codegen_basics/tracked_repository.dart' as _i421;
 
 typedef $GreetingArgs = ({String name, bool loud});
+typedef GreetingArgs = $GreetingArgs;
 
 final class _PlatformModuleEventsFactory
     implements

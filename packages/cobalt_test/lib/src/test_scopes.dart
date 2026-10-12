@@ -62,6 +62,34 @@ extension CobaltTestScope on CobaltScope {
     return scope;
   }
 
+  /// Opens a child scope from [builder] with [CobaltScope.open], disposed
+  /// with the test.
+  ///
+  /// For a generated child scope, `SessionScope(user)`, or any other
+  /// [CobaltScopeBuilder]: the scope is built and initialized as the app
+  /// opens it, and [overrides] replace what [builder] registers. [name]
+  /// defaults to the builder's type, as `CobaltScopeWidget` names its scope.
+  ///
+  /// ```dart
+  /// final session = await app.openForTest(SessionScope(user));
+  /// expect(session.get<SessionActivityLog>(), isNotNull);
+  /// ```
+  Future<CobaltScope> openForTest(
+    CobaltScopeBuilder builder, {
+    String? name,
+    List<CobaltOverride<Object>> overrides = const [],
+    List<CobaltObserver> observers = const [],
+  }) async {
+    final scope = await open(
+      name ?? builder.runtimeType.toString(),
+      builder,
+      overrides: overrides,
+      observers: observers,
+    );
+    addTearDown(scope.dispose);
+    return scope;
+  }
+
   /// The scope that owns [T] as seen from here, or null when nothing does.
   ///
   /// The answer to "will my override actually be used": a factory runs on the

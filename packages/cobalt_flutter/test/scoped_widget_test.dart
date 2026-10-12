@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use_from_same_package
+
 import 'package:cobalt_flutter/cobalt_flutter.dart';
 import 'package:cobalt_test/cobalt_test.dart';
 import 'package:flutter/widgets.dart';

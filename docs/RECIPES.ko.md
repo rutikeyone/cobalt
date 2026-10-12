@@ -62,6 +62,17 @@ Future<void> signOut() async {
 }
 ```
 
+`open`으로 연 스코프는 위젯 트리에 없으므로, 그 아래 위젯은 앱 스코프를 읽습니다. 세션을 위젯에 공개하거나,
+세션이 UI 일부와 수명이 같다면 위젯이 소유하게 하십시오.
+
+```dart
+CobaltScopeProvider(scope: session, child: const HomeScreen())
+```
+
+```dart
+CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
+```
+
 실행되는 코드: [`examples/notes_app/lib/features/session`](../examples/notes_app/lib/features/session),
 그리고 갤러리의 「세션 스코프」 항목. 자세한 내용은
 [GUIDE_CODEGEN.ko.md](../GUIDE_CODEGEN.ko.md#9-앱보다-먼저-끝나는-스코프)에 있습니다.
@@ -178,6 +189,56 @@ class OrderFlowRoute extends CobaltShellRoute {
 
 라우트 아래의 모든 화면은 `context.cobalt<OrderDraft>()`로 읽고, 플로우를 떠나면 초안이 해제됩니다.
 실행되는 코드: [`examples/flow_scopes`](../examples/flow_scopes), 그리고 갤러리의 「내비게이션 플로우」 항목.
+
+### 제너레이터로
+
+위의 플로우는 직접 작성한 것입니다. `examples/flow_scopes`는 내비게이션을 다루므로 수동 모드로 남아 있습니다.
+제너레이터를 쓰면 마커가 플로우가 무엇을 가지고 열리는지 말하고, 플로우의 클래스들이 마커를 지정합니다:
+
+<!-- from: examples/notes_app/lib/features/order_flow/order_flow.dart -->
+
+```dart
+@CobaltChildScope()
+class OrderFlow {
+  const OrderFlow(this.orderId);
+
+  final String orderId;
+}
+```
+
+<!-- from: examples/notes_app/lib/features/order_flow/order_note.dart -->
+
+```dart
+@CobaltInject(scope: OrderFlow)
+class OrderNote implements Disposable {
+  OrderNote(this.orderId, this._log) {
+```
+
+라우트는 생성된 `OrderFlowScope`를 어떤 스코프 builder든 받는 `CobaltShellRoute`에 넘깁니다:
+
+<!-- from: examples/notes_app/lib/features/order_flow/order_flow_route.dart -->
+
+```dart
+class OrderFlowRoute extends CobaltShellRoute {
+  OrderFlowRoute()
+    : super(
+        name: 'order',
+        identity: _orderId,
+        scope: (state) => OrderFlowScope(_orderId(state)),
+        routes: [
+          GoRoute(
+            path: '/orders/:orderId',
+            builder: (_, _) => const OrderNoteText(),
+          ),
+        ],
+      );
+
+  static String _orderId(GoRouterState state) =>
+      state.pathParameters['orderId']!;
+}
+```
+
+실행되는 코드: [`examples/notes_app/lib/features/order_flow`](../examples/notes_app/lib/features/order_flow).
 
 ## 테스트에서 의존성 바꿔 끼우기
 

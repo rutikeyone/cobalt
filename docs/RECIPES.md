@@ -62,6 +62,17 @@ Future<void> signOut() async {
 }
 ```
 
+A scope from `open` is not in the widget tree, so widgets below it read the app scope. Publish the
+session to them, or let a widget own a session that lives as long as part of the UI:
+
+```dart
+CobaltScopeProvider(scope: session, child: const HomeScreen())
+```
+
+```dart
+CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
+```
+
 Running code: [`examples/notes_app/lib/features/session`](../examples/notes_app/lib/features/session)
 and the *Session scope* entry in the gallery. More in
 [GUIDE_CODEGEN.md](../GUIDE_CODEGEN.md#9-scopes-that-end-before-the-app-does).
@@ -181,6 +192,58 @@ class OrderFlowRoute extends CobaltShellRoute {
 Every screen under the route reads `context.cobalt<OrderDraft>()`, and leaving the flow disposes the
 draft. Running code: [`examples/flow_scopes`](../examples/flow_scopes) and the *Navigation flows*
 entry in the gallery.
+
+### With the generator
+
+The flow above is written by hand, because `examples/flow_scopes` is about navigation and stays in
+Manual Mode. With the generator, a marker says what the flow is opened with, and the classes of the
+flow name it:
+
+<!-- from: examples/notes_app/lib/features/order_flow/order_flow.dart -->
+
+```dart
+@CobaltChildScope()
+class OrderFlow {
+  const OrderFlow(this.orderId);
+
+  final String orderId;
+}
+```
+
+<!-- from: examples/notes_app/lib/features/order_flow/order_note.dart -->
+
+```dart
+@CobaltInject(scope: OrderFlow)
+class OrderNote implements Disposable {
+  OrderNote(this.orderId, this._log) {
+```
+
+The route hands the generated `OrderFlowScope` to `CobaltShellRoute`, which takes any scope
+builder:
+
+<!-- from: examples/notes_app/lib/features/order_flow/order_flow_route.dart -->
+
+```dart
+class OrderFlowRoute extends CobaltShellRoute {
+  OrderFlowRoute()
+    : super(
+        name: 'order',
+        identity: _orderId,
+        scope: (state) => OrderFlowScope(_orderId(state)),
+        routes: [
+          GoRoute(
+            path: '/orders/:orderId',
+            builder: (_, _) => const OrderNoteText(),
+          ),
+        ],
+      );
+
+  static String _orderId(GoRouterState state) =>
+      state.pathParameters['orderId']!;
+}
+```
+
+Running code: [`examples/notes_app/lib/features/order_flow`](../examples/notes_app/lib/features/order_flow).
 
 ## Swapping a dependency in a test
 

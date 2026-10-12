@@ -273,8 +273,19 @@ class CobaltAppScope extends StatefulWidget {
   Future<CobaltScope> _build() {
     final start = this.start;
     if (start != null) return start();
+    final root = this.root!;
+    assert(() {
+      if (bootstrap == null && root is CobaltRootBuilder && root.hasBootstrap) {
+        debugPrint(
+          'CobaltAppScope started root "${root.name}" without its bootstrap '
+          'steps. Pass them: bootstrap: const CobaltRoot().bootstrap. To '
+          'leave them out on purpose, pass bootstrap: () => const [].',
+        );
+      }
+      return true;
+    }());
     return CobaltApplication.start(
-      root: root!,
+      root: root,
       bootstrap: bootstrap?.call() ?? const [],
       rootName: rootName,
       observers: observers,

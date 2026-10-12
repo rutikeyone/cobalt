@@ -40,6 +40,10 @@ void main() {
     _ran.clear();
   });
 
+  test('a root has no bootstrap unless it says so', () {
+    expect(const _Unnamed().hasBootstrap, isFalse);
+  });
+
   test('the root takes the name its builder gives', () async {
     final scope = await CobaltApplication.start(root: const _AppRoot());
     addTearDown(scope.dispose);

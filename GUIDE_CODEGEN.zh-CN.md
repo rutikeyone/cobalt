@@ -424,7 +424,7 @@ builder: CobaltAppScope.builder(
 ),
 ```
 
-名字会自动采用，步骤不会，所以不传 `bootstrap` 就启动应用的 widget 测试依然不会运行它们。
+名字会自动采用，步骤不会，所以不传 `bootstrap` 就启动应用的 widget 测试依然不会运行它们。在 debug 构建中，带步骤的根如果在没有步骤的情况下启动，`CobaltAppScope` 会打印一条提醒；传 `bootstrap: () => const []` 表示这是有意的。
 
 `CobaltAppScope.of(context).restart()` 重建整张图——同一个调用也用于重试失败的启动。
 
@@ -440,7 +440,7 @@ builder: CobaltAppScope.builder(
 ```dart
 final repository = context.cobalt<Repository>();
 final formatters = context.cobaltAll<NoteFormatter>();
-final editor = context.cobaltWithParam<NoteEditor, $NoteEditorArgs>((id: 7, draft: true));
+final editor = context.cobaltWithParam<NoteEditor, NoteEditorArgs>((id: 7, draft: true));
 final scope = context.cobaltScope;
 ```
 
@@ -508,6 +508,18 @@ class SessionManager {
 
 登出就是 `await scope.dispose()`。没有仓储去订阅会话流，
 也没有领域接口被迫长出一个它并不想要的 `reset()`。
+
+`open` 打开的作用域不在 widget 树里。在它下面，`context.cobalt<T>()` 读的仍是应用作用域，只有会话注册的东西会以 `CobaltNotRegisteredError` 失败。把会话发布给需要它的 widget：
+
+```dart
+CobaltScopeProvider(scope: session, child: const HomeScreen())
+```
+
+如果会话的寿命恰好等于界面的一部分，就让一个 widget 拥有它。widget 挂载时打开，卸载时销毁：
+
+```dart
+CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
+```
 
 ### 界面
 
@@ -786,8 +798,11 @@ class Greeting {
 
 ```dart
 // typedef $GreetingArgs = ({String name, bool loud});
-final greeting = context.cobaltWithParam<Greeting, $GreetingArgs>((name: 'Cobalt', loud: false));
+// typedef GreetingArgs = $GreetingArgs;
+final greeting = context.cobaltWithParam<Greeting, GreetingArgs>((name: 'Cobalt', loud: false));
 ```
+
+`GreetingArgs` 是同一个类型的不带 `$` 的名字，调用处用它。带 `$` 的名字保留到 2.0。如果两个类会得到同一个普通名字，就只生成带 `$` 的名字。
 
 即使只有一个参数也用具名 record 而非位置式：加第二个参数改变的是这个类型的内容，
 而不是它的名字或调用处的形状。
@@ -820,7 +835,8 @@ class Document implements AsyncInitializable {
 }
 
 // typedef $DocumentArgs = ({int id});
-final document = await scope.getAsyncWithParam<Document, $DocumentArgs>((id: 42));
+// typedef DocumentArgs = $DocumentArgs;
+final document = await scope.getAsyncWithParam<Document, DocumentArgs>((id: 42));
 ```
 
 生成器会写出 `CobaltAsyncParamFactory` 并用 `registerAsyncParamFactory` 注册。它按调用构建，
@@ -1044,7 +1060,7 @@ plugins:
 | `cobalt_bootstrap_requires_run_method` | `@CobaltBootstrap` 用在没有 `run()` 的类上 |
 | `cobalt_bootstrap_step_cannot_inject` | 构造函数带必填参数的 bootstrap 步骤 |
 | `cobalt_environment_needs_a_registration` | `@CobaltEnvironment` 用在无人注册的类上 |
-| `cobalt_dependency_is_not_registered` | 包内无人注册的被注入依赖，或无人注册的装饰器目标或依赖 |
+| `cobalt_dependency_is_not_registered` | 包内无人注册的被注入依赖，或无人注册的装饰器目标或依赖，或只有该类看不到的子作用域才注册的依赖 |
 | `cobalt_dependency_cycle` | 最终依赖到自身的可注入类，包括经由它的装饰器 |
 | `cobalt_registration_is_never_released` | 已注册的类带有作用域看不见的 `dispose()` 或 `close()` |
 | `cobalt_resource_is_never_closed` | 注册项持有需要关闭的东西，却没有提供关闭它的办法 |
@@ -1209,6 +1225,17 @@ final overrides = scope.pushForTest()
 ```dart
 expect(scope.ownerOf<Repository>(), same(scope.root));
 ```
+
+生成的子作用域在测试里的打开方式和应用里一样，用 `cobalt_test` 的 `openForTest`，测试结束时销毁：
+
+```dart
+final session = await app.openForTest(
+  SessionScope(user),
+  overrides: [CobaltOverride<SessionActivityLog>.value(FakeActivityLog())],
+);
+```
+
+这些覆盖替换的是 `SessionScope` 注册的东西，所以会话里的每个使用者都会看到它们。
 
 ### 仍然需要在运行期检查的东西
 

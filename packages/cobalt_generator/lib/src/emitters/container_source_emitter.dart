@@ -125,6 +125,14 @@ class ContainerSourceEmitter {
       for (final group in childOrdered.values) ...group,
     ];
     final names = CobaltFactoryNames(ordered, decorators: decorators);
+    final taken = {
+      'CobaltRoot',
+      for (final declaration in ordered) ...[
+        declaration.type.name,
+        ?declaration.provider?.module.name,
+      ],
+      for (final scope in childScopes) ...[scope.type.name, scope.builderName],
+    };
 
     final hasBootstrap = declarations.bootstrapSteps.isNotEmpty;
     final scopeUsesEnvironments =
@@ -145,6 +153,15 @@ class ContainerSourceEmitter {
           for (final declaration in ordered)
             if (declaration.takesCallSiteValues)
               _argsTypedef(declaration, names),
+          for (final declaration in ordered)
+            if (declaration.takesCallSiteValues)
+              if (names.plainArgsOf(declaration) case final plain?
+                  when !taken.contains(plain))
+                TypeDef(
+                  (t) => t
+                    ..name = plain
+                    ..definition = refer(names.argsOf(declaration)),
+                ),
           for (final declaration in ordered)
             _factories.emit(declaration, names, awaited: lazyKeys),
           for (final decorator in decorators)

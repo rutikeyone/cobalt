@@ -1,3 +1,9 @@
+## 1.6.0
+
+- `CobaltRootBuilder.hasBootstrap`: whether the root has bootstrap steps,
+  answered without creating them. False by default; the generated root
+  says true when the package has `@CobaltBootstrap` steps.
+
 ## 1.5.0
 
 - `CobaltScope.open(name, builder)` pushes a child scope, runs the builder

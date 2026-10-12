@@ -450,7 +450,8 @@ builder: CobaltAppScope.builder(
 ```
 
 The name is picked up on its own and the steps are not, so a widget test that pumps the app without
-`bootstrap` keeps starting without them.
+`bootstrap` keeps starting without them. In a debug build `CobaltAppScope` prints a reminder when a
+root with steps starts without them; `bootstrap: () => const []` says it is on purpose.
 
 `CobaltAppScope.of(context).restart()` rebuilds the graph — the same call retries a failed start.
 
@@ -466,7 +467,7 @@ naming what had not been built. Manual Mode, section 8, has the details.
 ```dart
 final repository = context.cobalt<Repository>();
 final formatters = context.cobaltAll<NoteFormatter>();
-final editor = context.cobaltWithParam<NoteEditor, $NoteEditorArgs>((id: 7, draft: true));
+final editor = context.cobaltWithParam<NoteEditor, NoteEditorArgs>((id: 7, draft: true));
 final scope = context.cobaltScope;
 ```
 
@@ -538,6 +539,21 @@ that throws, the scope is disposed before the error reaches you.
 
 Logout is `await scope.dispose()`. No repository subscribes to a session stream, and no domain
 interface grows a `reset()` method it did not want.
+
+A scope from `open` is not in the widget tree. Below it, `context.cobalt<T>()` still reads the app
+scope, and anything only the session registers fails with `CobaltNotRegisteredError`. Publish the
+session to the widgets that need it:
+
+```dart
+CobaltScopeProvider(scope: session, child: const HomeScreen())
+```
+
+When the session lives exactly as long as part of the UI, let a widget own it instead. It is opened
+when the widget mounts and disposed when it unmounts:
+
+```dart
+CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
+```
 
 ### A screen
 
@@ -836,8 +852,12 @@ parameterized factory:
 
 ```dart
 // typedef $GreetingArgs = ({String name, bool loud});
-final greeting = context.cobaltWithParam<Greeting, $GreetingArgs>((name: 'Cobalt', loud: false));
+// typedef GreetingArgs = $GreetingArgs;
+final greeting = context.cobaltWithParam<Greeting, GreetingArgs>((name: 'Cobalt', loud: false));
 ```
+
+`GreetingArgs` is the same type under a name without the `$`, which call sites use. The `$` name
+stays until 2.0. When two classes would share a plain name, only the `$` names are written.
 
 A named record rather than positional even for a single argument: adding a second changes the
 contents of the type, not its name or the shape of the call.
@@ -872,7 +892,8 @@ class Document implements AsyncInitializable {
 }
 
 // typedef $DocumentArgs = ({int id});
-final document = await scope.getAsyncWithParam<Document, $DocumentArgs>((id: 42));
+// typedef DocumentArgs = $DocumentArgs;
+final document = await scope.getAsyncWithParam<Document, DocumentArgs>((id: 42));
 ```
 
 The generator emits a `CobaltAsyncParamFactory` and registers it with `registerAsyncParamFactory`.
@@ -1122,7 +1143,7 @@ plugins:
 | `cobalt_bootstrap_requires_run_method` | `@CobaltBootstrap` on a class with no `run()` |
 | `cobalt_bootstrap_step_cannot_inject` | a bootstrap step whose constructor takes required parameters |
 | `cobalt_environment_needs_a_registration` | `@CobaltEnvironment` on a class nothing registers |
-| `cobalt_dependency_is_not_registered` | an injected dependency nothing in the package registers, or a decorator's target or dependency nothing registers |
+| `cobalt_dependency_is_not_registered` | an injected dependency nothing in the package registers, or a decorator's target or dependency nothing registers, or one only a child scope the class cannot see registers |
 | `cobalt_dependency_cycle` | an injectable class that depends, eventually, on itself — including through a decorator of it |
 | `cobalt_registration_is_never_released` | a registered class with a `dispose()` or `close()` the scope cannot see |
 | `cobalt_resource_is_never_closed` | A registration holds something closeable and offers no way to close it |
@@ -1296,6 +1317,18 @@ test does:
 ```dart
 expect(scope.ownerOf<Repository>(), same(scope.root));
 ```
+
+A generated child scope is opened in a test the way the app opens it, with `openForTest` from
+`cobalt_test`, and disposed when the test ends:
+
+```dart
+final session = await app.openForTest(
+  SessionScope(user),
+  overrides: [CobaltOverride<SessionActivityLog>.value(FakeActivityLog())],
+);
+```
+
+The overrides replace what `SessionScope` registers, so every consumer inside the session sees them.
 
 ### What still needs checking at run time
 

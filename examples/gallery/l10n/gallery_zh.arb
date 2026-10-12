@@ -90,7 +90,7 @@
   "decoratorsStationCalls": "{count, plural, =0{尚未调用} other{已调用 {count} 次}}",
   "widgetScopeTitle": "由控件持有的作用域",
   "widgetScopeTeaches": "生命周期正好等于一个界面的依赖图。",
-  "widgetScopePoint1": "CobaltScopedStatefulWidget 把注册写进它自己持有的作用域",
+  "widgetScopePoint1": "CobaltScopeWidget 持有一个由生成的 NoteDetailScope 构建的作用域",
   "widgetScopePoint2": "离开界面时，界面构建的一切都会被释放",
   "widgetScopePoint3": "registerParamFactory 把一个值传入构造过程",
   "widgetScopePoint4": "父依赖图不受影响 —— 这是一个子作用域，而不是一次修改",
