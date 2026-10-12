@@ -35,6 +35,7 @@ import 'package:notes_app/features/notes/data/note_repository.dart' as _i98;
 import 'package:notes_app/features/notes/data/search_index.dart' as _i501;
 import 'package:notes_app/features/notes/domain/note_store.dart' as _i387;
 import 'package:notes_app/features/notes/ui/notes_controller.dart' as _i1050;
+import 'package:notes_app/features/order_flow/order_note.dart' as _i1048;
 import 'package:notes_app/features/session/data/session_activity_log.dart'
     as _i832;
 import 'package:notes_app/features/session/domain/session_user.dart' as _i630;
@@ -266,6 +267,20 @@ final class _NoteTitleCardFactory
   );
 }
 
+final class _OrderNoteFactory
+    implements
+        _i573.CobaltFactory<_i1048.OrderNote>,
+        _i573.CobaltDescribedFactory {
+  const _OrderNoteFactory();
+
+  @override
+  String get implementation => 'OrderNote';
+
+  @override
+  _i1048.OrderNote create(_i573.CobaltResolver resolver) =>
+      _i1048.OrderNote(resolver.get<String>(), resolver.get<_i153.EventLog>());
+}
+
 final class _SessionActivityLogFactory
     implements
         _i573.CobaltFactory<_i832.SessionActivityLog>,
@@ -351,6 +366,18 @@ final class NoteDetailScope implements _i573.CobaltScopeBuilder {
     scope.registerParamFactory<_i485.NoteTitleCard, $NoteTitleCardArgs>(
       const _NoteTitleCardFactory(),
     );
+  }
+}
+
+final class OrderFlowScope implements _i573.CobaltScopeBuilder {
+  const OrderFlowScope(this.orderId);
+
+  final String orderId;
+
+  @override
+  void build(_i573.CobaltScope scope) {
+    scope.registerSingleton<String>(orderId);
+    scope.registerLazySingleton<_i1048.OrderNote>(const _OrderNoteFactory());
   }
 }
 

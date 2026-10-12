@@ -179,6 +179,56 @@ class OrderFlowRoute extends CobaltShellRoute {
 라우트 아래의 모든 화면은 `context.cobalt<OrderDraft>()`로 읽고, 플로우를 떠나면 초안이 해제됩니다.
 실행되는 코드: [`examples/flow_scopes`](../examples/flow_scopes), 그리고 갤러리의 「내비게이션 플로우」 항목.
 
+### 제너레이터로
+
+위의 플로우는 직접 작성한 것입니다. `examples/flow_scopes`는 내비게이션을 다루므로 수동 모드로 남아 있습니다.
+제너레이터를 쓰면 마커가 플로우가 무엇을 가지고 열리는지 말하고, 플로우의 클래스들이 마커를 지정합니다:
+
+<!-- from: examples/notes_app/lib/features/order_flow/order_flow.dart -->
+
+```dart
+@CobaltChildScope()
+class OrderFlow {
+  const OrderFlow(this.orderId);
+
+  final String orderId;
+}
+```
+
+<!-- from: examples/notes_app/lib/features/order_flow/order_note.dart -->
+
+```dart
+@CobaltInject(scope: OrderFlow)
+class OrderNote implements Disposable {
+  OrderNote(this.orderId, this._log) {
+```
+
+라우트는 생성된 `OrderFlowScope`를 어떤 스코프 builder든 받는 `CobaltShellRoute`에 넘깁니다:
+
+<!-- from: examples/notes_app/lib/features/order_flow/order_flow_route.dart -->
+
+```dart
+class OrderFlowRoute extends CobaltShellRoute {
+  OrderFlowRoute()
+    : super(
+        name: 'order',
+        identity: _orderId,
+        scope: (state) => OrderFlowScope(_orderId(state)),
+        routes: [
+          GoRoute(
+            path: '/orders/:orderId',
+            builder: (_, _) => const OrderNoteText(),
+          ),
+        ],
+      );
+
+  static String _orderId(GoRouterState state) =>
+      state.pathParameters['orderId']!;
+}
+```
+
+실행되는 코드: [`examples/notes_app/lib/features/order_flow`](../examples/notes_app/lib/features/order_flow).
+
 ## 테스트에서 의존성 바꿔 끼우기
 
 override는 그 등록을 가진 스코프에서 등록을 바꾸므로, 그 스코프의 모든 팩토리가 바뀐 것을 받습니다:

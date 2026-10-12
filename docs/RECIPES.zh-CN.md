@@ -162,6 +162,55 @@ class OrderFlowRoute extends CobaltShellRoute {
 
 这个路由下的每个界面都用 `context.cobalt<OrderDraft>()` 读取，离开流程时草稿被销毁。可运行的代码：[`examples/flow_scopes`](../examples/flow_scopes)，以及 gallery 里的「导航流程」条目。
 
+### 使用生成器
+
+上面的流程是手写的，因为 `examples/flow_scopes` 讲的是导航，保持手动模式。使用生成器时，由标记类说明流程打开时带着什么，流程里的类指名这个标记：
+
+<!-- from: examples/notes_app/lib/features/order_flow/order_flow.dart -->
+
+```dart
+@CobaltChildScope()
+class OrderFlow {
+  const OrderFlow(this.orderId);
+
+  final String orderId;
+}
+```
+
+<!-- from: examples/notes_app/lib/features/order_flow/order_note.dart -->
+
+```dart
+@CobaltInject(scope: OrderFlow)
+class OrderNote implements Disposable {
+  OrderNote(this.orderId, this._log) {
+```
+
+路由把生成的 `OrderFlowScope` 交给 `CobaltShellRoute`，它接受任何作用域 builder：
+
+<!-- from: examples/notes_app/lib/features/order_flow/order_flow_route.dart -->
+
+```dart
+class OrderFlowRoute extends CobaltShellRoute {
+  OrderFlowRoute()
+    : super(
+        name: 'order',
+        identity: _orderId,
+        scope: (state) => OrderFlowScope(_orderId(state)),
+        routes: [
+          GoRoute(
+            path: '/orders/:orderId',
+            builder: (_, _) => const OrderNoteText(),
+          ),
+        ],
+      );
+
+  static String _orderId(GoRouterState state) =>
+      state.pathParameters['orderId']!;
+}
+```
+
+可运行的代码：[`examples/notes_app/lib/features/order_flow`](../examples/notes_app/lib/features/order_flow)。
+
 ## 在测试里替换依赖
 
 override 在拥有该注册的作用域里替换它，所以那里的每个工厂拿到的都是替换后的对象：
