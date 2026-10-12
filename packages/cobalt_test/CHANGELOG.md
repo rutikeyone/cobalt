@@ -1,3 +1,10 @@
+## 1.6.0
+
+- `openForTest(builder)` opens a child scope the way the app does, with
+  `CobaltScope.open`, and disposes it when the test ends. Takes `name`,
+  `overrides` and `observers`; the name defaults to the builder's type.
+  Requires `cobalt` 1.5.0.
+
 ## 1.5.0
 
 - No code changes in this package. With `cobalt` 1.5.0, `cobaltTestScope`

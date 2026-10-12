@@ -1,3 +1,10 @@
+## 1.6.0
+
+- No code changes in this package. Republished in lockstep with 1.6.0:
+  child scopes in the lint plugin, `openForTest` in `cobalt_test`, a
+  reminder about a forgotten bootstrap in `cobalt_flutter`, and record
+  names without `$` in `cobalt_generator`.
+
 ## 1.5.0
 
 - No code changes in this package. Republished in lockstep with 1.5.0:

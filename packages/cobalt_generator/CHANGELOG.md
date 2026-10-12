@@ -1,3 +1,12 @@
+## 1.6.0
+
+- Each call-site record also gets a name without the `$`:
+  `typedef NoteEditorArgs = $NoteEditorArgs;`. Left out when two classes
+  would share the name or a class of the package already has it. The `$`
+  name stays until 2.0.
+- The generated root overrides `hasBootstrap` when the package has
+  bootstrap steps, which needs `cobalt` 1.6.0.
+
 ## 1.5.0
 
 - Child scopes. Each `@CobaltChildScope` marker gets a builder,

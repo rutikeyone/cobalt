@@ -1,3 +1,11 @@
+## 1.6.0
+
+- In a debug build, `CobaltAppScope` prints a reminder when a root with
+  bootstrap steps starts without `bootstrap:`. `bootstrap: () => const []`
+  says it is on purpose. Requires `cobalt` 1.6.0.
+- `CobaltScopedStatefulWidget` and `CobaltScopedState` are deprecated: wrap
+  a `StatefulWidget` in `CobaltScopeWidget` instead. Removed in 2.0.
+
 ## 1.5.0
 
 - No code changes in this package. With `cobalt` 1.5.0, `CobaltAppScope`

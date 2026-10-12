@@ -1,3 +1,11 @@
+## 1.6.0
+
+- `cobalt_dependency_is_not_registered` also reports a dependency that
+  only a child scope the class cannot see registers, naming that scope.
+  Its quick fix moves a root class into the scope when exactly one
+  registers the dependency: `@cobaltInject` becomes
+  `@CobaltInject(scope: Session)`.
+
 ## 1.5.0
 
 - `cobalt_registration_is_not_generated` reports a registered class that
