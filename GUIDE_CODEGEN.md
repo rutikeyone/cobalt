@@ -450,7 +450,8 @@ builder: CobaltAppScope.builder(
 ```
 
 The name is picked up on its own and the steps are not, so a widget test that pumps the app without
-`bootstrap` keeps starting without them.
+`bootstrap` keeps starting without them. In a debug build `CobaltAppScope` prints a reminder when a
+root with steps starts without them; `bootstrap: () => const []` says it is on purpose.
 
 `CobaltAppScope.of(context).restart()` rebuilds the graph — the same call retries a failed start.
 

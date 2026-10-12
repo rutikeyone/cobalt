@@ -424,7 +424,7 @@ builder: CobaltAppScope.builder(
 ),
 ```
 
-名字会自动采用，步骤不会，所以不传 `bootstrap` 就启动应用的 widget 测试依然不会运行它们。
+名字会自动采用，步骤不会，所以不传 `bootstrap` 就启动应用的 widget 测试依然不会运行它们。在 debug 构建中，带步骤的根如果在没有步骤的情况下启动，`CobaltAppScope` 会打印一条提醒；传 `bootstrap: () => const []` 表示这是有意的。
 
 `CobaltAppScope.of(context).restart()` 重建整张图——同一个调用也用于重试失败的启动。
 

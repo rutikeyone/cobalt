@@ -65,11 +65,13 @@ void main() {
           r'List<_i573.CobaltBootstrapStep> bootstrap() => $cobaltBootstrap;',
         ),
       );
+      expect(withSteps, contains('bool get hasBootstrap => true;'));
       expect(
         withoutSteps,
         contains(r'String get name => $cobaltRootScopeName;'),
       );
       expect(withoutSteps, isNot(contains('bootstrap()')));
+      expect(withoutSteps, isNot(contains('hasBootstrap')));
     });
 
     test('a bootstrap list split by environment makes the root take one', () {

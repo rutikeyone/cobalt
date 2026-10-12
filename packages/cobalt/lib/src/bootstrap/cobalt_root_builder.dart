@@ -40,4 +40,10 @@ abstract base class CobaltRootBuilder implements CobaltScopeBuilder {
   /// step holds a resource, and a restarted app or the next test must not
   /// share it.
   List<CobaltBootstrapStep> bootstrap() => const [];
+
+  /// Whether [bootstrap] has steps, answered without creating them.
+  ///
+  /// The generated root says true when the package has `@CobaltBootstrap`
+  /// steps, so `CobaltAppScope` can point out a root started without them.
+  bool get hasBootstrap => false;
 }

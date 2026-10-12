@@ -84,6 +84,24 @@ class RootBuilder implements CobaltScopeBuilder {
       scope.registerSingleton<Marker>(MarkerFactory(label, log).create(scope));
 }
 
+final class StepsRoot extends CobaltRootBuilder {
+  const StepsRoot({required this.steps});
+
+  final bool steps;
+
+  @override
+  String get name => 'app';
+
+  @override
+  bool get hasBootstrap => steps;
+
+  @override
+  List<CobaltBootstrapStep> bootstrap() => const [];
+
+  @override
+  void build(CobaltScope scope) {}
+}
+
 void main() {
   late List<String> disposeLog;
 
@@ -119,6 +137,59 @@ void main() {
 
       expect(find.text('loading'), findsNothing);
       expect(rendered(), startsWith('root:'));
+    });
+  });
+
+  group('a root with bootstrap steps', () {
+    Future<List<String>> start(
+      WidgetTester tester,
+      CobaltRootBuilder root, {
+      List<CobaltBootstrapStep> Function()? bootstrap,
+    }) async {
+      final printed = <String>[];
+      final previous = debugPrint;
+      debugPrint = (message, {wrapWidth}) => printed.add(message!);
+      try {
+        await tester.pumpWidget(
+          CobaltAppScope(
+            root: root,
+            bootstrap: bootstrap,
+            child: const SizedBox(),
+          ),
+        );
+        await tester.pumpAndSettle();
+      } finally {
+        debugPrint = previous;
+      }
+      return printed;
+    }
+
+    testWidgets('started without them is pointed out', (tester) async {
+      final printed = await start(tester, const StepsRoot(steps: true));
+
+      expect(printed, hasLength(1));
+      expect(printed.single, contains('root "app" without its bootstrap'));
+      expect(
+        printed.single,
+        contains('bootstrap: const CobaltRoot().bootstrap'),
+      );
+    });
+
+    testWidgets('started with them says nothing', (tester) async {
+      const root = StepsRoot(steps: true);
+
+      expect(await start(tester, root, bootstrap: root.bootstrap), isEmpty);
+    });
+
+    testWidgets('left out on purpose says nothing', (tester) async {
+      expect(
+        await start(tester, const StepsRoot(steps: true), bootstrap: () => []),
+        isEmpty,
+      );
+    });
+
+    testWidgets('a root without steps says nothing', (tester) async {
+      expect(await start(tester, const StepsRoot(steps: false)), isEmpty);
     });
   });
 

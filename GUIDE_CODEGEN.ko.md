@@ -443,7 +443,8 @@ builder: CobaltAppScope.builder(
 ```
 
 이름은 자동으로 적용되지만 단계는 그렇지 않으므로, `bootstrap` 없이 앱을 띄우는 위젯 테스트는 계속 단계 없이
-시작합니다.
+시작합니다. 디버그 빌드에서는 단계가 있는 루트가 단계 없이 시작되면 `CobaltAppScope`가 알림을 출력합니다.
+`bootstrap: () => const []`를 넘기면 의도한 것으로 봅니다.
 
 `CobaltAppScope.of(context).restart()`는 그래프를 다시 빌드합니다. 실패한 시작을 재시도하는 것도 같은 호출입니다.
 

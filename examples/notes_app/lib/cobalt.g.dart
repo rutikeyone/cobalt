@@ -309,6 +309,9 @@ final class $CobaltRootScope extends _i573.CobaltRootBuilder {
   String get name => $cobaltRootScopeName;
 
   @override
+  bool get hasBootstrap => true;
+
+  @override
   List<_i573.CobaltBootstrapStep> bootstrap() => $cobaltBootstrap(environment);
 
   @override

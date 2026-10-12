@@ -63,6 +63,16 @@ class RootScopeEmitter {
           if (hasBootstrap)
             Method(
               (m) => m
+                ..name = 'hasBootstrap'
+                ..annotations.add(refer('override'))
+                ..type = MethodType.getter
+                ..returns = refer('bool', 'dart:core')
+                ..lambda = true
+                ..body = literalTrue.code,
+            ),
+          if (hasBootstrap)
+            Method(
+              (m) => m
                 ..name = 'bootstrap'
                 ..annotations.add(refer('override'))
                 ..returns = TypeReference(
