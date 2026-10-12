@@ -440,7 +440,7 @@ builder: CobaltAppScope.builder(
 ```dart
 final repository = context.cobalt<Repository>();
 final formatters = context.cobaltAll<NoteFormatter>();
-final editor = context.cobaltWithParam<NoteEditor, $NoteEditorArgs>((id: 7, draft: true));
+final editor = context.cobaltWithParam<NoteEditor, NoteEditorArgs>((id: 7, draft: true));
 final scope = context.cobaltScope;
 ```
 
@@ -786,8 +786,11 @@ class Greeting {
 
 ```dart
 // typedef $GreetingArgs = ({String name, bool loud});
-final greeting = context.cobaltWithParam<Greeting, $GreetingArgs>((name: 'Cobalt', loud: false));
+// typedef GreetingArgs = $GreetingArgs;
+final greeting = context.cobaltWithParam<Greeting, GreetingArgs>((name: 'Cobalt', loud: false));
 ```
+
+`GreetingArgs` 是同一个类型的不带 `$` 的名字，调用处用它。带 `$` 的名字保留到 2.0。如果两个类会得到同一个普通名字，就只生成带 `$` 的名字。
 
 即使只有一个参数也用具名 record 而非位置式：加第二个参数改变的是这个类型的内容，
 而不是它的名字或调用处的形状。
@@ -820,7 +823,8 @@ class Document implements AsyncInitializable {
 }
 
 // typedef $DocumentArgs = ({int id});
-final document = await scope.getAsyncWithParam<Document, $DocumentArgs>((id: 42));
+// typedef DocumentArgs = $DocumentArgs;
+final document = await scope.getAsyncWithParam<Document, DocumentArgs>((id: 42));
 ```
 
 生成器会写出 `CobaltAsyncParamFactory` 并用 `registerAsyncParamFactory` 注册。它按调用构建，

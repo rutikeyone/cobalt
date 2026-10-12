@@ -47,7 +47,7 @@ class _CounterState extends State<_Counter> {
     final l10n = CodegenBasicsL10n.of(context);
     // A parameterized registration: the config comes from the graph, the name
     // and the flag from here.
-    final greeting = context.cobaltWithParam<Greeting, $GreetingArgs>((
+    final greeting = context.cobaltWithParam<Greeting, GreetingArgs>((
       name: 'Cobalt',
       loud: false,
     ));

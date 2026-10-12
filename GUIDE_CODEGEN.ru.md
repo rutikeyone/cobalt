@@ -467,7 +467,7 @@ root со шагами стартует без них; `bootstrap: () => const [
 ```dart
 final repository = context.cobalt<Repository>();
 final formatters = context.cobaltAll<NoteFormatter>();
-final editor = context.cobaltWithParam<NoteEditor, $NoteEditorArgs>((id: 7, draft: true));
+final editor = context.cobaltWithParam<NoteEditor, NoteEditorArgs>((id: 7, draft: true));
 final scope = context.cobaltScope;
 ```
 
@@ -837,8 +837,12 @@ class Greeting {
 
 ```dart
 // typedef $GreetingArgs = ({String name, bool loud});
-final greeting = context.cobaltWithParam<Greeting, $GreetingArgs>((name: 'Cobalt', loud: false));
+// typedef GreetingArgs = $GreetingArgs;
+final greeting = context.cobaltWithParam<Greeting, GreetingArgs>((name: 'Cobalt', loud: false));
 ```
+
+`GreetingArgs` это тот же тип под именем без `$`, его и пишут в местах вызова. Имя с `$` останется
+до 2.0. Если простое имя досталось бы двум классам, пишутся только имена с `$`.
 
 Именованная запись, а не позиционная, даже для одного аргумента: добавление второго меняет
 содержимое типа, а не его имя и не форму вызова.
@@ -873,7 +877,8 @@ class Document implements AsyncInitializable {
 }
 
 // typedef $DocumentArgs = ({int id});
-final document = await scope.getAsyncWithParam<Document, $DocumentArgs>((id: 42));
+// typedef DocumentArgs = $DocumentArgs;
+final document = await scope.getAsyncWithParam<Document, DocumentArgs>((id: 42));
 ```
 
 Генератор пишет `CobaltAsyncParamFactory` и регистрирует её через `registerAsyncParamFactory`.

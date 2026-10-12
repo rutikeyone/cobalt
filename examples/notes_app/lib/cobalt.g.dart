@@ -41,6 +41,7 @@ import 'package:notes_app/features/session/data/session_activity_log.dart'
 import 'package:notes_app/features/session/domain/session_user.dart' as _i630;
 
 typedef $NoteTitleCardArgs = ({String title});
+typedef NoteTitleCardArgs = $NoteTitleCardArgs;
 
 final class _AppConfigFactory
     implements

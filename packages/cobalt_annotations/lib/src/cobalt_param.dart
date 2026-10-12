@@ -21,7 +21,8 @@ import 'package:meta/meta_meta.dart';
 /// }
 ///
 /// // typedef $NoteEditorArgs = ({int id, bool draft});
-/// context.cobaltWithParam<NoteEditor, $NoteEditorArgs>((id: 7, draft: true));
+/// // typedef NoteEditorArgs = $NoteEditorArgs;
+/// context.cobaltWithParam<NoteEditor, NoteEditorArgs>((id: 7, draft: true));
 /// ```
 ///
 /// A record even for a single value, and a named one: adding a second argument

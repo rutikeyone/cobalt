@@ -467,7 +467,7 @@ naming what had not been built. Manual Mode, section 8, has the details.
 ```dart
 final repository = context.cobalt<Repository>();
 final formatters = context.cobaltAll<NoteFormatter>();
-final editor = context.cobaltWithParam<NoteEditor, $NoteEditorArgs>((id: 7, draft: true));
+final editor = context.cobaltWithParam<NoteEditor, NoteEditorArgs>((id: 7, draft: true));
 final scope = context.cobaltScope;
 ```
 
@@ -837,8 +837,12 @@ parameterized factory:
 
 ```dart
 // typedef $GreetingArgs = ({String name, bool loud});
-final greeting = context.cobaltWithParam<Greeting, $GreetingArgs>((name: 'Cobalt', loud: false));
+// typedef GreetingArgs = $GreetingArgs;
+final greeting = context.cobaltWithParam<Greeting, GreetingArgs>((name: 'Cobalt', loud: false));
 ```
+
+`GreetingArgs` is the same type under a name without the `$`, which call sites use. The `$` name
+stays until 2.0. When two classes would share a plain name, only the `$` names are written.
 
 A named record rather than positional even for a single argument: adding a second changes the
 contents of the type, not its name or the shape of the call.
@@ -873,7 +877,8 @@ class Document implements AsyncInitializable {
 }
 
 // typedef $DocumentArgs = ({int id});
-final document = await scope.getAsyncWithParam<Document, $DocumentArgs>((id: 42));
+// typedef DocumentArgs = $DocumentArgs;
+final document = await scope.getAsyncWithParam<Document, DocumentArgs>((id: 42));
 ```
 
 The generator emits a `CobaltAsyncParamFactory` and registers it with `registerAsyncParamFactory`.

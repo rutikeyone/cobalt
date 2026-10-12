@@ -29,7 +29,7 @@ class _NoteDetailBodyState extends State<_NoteDetailBody> {
   Widget build(BuildContext context) {
     final l10n = NotesL10n.of(context);
     final draft = context.cobalt<NoteDraft>();
-    final card = context.cobaltWithParam<NoteTitleCard, $NoteTitleCardArgs>((
+    final card = context.cobaltWithParam<NoteTitleCard, NoteTitleCardArgs>((
       title: draft.text.isEmpty ? l10n.untitled : draft.text,
     ));
 

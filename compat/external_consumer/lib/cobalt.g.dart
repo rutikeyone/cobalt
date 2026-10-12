@@ -32,6 +32,8 @@ import 'package:cobalt_external_consumer/src/traced.dart' as _i160;
 
 typedef $DocumentArgs = ({int id});
 typedef $NoteEditorArgs = ({int id, String title, bool draft});
+typedef DocumentArgs = $DocumentArgs;
+typedef NoteEditorArgs = $NoteEditorArgs;
 
 final class _ArchiveFactory
     implements

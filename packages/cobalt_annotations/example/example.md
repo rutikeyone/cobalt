@@ -56,5 +56,5 @@ A full application using every annotation lives in
 plain one fails the build.
 
 `NoteEditor` takes an `@cobaltParam`, so it is registered as a parameterized factory and the
-generator writes `typedef $NoteEditorArgs = ({int id});` beside the container. Resolve it with
-`getWithParam<NoteEditor, $NoteEditorArgs>((id: 7))` — the store still comes from the graph.
+generator writes `typedef $NoteEditorArgs = ({int id});` and `NoteEditorArgs`, the same type without
+the `$`, beside the container. Resolve it with `getWithParam<NoteEditor, NoteEditorArgs>((id: 7))` — the store still comes from the graph.

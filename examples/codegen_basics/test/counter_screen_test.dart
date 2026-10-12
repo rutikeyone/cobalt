@@ -121,7 +121,7 @@ void main() {
           rootName: $cobaltRootScopeName,
           child: Builder(
             builder: (context) {
-              loud = context.cobaltWithParam<Greeting, $GreetingArgs>((
+              loud = context.cobaltWithParam<Greeting, GreetingArgs>((
                 name: 'World',
                 loud: true,
               ));

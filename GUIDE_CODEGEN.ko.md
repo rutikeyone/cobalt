@@ -460,7 +460,7 @@ Flutter 밖에서는 `await $startCobalt()`가 전부입니다.
 ```dart
 final repository = context.cobalt<Repository>();
 final formatters = context.cobaltAll<NoteFormatter>();
-final editor = context.cobaltWithParam<NoteEditor, $NoteEditorArgs>((id: 7, draft: true));
+final editor = context.cobaltWithParam<NoteEditor, NoteEditorArgs>((id: 7, draft: true));
 final scope = context.cobaltScope;
 ```
 
@@ -826,8 +826,12 @@ class Greeting {
 
 ```dart
 // typedef $GreetingArgs = ({String name, bool loud});
-final greeting = context.cobaltWithParam<Greeting, $GreetingArgs>((name: 'Cobalt', loud: false));
+// typedef GreetingArgs = $GreetingArgs;
+final greeting = context.cobaltWithParam<Greeting, GreetingArgs>((name: 'Cobalt', loud: false));
 ```
+
+`GreetingArgs`는 같은 타입에 `$` 없이 붙은 이름이며, 호출하는 곳에서는 이 이름을 씁니다. `$`가 붙은 이름은
+2.0까지 유지됩니다. 두 클래스가 같은 일반 이름을 갖게 되면 `$` 이름만 생성됩니다.
 
 인자가 하나뿐이어도 위치 기반이 아니라 이름 있는 레코드입니다. 두 번째 인자를 추가해도 바뀌는 것은 타입의
 내용이지, 타입의 이름이나 호출의 형태가 아닙니다.
@@ -862,7 +866,8 @@ class Document implements AsyncInitializable {
 }
 
 // typedef $DocumentArgs = ({int id});
-final document = await scope.getAsyncWithParam<Document, $DocumentArgs>((id: 42));
+// typedef DocumentArgs = $DocumentArgs;
+final document = await scope.getAsyncWithParam<Document, DocumentArgs>((id: 42));
 ```
 
 제너레이터는 `CobaltAsyncParamFactory`를 내보내고 `registerAsyncParamFactory`로 등록합니다. 호출마다 빌드되며
