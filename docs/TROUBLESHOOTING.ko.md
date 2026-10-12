@@ -42,6 +42,9 @@ build_runner again.
 - 메시지에 스코프가 아직 빌드 중이라고 나온다면: eager `registerSingleton`이 `build()` 아래쪽의 등록보다
   먼저 의존성을 해결했습니다. 그 등록들 아래로 옮기거나 lazy로 바꾸십시오.
 - 스코프는 자기 자신과 상위 스코프만 봅니다. 세션이나 화면 스코프에 등록한 타입은 루트에서 보이지 않습니다.
+- Flutter에서 `open`으로 연 스코프는 위젯 트리에 없습니다. 그 아래의 `context.cobalt<T>()`는 상위 스코프를 읽습니다.
+  해당 위젯을 `CobaltScopeProvider(scope: session, child: ...)`로 감싸거나,
+  `CobaltScopeWidget(builder: SessionScope(user), child: ...)`가 세션을 소유하게 하십시오.
 
 ### CobaltNotReadyError
 

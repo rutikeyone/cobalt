@@ -57,6 +57,16 @@ Future<void> signOut() async {
 }
 ```
 
+`open` 打开的作用域不在 widget 树里，所以它下面的 widget 读的是应用作用域。把会话发布给它们，或者在会话寿命等于界面一部分时让 widget 拥有它：
+
+```dart
+CobaltScopeProvider(scope: session, child: const HomeScreen())
+```
+
+```dart
+CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
+```
+
 可运行的代码：[`examples/notes_app/lib/features/session`](../examples/notes_app/lib/features/session)，以及 gallery 里的「会话作用域」条目。更多见 [GUIDE_CODEGEN.zh-CN.md](../GUIDE_CODEGEN.zh-CN.md#9-比应用先结束的作用域)。
 
 ## 拥有自己作用域的界面

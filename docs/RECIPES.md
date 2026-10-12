@@ -62,6 +62,17 @@ Future<void> signOut() async {
 }
 ```
 
+A scope from `open` is not in the widget tree, so widgets below it read the app scope. Publish the
+session to them, or let a widget own a session that lives as long as part of the UI:
+
+```dart
+CobaltScopeProvider(scope: session, child: const HomeScreen())
+```
+
+```dart
+CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
+```
+
 Running code: [`examples/notes_app/lib/features/session`](../examples/notes_app/lib/features/session)
 and the *Session scope* entry in the gallery. More in
 [GUIDE_CODEGEN.md](../GUIDE_CODEGEN.md#9-scopes-that-end-before-the-app-does).

@@ -45,6 +45,9 @@ build_runner again.
   раньше, чем их зарегистрировали ниже в `build()`. Перенесите его под них или сделайте ленивым.
 - Скоуп видит только себя и скоупы выше. Тип, зарегистрированный в скоупе сессии или экрана, из
   корня не виден.
+- Во Flutter скоупа, открытого через `open`, нет в дереве виджетов: `context.cobalt<T>()` ниже него
+  читает скоуп выше. Оберните эти виджеты в `CobaltScopeProvider(scope: session, child: ...)` или
+  отдайте сессию `CobaltScopeWidget(builder: SessionScope(user), child: ...)`.
 
 ### CobaltNotReadyError
 

@@ -62,6 +62,17 @@ Future<void> signOut() async {
 }
 ```
 
+Скоупа из `open` нет в дереве виджетов, поэтому виджеты ниже читают скоуп приложения. Покажите им
+сессию или отдайте ее виджету, если она живет столько же, сколько часть интерфейса:
+
+```dart
+CobaltScopeProvider(scope: session, child: const HomeScreen())
+```
+
+```dart
+CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
+```
+
 Рабочий код: [`examples/notes_app/lib/features/session`](../examples/notes_app/lib/features/session)
 и запись «Сессионный скоуп» в галерее. Подробнее в
 [GUIDE_CODEGEN.ru.md](../GUIDE_CODEGEN.ru.md#9-скоупы-которые-кончаются-раньше-приложения).

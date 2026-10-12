@@ -532,6 +532,20 @@ class SessionManager {
 로그아웃은 `await scope.dispose()`입니다. 세션 스트림을 구독하는 리포지토리도 없고, 원하지 않던 `reset()`
 메서드가 생겨나는 도메인 인터페이스도 없습니다.
 
+`open`으로 연 스코프는 위젯 트리에 없습니다. 그 아래에서 `context.cobalt<T>()`는 여전히 앱 스코프를 읽고,
+세션만 등록한 것은 `CobaltNotRegisteredError`로 실패합니다. 세션이 필요한 위젯에 공개하십시오.
+
+```dart
+CobaltScopeProvider(scope: session, child: const HomeScreen())
+```
+
+세션이 UI의 일부와 수명이 정확히 같다면 위젯이 소유하게 하십시오. 위젯이 마운트될 때 열리고 사라질 때
+해제됩니다.
+
+```dart
+CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
+```
+
 ### 화면
 
 ```dart

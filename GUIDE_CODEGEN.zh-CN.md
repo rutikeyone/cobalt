@@ -509,6 +509,18 @@ class SessionManager {
 登出就是 `await scope.dispose()`。没有仓储去订阅会话流，
 也没有领域接口被迫长出一个它并不想要的 `reset()`。
 
+`open` 打开的作用域不在 widget 树里。在它下面，`context.cobalt<T>()` 读的仍是应用作用域，只有会话注册的东西会以 `CobaltNotRegisteredError` 失败。把会话发布给需要它的 widget：
+
+```dart
+CobaltScopeProvider(scope: session, child: const HomeScreen())
+```
+
+如果会话的寿命恰好等于界面的一部分，就让一个 widget 拥有它。widget 挂载时打开，卸载时销毁：
+
+```dart
+CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
+```
+
 ### 界面
 
 ```dart

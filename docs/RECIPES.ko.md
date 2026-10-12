@@ -62,6 +62,17 @@ Future<void> signOut() async {
 }
 ```
 
+`open`으로 연 스코프는 위젯 트리에 없으므로, 그 아래 위젯은 앱 스코프를 읽습니다. 세션을 위젯에 공개하거나,
+세션이 UI 일부와 수명이 같다면 위젯이 소유하게 하십시오.
+
+```dart
+CobaltScopeProvider(scope: session, child: const HomeScreen())
+```
+
+```dart
+CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
+```
+
 실행되는 코드: [`examples/notes_app/lib/features/session`](../examples/notes_app/lib/features/session),
 그리고 갤러리의 「세션 스코프」 항목. 자세한 내용은
 [GUIDE_CODEGEN.ko.md](../GUIDE_CODEGEN.ko.md#9-앱보다-먼저-끝나는-스코프)에 있습니다.

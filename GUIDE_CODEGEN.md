@@ -540,6 +540,21 @@ that throws, the scope is disposed before the error reaches you.
 Logout is `await scope.dispose()`. No repository subscribes to a session stream, and no domain
 interface grows a `reset()` method it did not want.
 
+A scope from `open` is not in the widget tree. Below it, `context.cobalt<T>()` still reads the app
+scope, and anything only the session registers fails with `CobaltNotRegisteredError`. Publish the
+session to the widgets that need it:
+
+```dart
+CobaltScopeProvider(scope: session, child: const HomeScreen())
+```
+
+When the session lives exactly as long as part of the UI, let a widget own it instead. It is opened
+when the widget mounts and disposed when it unmounts:
+
+```dart
+CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
+```
+
 ### A screen
 
 ```dart

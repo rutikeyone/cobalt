@@ -42,6 +42,9 @@ Something asked for a type that no scope between here and the root registers.
   lazy.
 - A scope only sees itself and the scopes above it. A type registered in a session or screen scope
   is invisible from the root.
+- In Flutter, a scope opened with `open` is not in the widget tree: `context.cobalt<T>()` below it
+  reads the scope above. Wrap those widgets in `CobaltScopeProvider(scope: session, child: ...)`, or
+  let `CobaltScopeWidget(builder: SessionScope(user), child: ...)` own the session.
 
 ### CobaltNotReadyError
 
