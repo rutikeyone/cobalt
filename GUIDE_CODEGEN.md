@@ -1297,6 +1297,18 @@ test does:
 expect(scope.ownerOf<Repository>(), same(scope.root));
 ```
 
+A generated child scope is opened in a test the way the app opens it, with `openForTest` from
+`cobalt_test`, and disposed when the test ends:
+
+```dart
+final session = await app.openForTest(
+  SessionScope(user),
+  overrides: [CobaltOverride<SessionActivityLog>.value(FakeActivityLog())],
+);
+```
+
+The overrides replace what `SessionScope` registers, so every consumer inside the session sees them.
+
 ### What still needs checking at run time
 
 The completeness check covers the generated container. Two things sit outside it and are worth a

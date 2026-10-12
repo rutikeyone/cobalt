@@ -1284,6 +1284,18 @@ final overrides = scope.pushForTest()
 expect(scope.ownerOf<Repository>(), same(scope.root));
 ```
 
+생성된 자식 스코프는 테스트에서도 앱과 같은 방식으로, `cobalt_test`의 `openForTest`로 열리고 테스트가 끝나면
+해제됩니다:
+
+```dart
+final session = await app.openForTest(
+  SessionScope(user),
+  overrides: [CobaltOverride<SessionActivityLog>.value(FakeActivityLog())],
+);
+```
+
+재정의는 `SessionScope`가 등록하는 것을 바꾸므로, 세션 안의 모든 소비자가 그것을 봅니다.
+
 ### 런타임에 여전히 검사해야 하는 것
 
 완전성 검사는 생성된 컨테이너를 다룹니다. 그 밖에 놓인 두 가지는 테스트할 가치가

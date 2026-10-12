@@ -48,6 +48,45 @@ void main() {
     });
   });
 
+  group('openForTest', () {
+    test('opens the builder under this scope, named after it', () async {
+      final root = cobaltTestRoot(name: 'app')
+        ..registerLazySingleton<Clock>(const ValueFactory(Clock()));
+
+      final child = await root.openForTest(const _TicketScope('open'));
+
+      expect(child.name, '_TicketScope');
+      expect(child.state, CobaltScopeState.active);
+      expect(child.get<Ticket>().id, 'open');
+      expect(root.children, [child]);
+    });
+
+    test('takes a name and overrides', () async {
+      final root = cobaltTestRoot();
+
+      final child = await root.openForTest(
+        const _TicketScope('real'),
+        name: 'session',
+        overrides: [CobaltOverride<Ticket>.value(Ticket('fake'))],
+      );
+
+      expect(child.name, 'session');
+      expect(child.get<Ticket>().id, 'fake');
+    });
+
+    test('is disposed when the test ends', () async {
+      final root = CobaltScope.root(name: 'app');
+      late CobaltScope child;
+
+      addTearDown(() async {
+        expect(child.state, CobaltScopeState.disposed);
+        await root.dispose();
+      });
+
+      child = await root.openForTest(const _TicketScope('open'));
+    });
+  });
+
   group('ownerOf', () {
     test('names the scope an override would have to beat', () {
       final root = cobaltTestRoot(name: 'app')
@@ -124,4 +163,14 @@ void main() {
       expect(scope.get<Api>().clock, same(scope.get<Clock>()));
     });
   });
+}
+
+class _TicketScope implements CobaltScopeBuilder {
+  const _TicketScope(this.id);
+
+  final String id;
+
+  @override
+  void build(CobaltScope scope) =>
+      scope.registerLazySingleton<Ticket>(FnFactory((_) => Ticket(id)));
 }

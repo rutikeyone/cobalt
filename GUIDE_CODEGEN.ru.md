@@ -1299,6 +1299,19 @@ final overrides = scope.pushForTest()
 expect(scope.ownerOf<Repository>(), same(scope.root));
 ```
 
+Сгенерированный дочерний скоуп в тесте открывается так же, как в приложении, через `openForTest`
+из `cobalt_test`, и разбирается, когда тест заканчивается:
+
+```dart
+final session = await app.openForTest(
+  SessionScope(user),
+  overrides: [CobaltOverride<SessionActivityLog>.value(FakeActivityLog())],
+);
+```
+
+Подмены заменяют то, что регистрирует `SessionScope`, поэтому их видит каждый потребитель внутри
+сессии.
+
 ### Что всё ещё требует проверки в рантайме
 
 Проверка полноты покрывает сгенерированный контейнер. Две вещи лежат вне неё и стоят теста:

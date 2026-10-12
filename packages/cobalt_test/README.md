@@ -77,6 +77,15 @@ final scope = app.pushForTest()
   ..registerSingleton<Clock>(FixedClock(DateTime.utc(2026)));
 ```
 
+A child scope opens the way the app opens it, and closes with the test:
+
+```dart
+final session = await app.openForTest(
+  SessionScope(user),
+  overrides: [CobaltOverride<SessionActivityLog>.value(FakeActivityLog())],
+);
+```
+
 `ownerOf<T>()` answers the question that trips everyone once: a factory runs on the scope that owns
 **its** registration, not the scope you asked from, so a shadow below the consumer is invisible to
 it — that consumer wants an override where it is owned.

@@ -1210,6 +1210,17 @@ final overrides = scope.pushForTest()
 expect(scope.ownerOf<Repository>(), same(scope.root));
 ```
 
+生成的子作用域在测试里的打开方式和应用里一样，用 `cobalt_test` 的 `openForTest`，测试结束时销毁：
+
+```dart
+final session = await app.openForTest(
+  SessionScope(user),
+  overrides: [CobaltOverride<SessionActivityLog>.value(FakeActivityLog())],
+);
+```
+
+这些覆盖替换的是 `SessionScope` 注册的东西，所以会话里的每个使用者都会看到它们。
+
 ### 仍然需要在运行期检查的东西
 
 完整性检查覆盖的是生成的容器。有两样东西在它之外，值得写个测试：
