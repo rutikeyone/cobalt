@@ -42,8 +42,8 @@ import 'package:flutter/widgets.dart';
 class CobaltAppScope extends StatefulWidget {
   /// Creates the owner of an app's root scope from the graph's parts.
   ///
-  /// In Code-Gen Mode these are the generated `$CobaltRootScope`,
-  /// `$cobaltBootstrap` and `$cobaltRootScopeName`.
+  /// In Code-Gen Mode these are the generated `CobaltRoot`,
+  /// `cobaltBootstrapSteps` and `cobaltRootScopeName`.
   const CobaltAppScope({
     required CobaltScopeBuilder this.root,
     required this.child,
@@ -93,11 +93,11 @@ class CobaltAppScope extends StatefulWidget {
   /// why [root] *is* a value: it only registers, and the generated one is
   /// `const`.
   ///
-  /// In Code-Gen Mode this is `() => $cobaltBootstrap` — or
-  /// `() => $cobaltBootstrap(environment)` once environments are in play.
+  /// In Code-Gen Mode this is `() => cobaltBootstrapSteps` — or
+  /// `() => cobaltBootstrapSteps(environment)` once environments are in play.
   final List<CobaltBootstrapStep> Function()? bootstrap;
 
-  /// Names the root scope in diagnostics. `$cobaltRootScopeName` when generated.
+  /// Names the root scope in diagnostics. `cobaltRootScopeName` when generated.
   final String rootName;
 
   /// Observers for the whole tree; child scopes inherit them.

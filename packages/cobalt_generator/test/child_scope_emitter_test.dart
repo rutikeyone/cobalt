@@ -45,8 +45,8 @@ void main() {
           'scope.registerLazySingleton<_i137.Draft>(const _DraftFactory());',
         ),
       );
-      expect(classOf(source, r'$CobaltRootScope'), isNot(contains('Draft')));
-      expect(classOf(source, r'$CobaltRootScope'), contains('Clock'));
+      expect(classOf(source, r'CobaltRoot'), isNot(contains('Draft')));
+      expect(classOf(source, r'CobaltRoot'), contains('Clock'));
     });
 
     test('registers the values of its marker and takes them as the marker '
@@ -142,7 +142,7 @@ void main() {
       );
 
       expect(classOf(source, 'ScreenScope'), contains('registerSingleton'));
-      expect(source, isNot(contains(r'$startCobalt')));
+      expect(source, isNot(contains(r'startCobalt')));
     });
   });
 
@@ -325,6 +325,6 @@ void main() {
     );
 
     expect(classOf(source, 'SessionScope'), contains('_FakeApiFactory'));
-    expect(classOf(source, r'$CobaltRootScope'), contains('_LiveApiFactory'));
+    expect(classOf(source, r'CobaltRoot'), contains('_LiveApiFactory'));
   });
 }

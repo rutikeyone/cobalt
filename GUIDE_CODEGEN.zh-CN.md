@@ -175,7 +175,7 @@ dart run build_runner build
 开发时用 `dart run build_runner watch`。产物要提交：CI 会重新生成并在有 diff 时失败，
 过时的生成代码就是这样被抓住的，而不是被发布出去。
 
-**一个包一个根。** `cobalt_container` 会把整个包聚合成唯一的 `$CobaltRootScope`；
+**一个包一个根。** `cobalt_container` 会把整个包聚合成唯一的 `CobaltRoot`；
 同一个包里有两个 `@CobaltScopeRoot` 是生成错误。因此两张互相独立的生成图需要两个包——
 这正是本仓库的示例是一个个独立的包而不是文件夹的原因。
 
@@ -193,11 +193,11 @@ final class _RepositoryFactory implements CobaltFactory<Repository> {
   Repository create(CobaltResolver resolver) => Repository(resolver.get<Config>());
 }
 
-final class $CobaltRootScope extends CobaltRootBuilder {
-  const $CobaltRootScope();
+final class CobaltRoot extends CobaltRootBuilder {
+  const CobaltRoot();
 
   @override
-  String get name => $cobaltRootScopeName;
+  String get name => cobaltRootScopeName;
 
   @override
   void build(CobaltScope scope) {
@@ -207,22 +207,20 @@ final class $CobaltRootScope extends CobaltRootBuilder {
   }
 }
 
-typedef CobaltRoot = $CobaltRootScope;
+const String cobaltRootScopeName = 'app';
 
-const String $cobaltRootScopeName = 'app';
-
-Future<CobaltScope> $startCobalt() => CobaltApplication.start(
-  root: const $CobaltRootScope(),
-  rootName: $cobaltRootScopeName,
+Future<CobaltScope> startCobalt() => CobaltApplication.start(
+  root: const CobaltRoot(),
+  rootName: cobaltRootScopeName,
 );
 ```
 
 ```dart
-final scope = await $startCobalt();
+final scope = await startCobalt();
 ```
 
-`CobaltRoot` 是同一个类不带 `$` 的名字，所以快速开始里的 `const CobaltRoot()` 和 `const $CobaltRootScope()` 可以互换。
-它继承 `CobaltRootBuilder`，因此带着 `@CobaltScopeRoot` 给出的名字；有 bootstrap 步骤时，
+1.7.0 之前它们叫 `$CobaltRootScope`、`$cobaltRootScopeName` 和 `$startCobalt`；在 2.0 之前，生成器仍会把这些名字写成已弃用的别名。
+`CobaltRoot` 继承 `CobaltRootBuilder`，因此带着 `@CobaltScopeRoot` 给出的名字；有 bootstrap 步骤时，
 还带一个交出这些步骤的 `bootstrap()`。用法见 [§7](#7-启动-flutter-应用)。
 
 为了便于阅读，这里省略了前缀，但真实文件会给每个导入的名字加上由其 URL 哈希得出的别名——
@@ -236,7 +234,7 @@ final scope = await $startCobalt();
 - **注册按拓扑顺序排列**，顺序在构建期算出。被属性注入的字段同样算作边，
   所以 bloc 总是排在它注入的东西之后注册。
 - **没有反射，也没有运行时扫描。** 那个文件里有什么，整张图就是什么。
-- **`$cobaltBootstrap` 是 getter**，而不是存下来的列表，所以重启会拿到新的步骤——见
+- **`cobaltBootstrapSteps` 是 getter**，而不是存下来的列表，所以重启会拿到新的步骤——见
   [§11](#11-必须在启动前完成的工作)。
 
 生成器用与你的格式检查相同的 `dart_style` 版本来格式化自己的产物，所以两者不会有分歧。
@@ -338,7 +336,7 @@ class Cache<T> with _$Cache<T> {
 
 ---
 
-**围绕容器组合的手写注册遵循同一条规则。** 懒汉式的可以放在 `$CobaltRootScope().build(scope)` 上面，
+**围绕容器组合的手写注册遵循同一条规则。** 懒汉式的可以放在 `CobaltRoot().build(scope)` 上面，
 依然能解析生成器注册的东西；饿汉式的不行，而且错误会说明这一点——它会指出缺失的类型，
 并补充说作用域还在构建中。
 
@@ -355,7 +353,7 @@ class NotesScope implements CobaltScopeBuilder {
 
   @override
   void build(CobaltScope scope) {
-    $CobaltRootScope(environment: environment).build(scope);
+    CobaltRoot(environment: environment).build(scope);
     scope
       ..registerSingleton<CobaltEnvironment>(environment)
       ..registerSingleton<SessionManager>(SessionManager(scope));
@@ -363,7 +361,7 @@ class NotesScope implements CobaltScopeBuilder {
 }
 ```
 
-用包裹而不是在 `$startCobalt()` 返回之后再注册，才能让它们留在阶段 1 内部——
+用包裹而不是在 `startCobalt()` 返回之后再注册，才能让它们留在阶段 1 内部——
 在异步初始化器运行之前就注册好，而不是等图已经起来了再补上去。
 
 接下来要告诉完整性检查它们的存在，否则会被报成缺失：
@@ -382,7 +380,7 @@ class AppScope {
 
 改由作用域在 builder 运行完之后检查：被承诺却没人注册的类型会以 `onPromiseBroken` 报告给观察者，
 在日志和 `cobalt_inspector` 里是一条警告，debug 构建下还会出现在 IDE 控制台。它不是错误，
-因为单独启动 `$startCobalt()` 或 `CobaltRoot` 的测试是有意不兑现承诺的。
+因为单独启动 `startCobalt()` 或 `CobaltRoot` 的测试是有意不兑现承诺的。
 
 ---
 
@@ -401,8 +399,8 @@ void main() => runApp(
     theme: appTheme,
     builder: CobaltAppScope.builder(
       root: const NotesScope(notesEnvironment),
-      bootstrap: () => $cobaltBootstrap(notesEnvironment),
-      rootName: $cobaltRootScopeName,
+      bootstrap: () => cobaltBootstrapSteps(notesEnvironment),
+      rootName: cobaltRootScopeName,
       loading: const Scaffold(body: Center(child: CircularProgressIndicator())),
       errorBuilder: (context, error, retry) => StartupFailed(error: error, retry: retry),
     ),
@@ -411,7 +409,7 @@ void main() => runApp(
 );
 ```
 
-`bootstrap` 是函数而不是列表，生成器把 `$cobaltBootstrap` 写成 getter 也是同一个原因：
+`bootstrap` 是函数而不是列表，生成器把 `cobaltBootstrapSteps` 写成 getter 也是同一个原因：
 步骤持有资源，重启必须拿到新的。
 
 没有自己的包装类时，生成的根同时带着这两样东西。作用域无需 `rootName` 就会采用
@@ -428,9 +426,9 @@ builder: CobaltAppScope.builder(
 
 `CobaltAppScope.of(context).restart()` 重建整张图——同一个调用也用于重试失败的启动。
 
-在 Flutter 之外，全部内容就是 `await $startCobalt()`。
+在 Flutter 之外，全部内容就是 `await startCobalt()`。
 
-`$startCobalt(initTimeout: ...)` 为阶段 1 设定时限——超时后启动以 `CobaltInitTimeoutError` 失败，并列出尚未构建完成的项。
+`startCobalt(initTimeout: ...)` 为阶段 1 设定时限——超时后启动以 `CobaltInitTimeoutError` 失败，并列出尚未构建完成的项。
 详见 Manual Mode 第 8 节。
 
 ---
@@ -797,12 +795,11 @@ class Greeting {
 生成器会在容器旁边把参数类型写成一个具名 record，并注册为参数化工厂：
 
 ```dart
-// typedef $GreetingArgs = ({String name, bool loud});
-// typedef GreetingArgs = $GreetingArgs;
+// typedef GreetingArgs = ({String name, bool loud});
 final greeting = context.cobaltWithParam<Greeting, GreetingArgs>((name: 'Cobalt', loud: false));
 ```
 
-`GreetingArgs` 是同一个类型的不带 `$` 的名字，调用处用它。带 `$` 的名字保留到 2.0。如果两个类会得到同一个普通名字，就只生成带 `$` 的名字。
+早期版本的 `$GreetingArgs` 写法仍可编译，但已标记为弃用，将在 2.0 移除。如果两个类会得到同一个普通名字，生成器仍像以前一样只生成带 `$` 的名字。
 
 即使只有一个参数也用具名 record 而非位置式：加第二个参数改变的是这个类型的内容，
 而不是它的名字或调用处的形状。
@@ -834,8 +831,7 @@ class Document implements AsyncInitializable {
   Future<void> init() => _store.load(this);
 }
 
-// typedef $DocumentArgs = ({int id});
-// typedef DocumentArgs = $DocumentArgs;
+// typedef DocumentArgs = ({int id});
 final document = await scope.getAsyncWithParam<Document, DocumentArgs>((id: 42));
 ```
 
@@ -991,7 +987,7 @@ final class JoinRegistry extends CobaltHook<Loggable> {
 ## 15. 一张图，多种构建
 
 在确实需要「这次构建要换一个实现」之前，可以跳过本节。
-从不写 `@CobaltEnvironment` 的项目只有一张图，所有注册都属于它，`$startCobalt()` 连参数都不带。
+从不写 `@CobaltEnvironment` 的项目只有一张图，所有注册都属于它，`startCobalt()` 连参数都不带。
 
 ```dart
 @CobaltInject(exposeAs: ApiClient)
@@ -1006,7 +1002,7 @@ class FakeApiClient implements ApiClient { ... }
 ```
 
 ```dart
-final scope = await $startCobalt(environment: CobaltEnvironment.prod);
+final scope = await startCobalt(environment: CobaltEnvironment.prod);
 ```
 
 注解是重复书写而不是接受一个列表：一个注册属于一个环境的*集合*，而启动时只挑*一个*。
@@ -1030,7 +1026,7 @@ if (environment.matches(const <String>{'dev', 'test'})) {
   其中一个根本不写环境的情况也算在内，因为无限制的注册在任何地方都存在。
 - **完整性按环境分别检查**，所以只在 `dev` 存在的注册无法满足一个同样跑在 `prod` 的依赖方。
 
-bootstrap 步骤同样接受环境。只要其中任何一个用到，`$cobaltBootstrap` 就变成所选环境的函数，
+bootstrap 步骤同样接受环境。只要其中任何一个用到，`cobaltBootstrapSteps` 就变成所选环境的函数，
 被跳过的步骤既不会运行，也不会被收养。
 
 `cobalt_environment_needs_a_registration` 会抓住这种情况：`@CobaltEnvironment` 落在一个
@@ -1096,14 +1092,14 @@ plugins:
 观察者能看到作用域出现、实例被构建、启动完成、销毁失败。
 在创建图的地方传入它们；之后压入的每个作用域都会继承。
 
-`$startCobalt()` 不接受观察者——它是那条捷径。一旦需要观察者，
+`startCobalt()` 不接受观察者——它是那条捷径。一旦需要观察者，
 就走你本来就在组合的那个构建器：
 
 ```dart
 final scope = await CobaltApplication.start(
   root: const NotesScope(notesEnvironment),
-  bootstrap: $cobaltBootstrap(notesEnvironment),
-  rootName: $cobaltRootScopeName,
+  bootstrap: cobaltBootstrapSteps(notesEnvironment),
+  rootName: cobaltRootScopeName,
   observers: [CobaltLogObserver(const CobaltDeveloperLogSink())],
 );
 ```
@@ -1180,7 +1176,7 @@ CobaltInspectorScreen(log: log, scope: context.cobaltScope)
 late CobaltScope scope;
 
 setUp(() async {
-  scope = await cobaltTestScope(root: const $CobaltRootScope());
+  scope = await cobaltTestScope(root: const CobaltRoot());
 });
 ```
 
@@ -1195,12 +1191,12 @@ setUp(() async {
 
 ```dart
 final scope = await cobaltTestScope(
-  root: const $CobaltRootScope(),
+  root: const CobaltRoot(),
   overrides: [CobaltOverride<ApiClient>.value(FakeApiClient())],
 );
 ```
 
-`$startCobalt(overrides: [...])` 接收同一个列表，`CobaltAppScope(overrides: () => [...])`
+`startCobalt(overrides: [...])` 接收同一个列表，`CobaltAppScope(overrides: () => [...])`
 接收一个每次启动都会调用的函数，这样重启拿到的不会是上一个图已经关闭的值——
 在应用里，这就是风味构建或调试菜单。`.value` 接收一个已经构建好的对象，
 `.lazy` 和 `.transient` 接收工厂，`CobaltParamOverride<T, P>` 接收参数化工厂。
@@ -1290,9 +1286,9 @@ scope "app"
 test('each environment keeps its shape', () async {
   await expectGraphSnapshots(
     (environment) => cobaltTestScope(
-      root: $CobaltRootScope(environment: environment),
-      bootstrap: $cobaltBootstrap(environment),
-      rootName: $cobaltRootScopeName,
+      root: CobaltRoot(environment: environment),
+      bootstrap: cobaltBootstrapSteps(environment),
+      rootName: cobaltRootScopeName,
     ),
     environments: {CobaltEnvironment.dev, CobaltEnvironment.prod},
     directory: 'test/snapshots',

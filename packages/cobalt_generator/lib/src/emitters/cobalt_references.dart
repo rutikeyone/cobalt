@@ -125,3 +125,8 @@ Code guardedBy(Set<String> environments, Code statement) => environments.isEmpty
         statement,
         const Code('}'),
       ]);
+
+Expression deprecatedFor(String replacement) => refer(
+  'Deprecated',
+  'dart:core',
+).call([literalString('Use $replacement. Removed in 2.0.')]);

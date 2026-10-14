@@ -139,7 +139,7 @@ final tabB = app.push('tab:b');   // сосед, а не «сверху на tab
 | `@disposeMethod` | `implements Disposable` / `AsyncDisposable` |
 | `@factoryMethod` | первый публичный генеративный конструктор, а если нужен не он — член `@CobaltModule` |
 | `@factoryParam` | `@CobaltParam` на параметре конструктора |
-| `@InjectableInit()` + `configureDependencies()` | `@CobaltScopeRoot()` + сгенерированный `$startCobalt()` |
+| `@InjectableInit()` + `configureDependencies()` | `@CobaltScopeRoot()` + сгенерированный `startCobalt()` |
 
 ### Что меняет форму
 

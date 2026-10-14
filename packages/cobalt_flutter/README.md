@@ -130,7 +130,7 @@ Everything below describes the package in full.
 
 ```dart
 CobaltScopeProvider(
-  scope: await $startCobalt(),
+  scope: await startCobalt(),
   child: const MyApp(),
 );
 ```
@@ -261,9 +261,9 @@ In Code-Gen Mode the three generated names go straight in — no wrapper functio
 
 ```dart
 builder: CobaltAppScope.builder(
-  root: $CobaltRootScope(environment: environment),
-  bootstrap: () => $cobaltBootstrap(environment),
-  rootName: $cobaltRootScopeName,
+  root: CobaltRoot(environment: environment),
+  bootstrap: () => cobaltBootstrapSteps(environment),
+  rootName: cobaltRootScopeName,
 ),
 ```
 
@@ -285,7 +285,7 @@ builder: (context, child) => CobaltAppScope(
 
 **`bootstrap` is a function, not a list.** Bootstrap steps are instances that hold resources, so a
 stored list would hand a restart the same objects it just released — the defect that made the
-generated `$cobaltBootstrap` a getter in the first place. `root` *is* a plain value, because an
+generated `cobaltBootstrapSteps` a getter in the first place. `root` *is* a plain value, because an
 `CobaltScopeBuilder` only registers and carries no state.
 
 For a graph the declarative form cannot express, `CobaltAppScope.start(start: () async { ... })`

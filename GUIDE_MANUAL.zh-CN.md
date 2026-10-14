@@ -1019,9 +1019,9 @@ scope "app"
 test('each environment keeps its shape', () async {
   await expectGraphSnapshots(
     (environment) => cobaltTestScope(
-      root: $CobaltRootScope(environment: environment),
-      bootstrap: $cobaltBootstrap(environment),
-      rootName: $cobaltRootScopeName,
+      root: CobaltRoot(environment: environment),
+      bootstrap: cobaltBootstrapSteps(environment),
+      rootName: cobaltRootScopeName,
     ),
     environments: {CobaltEnvironment.dev, CobaltEnvironment.prod},
     directory: 'test/snapshots',
@@ -1157,7 +1157,7 @@ class AppScope implements CobaltScopeBuilder {
 
   @override
   void build(CobaltScope scope) {
-    $CobaltRootScope().build(scope);          // 生成器找到的部分
+    CobaltRoot().build(scope);          // 生成器找到的部分
     scope.registerSingleton<Config>(config); // 它无从知晓的部分
   }
 }

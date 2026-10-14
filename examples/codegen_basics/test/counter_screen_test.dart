@@ -32,8 +32,8 @@ void main() {
         localizationsDelegates: _delegates,
         supportedLocales: CodegenBasicsL10n.supportedLocales,
         home: CobaltAppScope(
-          root: $CobaltRootScope(),
-          rootName: $cobaltRootScopeName,
+          root: CobaltRoot(),
+          rootName: cobaltRootScopeName,
           child: CounterScreen(),
         ),
       ),
@@ -76,7 +76,7 @@ void main() {
   });
 
   test('startup does not build the leaderboard', () async {
-    final scope = await $startCobalt();
+    final scope = await startCobalt();
     addTearDown(scope.dispose);
 
     expect(
@@ -117,8 +117,8 @@ void main() {
         localizationsDelegates: _delegates,
         supportedLocales: CodegenBasicsL10n.supportedLocales,
         home: CobaltAppScope(
-          root: const $CobaltRootScope(),
-          rootName: $cobaltRootScopeName,
+          root: const CobaltRoot(),
+          rootName: cobaltRootScopeName,
           child: Builder(
             builder: (context) {
               loud = context.cobaltWithParam<Greeting, GreetingArgs>((

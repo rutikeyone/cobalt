@@ -22,7 +22,7 @@ class RootScopeEmitter {
     final takesEnvironment = usesEnvironments || bootstrapUsesEnvironments;
     return Class(
       (b) => b
-        ..name = r'$CobaltRootScope'
+        ..name = 'CobaltRoot'
         ..modifier = ClassModifier.final$
         ..extend = cobaltRef('CobaltRootBuilder')
         ..constructors.add(
@@ -58,7 +58,7 @@ class RootScopeEmitter {
               ..type = MethodType.getter
               ..returns = refer('String', 'dart:core')
               ..lambda = true
-              ..body = refer(r'$cobaltRootScopeName').code,
+              ..body = refer('cobaltRootScopeName').code,
           ),
           if (hasBootstrap)
             Method(
@@ -84,9 +84,9 @@ class RootScopeEmitter {
                 ..lambda = true
                 ..body = bootstrapUsesEnvironments
                     ? refer(
-                        r'$cobaltBootstrap',
+                        'cobaltBootstrapSteps',
                       ).call([refer('environment')]).code
-                    : refer(r'$cobaltBootstrap').code,
+                    : refer('cobaltBootstrapSteps').code,
             ),
           Method(
             (m) => m

@@ -1091,9 +1091,9 @@ LiveApiClient`, — и перечисляет, что скоуп принял, �
 test('each environment keeps its shape', () async {
   await expectGraphSnapshots(
     (environment) => cobaltTestScope(
-      root: $CobaltRootScope(environment: environment),
-      bootstrap: $cobaltBootstrap(environment),
-      rootName: $cobaltRootScopeName,
+      root: CobaltRoot(environment: environment),
+      bootstrap: cobaltBootstrapSteps(environment),
+      rootName: cobaltRootScopeName,
     ),
     environments: {CobaltEnvironment.dev, CobaltEnvironment.prod},
     directory: 'test/snapshots',
@@ -1238,7 +1238,7 @@ class AppScope implements CobaltScopeBuilder {
 
   @override
   void build(CobaltScope scope) {
-    $CobaltRootScope().build(scope);          // то, что нашёл генератор
+    CobaltRoot().build(scope);          // то, что нашёл генератор
     scope.registerSingleton<Config>(config); // то, о чём он знать не может
   }
 }

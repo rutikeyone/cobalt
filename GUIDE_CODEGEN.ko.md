@@ -185,7 +185,7 @@ dart run build_runner build
 작업하는 동안에는 `dart run build_runner watch`를 쓰십시오. 출력은 커밋하십시오. CI가 다시 생성하고 diff가 있으면
 실패하므로, 오래된 생성 코드는 배포되는 대신 이렇게 잡힙니다.
 
-**패키지 하나에 루트 하나입니다.** `cobalt_container`는 패키지 전체를 `$CobaltRootScope` 하나로 집계하므로, 한
+**패키지 하나에 루트 하나입니다.** `cobalt_container`는 패키지 전체를 `CobaltRoot` 하나로 집계하므로, 한
 패키지 안의 `@CobaltScopeRoot` 클래스 두 개는 생성 오류입니다. 따라서 서로 독립된 생성 그래프 두 개에는 패키지가
 두 개 필요합니다. 이 저장소의 예제가 폴더가 아니라 별도의 패키지인 이유가 바로 이것입니다.
 
@@ -203,11 +203,11 @@ final class _RepositoryFactory implements CobaltFactory<Repository> {
   Repository create(CobaltResolver resolver) => Repository(resolver.get<Config>());
 }
 
-final class $CobaltRootScope extends CobaltRootBuilder {
-  const $CobaltRootScope();
+final class CobaltRoot extends CobaltRootBuilder {
+  const CobaltRoot();
 
   @override
-  String get name => $cobaltRootScopeName;
+  String get name => cobaltRootScopeName;
 
   @override
   void build(CobaltScope scope) {
@@ -217,22 +217,20 @@ final class $CobaltRootScope extends CobaltRootBuilder {
   }
 }
 
-typedef CobaltRoot = $CobaltRootScope;
+const String cobaltRootScopeName = 'app';
 
-const String $cobaltRootScopeName = 'app';
-
-Future<CobaltScope> $startCobalt() => CobaltApplication.start(
-  root: const $CobaltRootScope(),
-  rootName: $cobaltRootScopeName,
+Future<CobaltScope> startCobalt() => CobaltApplication.start(
+  root: const CobaltRoot(),
+  rootName: cobaltRootScopeName,
 );
 ```
 
 ```dart
-final scope = await $startCobalt();
+final scope = await startCobalt();
 ```
 
-`CobaltRoot`는 `$` 없는 이름의 같은 클래스이므로, 빠른 시작의 `const CobaltRoot()`와
-`const $CobaltRootScope()`는 서로 바꿔 쓸 수 있습니다. `CobaltRootBuilder`를 상속하므로
+1.7.0 이전에는 이 이름들이 `$CobaltRootScope`, `$cobaltRootScopeName`, `$startCobalt`였습니다. 생성기는
+2.0까지 이 이름들을 deprecated 별칭으로 계속 생성합니다. `CobaltRoot`는 `CobaltRootBuilder`를 상속하므로
 `@CobaltScopeRoot`의 이름을 지니고, bootstrap 단계가 있으면 그것을 내주는 `bootstrap()`도 지닙니다.
 사용법은 [§7](#7-flutter-앱-시작하기)에 있습니다.
 
@@ -247,7 +245,7 @@ final scope = await $startCobalt();
 - **위상 정렬 순서의 등록**, 빌드 시점에 계산됩니다. 프로퍼티 주입 필드도 간선으로 세므로, bloc은 언제나 자신이
   주입받는 것보다 뒤에 등록됩니다.
 - **리플렉션도, 런타임 스캔도 없습니다.** 그 파일에 있는 것이 그래프의 전부입니다.
-- **`$cobaltBootstrap`은 getter입니다.** 저장된 리스트가 아니므로 재시작하면 새 단계를 받습니다.
+- **`cobaltBootstrapSteps`은 getter입니다.** 저장된 리스트가 아니므로 재시작하면 새 단계를 받습니다.
   [§11](#11-앱이-시작되기-전에-끝나야-하는-작업)을 참고하십시오.
 
 제너레이터는 여러분의 포맷 검사가 쓰는 것과 같은 `dart_style`로 출력을 포맷하므로, 둘이 어긋나는 일은
@@ -355,7 +353,7 @@ class Cache<T> with _$Cache<T> {
 
 ---
 
-**컨테이너 주위에 조합한 직접 작성한 등록도 같은 규칙을 따릅니다.** 지연 등록은 `$CobaltRootScope().build(scope)`보다
+**컨테이너 주위에 조합한 직접 작성한 등록도 같은 규칙을 따릅니다.** 지연 등록은 `CobaltRoot().build(scope)`보다
 위에 있어도 제너레이터가 등록한 것을 해석할 수 있지만, 즉시 생성 등록은 그럴 수 없으며 오류가 그렇게 알려 줍니다.
 빠진 타입을 지목하고, 스코프가 아직 빌드되는 중이라는 점을 덧붙입니다.
 
@@ -373,7 +371,7 @@ class NotesScope implements CobaltScopeBuilder {
 
   @override
   void build(CobaltScope scope) {
-    $CobaltRootScope(environment: environment).build(scope);
+    CobaltRoot(environment: environment).build(scope);
     scope
       ..registerSingleton<CobaltEnvironment>(environment)
       ..registerSingleton<SessionManager>(SessionManager(scope));
@@ -381,7 +379,7 @@ class NotesScope implements CobaltScopeBuilder {
 }
 ```
 
-`$startCobalt()`가 반환된 뒤에 등록하는 대신 감싸기 때문에 이것들이 1단계 안에 머뭅니다. 그래프가 이미 올라온
+`startCobalt()`가 반환된 뒤에 등록하는 대신 감싸기 때문에 이것들이 1단계 안에 머뭅니다. 그래프가 이미 올라온
 뒤에 덧붙는 것이 아니라, 비동기 초기화가 실행되기 전에 등록됩니다.
 
 이제 완전성 검사에 이것들을 알려 주십시오. 그렇지 않으면 빠진 것으로 보고합니다:
@@ -399,7 +397,7 @@ class AppScope {
 
 대신 builder가 실행된 뒤 스코프가 확인합니다. 약속했지만 아무도 등록하지 않은 타입은 옵저버에 `onPromiseBroken`으로
 전달되어 로그와 `cobalt_inspector`에서 경고가 되고, debug 빌드에서는 IDE 콘솔에도 나타납니다. 오류가 아닌 이유는
-`$startCobalt()`나 `CobaltRoot`를 래퍼 없이 시작하는 테스트가 일부러 약속을 지키지 않기 때문입니다.
+`startCobalt()`나 `CobaltRoot`를 래퍼 없이 시작하는 테스트가 일부러 약속을 지키지 않기 때문입니다.
 
 ---
 
@@ -419,8 +417,8 @@ void main() => runApp(
     theme: appTheme,
     builder: CobaltAppScope.builder(
       root: const NotesScope(notesEnvironment),
-      bootstrap: () => $cobaltBootstrap(notesEnvironment),
-      rootName: $cobaltRootScopeName,
+      bootstrap: () => cobaltBootstrapSteps(notesEnvironment),
+      rootName: cobaltRootScopeName,
       loading: const Scaffold(body: Center(child: CircularProgressIndicator())),
       errorBuilder: (context, error, retry) => StartupFailed(error: error, retry: retry),
     ),
@@ -429,7 +427,7 @@ void main() => runApp(
 );
 ```
 
-`bootstrap`이 리스트가 아니라 함수인 것은 의도적이며, 제너레이터가 `$cobaltBootstrap`을 getter로 내보내는 것도
+`bootstrap`이 리스트가 아니라 함수인 것은 의도적이며, 제너레이터가 `cobaltBootstrapSteps`을 getter로 내보내는 것도
 같은 이유입니다. 단계는 리소스를 보유하며, 재시작하면 새 단계를 받아야 합니다.
 
 직접 만든 래퍼가 없으면 생성된 루트가 둘 다 지닙니다. 스코프는 `rootName` 없이도
@@ -448,9 +446,9 @@ builder: CobaltAppScope.builder(
 
 `CobaltAppScope.of(context).restart()`는 그래프를 다시 빌드합니다. 실패한 시작을 재시도하는 것도 같은 호출입니다.
 
-Flutter 밖에서는 `await $startCobalt()`가 전부입니다.
+Flutter 밖에서는 `await startCobalt()`가 전부입니다.
 
-`$startCobalt(initTimeout: ...)`는 1단계에 시간 제한을 둡니다. 시간이 지나면 시작은 아직 빌드되지 않은 것을
+`startCobalt(initTimeout: ...)`는 1단계에 시간 제한을 둡니다. 시간이 지나면 시작은 아직 빌드되지 않은 것을
 지목하는 `CobaltInitTimeoutError`로 실패합니다. 자세한 내용은 Manual Mode 가이드의 8절에 있습니다.
 
 ---
@@ -839,13 +837,12 @@ class Greeting {
 등록합니다:
 
 ```dart
-// typedef $GreetingArgs = ({String name, bool loud});
-// typedef GreetingArgs = $GreetingArgs;
+// typedef GreetingArgs = ({String name, bool loud});
 final greeting = context.cobaltWithParam<Greeting, GreetingArgs>((name: 'Cobalt', loud: false));
 ```
 
-`GreetingArgs`는 같은 타입에 `$` 없이 붙은 이름이며, 호출하는 곳에서는 이 이름을 씁니다. `$`가 붙은 이름은
-2.0까지 유지됩니다. 두 클래스가 같은 일반 이름을 갖게 되면 `$` 이름만 생성됩니다.
+이전 릴리스의 `$GreetingArgs` 표기는 여전히 컴파일되지만 deprecated로 표시되며 2.0에서 제거됩니다.
+두 클래스가 같은 일반 이름을 갖게 되면 생성기는 이전처럼 `$` 이름만 생성합니다.
 
 인자가 하나뿐이어도 위치 기반이 아니라 이름 있는 레코드입니다. 두 번째 인자를 추가해도 바뀌는 것은 타입의
 내용이지, 타입의 이름이나 호출의 형태가 아닙니다.
@@ -879,8 +876,7 @@ class Document implements AsyncInitializable {
   Future<void> init() => _store.load(this);
 }
 
-// typedef $DocumentArgs = ({int id});
-// typedef DocumentArgs = $DocumentArgs;
+// typedef DocumentArgs = ({int id});
 final document = await scope.getAsyncWithParam<Document, DocumentArgs>((id: 42));
 ```
 
@@ -1055,7 +1051,7 @@ final class JoinRegistry extends CobaltHook<Loggable> {
 ## 15. 그래프 하나, 여러 빌드
 
 한 빌드가 다른 빌드와 정말로 다른 구현을 필요로 하기 전까지는 이 절을 건너뛰십시오. `@CobaltEnvironment`를
-한 번도 쓰지 않는 프로젝트에는 그래프가 하나뿐이고, 모든 등록이 그 그래프에 속하며, `$startCobalt()`는 인자를
+한 번도 쓰지 않는 프로젝트에는 그래프가 하나뿐이고, 모든 등록이 그 그래프에 속하며, `startCobalt()`는 인자를
 전혀 받지 않습니다.
 
 ```dart
@@ -1071,7 +1067,7 @@ class FakeApiClient implements ApiClient { ... }
 ```
 
 ```dart
-final scope = await $startCobalt(environment: CobaltEnvironment.prod);
+final scope = await startCobalt(environment: CobaltEnvironment.prod);
 ```
 
 어노테이션은 리스트를 받는 대신 반복합니다. 등록은 환경의 *집합*에 속하지만, 시작할 때는 정확히 *하나*를 고르기
@@ -1100,7 +1096,7 @@ if (environment.matches(const <String>{'dev', 'test'})) {
 - **완전성은 환경별로 검사되므로**, `dev` 전용 등록으로는 `prod`에서도 실행되는, 그것에 의존하는 쪽을 충족할 수
   없습니다.
 
-부트스트랩 단계도 환경을 받습니다. 그중 하나라도 환경을 받으면 `$cobaltBootstrap`은 선택한 환경을 받는 함수가
+부트스트랩 단계도 환경을 받습니다. 그중 하나라도 환경을 받으면 `cobaltBootstrapSteps`은 선택한 환경을 받는 함수가
 되며, 건너뛴 단계는 실행되지도 `adopt`되지도 않습니다.
 
 `cobalt_environment_needs_a_registration`은 `@CobaltEnvironment`가 아무것도 등록하지 않는 클래스에 붙어 조용히
@@ -1167,14 +1163,14 @@ plugins:
 옵저버는 스코프가 생기고, 인스턴스가 빌드되고, 시작이 끝나고, 해제가 실패하는 것을 봅니다. 그래프를 만드는
 곳에서 넘기십시오. 그 아래로 push되는 모든 스코프가 이를 물려받습니다.
 
-`$startCobalt()`는 옵저버를 받지 않습니다. 이것은 짧은 경로입니다. 옵저버가 필요해지면 이미 조합하고 있는
+`startCobalt()`는 옵저버를 받지 않습니다. 이것은 짧은 경로입니다. 옵저버가 필요해지면 이미 조합하고 있는
 빌더를 거치십시오:
 
 ```dart
 final scope = await CobaltApplication.start(
   root: const NotesScope(notesEnvironment),
-  bootstrap: $cobaltBootstrap(notesEnvironment),
-  rootName: $cobaltRootScopeName,
+  bootstrap: cobaltBootstrapSteps(notesEnvironment),
+  rootName: cobaltRootScopeName,
   observers: [CobaltLogObserver(const CobaltDeveloperLogSink())],
 );
 ```
@@ -1255,7 +1251,7 @@ CobaltInspectorScreen(log: log, scope: context.cobaltScope)
 late CobaltScope scope;
 
 setUp(() async {
-  scope = await cobaltTestScope(root: const $CobaltRootScope());
+  scope = await cobaltTestScope(root: const CobaltRoot());
 });
 ```
 
@@ -1270,12 +1266,12 @@ setUp(() async {
 
 ```dart
 final scope = await cobaltTestScope(
-  root: const $CobaltRootScope(),
+  root: const CobaltRoot(),
   overrides: [CobaltOverride<ApiClient>.value(FakeApiClient())],
 );
 ```
 
-`$startCobalt(overrides: [...])`는 같은 리스트를 받습니다. `CobaltAppScope(overrides: () => [...])`는 시작할
+`startCobalt(overrides: [...])`는 같은 리스트를 받습니다. `CobaltAppScope(overrides: () => [...])`는 시작할
 때마다 호출되는 함수를 받으므로, 재시작해도 이전 그래프가 이미 닫은 값을 다시 받지 않습니다. 앱에서는
 플레이버나 디버그 메뉴가 이런 경우입니다. `.value`는 빌드된 객체를, `.lazy`와 `.transient`는 팩토리를,
 `CobaltParamOverride<T, P>`는 파라미터가 있는 팩토리를 받습니다. 즉시 생성 싱글턴은 `registerEagerSingleton`으로
@@ -1374,9 +1370,9 @@ scope "app"
 test('each environment keeps its shape', () async {
   await expectGraphSnapshots(
     (environment) => cobaltTestScope(
-      root: $CobaltRootScope(environment: environment),
-      bootstrap: $cobaltBootstrap(environment),
-      rootName: $cobaltRootScopeName,
+      root: CobaltRoot(environment: environment),
+      bootstrap: cobaltBootstrapSteps(environment),
+      rootName: cobaltRootScopeName,
     ),
     environments: {CobaltEnvironment.dev, CobaltEnvironment.prod},
     directory: 'test/snapshots',

@@ -39,8 +39,8 @@ class Greeter {
 dart run build_runner build
 ```
 
-It writes `lib/cobalt.g.dart`: a factory per class, and `$CobaltRootScope`, which registers them in
-dependency order. `CobaltRoot` is the same class under a name without the `$`.
+It writes `lib/cobalt.g.dart`: a factory per class, and `CobaltRoot`, which registers them in
+dependency order. The `$CobaltRootScope` of earlier releases is a deprecated alias of it until 2.0.
 
 **3. Start** the generated root. In a Flutter app, hand it to `CobaltAppScope` from
 [`cobalt_flutter`](https://pub.dev/packages/cobalt_flutter):
@@ -91,7 +91,7 @@ Everything below describes the generator in full.
 |---|---|---|
 | `cobalt_property_injection` | `.dart` → `.cobalt.g.part` | mixins that fill `late final` fields |
 | `cobalt_scan` | `.dart` → `.cobalt.json` | per-library IR, cached |
-| `cobalt_container` | `$lib$` → `lib/cobalt.g.dart` | the container, bootstrap list and `$startCobalt()` |
+| `cobalt_container` | `$lib$` → `lib/cobalt.g.dart` | the container, bootstrap list and `startCobalt()` |
 
 A build step can only see one library at a time, so `cobalt_scan` writes a per-library IR and
 `cobalt_container` aggregates every `.cobalt.json` into a single container.
@@ -220,7 +220,7 @@ missing type. A `@Named('audit')` dependency with only an unnamed registration c
 the qualifier is part of the key.
 
 **Registrations made by hand have to be declared.** A module covers types you do not own; this is
-for registrations the generator cannot see at all — a scope builder that wraps `$CobaltRootScope`
+for registrations the generator cannot see at all — a scope builder that wraps `CobaltRoot`
 and adds to it, or a provider from another package. Name those in the root:
 
 ```dart
@@ -346,13 +346,12 @@ The class becomes a parameterized registration, and the generator writes the arg
 the container as a **named record** built from the marked parameters:
 
 ```dart
-typedef $NoteEditorArgs = ({int id, bool draft});
-typedef NoteEditorArgs = $NoteEditorArgs;
+typedef NoteEditorArgs = ({int id, bool draft});
 
-final class _NoteEditorFactory implements CobaltParamFactory<NoteEditor, $NoteEditorArgs> {
+final class _NoteEditorFactory implements CobaltParamFactory<NoteEditor, NoteEditorArgs> {
   const _NoteEditorFactory();
   @override
-  NoteEditor create(CobaltResolver resolver, $NoteEditorArgs args) =>
+  NoteEditor create(CobaltResolver resolver, NoteEditorArgs args) =>
       NoteEditor(resolver.get<NoteRepository>(), id: args.id, draft: args.draft);
 }
 ```
@@ -361,8 +360,8 @@ final class _NoteEditorFactory implements CobaltParamFactory<NoteEditor, $NoteEd
 context.cobaltWithParam<NoteEditor, NoteEditorArgs>((id: 7, draft: true));
 ```
 
-`NoteEditorArgs` is the name to use; the `$` one stays until 2.0. When two classes would share the
-plain name, only the `$` names are written.
+`$NoteEditorArgs`, the name before 1.6.0, is still written as a deprecated alias and goes in 2.0.
+When two classes would share the plain name, only `$` names are written.
 
 A record even for a single value, and a named one: adding a second argument then changes what the
 call site passes rather than the name of the type, and the call keeps reading like the constructor

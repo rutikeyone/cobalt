@@ -8,7 +8,7 @@ void main() {
     test('defaults to "root" when nothing is annotated', () {
       final source = generate([declare('Logger')]);
 
-      expect(source, contains(r"const String $cobaltRootScopeName = 'root';"));
+      expect(source, contains(r"const String cobaltRootScopeName = 'root';"));
     });
 
     test('takes the name from the annotation', () {
@@ -19,19 +19,19 @@ void main() {
 
       expect(
         source,
-        contains(r"const String $cobaltRootScopeName = 'notes-app';"),
+        contains(r"const String cobaltRootScopeName = 'notes-app';"),
       );
     });
 
     test('emits a start function wired to the generated container', () {
       final source = generate([declare('Logger')]);
 
-      expect(source, contains(r'$startCobalt({'));
+      expect(source, contains(r'startCobalt({'));
       expect(source, contains('overrides: overrides'));
       expect(source, contains('Duration? initTimeout'));
       expect(source, contains('initTimeout: initTimeout'));
-      expect(source, contains(r'root: const $CobaltRootScope()'));
-      expect(source, contains(r'rootName: $cobaltRootScopeName'));
+      expect(source, contains(r'root: const CobaltRoot()'));
+      expect(source, contains(r'rootName: cobaltRootScopeName'));
     });
 
     test('passes the bootstrap list only when steps exist', () {
@@ -41,7 +41,7 @@ void main() {
       );
       final withoutSteps = generate([declare('Logger')]);
 
-      expect(withSteps, contains(r'bootstrap: $cobaltBootstrap'));
+      expect(withSteps, contains(r'bootstrap: cobaltBootstrapSteps'));
       expect(withoutSteps, isNot(contains('bootstrap:')));
     });
 
@@ -54,21 +54,19 @@ void main() {
 
       expect(
         withSteps,
-        contains(
-          r'final class $CobaltRootScope extends _i573.CobaltRootBuilder',
-        ),
+        contains(r'final class CobaltRoot extends _i573.CobaltRootBuilder'),
       );
-      expect(withSteps, contains(r'String get name => $cobaltRootScopeName;'));
+      expect(withSteps, contains(r'String get name => cobaltRootScopeName;'));
       expect(
         withSteps,
         contains(
-          r'List<_i573.CobaltBootstrapStep> bootstrap() => $cobaltBootstrap;',
+          r'List<_i573.CobaltBootstrapStep> bootstrap() => cobaltBootstrapSteps;',
         ),
       );
       expect(withSteps, contains('bool get hasBootstrap => true;'));
       expect(
         withoutSteps,
-        contains(r'String get name => $cobaltRootScopeName;'),
+        contains(r'String get name => cobaltRootScopeName;'),
       );
       expect(withoutSteps, isNot(contains('bootstrap()')));
       expect(withoutSteps, isNot(contains('hasBootstrap')));
@@ -82,16 +80,15 @@ void main() {
         ],
       );
 
-      expect(source, contains(r'const $CobaltRootScope({'));
+      expect(source, contains(r'const CobaltRoot({'));
       expect(source, contains('this.environment = '));
       expect(
         source,
-        contains(r'bootstrap() => $cobaltBootstrap(environment);'),
+        matches(
+          RegExp(r'bootstrap\(\) =>\s*cobaltBootstrapSteps\(environment\);'),
+        ),
       );
-      expect(
-        source,
-        contains(r'root: $CobaltRootScope(environment: environment)'),
-      );
+      expect(source, contains(r'root: CobaltRoot(environment: environment)'));
     });
 
     test('two roots in one package is a generation error', () {
@@ -116,8 +113,8 @@ void main() {
     test('no container means no start function', () {
       final source = generate(const [], bootstrap: [step('BindPlatform')]);
 
-      expect(source, isNot(contains(r'$startCobalt')));
-      expect(source, isNot(contains(r'$cobaltRootScopeName')));
+      expect(source, isNot(contains(r'startCobalt')));
+      expect(source, isNot(contains(r'cobaltRootScopeName')));
     });
   });
 }

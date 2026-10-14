@@ -173,8 +173,8 @@ something outside the generated container registers it.
 三个构建器：一个写属性注入的 mixin，一个把每个库扫描成 IR，一个把整个包聚合成 `lib/cobalt.g.dart`。
 聚合之所以分两阶段，是因为单个构建步骤看不到整个程序。
 
-产物是私有 const 工厂类和一个 `$CobaltRootScope`，其顺序由编译期拓扑排序确定——
-没有闭包、没有反射、没有运行时扫描。`$cobaltBootstrap` 是 getter 而不是存下来的列表，
+产物是私有 const 工厂类和一个 `CobaltRoot`，其顺序由编译期拓扑排序确定——
+没有闭包、没有反射、没有运行时扫描。`cobaltBootstrapSteps` 是 getter 而不是存下来的列表，
 所以重启拿到的是新的步骤，而不是上次启动已经用掉的那些。
 
 泛型作为依赖和 `exposeAs` 目标都可用：`Repository<User>` 和 `Repository<Order>` 是两条注册，

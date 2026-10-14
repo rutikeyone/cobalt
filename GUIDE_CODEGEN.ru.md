@@ -188,7 +188,7 @@ dart run build_runner build
 Во время работы — `dart run build_runner watch`. Вывод коммитьте: CI перегенерирует и падает на
 диффе, и так устаревший сгенерированный код ловится, а не уезжает в релиз.
 
-**Один корень на пакет.** `cobalt_container` агрегирует весь пакет в единственный `$CobaltRootScope`;
+**Один корень на пакет.** `cobalt_container` агрегирует весь пакет в единственный `CobaltRoot`;
 два `@CobaltScopeRoot` в одном пакете — ошибка генерации. Значит два независимых сгенерированных
 графа требуют двух пакетов — ровно поэтому примеры в этом репозитории отдельные пакеты, а не папки.
 
@@ -206,11 +206,11 @@ final class _RepositoryFactory implements CobaltFactory<Repository> {
   Repository create(CobaltResolver resolver) => Repository(resolver.get<Config>());
 }
 
-final class $CobaltRootScope extends CobaltRootBuilder {
-  const $CobaltRootScope();
+final class CobaltRoot extends CobaltRootBuilder {
+  const CobaltRoot();
 
   @override
-  String get name => $cobaltRootScopeName;
+  String get name => cobaltRootScopeName;
 
   @override
   void build(CobaltScope scope) {
@@ -220,22 +220,20 @@ final class $CobaltRootScope extends CobaltRootBuilder {
   }
 }
 
-typedef CobaltRoot = $CobaltRootScope;
+const String cobaltRootScopeName = 'app';
 
-const String $cobaltRootScopeName = 'app';
-
-Future<CobaltScope> $startCobalt() => CobaltApplication.start(
-  root: const $CobaltRootScope(),
-  rootName: $cobaltRootScopeName,
+Future<CobaltScope> startCobalt() => CobaltApplication.start(
+  root: const CobaltRoot(),
+  rootName: cobaltRootScopeName,
 );
 ```
 
 ```dart
-final scope = await $startCobalt();
+final scope = await startCobalt();
 ```
 
-`CobaltRoot` это тот же класс под именем без `$`, поэтому `const CobaltRoot()` из быстрого старта и
-`const $CobaltRootScope()` взаимозаменяемы. Он наследует `CobaltRootBuilder`, поэтому несет имя из
+До 1.7.0 они назывались `$CobaltRootScope`, `$cobaltRootScopeName` и `$startCobalt`; генератор пишет
+эти имена как устаревшие псевдонимы до 2.0. `CobaltRoot` наследует `CobaltRootBuilder`, поэтому несет имя из
 `@CobaltScopeRoot`, а при наличии bootstrap-шагов и метод `bootstrap()`, который их отдает; как ими
 пользоваться, показано в [§7](#7-запуск-flutter-приложения).
 
@@ -251,7 +249,7 @@ final scope = await $startCobalt();
 - **Регистрации в топологическом порядке**, вычисленном на сборке. Инъектируемые поля тоже рёбра,
   поэтому блок всегда регистрируется после того, что он инъектирует.
 - **Ни рефлексии, ни сканирования в рантайме.** Что лежит в файле — то и есть весь граф.
-- **`$cobaltBootstrap` — геттер**, а не хранимый список, поэтому рестарт получает свежие шаги — см.
+- **`cobaltBootstrapSteps` — геттер**, а не хранимый список, поэтому рестарт получает свежие шаги — см.
   [§11](#11-работа-которая-обязана-завершиться-до-старта).
 
 Генератор форматирует свой вывод той же версией `dart_style`, которой пользуется ваша проверка
@@ -362,7 +360,7 @@ class Cache<T> with _$Cache<T> {
 ---
 
 **Рукописная регистрация, скомпонованная вокруг контейнера, подчиняется тому же правилу.** Ленивая
-может стоять выше `$CobaltRootScope().build(scope)` и всё равно отрезолвит то, что зарегистрировал
+может стоять выше `CobaltRoot().build(scope)` и всё равно отрезолвит то, что зарегистрировал
 генератор; жадная — нет, и ошибка это скажет: назовёт недостающий тип и добавит, что скоуп ещё
 собирается.
 
@@ -380,7 +378,7 @@ class NotesScope implements CobaltScopeBuilder {
 
   @override
   void build(CobaltScope scope) {
-    $CobaltRootScope(environment: environment).build(scope);
+    CobaltRoot(environment: environment).build(scope);
     scope
       ..registerSingleton<CobaltEnvironment>(environment)
       ..registerSingleton<SessionManager>(SessionManager(scope));
@@ -388,7 +386,7 @@ class NotesScope implements CobaltScopeBuilder {
 }
 ```
 
-Обёртка, а не регистрация после возврата из `$startCobalt()`, — это то, что держит их внутри фазы 1:
+Обёртка, а не регистрация после возврата из `startCobalt()`, — это то, что держит их внутри фазы 1:
 зарегистрированы до запуска async-инициализаторов, а не приколочены после того, как граф уже поднят.
 
 Теперь скажите об этом проверке полноты, иначе она сочтёт их отсутствующими:
@@ -407,7 +405,7 @@ class AppScope {
 Вместо генератора его проверяет скоуп, когда builder отработал: обещанный тип, который никто не
 зарегистрировал, приходит наблюдателям как `onPromiseBroken`, то есть предупреждение в логе и в
 `cobalt_inspector`, а в debug-сборке еще и в консоли IDE. Это не ошибка, потому что тест, который
-запускает `$startCobalt()` или `CobaltRoot` без обертки, нарушает обещание намеренно.
+запускает `startCobalt()` или `CobaltRoot` без обертки, нарушает обещание намеренно.
 
 ---
 
@@ -426,8 +424,8 @@ void main() => runApp(
     theme: appTheme,
     builder: CobaltAppScope.builder(
       root: const NotesScope(notesEnvironment),
-      bootstrap: () => $cobaltBootstrap(notesEnvironment),
-      rootName: $cobaltRootScopeName,
+      bootstrap: () => cobaltBootstrapSteps(notesEnvironment),
+      rootName: cobaltRootScopeName,
       loading: const Scaffold(body: Center(child: CircularProgressIndicator())),
       errorBuilder: (context, error, retry) => StartupFailed(error: error, retry: retry),
     ),
@@ -436,7 +434,7 @@ void main() => runApp(
 );
 ```
 
-`bootstrap` — функция, а не список, и генератор эмитит `$cobaltBootstrap` геттером по той же причине:
+`bootstrap` — функция, а не список, и генератор эмитит `cobaltBootstrapSteps` геттером по той же причине:
 шаги держат ресурсы, и рестарт обязан получить новые.
 
 Без собственной обертки сгенерированный root несет и то и другое. Скоуп берет имя из
@@ -455,9 +453,9 @@ root со шагами стартует без них; `bootstrap: () => const [
 
 `CobaltAppScope.of(context).restart()` пересобирает граф — тот же вызов повторяет упавший старт.
 
-Вне Flutter всё сводится к `await $startCobalt()`.
+Вне Flutter всё сводится к `await startCobalt()`.
 
-`$startCobalt(initTimeout: ...)` ограничивает фазу 1 — по истечении старт падает с
+`startCobalt(initTimeout: ...)` ограничивает фазу 1 — по истечении старт падает с
 `CobaltInitTimeoutError`, где названо, что не успело построиться. Подробности — в Manual Mode, раздел 8.
 
 ---
@@ -851,13 +849,12 @@ class Greeting {
 параметризованную фабрику:
 
 ```dart
-// typedef $GreetingArgs = ({String name, bool loud});
-// typedef GreetingArgs = $GreetingArgs;
+// typedef GreetingArgs = ({String name, bool loud});
 final greeting = context.cobaltWithParam<Greeting, GreetingArgs>((name: 'Cobalt', loud: false));
 ```
 
-`GreetingArgs` это тот же тип под именем без `$`, его и пишут в местах вызова. Имя с `$` останется
-до 2.0. Если простое имя досталось бы двум классам, пишутся только имена с `$`.
+Прежнее имя `$GreetingArgs` еще компилируется, но помечено устаревшим и уйдет в 2.0. Если простое
+имя досталось бы двум классам, генератор, как и раньше, пишет только имена с `$`.
 
 Именованная запись, а не позиционная, даже для одного аргумента: добавление второго меняет
 содержимое типа, а не его имя и не форму вызова.
@@ -891,8 +888,7 @@ class Document implements AsyncInitializable {
   Future<void> init() => _store.load(this);
 }
 
-// typedef $DocumentArgs = ({int id});
-// typedef DocumentArgs = $DocumentArgs;
+// typedef DocumentArgs = ({int id});
 final document = await scope.getAsyncWithParam<Document, DocumentArgs>((id: 42));
 ```
 
@@ -1069,7 +1065,7 @@ final class JoinRegistry extends CobaltHook<Loggable> {
 
 Пропустите это, пока одной сборке действительно не понадобится другая реализация, чем другой.
 Проект, никогда не пишущий `@CobaltEnvironment`, имеет один граф, все регистрации принадлежат ему, а
-`$startCobalt()` не берёт аргументов вовсе.
+`startCobalt()` не берёт аргументов вовсе.
 
 ```dart
 @CobaltInject(exposeAs: ApiClient)
@@ -1084,7 +1080,7 @@ class FakeApiClient implements ApiClient { ... }
 ```
 
 ```dart
-final scope = await $startCobalt(environment: CobaltEnvironment.prod);
+final scope = await startCobalt(environment: CobaltEnvironment.prod);
 ```
 
 Аннотация повторяется, а не принимает список: регистрация принадлежит *множеству* окружений, а старт
@@ -1113,7 +1109,7 @@ if (environment.matches(const <String>{'dev', 'test'})) {
 - **Полнота проверяется по каждому окружению отдельно**, поэтому `dev`-регистрация не удовлетворит
   зависимого, который работает и в `prod`.
 
-Bootstrap-шаги тоже принимают окружения. Когда хоть один это делает, `$cobaltBootstrap` становится
+Bootstrap-шаги тоже принимают окружения. Когда хоть один это делает, `cobaltBootstrapSteps` становится
 функцией выбранного окружения, а пропущенные шаги не запускаются и не усыновляются.
 
 `cobalt_environment_needs_a_registration` ловит случай, когда `@CobaltEnvironment` стоит на классе,
@@ -1180,14 +1176,14 @@ plugins:
 Наблюдатели видят появление скоупов, построение инстансов, завершение старта, падение разбора.
 Передавайте их туда, где создаётся граф; каждый скоуп, поднятый ниже, их наследует.
 
-`$startCobalt()` наблюдателей не принимает — это короткий путь. Как только они понадобились,
+`startCobalt()` наблюдателей не принимает — это короткий путь. Как только они понадобились,
 идите через билдер, который вы и так композируете:
 
 ```dart
 final scope = await CobaltApplication.start(
   root: const NotesScope(notesEnvironment),
-  bootstrap: $cobaltBootstrap(notesEnvironment),
-  rootName: $cobaltRootScopeName,
+  bootstrap: cobaltBootstrapSteps(notesEnvironment),
+  rootName: cobaltRootScopeName,
   observers: [CobaltLogObserver(const CobaltDeveloperLogSink())],
 );
 ```
@@ -1269,7 +1265,7 @@ CobaltInspectorScreen(log: log, scope: context.cobaltScope)
 late CobaltScope scope;
 
 setUp(() async {
-  scope = await cobaltTestScope(root: const $CobaltRootScope());
+  scope = await cobaltTestScope(root: const CobaltRoot());
 });
 ```
 
@@ -1285,12 +1281,12 @@ setUp(() async {
 
 ```dart
 final scope = await cobaltTestScope(
-  root: const $CobaltRootScope(),
+  root: const CobaltRoot(),
   overrides: [CobaltOverride<ApiClient>.value(FakeApiClient())],
 );
 ```
 
-Тот же список принимает `$startCobalt(overrides: [...])`, а `CobaltAppScope(overrides: () => [...])` —
+Тот же список принимает `startCobalt(overrides: [...])`, а `CobaltAppScope(overrides: () => [...])` —
 функцию, которую вызывает на каждом старте, чтобы рестарт не получил значение, уже закрытое прошлым
 графом; в приложении это флейвор или debug-меню. `.value` принимает готовый объект, `.lazy` и `.transient` —
 фабрику, `CobaltParamOverride<T, P>` — параметризованную. Eager-синглтон эмитится как
@@ -1390,9 +1386,9 @@ LiveApiClient`, — и перечисляет, что скоуп принял, �
 test('each environment keeps its shape', () async {
   await expectGraphSnapshots(
     (environment) => cobaltTestScope(
-      root: $CobaltRootScope(environment: environment),
-      bootstrap: $cobaltBootstrap(environment),
-      rootName: $cobaltRootScopeName,
+      root: CobaltRoot(environment: environment),
+      bootstrap: cobaltBootstrapSteps(environment),
+      rootName: cobaltRootScopeName,
     ),
     environments: {CobaltEnvironment.dev, CobaltEnvironment.prod},
     directory: 'test/snapshots',

@@ -12,10 +12,28 @@ void main() {
       expect(source, contains('const _LoggerFactory();'));
     });
 
-    test('the root scope also goes by a name without a dollar', () {
+    test('the dollar names stay as deprecated aliases', () {
       final source = generate([declare('Logger')]);
 
-      expect(source, contains(r'typedef CobaltRoot = $CobaltRootScope;'));
+      expect(source, contains('final class CobaltRoot extends'));
+      expect(
+        source,
+        contains(
+          "@Deprecated('Use CobaltRoot. Removed in 2.0.')\n"
+          r'typedef $CobaltRootScope = CobaltRoot;',
+        ),
+      );
+      expect(
+        source,
+        contains(
+          "@Deprecated('Use cobaltRootScopeName. Removed in 2.0.')\n"
+          r'const String $cobaltRootScopeName = cobaltRootScopeName;',
+        ),
+      );
+      expect(
+        source,
+        contains("@Deprecated('Use startCobalt. Removed in 2.0.')"),
+      );
     });
 
     test('constructor dependencies become resolver calls', () {

@@ -39,7 +39,7 @@ build_runner again.
 
 一个异步注册——`registerAsyncSingleton` 或带 `@CobaltInit` 的类——在 `init()` 构建完它之前就被读取了。
 
-- 等待启动完成：`await CobaltApplication.start(...)` 或 `await $startCobalt()`。在 Flutter 中，`CobaltAppScope` 在图就绪之前显示 `loading`，所以要在应用内部读取，而不是在 `runApp` 之前。
+- 等待启动完成：`await CobaltApplication.start(...)` 或 `await startCobalt()`。在 Flutter 中，`CobaltAppScope` 在图就绪之前显示 `loading`，所以要在应用内部读取，而不是在 `runApp` 之前。
 - 对于自己 push 的作用域，读取前先 `await child.init()`。
 
 ### CobaltLazyAsyncError

@@ -5,7 +5,7 @@ import 'package:code_builder/code_builder.dart';
 class BootstrapEmitter {
   const BootstrapEmitter();
 
-  /// Emits `$cobaltBootstrap` as a getter rather than a stored list, so every
+  /// Emits `cobaltBootstrapSteps` as a getter rather than a stored list, so every
   /// startup gets fresh step instances. A top-level `final` would build them
   /// once per process, which quietly shares state between a retried startup
   /// and between tests, and leaves them alive after the scope that adopted
@@ -27,7 +27,7 @@ class BootstrapEmitter {
 
     return Method(
       (m) => m
-        ..name = r'$cobaltBootstrap'
+        ..name = 'cobaltBootstrapSteps'
         ..type = usesEnvironments ? null : MethodType.getter
         ..requiredParameters.addAll([
           if (usesEnvironments)
@@ -59,4 +59,29 @@ class BootstrapEmitter {
         ]),
     );
   }
+
+  Method emitDeprecated({required bool usesEnvironments}) => Method(
+    (m) => m
+      ..name = r'$cobaltBootstrap'
+      ..annotations.add(deprecatedFor('cobaltBootstrapSteps'))
+      ..type = usesEnvironments ? null : MethodType.getter
+      ..requiredParameters.addAll([
+        if (usesEnvironments)
+          Parameter(
+            (p) => p
+              ..name = 'environment'
+              ..type = cobaltRef('CobaltEnvironment'),
+          ),
+      ])
+      ..returns = TypeReference(
+        (b) => b
+          ..symbol = 'List'
+          ..url = 'dart:core'
+          ..types.add(cobaltRef('CobaltBootstrapStep')),
+      )
+      ..lambda = true
+      ..body = usesEnvironments
+          ? refer('cobaltBootstrapSteps').call([refer('environment')]).code
+          : refer('cobaltBootstrapSteps').code,
+  );
 }

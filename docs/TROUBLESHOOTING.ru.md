@@ -55,7 +55,7 @@ build_runner again.
 Асинхронную регистрацию — `registerAsyncSingleton` или класс с `@CobaltInit` — прочитали до того,
 как `init()` её построил.
 
-- Дождитесь старта: `await CobaltApplication.start(...)` или `await $startCobalt()`. Во Flutter
+- Дождитесь старта: `await CobaltApplication.start(...)` или `await startCobalt()`. Во Flutter
   `CobaltAppScope` показывает `loading`, пока граф не готов, поэтому читайте внутри приложения, а не
   до `runApp`.
 - Для скоупа, который вы создали сами, выполните `await child.init()` до чтения из него.

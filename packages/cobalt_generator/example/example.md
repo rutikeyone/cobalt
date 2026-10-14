@@ -24,7 +24,7 @@ class Repository {
 ```
 
 it writes `lib/cobalt.g.dart` with a named const factory class — never a
-closure — and a `$CobaltRootScope` whose registrations are ordered by a
+closure — and a `CobaltRoot` whose registrations are ordered by a
 compile-time topological sort:
 
 ```dart
@@ -36,7 +36,7 @@ final class _RepositoryFactory implements CobaltFactory<Repository> {
 }
 ```
 
-Start it with the generated `$startCobalt()`, or hand the pieces to
+Start it with the generated `startCobalt()`, or hand the pieces to
 `CobaltAppScope`. A dependency cycle fails the build naming the cycle instead of
 emitting code that would deadlock.
 

@@ -53,7 +53,7 @@ void main() {
             allOf(
               contains('_AFactory'),
               contains('_BFactory'),
-              contains(r'class $CobaltRootScope'),
+              contains(r'class CobaltRoot'),
             ),
           ),
         },

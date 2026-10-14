@@ -27,14 +27,20 @@ import 'package:cobalt_analyzer/cobalt_analyzer.dart';
 /// library.
 class CobaltFactoryNames {
   /// Names the factories of [declarations], resolving collisions among them.
+  ///
+  /// [reserved] are names the package already uses, which a record type must
+  /// not take.
   CobaltFactoryNames(
     Iterable<CobaltInjectableClass> declarations, {
     Iterable<CobaltDecoratorClass> decorators = const [],
+    Set<String> reserved = const {},
   }) : _contested = _contestedIn(declarations),
-       _contestedDecorators = _twiceIn(decorators.map(_decoratorBaseOf));
+       _contestedDecorators = _twiceIn(decorators.map(_decoratorBaseOf)),
+       _reserved = reserved;
 
   final Set<String> _contested;
   final Set<String> _contestedDecorators;
+  final Set<String> _reserved;
 
   /// The class name to emit for [decorator], contested the same way a
   /// factory name is: two decorator classes of one name in different
@@ -57,25 +63,31 @@ class CobaltFactoryNames {
 
   /// The name of the record type holding [declaration]'s call-site values.
   ///
-  /// Contested the same way the factory name is, and for the same reason: both
-  /// are derived from the class name, so two classes of one name in different
-  /// libraries collide in both places at once.
-  String argsOf(CobaltInjectableClass declaration) {
+  /// `NoteEditorArgs`, unless that name is contested or [reserved]: then the
+  /// `\$` form, with a suffix when contested the same way the factory name
+  /// is. Both are derived from the class name, so two classes of one name in
+  /// different libraries collide in both places at once.
+  String argsOf(CobaltInjectableClass declaration) =>
+      _plainArgsOf(declaration) ?? _dollarArgsOf(declaration);
+
+  /// The `\$` name kept as a deprecated alias of [argsOf], or null when
+  /// [argsOf] is the `\$` name itself.
+  String? deprecatedArgsOf(CobaltInjectableClass declaration) =>
+      _plainArgsOf(declaration) == null ? null : _dollarArgsOf(declaration);
+
+  String? _plainArgsOf(CobaltInjectableClass declaration) {
+    if (_contested.contains(_baseNameOf(declaration))) return null;
+    final plain = _dollarArgsOf(declaration).substring(1);
+    return _reserved.contains(plain) ? null : plain;
+  }
+
+  String _dollarArgsOf(CobaltInjectableClass declaration) {
     final base = _baseNameOf(declaration);
     final name =
         '\$${_capitalised(_typeTagOf(declaration.type))}'
         '${_capitalised(declaration.name)}Args';
     if (!_contested.contains(base)) return name;
     return '$name\$${_suffixOf(declaration)}';
-  }
-
-  /// [argsOf] without its leading `\$`, or null when that name is contested.
-  ///
-  /// The generator emits it as a second name for the same record type, so a
-  /// call site reads `NoteEditorArgs` rather than `\$NoteEditorArgs`.
-  String? plainArgsOf(CobaltInjectableClass declaration) {
-    if (_contested.contains(_baseNameOf(declaration))) return null;
-    return argsOf(declaration).substring(1);
   }
 
   static Set<String> _contestedIn(

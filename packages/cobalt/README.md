@@ -114,7 +114,7 @@ class AppScope {
 dart run build_runner build
 ```
 
-That writes `lib/cobalt.g.dart`, and `await $startCobalt()` gives you the same
+That writes `lib/cobalt.g.dart`, and `await startCobalt()` gives you the same
 scope the hand-written version built.
 
 ## Key features

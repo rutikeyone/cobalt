@@ -138,9 +138,9 @@ void main() {
         decorators: [decorator('LoggingApi', 'Api')],
       );
 
-      expect(source, contains(r'final class $CobaltRootScope'));
+      expect(source, contains(r'final class CobaltRoot'));
       expect(decorationsOf(source), hasLength(1));
-      expect(source, contains(r'$startCobalt'));
+      expect(source, contains(r'startCobalt'));
     });
   });
 

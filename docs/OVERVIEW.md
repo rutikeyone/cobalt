@@ -190,8 +190,8 @@ Three builders: one writes property-injection mixins, one scans each library int
 the whole package into `lib/cobalt.g.dart`. The aggregation is two-phase because a single build step
 cannot see the whole program.
 
-The output is private const factory classes and a `$CobaltRootScope`, ordered by a compile-time
-topological sort — no closures, no reflection, no runtime scanning. `$cobaltBootstrap` is a getter
+The output is private const factory classes and a `CobaltRoot`, ordered by a compile-time
+topological sort — no closures, no reflection, no runtime scanning. `cobaltBootstrapSteps` is a getter
 rather than a stored list, so a restart gets fresh steps instead of the ones the previous start
 already consumed.
 

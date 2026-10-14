@@ -191,8 +191,8 @@ something outside the generated container registers it.
 패키지 전체를 `lib/cobalt.g.dart`로 집계합니다. 집계가 두 단계인 이유는 단일 빌드 단계로는 프로그램 전체를
 볼 수 없기 때문입니다.
 
-출력은 private const 팩토리 클래스들과 `$CobaltRootScope` 하나이며, 컴파일 타임 위상 정렬로 순서가
-정해집니다. 클로저도, 리플렉션도, 런타임 스캔도 없습니다. `$cobaltBootstrap`은 저장된 리스트가 아니라
+출력은 private const 팩토리 클래스들과 `CobaltRoot` 하나이며, 컴파일 타임 위상 정렬로 순서가
+정해집니다. 클로저도, 리플렉션도, 런타임 스캔도 없습니다. `cobaltBootstrapSteps`은 저장된 리스트가 아니라
 getter이므로, 재시작하면 이전 시작에서 이미 소비된 단계가 아니라 새 단계를 받습니다.
 
 제네릭 타입은 의존성으로도, `exposeAs` 대상으로도 동작합니다. `Repository<User>`와

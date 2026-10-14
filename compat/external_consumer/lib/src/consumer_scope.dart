@@ -16,7 +16,7 @@ class ConsumerScope implements CobaltScopeBuilder {
   @override
   void build(CobaltScope scope) {
     scope.registerSingleton<DeviceInfo>(device);
-    const $CobaltRootScope().build(scope);
+    const CobaltRoot().build(scope);
 
     // Registered after the generated container and lazily, both on purpose: a
     // hand-written registration may take a generated one, and a lazy factory
@@ -27,11 +27,11 @@ class ConsumerScope implements CobaltScopeBuilder {
 }
 
 /// Starts the graph the way an application would: composing the generated
-/// container rather than calling `$startCobalt` and hoping.
+/// container rather than calling `startCobalt` and hoping.
 Future<CobaltScope> startConsumer({
   DeviceInfo device = const DeviceInfo('test-device'),
 }) => CobaltApplication.start(
   root: ConsumerScope(device),
-  bootstrap: $cobaltBootstrap,
-  rootName: $cobaltRootScopeName,
+  bootstrap: cobaltBootstrapSteps,
+  rootName: cobaltRootScopeName,
 );

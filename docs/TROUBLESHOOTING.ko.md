@@ -52,7 +52,7 @@ build_runner again.
 비동기 등록(`registerAsyncSingleton` 또는 `@CobaltInit` 클래스)을 `init()`이 빌드를 마치기 전에
 읽었습니다.
 
-- 시작을 기다리십시오: `await CobaltApplication.start(...)` 또는 `await $startCobalt()`. Flutter에서는
+- 시작을 기다리십시오: `await CobaltApplication.start(...)` 또는 `await startCobalt()`. Flutter에서는
   그래프가 준비될 때까지 `CobaltAppScope`가 `loading`을 보여 주므로, `runApp` 전이 아니라 앱 안에서
   읽으십시오.
 - 직접 push한 스코프라면 읽기 전에 `await child.init()`을 실행하십시오.

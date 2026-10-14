@@ -27,7 +27,7 @@ void main() {
 
   setUp(() async {
     app = await CobaltApplication.start(
-      root: const $CobaltRootScope(),
+      root: const CobaltRoot(),
       rootName: 'app',
     );
   });

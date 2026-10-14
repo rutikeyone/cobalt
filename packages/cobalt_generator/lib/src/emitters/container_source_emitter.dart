@@ -124,15 +124,21 @@ class ContainerSourceEmitter {
       ...rootOrdered,
       for (final group in childOrdered.values) ...group,
     ];
-    final names = CobaltFactoryNames(ordered, decorators: decorators);
-    final taken = {
-      'CobaltRoot',
-      for (final declaration in ordered) ...[
-        declaration.type.name,
-        ?declaration.provider?.module.name,
-      ],
-      for (final scope in childScopes) ...[scope.type.name, scope.builderName],
-    };
+    final names = CobaltFactoryNames(
+      ordered,
+      decorators: decorators,
+      reserved: {
+        'CobaltRoot',
+        for (final declaration in ordered) ...[
+          declaration.type.name,
+          ?declaration.provider?.module.name,
+        ],
+        for (final scope in childScopes) ...[
+          scope.type.name,
+          scope.builderName,
+        ],
+      },
+    );
 
     final hasBootstrap = declarations.bootstrapSteps.isNotEmpty;
     final scopeUsesEnvironments =
@@ -155,11 +161,11 @@ class ContainerSourceEmitter {
               _argsTypedef(declaration, names),
           for (final declaration in ordered)
             if (declaration.takesCallSiteValues)
-              if (names.plainArgsOf(declaration) case final plain?
-                  when !taken.contains(plain))
+              if (names.deprecatedArgsOf(declaration) case final deprecated?)
                 TypeDef(
                   (t) => t
-                    ..name = plain
+                    ..name = deprecated
+                    ..annotations.add(deprecatedFor(names.argsOf(declaration)))
                     ..definition = refer(names.argsOf(declaration)),
                 ),
           for (final declaration in ordered)
@@ -182,8 +188,9 @@ class ContainerSourceEmitter {
           if (hasRoot)
             TypeDef(
               (t) => t
-                ..name = 'CobaltRoot'
-                ..definition = refer(r'$CobaltRootScope'),
+                ..name = r'$CobaltRootScope'
+                ..annotations.add(deprecatedFor('CobaltRoot'))
+                ..definition = refer('CobaltRoot'),
             ),
           for (final scope in childScopes)
             _childScope.emit(
@@ -195,15 +202,24 @@ class ContainerSourceEmitter {
               ),
               names,
             ),
-          if (hasBootstrap)
+          if (hasBootstrap) ...[
             _bootstrap.emit(
               declarations.bootstrapSteps,
               usesEnvironments: bootstrapUsesEnvironments,
             ),
+            _bootstrap.emitDeprecated(
+              usesEnvironments: bootstrapUsesEnvironments,
+            ),
+          ],
           if (hasRoot) ...[
             _start.emitName(scopeName),
+            _start.emitDeprecatedName(),
             _start.emitStart(
               hasBootstrap: hasBootstrap,
+              scopeUsesEnvironments: scopeUsesEnvironments,
+              bootstrapUsesEnvironments: bootstrapUsesEnvironments,
+            ),
+            _start.emitDeprecatedStart(
               scopeUsesEnvironments: scopeUsesEnvironments,
               bootstrapUsesEnvironments: bootstrapUsesEnvironments,
             ),

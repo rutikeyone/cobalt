@@ -126,7 +126,7 @@ final tabB = app.push('tab:b');   // 是兄弟，而不是压在 tabA 上面
 | `@disposeMethod` | `implements Disposable` / `AsyncDisposable` |
 | `@factoryMethod` | 第一个公开的生成式构造函数；若需要的不是它，则用 `@CobaltModule` 成员 |
 | `@factoryParam` | 构造函数参数上的 `@CobaltParam` |
-| `@InjectableInit()` + `configureDependencies()` | `@CobaltScopeRoot()` + 生成的 `$startCobalt()` |
+| `@InjectableInit()` + `configureDependencies()` | `@CobaltScopeRoot()` + 生成的 `startCobalt()` |
 
 ### 形态发生变化的部分
 

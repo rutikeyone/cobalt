@@ -3,7 +3,7 @@ import 'package:test/test.dart';
 import 'support.dart';
 
 List<String> bootstrapEntriesOf(String source) {
-  final start = source.indexOf(r'$cobaltBootstrap');
+  final start = source.indexOf(r'cobaltBootstrapSteps');
   if (start < 0) return const [];
   final body = source.substring(start, source.indexOf('];', start));
   return body
@@ -21,7 +21,7 @@ void main() {
         bootstrap: [step('BindPlatform')],
       );
 
-      expect(source, contains(r'$cobaltBootstrap'));
+      expect(source, contains(r'cobaltBootstrapSteps'));
       expect(source, contains('CobaltBootstrapStep>'));
     });
 
@@ -54,14 +54,14 @@ void main() {
     test('bootstrap steps generate without any injectables', () {
       final source = generate(const [], bootstrap: [step('BindPlatform')]);
 
-      expect(source, contains(r'$cobaltBootstrap'));
-      expect(source, isNot(contains(r'$CobaltRootScope')));
+      expect(source, contains(r'cobaltBootstrapSteps'));
+      expect(source, isNot(contains(r'CobaltRoot')));
     });
 
     test('no bootstrap section when nothing is annotated', () {
       final source = generate([declare('Logger')]);
 
-      expect(source, isNot(contains(r'$cobaltBootstrap')));
+      expect(source, isNot(contains(r'cobaltBootstrapSteps')));
     });
   });
 }
