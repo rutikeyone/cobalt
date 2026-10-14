@@ -47,7 +47,8 @@ build_runner again.
   корня не виден.
 - Во Flutter скоупа, открытого через `open`, нет в дереве виджетов: `context.cobalt<T>()` ниже него
   читает скоуп выше. Оберните эти виджеты в `CobaltScopeProvider(scope: session, child: ...)` или
-  отдайте сессию `CobaltScopeWidget(builder: SessionScope(user), child: ...)`.
+  отдайте сессию `CobaltScopeWidget(builder: SessionScope(user), child: ...)`. При чтении через
+  `context.cobalt<T>()` ошибка говорит то же в конце сообщения.
 
 ### CobaltNotReadyError
 

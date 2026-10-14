@@ -45,6 +45,7 @@ build_runner again.
 - Flutter에서 `open`으로 연 스코프는 위젯 트리에 없습니다. 그 아래의 `context.cobalt<T>()`는 상위 스코프를 읽습니다.
   해당 위젯을 `CobaltScopeProvider(scope: session, child: ...)`로 감싸거나,
   `CobaltScopeWidget(builder: SessionScope(user), child: ...)`가 세션을 소유하게 하십시오.
+  `context.cobalt<T>()`로 읽으면 오류 메시지 끝에서도 같은 내용을 알려 줍니다.
 
 ### CobaltNotReadyError
 

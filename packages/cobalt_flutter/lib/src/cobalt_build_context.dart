@@ -28,7 +28,7 @@ extension CobaltBuildContext on BuildContext {
 
   /// Resolves [T] from the nearest scope.
   T cobalt<T extends Object>({String? name}) =>
-      CobaltScopeProvider.of(this).get<T>(name: name);
+      _hinted(() => CobaltScopeProvider.of(this).get<T>(name: name));
 
   /// Resolves every registration of [T] visible from the nearest scope.
   List<T> cobaltAll<T extends Object>() =>
@@ -38,7 +38,9 @@ extension CobaltBuildContext on BuildContext {
   T cobaltWithParam<T extends Object, P extends Object>(
     P param, {
     String? name,
-  }) => CobaltScopeProvider.of(this).getWithParam<T, P>(param, name: name);
+  }) => _hinted(
+    () => CobaltScopeProvider.of(this).getWithParam<T, P>(param, name: name),
+  );
 
   /// Resolves [T] from the nearest scope with `getAsync`, building a lazy
   /// async registration the first time it is asked for.
@@ -49,7 +51,7 @@ extension CobaltBuildContext on BuildContext {
   /// To build a subtree from the result, `CobaltAsyncBuilder` holds the
   /// future across rebuilds and handles loading and failure.
   Future<T> cobaltAsync<T extends Object>({String? name}) =>
-      CobaltScopeProvider.of(this).getAsync<T>(name: name);
+      _hintedAsync(() => CobaltScopeProvider.of(this).getAsync<T>(name: name));
 
   /// Builds [T] from an async parameterized factory, passing [param], with
   /// `getAsyncWithParam`.
@@ -59,5 +61,48 @@ extension CobaltBuildContext on BuildContext {
   Future<T> cobaltAsyncWithParam<T extends Object, P extends Object>(
     P param, {
     String? name,
-  }) => CobaltScopeProvider.of(this).getAsyncWithParam<T, P>(param, name: name);
+  }) => _hintedAsync(
+    () =>
+        CobaltScopeProvider.of(this).getAsyncWithParam<T, P>(param, name: name),
+  );
+}
+
+T _hinted<T>(T Function() read) {
+  try {
+    return read();
+  } on CobaltNotRegisteredError catch (error, stackTrace) {
+    final hinted = _withWidgetHint(error);
+    if (hinted == null) rethrow;
+    Error.throwWithStackTrace(hinted, stackTrace);
+  }
+}
+
+Future<T> _hintedAsync<T>(Future<T> Function() read) async {
+  try {
+    return await read();
+  } on CobaltNotRegisteredError catch (error, stackTrace) {
+    final hinted = _withWidgetHint(error);
+    if (hinted == null) rethrow;
+    Error.throwWithStackTrace(hinted, stackTrace);
+  }
+}
+
+CobaltNotRegisteredError? _withWidgetHint(CobaltNotRegisteredError error) {
+  if (error.hint != null ||
+      error.resolving.isNotEmpty ||
+      error.registeredElsewhere.isEmpty) {
+    return null;
+  }
+  final scopes = error.registeredElsewhere.map((name) => '"$name"').join(', ');
+  return CobaltNotRegisteredError(
+    error.key,
+    error.scopeName,
+    whileBuilding: error.whileBuilding,
+    registeredElsewhere: error.registeredElsewhere,
+    sameType: error.sameType,
+    hint:
+        'A widget sees only the scopes above it in the widget tree. Wrap the '
+        'widgets that need $scopes in CobaltScopeProvider(scope: ..., '
+        'child: ...), or let a CobaltScopeWidget own that scope around them.',
+  );
 }
