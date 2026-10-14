@@ -957,6 +957,32 @@ final app = await CobaltApplication.start(
 пока уровень не понижен. Собственный `CobaltRecordingObserver` получает то же, переопределив
 `accepts(level)`.
 
+### На что ушел старт
+
+`CobaltStartupObserver` собирает шаги bootstrap и то, что старт строит в корневом скоупе (eager- и
+async-синглтоны), и сводит это в отчет, когда старт вернулся:
+
+```dart
+final startup = CobaltStartupObserver();
+final app = await CobaltApplication.start(
+  root: const AppScope(),
+  observers: [startup],
+);
+print(startup.report);
+```
+
+```
+Startup took 412ms.
+Bootstrap: 120ms in 2 steps, the slowest LoadRemoteConfig (90ms).
+Slowest builds:
+  SearchIndex 250ms, 210ms waiting for its dependencies
+  Database 210ms
+```
+
+Сборку, которая в основном ждет, ускорять бесполезно: смотрите, чего она ждет. Ленивый синглтон,
+который экран строит позже, в старт не входит. Во Flutter передайте наблюдателя в `observers:`
+`CobaltAppScope` и прочитайте `report`, когда покажется первый экран.
+
 ### Куда это отправить
 
 | Пакет | Форма |

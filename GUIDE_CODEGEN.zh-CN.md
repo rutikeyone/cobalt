@@ -1130,6 +1130,29 @@ CobaltLogObserver(CobaltLogSink.from((r) => gelf.send(r.toStructured())))
 记录不只是一个字符串：`level`、`scope`、`key`、`error`、`stackTrace` 和 `kind` 都在里面，
 而 `kind` 是一个值——`CobaltEventKind.scopeInitFailed`，而不是一句还得你去解析的话。
 
+### 启动把时间花在了哪里
+
+`CobaltStartupObserver` 收集 bootstrap 步骤，以及启动在根作用域里构建的东西（eager 单例和异步单例），并在启动返回后汇总：
+
+```dart
+final startup = CobaltStartupObserver();
+final app = await CobaltApplication.start(
+  root: const CobaltRoot(),
+  observers: [startup],
+);
+print(startup.report);
+```
+
+```
+Startup took 412ms.
+Bootstrap: 120ms in 2 steps, the slowest LoadRemoteConfig (90ms).
+Slowest builds:
+  SearchIndex 250ms, 210ms waiting for its dependencies
+  Database 210ms
+```
+
+大部分时间在等待的构建不是该优化的那个：去看它在等什么。之后由某个屏幕构建的惰性单例不算启动的一部分。在 Flutter 中，把它传给 `CobaltAppScope` 的 `observers:`，等第一个屏幕出现后读取 `report`。
+
 ### 崩溃上报是另一种形态
 
 让一份报告有用的不是异常本身，而是图在那之前正在做什么。

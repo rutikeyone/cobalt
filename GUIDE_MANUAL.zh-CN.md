@@ -894,6 +894,29 @@ final app = await CobaltApplication.start(
 被它丢弃的记录根本不会格式化——级别在记录创建之前就被询问——所以在降低级别之前，挂上日志几乎不增加每次构建的开销。
 你自己的 `CobaltRecordingObserver` 覆盖 `accepts(level)` 即可获得同样效果。
 
+### 启动把时间花在了哪里
+
+`CobaltStartupObserver` 收集 bootstrap 步骤，以及启动在根作用域里构建的东西（eager 单例和异步单例），并在启动返回后汇总：
+
+```dart
+final startup = CobaltStartupObserver();
+final app = await CobaltApplication.start(
+  root: const AppScope(),
+  observers: [startup],
+);
+print(startup.report);
+```
+
+```
+Startup took 412ms.
+Bootstrap: 120ms in 2 steps, the slowest LoadRemoteConfig (90ms).
+Slowest builds:
+  SearchIndex 250ms, 210ms waiting for its dependencies
+  Database 210ms
+```
+
+大部分时间在等待的构建不是该优化的那个：去看它在等什么。之后由某个屏幕构建的惰性单例不算启动的一部分。在 Flutter 中，把它传给 `CobaltAppScope` 的 `observers:`，等第一个屏幕出现后读取 `report`。
+
 ### 送到哪里去
 
 | 包 | 形态 |

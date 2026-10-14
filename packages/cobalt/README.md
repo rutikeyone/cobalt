@@ -217,6 +217,10 @@ has to finish first. `Logger` needs no such line: a factory that wants it simply
 
   `CobaltMultiSink` fans a record out to several destinations, and a sink that throws does not
   silence the others. With no observers registered, each event costs one empty-list check.
+
+  `CobaltStartupObserver` sums up a cold start: the bootstrap steps, the eager and async singletons
+  the start built, and how long each waited for its dependencies. Read its `report` once the start
+  has returned.
 - **Environments are optional, and a plain guard when used.** A graph has one environment until you
   split it. `CobaltEnvironment.matches` then decides whether a registration restricted to some names
   belongs to this build, so selecting an implementation per environment is one `if` around a

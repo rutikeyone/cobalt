@@ -954,6 +954,32 @@ level is asked before the record is made — so an attached log costs next to no
 the level comes down. A `CobaltRecordingObserver` of your own gets the same by overriding
 `accepts(level)`.
 
+### What the start spent its time on
+
+`CobaltStartupObserver` collects the bootstrap steps and what the start builds in the root scope,
+eager and async singletons, and sums them up once the start has returned:
+
+```dart
+final startup = CobaltStartupObserver();
+final app = await CobaltApplication.start(
+  root: const AppScope(),
+  observers: [startup],
+);
+print(startup.report);
+```
+
+```
+Startup took 412ms.
+Bootstrap: 120ms in 2 steps, the slowest LoadRemoteConfig (90ms).
+Slowest builds:
+  SearchIndex 250ms, 210ms waiting for its dependencies
+  Database 210ms
+```
+
+A build that mostly waits is not the one to speed up: look at what it waits for. A lazy singleton a
+screen builds later is not part of the start. In Flutter, pass it to `observers:` of `CobaltAppScope`
+and read `report` once the first screen shows.
+
 ### Sending it somewhere
 
 | Package | Shape |

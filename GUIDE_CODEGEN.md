@@ -1218,6 +1218,32 @@ The record is not just a string: `level`, `scope`, `key`, `error`, `stackTrace` 
 there, and `kind` is a value — `CobaltEventKind.scopeInitFailed` rather than a sentence you would have
 to parse.
 
+### What the start spent its time on
+
+`CobaltStartupObserver` collects the bootstrap steps and what the start builds in the root scope,
+eager and async singletons, and sums them up once the start has returned:
+
+```dart
+final startup = CobaltStartupObserver();
+final app = await CobaltApplication.start(
+  root: const CobaltRoot(),
+  observers: [startup],
+);
+print(startup.report);
+```
+
+```
+Startup took 412ms.
+Bootstrap: 120ms in 2 steps, the slowest LoadRemoteConfig (90ms).
+Slowest builds:
+  SearchIndex 250ms, 210ms waiting for its dependencies
+  Database 210ms
+```
+
+A build that mostly waits is not the one to speed up: look at what it waits for. A lazy singleton a
+screen builds later is not part of the start. In Flutter, pass it to `observers:` of `CobaltAppScope`
+and read `report` once the first screen shows.
+
 ### Crash reports are a different shape
 
 What makes a report actionable is not the exception; it is what the graph was doing beforehand.

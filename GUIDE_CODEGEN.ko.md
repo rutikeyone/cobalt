@@ -1205,6 +1205,32 @@ CobaltLogObserver(CobaltLogSink.from((r) => gelf.send(r.toStructured())))
 `kind`는 파싱해야 하는 문장이 아니라 `CobaltEventKind.scopeInitFailed` 같은
 값입니다.
 
+### 시작이 시간을 쓴 곳
+
+`CobaltStartupObserver`는 bootstrap 단계와 시작이 루트 스코프에서 빌드하는 것(eager 싱글턴과 비동기
+싱글턴)을 모으고, 시작이 반환되면 요약합니다.
+
+```dart
+final startup = CobaltStartupObserver();
+final app = await CobaltApplication.start(
+  root: const CobaltRoot(),
+  observers: [startup],
+);
+print(startup.report);
+```
+
+```
+Startup took 412ms.
+Bootstrap: 120ms in 2 steps, the slowest LoadRemoteConfig (90ms).
+Slowest builds:
+  SearchIndex 250ms, 210ms waiting for its dependencies
+  Database 210ms
+```
+
+대부분 기다리기만 하는 빌드는 빠르게 할 대상이 아닙니다. 무엇을 기다리는지 보십시오. 나중에 화면이 빌드하는
+지연 싱글턴은 시작에 포함되지 않습니다. Flutter에서는 `CobaltAppScope`의 `observers:`에 넘기고, 첫 화면이
+보이면 `report`를 읽으십시오.
+
 ### 크래시 리포트는 형태가 다릅니다
 
 리포트를 쓸모 있게 만드는 것은 예외가 아니라, 그 직전에 그래프가 무엇을 하고 있었는지입니다.
