@@ -60,18 +60,21 @@ build_runner again.
 这个注册需要调用方传入一个值——`registerParamFactory`，或带 `@CobaltParam` 的类——但读取时没有传。
 
 - 使用 `scope.getWithParam<T, P>(value)`；异步构建时用 `getAsyncWithParam`。在 widget 里用 `context.cobaltWithParam<T, P>(value)`。
+- lint 规则 `cobalt_read_does_not_match_registration` 会在编辑器里标出这里。
 
 ### CobaltNotParameterizedError
 
 相反的情况：对一个不接受参数的注册调用了 `getWithParam`。
 
 - 使用 `get<T>()`。
+- lint 规则 `cobalt_read_does_not_match_registration` 会在编辑器里标出这里。
 
 ### CobaltAsyncParamError
 
 对一个根据参数异步构建的注册（`registerAsyncParamFactory`）调用了 `getWithParam`。
 
 - 使用 `await scope.getAsyncWithParam<T, P>(value)`。
+- lint 规则 `cobalt_read_does_not_match_registration` 会在编辑器里标出这里。
 
 ### CobaltParamTypeError
 

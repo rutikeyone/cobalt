@@ -81,18 +81,21 @@ build_runner again.
 
 - `scope.getWithParam<T, P>(value)`를 사용하고, 비동기로 빌드된다면 `getAsyncWithParam`을 사용하십시오.
   위젯에서는 `context.cobaltWithParam<T, P>(value)`입니다.
+- 린트 규칙 `cobalt_read_does_not_match_registration`이 편집기에서 이 위치를 알려 줍니다.
 
 ### CobaltNotParameterizedError
 
 반대 경우입니다. 파라미터를 받지 않는 등록에 `getWithParam`을 호출했습니다.
 
 - `get<T>()`를 사용하십시오.
+- 린트 규칙 `cobalt_read_does_not_match_registration`이 편집기에서 이 위치를 알려 줍니다.
 
 ### CobaltAsyncParamError
 
 파라미터로부터 비동기로 빌드되는 등록(`registerAsyncParamFactory`)에 `getWithParam`을 호출했습니다.
 
 - `await scope.getAsyncWithParam<T, P>(value)`를 사용하십시오.
+- 린트 규칙 `cobalt_read_does_not_match_registration`이 편집기에서 이 위치를 알려 줍니다.
 
 ### CobaltParamTypeError
 

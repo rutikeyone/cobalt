@@ -84,18 +84,21 @@ build_runner again.
 
 - Используйте `scope.getWithParam<T, P>(value)` или `getAsyncWithParam`, если объект строится
   асинхронно. В виджете — `context.cobaltWithParam<T, P>(value)`.
+- Правило линтера `cobalt_read_does_not_match_registration` показывает это место в редакторе.
 
 ### CobaltNotParameterizedError
 
 Обратный случай: `getWithParam` у регистрации, которая параметр не принимает.
 
 - Используйте `get<T>()`.
+- Правило линтера `cobalt_read_does_not_match_registration` показывает это место в редакторе.
 
 ### CobaltAsyncParamError
 
 `getWithParam` у регистрации, которая строится из параметра асинхронно (`registerAsyncParamFactory`).
 
 - Используйте `await scope.getAsyncWithParam<T, P>(value)`.
+- Правило линтера `cobalt_read_does_not_match_registration` показывает это место в редакторе.
 
 ### CobaltParamTypeError
 

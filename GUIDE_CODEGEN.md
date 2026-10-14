@@ -18,7 +18,7 @@ What the build step buys you, and what this document is mostly about:
   gap at once, instead of failing on whichever screen resolves it first;
 - **property injection** — `late final` fields filled by a generated mixin, so a class with five
   collaborators has an empty constructor;
-- **twenty lint rules** that catch the rest in the editor.
+- **twenty-one lint rules** that catch the rest in the editor.
 
 If you want none of that, or you are migrating an existing container gradually, everything works
 without the generator: [GUIDE_MANUAL.md](GUIDE_MANUAL.md).
@@ -1123,7 +1123,7 @@ nothing registers, where it silently does nothing.
 
 ## 16. The lint plugin
 
-Twenty rules, built on the same parsing layer the generator uses, so a mistake surfaces in the editor
+Twenty-one rules, built on the same parsing layer the generator uses, so a mistake surfaces in the editor
 rather than only when `build_runner` runs.
 
 ```yaml
@@ -1149,6 +1149,7 @@ plugins:
 | `cobalt_resource_is_never_closed` | A registration holds something closeable and offers no way to close it |
 | `cobalt_lazy_registration_injected_synchronously` | a lazy async registration injected where nothing can wait for it — a synchronous or eager constructor, an `@injected` field, or a decorator |
 | `cobalt_async_transient_read_synchronously` | `get`, `getOrNull`, `getAll` or `context.cobalt` on an async transient, which always throws — resolve it with `getAsync` |
+| `cobalt_read_does_not_match_registration` | a read that always throws: `get`, `getAsync` or `context.cobalt` on a registration that takes a call-site value, `getWithParam` on one built asynchronously from it, or `getWithParam` on one that takes none |
 | `cobalt_depends_on_lazy_registration` | `@CobaltInit(dependsOn: [...])` naming a lazy async registration, which `init()` never builds |
 | `cobalt_override_needs_type_argument` | a `CobaltOverride` or `CobaltParamOverride` with no type argument, so Dart infers the key it replaces |
 | `cobalt_hook_added_too_late` | `hookAll` after an eager registration or a `get` on the same scope — in one cascade or earlier in the block — which the scope refuses with `CobaltHookError`; add hooks before anything is built |

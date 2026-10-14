@@ -81,12 +81,14 @@ The registration takes a value from the call site — `registerParamFactory`, or
 
 - Use `scope.getWithParam<T, P>(value)`, or `getAsyncWithParam` when it is built asynchronously. In
   a widget, `context.cobaltWithParam<T, P>(value)`.
+- The lint rule `cobalt_read_does_not_match_registration` points at it in the editor.
 
 ### CobaltNotParameterizedError
 
 The opposite: `getWithParam` on a registration that takes no parameter.
 
 - Use `get<T>()`.
+- The lint rule `cobalt_read_does_not_match_registration` points at it in the editor.
 
 ### CobaltAsyncParamError
 
@@ -94,6 +96,7 @@ The opposite: `getWithParam` on a registration that takes no parameter.
 (`registerAsyncParamFactory`).
 
 - Use `await scope.getAsyncWithParam<T, P>(value)`.
+- The lint rule `cobalt_read_does_not_match_registration` points at it in the editor.
 
 ### CobaltParamTypeError
 

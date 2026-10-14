@@ -28,6 +28,7 @@ import 'package:cobalt_lint/src/rules/lazy_registration_injected_synchronously.d
 import 'package:cobalt_lint/src/rules/missing_injection_mixin.dart';
 import 'package:cobalt_lint/src/rules/override_needs_type_argument.dart';
 import 'package:cobalt_lint/src/rules/param_needs_an_injectable.dart';
+import 'package:cobalt_lint/src/rules/read_does_not_match_registration.dart';
 import 'package:cobalt_lint/src/rules/registration_is_never_released.dart';
 import 'package:cobalt_lint/src/rules/registration_is_not_generated.dart';
 import 'package:cobalt_lint/src/rules/resource_is_never_closed.dart';
@@ -64,6 +65,7 @@ class _CobaltPlugin extends Plugin {
     registry.registerWarningRule(MissingInjectionMixin());
     registry.registerWarningRule(OverrideNeedsTypeArgument());
     registry.registerWarningRule(ParamNeedsAnInjectable());
+    registry.registerWarningRule(ReadDoesNotMatchRegistration());
     registry.registerWarningRule(RegistrationIsNeverReleased());
     registry.registerWarningRule(RegistrationIsNotGenerated());
     registry.registerWarningRule(ResourceIsNeverClosed());

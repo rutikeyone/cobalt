@@ -130,6 +130,14 @@ abstract interface class Disposable {
 abstract interface class AsyncDisposable {
   Future<void> dispose();
 }
+
+final class CobaltScope {
+  T get<T extends Object>({String? name}) => throw UnimplementedError();
+  Future<T> getAsync<T extends Object>({String? name}) =>
+      throw UnimplementedError();
+  T getWithParam<T extends Object, P extends Object>(P param, {String? name}) =>
+      throw UnimplementedError();
+}
 ''';
 
 const cobaltRuntimeImport = "import 'package:cobalt/cobalt.dart';";
