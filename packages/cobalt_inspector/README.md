@@ -209,6 +209,8 @@ belongs to somebody else.
 **Tree** walks the live scopes, with a search over registrations and one control that folds every
 node. Reading it builds nothing: a lazy singleton nobody asked for is still unbuilt after you have
 looked at it.
+Another control copies the whole tree as a Mermaid flowchart, the same text `describeGraphMermaid`
+in `cobalt_test` writes, for an issue or a pull request.
 
 **Built** comes from creation events, grouped by scope, by lifetime, or not at all — or sorted
 slowest first by their own time, each row with its build time.
