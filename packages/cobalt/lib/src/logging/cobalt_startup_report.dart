@@ -31,6 +31,10 @@ final class CobaltStartupReport {
 
   @override
   String toString() {
+    if (bootstrap.isEmpty && builds.isEmpty) {
+      return 'Startup built nothing up front: no bootstrap steps, and every '
+          'registration in the root is lazy.';
+    }
     final lines = <String>['Startup took ${_duration(total)}.'];
     if (bootstrap.isNotEmpty) {
       final slowest = bootstrap.reduce((a, b) => b.took > a.took ? b : a);

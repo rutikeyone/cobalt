@@ -133,7 +133,7 @@ void main() {
     expect(report.total, Duration.zero);
     expect(report.bootstrap, isEmpty);
     expect(report.builds, isEmpty);
-    expect('$report', 'Startup took 0µs.');
+    expect('$report', startsWith('Startup built nothing up front'));
   });
 
   test('the summary names the slowest step and the waits', () {
