@@ -112,7 +112,7 @@ class RootScopeEmitter {
                 for (final decorator in decorators)
                   guardedBy(
                     decorator.environments,
-                    _decorate(decorator, names),
+                    decoration(decorator, names),
                   ),
               ]),
           ),
@@ -138,7 +138,7 @@ class RootScopeEmitter {
     [typeReferenceOf(hook.target)],
   ).statement;
 
-  Code _decorate(CobaltDecoratorClass decorator, CobaltFactoryNames names) {
+  Code decoration(CobaltDecoratorClass decorator, CobaltFactoryNames names) {
     final name = decorator.name;
     final method = decorator.allNames ? 'decorateAll' : 'decorate';
     return refer('scope').property(method).call(

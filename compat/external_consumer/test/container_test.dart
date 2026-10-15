@@ -20,6 +20,18 @@ void main() {
   // No guard on the state: dispose() returns early when it already ran.
   tearDown(() => scope.dispose());
 
+  test(
+    'a decorator of what only a child scope registers wraps it there',
+    () async {
+      final visit = await scope.open('visit', const VisitScope('ada'));
+      addTearDown(visit.dispose);
+
+      expect(visit.get<Greeting>(), isA<LoudGreeting>());
+      expect(visit.get<Greeting>().text, 'HELLO, ADA');
+      expect(scope.isRegistered<Greeting>(), isFalse);
+    },
+  );
+
   test('the generated container is named by @CobaltScopeRoot', () {
     expect(scope.name, 'consumer');
   });

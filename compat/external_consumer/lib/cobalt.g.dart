@@ -29,6 +29,7 @@ import 'package:cobalt_external_consumer/src/snapshot.dart' as _i1062;
 import 'package:cobalt_external_consumer/src/system_clock.dart' as _i271;
 import 'package:cobalt_external_consumer/src/telemetry.dart' as _i186;
 import 'package:cobalt_external_consumer/src/traced.dart' as _i160;
+import 'package:cobalt_external_consumer/src/visit.dart' as _i296;
 
 typedef DocumentArgs = ({int id});
 typedef NoteEditorArgs = ({int id, String title, bool draft});
@@ -461,6 +462,20 @@ final class _ReceiptFactory
   _i160.Receipt create(_i573.CobaltResolver resolver) => _i160.Receipt();
 }
 
+final class _GreetingFactory
+    implements
+        _i573.CobaltFactory<_i296.Greeting>,
+        _i573.CobaltDescribedFactory {
+  const _GreetingFactory();
+
+  @override
+  String get implementation => 'Greeting';
+
+  @override
+  _i296.Greeting create(_i573.CobaltResolver resolver) =>
+      _i296.Greeting(resolver.get<String>());
+}
+
 final class _AuditedDatabaseDecorator
     implements _i573.CobaltDecorator<_i530.Database> {
   const _AuditedDatabaseDecorator();
@@ -481,6 +496,17 @@ final class _TracedEndpointDecorator
     _i416.Endpoint inner,
     _i573.CobaltResolver resolver,
   ) => _i416.TracedEndpoint(inner)..onInject(resolver);
+}
+
+final class _LoudGreetingDecorator
+    implements _i573.CobaltDecorator<_i296.Greeting> {
+  const _LoudGreetingDecorator();
+
+  @override
+  _i296.Greeting decorate(
+    _i296.Greeting inner,
+    _i573.CobaltResolver resolver,
+  ) => _i296.LoudGreeting(inner, resolver.get<_i720.AuditTrail>());
 }
 
 final class CobaltRoot extends _i573.CobaltRootBuilder {
@@ -579,6 +605,23 @@ final class CobaltRoot extends _i573.CobaltRootBuilder {
 
 @Deprecated('Use CobaltRoot. Removed in 2.0.')
 typedef $CobaltRootScope = CobaltRoot;
+
+final class VisitScope implements _i573.CobaltScopeBuilder {
+  const VisitScope(this.visitor);
+
+  final String visitor;
+
+  @override
+  void build(_i573.CobaltScope scope) {
+    scope.registerSingleton<String>(visitor);
+    scope.registerLazySingleton<_i296.Greeting>(const _GreetingFactory());
+    scope.decorate<_i296.Greeting>(
+      const _LoudGreetingDecorator(),
+      debugLabel: 'LoudGreeting',
+    );
+  }
+}
+
 List<_i573.CobaltBootstrapStep> get cobaltBootstrapSteps => [
   _i366.BindPlatform(),
 ];

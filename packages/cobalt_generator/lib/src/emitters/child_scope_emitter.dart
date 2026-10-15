@@ -12,11 +12,12 @@ class ChildScopeEmitter {
   Class emit(
     CobaltChildScopeClass scope,
     List<CobaltInjectableClass> ordered,
-    CobaltFactoryNames names,
-  ) {
-    final usesEnvironments = ordered.any(
-      (declaration) => declaration.environments.isNotEmpty,
-    );
+    CobaltFactoryNames names, {
+    List<CobaltDecoratorClass> decorators = const [],
+  }) {
+    final usesEnvironments =
+        ordered.any((declaration) => declaration.environments.isNotEmpty) ||
+        decorators.any((decorator) => decorator.environments.isNotEmpty);
     return Class(
       (b) => b
         ..name = scope.builderName
@@ -92,6 +93,11 @@ class ChildScopeEmitter {
                   guardedBy(
                     declaration.environments,
                     _root.registration(declaration, names),
+                  ),
+                for (final decorator in decorators)
+                  guardedBy(
+                    decorator.environments,
+                    _root.decoration(decorator, names),
                   ),
               ]),
           ),

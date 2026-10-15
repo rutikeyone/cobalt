@@ -507,8 +507,9 @@ scope opened under another child scope says so with `@CobaltChildScope(parent: S
 belongs in a session, and when it ends, stay your decisions: the annotation says neither.
 
 The marker is named without `Scope`, which the generator appends; `SessionScope` as a marker would
-give `SessionScopeScope`, and the build refuses it. Decorators and hooks are generated in the root
-only. A `CobaltScopeBuilder` written by hand still works next to the generated ones, from the same
+give `SessionScopeScope`, and the build refuses it. A decorator goes where its target is registered:
+in the root, or, for a class only child scopes register, in each of those scopes, injecting what that
+scope sees. A hook is added in the root and already sees what child scopes build. A `CobaltScopeBuilder` written by hand still works next to the generated ones, from the same
 public API they use.
 
 ### A session

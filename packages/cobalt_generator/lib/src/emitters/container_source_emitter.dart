@@ -72,26 +72,63 @@ class ContainerSourceEmitter {
       });
 
     final keysByType = _keysByType(rootInjectables, declarations.scopeRoots);
+    final childInjectables = {
+      for (final scope in childScopes)
+        _scopeIdOf(scope.type): [
+          for (final declaration in injectables)
+            if (_inScope(declaration, scope)) declaration,
+        ],
+    };
+    final childKeysByType = {
+      for (final MapEntry(key: id, value: declarations)
+          in childInjectables.entries)
+        id: _keysByType(declarations, const []),
+    };
+    final placed = _placeDecorators(
+      decorators,
+      rootInjectables,
+      childScopes,
+      childInjectables,
+      declarations.scopeRoots,
+    );
+    final rootDecorators = placed[_rootId] ?? const <CobaltDecoratorClass>[];
 
     _assertNoEnvironmentConflicts(injectables, childScopes);
 
     final scopeName = _start.resolveName(declarations.scopeRoots);
 
-    _assertDecoratorsHaveTargets(
-      rootInjectables,
-      decorators,
-      declarations.scopeRoots,
-      injectables,
-    );
+    _assertDecoratorsHaveTargets([
+      (
+        injectables: rootInjectables,
+        decorators: rootDecorators,
+        keys: _providedKeys(declarations.scopeRoots),
+        types: {
+          for (final root in declarations.scopeRoots)
+            for (final ref in root.provides) _refKey(ref.type, null),
+        },
+      ),
+      for (final scope in childScopes)
+        (
+          injectables: childInjectables[_scopeIdOf(scope.type)]!,
+          decorators: placed[_scopeIdOf(scope.type)] ?? const [],
+          keys: _ownKeysOf(scope),
+          types: const <String>{},
+        ),
+    ]);
 
     _assertNoMissingDependencies(
       injectables,
       declarations.scopeRoots,
       decorators,
       childScopes,
+      placed,
     );
 
-    _assertDecoratorOrder(decorators, keysByType);
+    _assertDecoratorOrder(rootDecorators, keysByType);
+    for (final MapEntry(key: id, value: placedHere) in placed.entries) {
+      if (id == _rootId) continue;
+      _assertDecoratorOrder(placedHere, childKeysByType[id]!);
+    }
 
     _assertDependsOnIsAsync(injectables);
 
@@ -104,19 +141,16 @@ class ContainerSourceEmitter {
     final universe = _environmentUniverse(injectables, decorators);
     final rootOrdered = _withDerivedDependsOn(
       rootInjectables,
-      decorators,
+      rootDecorators,
       keysByType,
       universe,
     );
     final childOrdered = {
       for (final scope in childScopes)
         _scopeIdOf(scope.type): _withDerivedDependsOn(
-          [
-            for (final declaration in injectables)
-              if (_inScope(declaration, scope)) declaration,
-          ],
-          const [],
-          const {},
+          childInjectables[_scopeIdOf(scope.type)]!,
+          placed[_scopeIdOf(scope.type)] ?? const [],
+          childKeysByType[_scopeIdOf(scope.type)]!,
           universe,
         ),
     };
@@ -145,7 +179,7 @@ class ContainerSourceEmitter {
         rootInjectables.any(
           (declaration) => declaration.environments.isNotEmpty,
         ) ||
-        decorators.any((decorator) => decorator.environments.isNotEmpty) ||
+        rootDecorators.any((decorator) => decorator.environments.isNotEmpty) ||
         hooks.any((hook) => hook.environments.isNotEmpty);
     final bootstrapUsesEnvironments = declarations.bootstrapSteps.any(
       (step) => step.environments.isNotEmpty,
@@ -174,12 +208,12 @@ class ContainerSourceEmitter {
             _decorators.emit(decorator, names),
           if (hasRoot)
             _rootScope.emit(
-              _ordered(rootOrdered, decorators, keysByType),
+              _ordered(rootOrdered, rootDecorators, keysByType),
               names,
               usesEnvironments: scopeUsesEnvironments,
               hasBootstrap: hasBootstrap,
               bootstrapUsesEnvironments: bootstrapUsesEnvironments,
-              decorators: decorators,
+              decorators: rootDecorators,
               hooks: hooks,
               promises: [
                 for (final root in declarations.scopeRoots) ...root.provides,
@@ -197,10 +231,11 @@ class ContainerSourceEmitter {
               scope,
               _ordered(
                 childOrdered[_scopeIdOf(scope.type)]!,
-                const [],
-                const {},
+                placed[_scopeIdOf(scope.type)] ?? const [],
+                childKeysByType[_scopeIdOf(scope.type)]!,
               ),
               names,
+              decorators: placed[_scopeIdOf(scope.type)] ?? const [],
             ),
           if (hasBootstrap) ...[
             _bootstrap.emit(
@@ -314,6 +349,7 @@ class ContainerSourceEmitter {
     List<CobaltScopeRootClass> roots,
     List<CobaltDecoratorClass> decorators,
     List<CobaltChildScopeClass> childScopes,
+    Map<String, List<CobaltDecoratorClass>> placed,
   ) {
     final provided = _providedKeys(roots);
     final universe = _environmentUniverse(injectables, decorators);
@@ -380,24 +416,29 @@ class ContainerSourceEmitter {
         }
       }
 
-      final rootAvailable = visibleFrom(_rootId);
-      for (final decorator in decorators) {
-        if (!_activeIn(decorator.environments, environment)) continue;
-        for (final parameter in decorator.dependencies) {
-          final dependency = _dependency(parameter.type, parameter.name);
-          if (dependency.isOptional) continue;
-          if (rootAvailable.contains(dependency.key)) continue;
-          missing
-              .putIfAbsent(
-                '${decorator.type.name}#${dependency.key}',
-                () => _MissingDependency(
-                  decorator.type.name,
-                  dependency.label,
-                  onlyIn: registeringScopes(dependency.key),
-                ),
-              )
-              .environments
-              .add(environment);
+      for (final MapEntry(key: id, value: placedHere) in placed.entries) {
+        final available = visibleFrom(id);
+        for (final decorator in placedHere) {
+          if (!_activeIn(decorator.environments, environment)) continue;
+          for (final parameter in decorator.dependencies) {
+            final dependency = _dependency(parameter.type, parameter.name);
+            if (dependency.isOptional) continue;
+            if (available.contains(dependency.key)) continue;
+            final label = id == _rootId
+                ? decorator.type.name
+                : '${decorator.type.name} in scope ${scopeNames[id]}';
+            missing
+                .putIfAbsent(
+                  '$label#${dependency.key}',
+                  () => _MissingDependency(
+                    label,
+                    dependency.label,
+                    onlyIn: registeringScopes(dependency.key),
+                  ),
+                )
+                .environments
+                .add(environment);
+          }
         }
       }
     }
@@ -459,73 +500,101 @@ class ContainerSourceEmitter {
     }
   }
 
+  Map<String, List<CobaltDecoratorClass>> _placeDecorators(
+    List<CobaltDecoratorClass> decorators,
+    List<CobaltInjectableClass> rootInjectables,
+    List<CobaltChildScopeClass> childScopes,
+    Map<String, List<CobaltInjectableClass>> childInjectables,
+    List<CobaltScopeRootClass> roots,
+  ) {
+    bool wraps(
+      CobaltDecoratorClass decorator,
+      List<CobaltInjectableClass> declarations,
+      Set<String> keys,
+      Set<String> types,
+    ) => decorator.allNames
+        ? types.contains(_typeKeyOf(decorator)) ||
+              declarations.any(
+                (declaration) =>
+                    _refKey(declaration.exposedType, null) ==
+                    _typeKeyOf(decorator),
+              )
+        : keys.contains(_targetOf(decorator)) ||
+              declarations.any(
+                (declaration) => _keyOf(declaration) == _targetOf(decorator),
+              );
+
+    final providedTypes = {
+      for (final root in roots)
+        for (final ref in root.provides) _refKey(ref.type, null),
+    };
+    final placed = <String, List<CobaltDecoratorClass>>{};
+    for (final decorator in decorators) {
+      final inRoot = wraps(
+        decorator,
+        rootInjectables,
+        _providedKeys(roots),
+        providedTypes,
+      );
+      final inChildren = [
+        if (!inRoot)
+          for (final scope in childScopes)
+            if (wraps(
+              decorator,
+              childInjectables[_scopeIdOf(scope.type)]!,
+              _ownKeysOf(scope),
+              const {},
+            ))
+              _scopeIdOf(scope.type),
+      ];
+      for (final id in inChildren.isEmpty ? [_rootId] : inChildren) {
+        placed.putIfAbsent(id, () => []).add(decorator);
+      }
+    }
+    return placed;
+  }
+
   /// Rejects a decorator of something nothing registers.
   ///
   /// At runtime this is the owner check at the end of `runBuilder`; here it
   /// becomes a build failure, checked per environment for the same reason the
   /// completeness check is. A key named in `provides` is trusted: whatever
   /// registers it by hand registers it in the same scope.
-  void _assertDecoratorsHaveTargets(
-    List<CobaltInjectableClass> injectables,
-    List<CobaltDecoratorClass> decorators,
-    List<CobaltScopeRootClass> roots,
-    List<CobaltInjectableClass> everywhere,
-  ) {
-    if (decorators.isEmpty) return;
-    for (final decorator in decorators) {
-      final inChild = [
-        for (final declaration in everywhere)
-          if (declaration.scope != null &&
-              (decorator.allNames
-                  ? _refKey(declaration.exposedType, null) ==
-                        _typeKeyOf(decorator)
-                  : _keyOf(declaration) == _targetOf(decorator)))
-            declaration.scope!.name,
-      ];
-      final inRoot = injectables.any(
-        (declaration) => decorator.allNames
-            ? _refKey(declaration.exposedType, null) == _typeKeyOf(decorator)
-            : _keyOf(declaration) == _targetOf(decorator),
-      );
-      if (inChild.isEmpty || inRoot) continue;
-      throw CobaltGenerationError(
-        '${decorator.type.name} decorates ${_targetLabel(decorator)}, which '
-        'only scope ${(inChild.toSet().toList()..sort()).join(', ')} '
-        'registers. The generator applies decorators in the root only; '
-        'register what it decorates in the root, or decorate it by hand in a '
-        'builder that wraps the generated scope.',
-      );
-    }
-    final provided = _providedKeys(roots);
-    final universe = _environmentUniverse(injectables, decorators);
+  void _assertDecoratorsHaveTargets(List<_DecoratorPlacement> placements) {
     final missing = <CobaltDecoratorClass, Set<String>>{};
+    final universes = <CobaltDecoratorClass, int>{};
 
-    final providedTypes = {
-      for (final root in roots)
-        for (final ref in root.provides) _refKey(ref.type, null),
-    };
-
-    for (final environment in universe) {
-      final active = [
-        for (final declaration in injectables)
-          if (_activeIn(declaration.environments, environment)) declaration,
-      ];
-      final available = {
-        ...provided,
-        for (final declaration in active) _keyOf(declaration),
-      };
-      final availableTypes = {
-        ...providedTypes,
-        for (final declaration in active)
-          _refKey(declaration.exposedType, null),
-      };
-      for (final decorator in decorators) {
-        if (!_activeIn(decorator.environments, environment)) continue;
-        final wraps = decorator.allNames
-            ? availableTypes.contains(_typeKeyOf(decorator))
-            : available.contains(_targetOf(decorator));
-        if (wraps) continue;
-        missing.putIfAbsent(decorator, () => {}).add(environment);
+    for (final placement in placements) {
+      if (placement.decorators.isEmpty) continue;
+      final universe = _environmentUniverse(
+        placement.injectables,
+        placement.decorators,
+      );
+      for (final decorator in placement.decorators) {
+        universes[decorator] = universe.length;
+      }
+      for (final environment in universe) {
+        final active = [
+          for (final declaration in placement.injectables)
+            if (_activeIn(declaration.environments, environment)) declaration,
+        ];
+        final available = {
+          ...placement.keys,
+          for (final declaration in active) _keyOf(declaration),
+        };
+        final availableTypes = {
+          ...placement.types,
+          for (final declaration in active)
+            _refKey(declaration.exposedType, null),
+        };
+        for (final decorator in placement.decorators) {
+          if (!_activeIn(decorator.environments, environment)) continue;
+          final wraps = decorator.allNames
+              ? availableTypes.contains(_typeKeyOf(decorator))
+              : available.contains(_targetOf(decorator));
+          if (wraps) continue;
+          missing.putIfAbsent(decorator, () => {}).add(environment);
+        }
       }
     }
     if (missing.isEmpty) return;
@@ -534,7 +603,7 @@ class ContainerSourceEmitter {
       for (final MapEntry(key: decorator, value: environments)
           in missing.entries)
         '  ${decorator.type.name} decorates ${_targetLabel(decorator)}'
-            '${environments.length == universe.length ? '' : ' in ${(environments.toList()..sort()).join(', ')}'}',
+            '${environments.length == universes[decorator] ? '' : ' in ${(environments.toList()..sort()).join(', ')}'}',
     ].join('\n');
     throw CobaltGenerationError(
       'A decorator wraps a registration nothing makes.\n$lines\n'
@@ -1213,3 +1282,10 @@ class _MissingDependency {
   final List<String> onlyIn;
   final Set<String> environments = {};
 }
+
+typedef _DecoratorPlacement = ({
+  List<CobaltInjectableClass> injectables,
+  List<CobaltDecoratorClass> decorators,
+  Set<String> keys,
+  Set<String> types,
+});
