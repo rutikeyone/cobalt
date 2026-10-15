@@ -249,6 +249,14 @@ repeats resolution, analysis, tests and the generated-code diff on `stable` and
 weekly on a schedule: a new analyzer or go_router on pub.dev can break the
 build with no commit here.
 
+One thing `forward` deliberately lets through. Flutter 3.47 deprecates `package:flutter/material.dart`,
+`cupertino.dart` and the global localizations in favour of the `material_ui` and `cupertino_ui`
+packages, which need Flutter 3.47 or newer, so the examples on the 3.38.9 floor cannot move. Its
+analysis runs through `tool/analyze_forward.sh`, which drops exactly those `deprecated_member_use`
+infos, the ones whose message points at `package:material_ui/` or `package:cupertino_ui/`, says how
+many it dropped, and fails on everything else, other deprecations included. The move itself belongs
+with raising the floor, in a major release.
+
 Raising a floor later is a breaking change; lowering one is not. That asymmetry
 is why this was settled before the first publish rather than after.
 
