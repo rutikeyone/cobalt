@@ -44,14 +44,15 @@ Something asked for a type that no scope between here and the root registers.
   is invisible from the root.
 - In Flutter, a scope opened with `open` is not in the widget tree: `context.cobalt<T>()` below it
   reads the scope above. Wrap those widgets in `CobaltScopeProvider(scope: session, child: ...)`, or
-  let `CobaltScopeWidget(builder: SessionScope(user), child: ...)` own the session.
+  let `CobaltScopeWidget(builder: SessionScope(user), child: ...)` own the session. Read through
+  `context.cobalt<T>()`, the error says the same at its end.
 
 ### CobaltNotReadyError
 
 An async registration — `registerAsyncSingleton`, or an `@CobaltInit` class — was read before
 `init()` finished building it.
 
-- Wait for startup: `await CobaltApplication.start(...)` or `await $startCobalt()`. In Flutter,
+- Wait for startup: `await CobaltApplication.start(...)` or `await startCobalt()`. In Flutter,
   `CobaltAppScope` shows `loading` until the graph is ready, so read inside the app, not before
   `runApp`.
 - For a scope you pushed yourself, `await child.init()` before reading from it.
@@ -80,12 +81,14 @@ The registration takes a value from the call site — `registerParamFactory`, or
 
 - Use `scope.getWithParam<T, P>(value)`, or `getAsyncWithParam` when it is built asynchronously. In
   a widget, `context.cobaltWithParam<T, P>(value)`.
+- The lint rule `cobalt_read_does_not_match_registration` points at it in the editor.
 
 ### CobaltNotParameterizedError
 
 The opposite: `getWithParam` on a registration that takes no parameter.
 
 - Use `get<T>()`.
+- The lint rule `cobalt_read_does_not_match_registration` points at it in the editor.
 
 ### CobaltAsyncParamError
 
@@ -93,6 +96,7 @@ The opposite: `getWithParam` on a registration that takes no parameter.
 (`registerAsyncParamFactory`).
 
 - Use `await scope.getAsyncWithParam<T, P>(value)`.
+- The lint rule `cobalt_read_does_not_match_registration` points at it in the editor.
 
 ### CobaltParamTypeError
 

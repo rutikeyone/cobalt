@@ -954,6 +954,32 @@ level is asked before the record is made — so an attached log costs next to no
 the level comes down. A `CobaltRecordingObserver` of your own gets the same by overriding
 `accepts(level)`.
 
+### What the start spent its time on
+
+`CobaltStartupObserver` collects the bootstrap steps and what the start builds in the root scope,
+eager and async singletons, and sums them up once the start has returned:
+
+```dart
+final startup = CobaltStartupObserver();
+final app = await CobaltApplication.start(
+  root: const AppScope(),
+  observers: [startup],
+);
+print(startup.report);
+```
+
+```
+Startup took 412ms.
+Bootstrap: 120ms in 2 steps, the slowest LoadRemoteConfig (90ms).
+Slowest builds:
+  SearchIndex 250ms, 210ms waiting for its dependencies
+  Database 210ms
+```
+
+A build that mostly waits is not the one to speed up: look at what it waits for. A lazy singleton a
+screen builds later is not part of the start. In Flutter, pass it to `observers:` of `CobaltAppScope`
+and read `report` once the first screen shows.
+
 ### Sending it somewhere
 
 | Package | Shape |
@@ -1086,9 +1112,9 @@ builds differ:
 test('each environment keeps its shape', () async {
   await expectGraphSnapshots(
     (environment) => cobaltTestScope(
-      root: $CobaltRootScope(environment: environment),
-      bootstrap: $cobaltBootstrap(environment),
-      rootName: $cobaltRootScopeName,
+      root: CobaltRoot(environment: environment),
+      bootstrap: cobaltBootstrapSteps(environment),
+      rootName: cobaltRootScopeName,
     ),
     environments: {CobaltEnvironment.dev, CobaltEnvironment.prod},
     directory: 'test/snapshots',
@@ -1235,7 +1261,7 @@ class AppScope implements CobaltScopeBuilder {
 
   @override
   void build(CobaltScope scope) {
-    $CobaltRootScope().build(scope);          // what the generator found
+    CobaltRoot().build(scope);          // what the generator found
     scope.registerSingleton<Config>(config); // what it cannot know about
   }
 }
@@ -1245,7 +1271,7 @@ Three things are worth the build step when the graph gets big:
 
 - **completeness checked at build time** rather than by `expectGraphResolves` at test time;
 - **property injection**, which empties constructors that have grown to five or more collaborators;
-- **twenty lint rules** that catch the mistakes in §14 in the editor.
+- **twenty-one lint rules** that catch the mistakes in §14 in the editor.
 
 What stays exactly as it is: scopes, teardown, the two phases, parameterized registrations,
 observability, the tests. [GUIDE_CODEGEN.md](GUIDE_CODEGEN.md) picks up from here, and

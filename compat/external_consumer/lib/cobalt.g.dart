@@ -29,11 +29,14 @@ import 'package:cobalt_external_consumer/src/snapshot.dart' as _i1062;
 import 'package:cobalt_external_consumer/src/system_clock.dart' as _i271;
 import 'package:cobalt_external_consumer/src/telemetry.dart' as _i186;
 import 'package:cobalt_external_consumer/src/traced.dart' as _i160;
+import 'package:cobalt_external_consumer/src/visit.dart' as _i296;
 
-typedef $DocumentArgs = ({int id});
-typedef $NoteEditorArgs = ({int id, String title, bool draft});
-typedef DocumentArgs = $DocumentArgs;
-typedef NoteEditorArgs = $NoteEditorArgs;
+typedef DocumentArgs = ({int id});
+typedef NoteEditorArgs = ({int id, String title, bool draft});
+@Deprecated('Use DocumentArgs. Removed in 2.0.')
+typedef $DocumentArgs = DocumentArgs;
+@Deprecated('Use NoteEditorArgs. Removed in 2.0.')
+typedef $NoteEditorArgs = NoteEditorArgs;
 
 final class _ArchiveFactory
     implements
@@ -191,7 +194,7 @@ final class _DiagnosticsFactory
 
 final class _DocumentFactory
     implements
-        _i573.CobaltAsyncParamFactory<_i601.Document, $DocumentArgs>,
+        _i573.CobaltAsyncParamFactory<_i601.Document, DocumentArgs>,
         _i573.CobaltDescribedFactory {
   const _DocumentFactory();
 
@@ -201,7 +204,7 @@ final class _DocumentFactory
   @override
   _i687.Future<_i601.Document> create(
     _i573.CobaltResolver resolver,
-    $DocumentArgs args,
+    DocumentArgs args,
   ) async {
     final instance = _i601.Document(
       resolver.get<_i530.Database>(),
@@ -254,7 +257,7 @@ final class _LicenseCheckFactory
 
 final class _NoteEditorFactory
     implements
-        _i573.CobaltParamFactory<_i59.NoteEditor, $NoteEditorArgs>,
+        _i573.CobaltParamFactory<_i59.NoteEditor, NoteEditorArgs>,
         _i573.CobaltDescribedFactory {
   const _NoteEditorFactory();
 
@@ -262,7 +265,7 @@ final class _NoteEditorFactory
   String get implementation => 'NoteEditor';
 
   @override
-  _i59.NoteEditor create(_i573.CobaltResolver resolver, $NoteEditorArgs args) =>
+  _i59.NoteEditor create(_i573.CobaltResolver resolver, NoteEditorArgs args) =>
       _i59.NoteEditor(
         resolver.get<_i612.Clock>(),
         id: args.id,
@@ -459,6 +462,20 @@ final class _ReceiptFactory
   _i160.Receipt create(_i573.CobaltResolver resolver) => _i160.Receipt();
 }
 
+final class _GreetingFactory
+    implements
+        _i573.CobaltFactory<_i296.Greeting>,
+        _i573.CobaltDescribedFactory {
+  const _GreetingFactory();
+
+  @override
+  String get implementation => 'Greeting';
+
+  @override
+  _i296.Greeting create(_i573.CobaltResolver resolver) =>
+      _i296.Greeting(resolver.get<String>());
+}
+
 final class _AuditedDatabaseDecorator
     implements _i573.CobaltDecorator<_i530.Database> {
   const _AuditedDatabaseDecorator();
@@ -481,17 +498,28 @@ final class _TracedEndpointDecorator
   ) => _i416.TracedEndpoint(inner)..onInject(resolver);
 }
 
-final class $CobaltRootScope extends _i573.CobaltRootBuilder {
-  const $CobaltRootScope();
+final class _LoudGreetingDecorator
+    implements _i573.CobaltDecorator<_i296.Greeting> {
+  const _LoudGreetingDecorator();
 
   @override
-  String get name => $cobaltRootScopeName;
+  _i296.Greeting decorate(
+    _i296.Greeting inner,
+    _i573.CobaltResolver resolver,
+  ) => _i296.LoudGreeting(inner, resolver.get<_i720.AuditTrail>());
+}
+
+final class CobaltRoot extends _i573.CobaltRootBuilder {
+  const CobaltRoot();
+
+  @override
+  String get name => cobaltRootScopeName;
 
   @override
   bool get hasBootstrap => true;
 
   @override
-  List<_i573.CobaltBootstrapStep> bootstrap() => $cobaltBootstrap;
+  List<_i573.CobaltBootstrapStep> bootstrap() => cobaltBootstrapSteps;
 
   @override
   void build(_i573.CobaltScope scope) {
@@ -538,7 +566,7 @@ final class $CobaltRootScope extends _i573.CobaltRootBuilder {
       const _CdnEndpointCdnFactory(),
       name: 'cdn',
     );
-    scope.registerParamFactory<_i59.NoteEditor, $NoteEditorArgs>(
+    scope.registerParamFactory<_i59.NoteEditor, NoteEditorArgs>(
       const _NoteEditorFactory(),
     );
     scope.registerAsyncSingleton<_i455.Envelope>(
@@ -549,7 +577,7 @@ final class $CobaltRootScope extends _i573.CobaltRootBuilder {
     scope.registerLazySingleton<_i108.Shelf>(const _ShelfFactory());
     scope.registerAsyncSingleton<_i530.Database>(const _DatabaseFactory());
     scope.registerLazyAsyncSingleton<_i768.Archive>(const _ArchiveFactory());
-    scope.registerAsyncParamFactory<_i601.Document, $DocumentArgs>(
+    scope.registerAsyncParamFactory<_i601.Document, DocumentArgs>(
       const _DocumentFactory(),
     );
     scope.registerAsyncSingleton<_i375.SearchIndex>(
@@ -575,16 +603,45 @@ final class $CobaltRootScope extends _i573.CobaltRootBuilder {
   }
 }
 
-typedef CobaltRoot = $CobaltRootScope;
-List<_i573.CobaltBootstrapStep> get $cobaltBootstrap => [_i366.BindPlatform()];
-const String $cobaltRootScopeName = 'consumer';
-_i687.Future<_i573.CobaltScope> $startCobalt({
+@Deprecated('Use CobaltRoot. Removed in 2.0.')
+typedef $CobaltRootScope = CobaltRoot;
+
+final class VisitScope implements _i573.CobaltScopeBuilder {
+  const VisitScope(this.visitor);
+
+  final String visitor;
+
+  @override
+  void build(_i573.CobaltScope scope) {
+    scope.registerSingleton<String>(visitor);
+    scope.registerLazySingleton<_i296.Greeting>(const _GreetingFactory());
+    scope.decorate<_i296.Greeting>(
+      const _LoudGreetingDecorator(),
+      debugLabel: 'LoudGreeting',
+    );
+  }
+}
+
+List<_i573.CobaltBootstrapStep> get cobaltBootstrapSteps => [
+  _i366.BindPlatform(),
+];
+@Deprecated('Use cobaltBootstrapSteps. Removed in 2.0.')
+List<_i573.CobaltBootstrapStep> get $cobaltBootstrap => cobaltBootstrapSteps;
+const String cobaltRootScopeName = 'consumer';
+@Deprecated('Use cobaltRootScopeName. Removed in 2.0.')
+const String $cobaltRootScopeName = cobaltRootScopeName;
+_i687.Future<_i573.CobaltScope> startCobalt({
   List<_i573.CobaltOverride<Object>> overrides = const [],
   Duration? initTimeout,
 }) => _i573.CobaltApplication.start(
-  root: const $CobaltRootScope(),
-  bootstrap: $cobaltBootstrap,
-  rootName: $cobaltRootScopeName,
+  root: const CobaltRoot(),
+  bootstrap: cobaltBootstrapSteps,
+  rootName: cobaltRootScopeName,
   overrides: overrides,
   initTimeout: initTimeout,
 );
+@Deprecated('Use startCobalt. Removed in 2.0.')
+_i687.Future<_i573.CobaltScope> $startCobalt({
+  List<_i573.CobaltOverride<Object>> overrides = const [],
+  Duration? initTimeout,
+}) => startCobalt(overrides: overrides, initTimeout: initTimeout);

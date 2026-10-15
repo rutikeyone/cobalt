@@ -45,13 +45,14 @@ build_runner again.
 - Flutter에서 `open`으로 연 스코프는 위젯 트리에 없습니다. 그 아래의 `context.cobalt<T>()`는 상위 스코프를 읽습니다.
   해당 위젯을 `CobaltScopeProvider(scope: session, child: ...)`로 감싸거나,
   `CobaltScopeWidget(builder: SessionScope(user), child: ...)`가 세션을 소유하게 하십시오.
+  `context.cobalt<T>()`로 읽으면 오류 메시지 끝에서도 같은 내용을 알려 줍니다.
 
 ### CobaltNotReadyError
 
 비동기 등록(`registerAsyncSingleton` 또는 `@CobaltInit` 클래스)을 `init()`이 빌드를 마치기 전에
 읽었습니다.
 
-- 시작을 기다리십시오: `await CobaltApplication.start(...)` 또는 `await $startCobalt()`. Flutter에서는
+- 시작을 기다리십시오: `await CobaltApplication.start(...)` 또는 `await startCobalt()`. Flutter에서는
   그래프가 준비될 때까지 `CobaltAppScope`가 `loading`을 보여 주므로, `runApp` 전이 아니라 앱 안에서
   읽으십시오.
 - 직접 push한 스코프라면 읽기 전에 `await child.init()`을 실행하십시오.
@@ -80,18 +81,21 @@ build_runner again.
 
 - `scope.getWithParam<T, P>(value)`를 사용하고, 비동기로 빌드된다면 `getAsyncWithParam`을 사용하십시오.
   위젯에서는 `context.cobaltWithParam<T, P>(value)`입니다.
+- 린트 규칙 `cobalt_read_does_not_match_registration`이 편집기에서 이 위치를 알려 줍니다.
 
 ### CobaltNotParameterizedError
 
 반대 경우입니다. 파라미터를 받지 않는 등록에 `getWithParam`을 호출했습니다.
 
 - `get<T>()`를 사용하십시오.
+- 린트 규칙 `cobalt_read_does_not_match_registration`이 편집기에서 이 위치를 알려 줍니다.
 
 ### CobaltAsyncParamError
 
 파라미터로부터 비동기로 빌드되는 등록(`registerAsyncParamFactory`)에 `getWithParam`을 호출했습니다.
 
 - `await scope.getAsyncWithParam<T, P>(value)`를 사용하십시오.
+- 린트 규칙 `cobalt_read_does_not_match_registration`이 편집기에서 이 위치를 알려 줍니다.
 
 ### CobaltParamTypeError
 

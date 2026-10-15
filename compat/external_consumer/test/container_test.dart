@@ -13,12 +13,24 @@ void main() {
 
   setUp(() async {
     BootLog.clear();
-    scope = await $startCobalt();
+    scope = await startCobalt();
   });
 
   // The closing form, because the tests below hand `scope` a different graph.
   // No guard on the state: dispose() returns early when it already ran.
   tearDown(() => scope.dispose());
+
+  test(
+    'a decorator of what only a child scope registers wraps it there',
+    () async {
+      final visit = await scope.open('visit', const VisitScope('ada'));
+      addTearDown(visit.dispose);
+
+      expect(visit.get<Greeting>(), isA<LoudGreeting>());
+      expect(visit.get<Greeting>().text, 'HELLO, ADA');
+      expect(scope.isRegistered<Greeting>(), isFalse);
+    },
+  );
 
   test('the generated container is named by @CobaltScopeRoot', () {
     expect(scope.name, 'consumer');
@@ -209,7 +221,7 @@ void main() {
     });
 
     test('takes its values by name and the rest from the graph', () {
-      final editor = scope.getWithParam<NoteEditor, $NoteEditorArgs>((
+      final editor = scope.getWithParam<NoteEditor, NoteEditorArgs>((
         id: 7,
         title: 'notes',
         draft: true,
@@ -227,12 +239,12 @@ void main() {
     });
 
     test('builds a fresh one per call, and the scope keeps neither', () {
-      final first = scope.getWithParam<NoteEditor, $NoteEditorArgs>((
+      final first = scope.getWithParam<NoteEditor, NoteEditorArgs>((
         id: 1,
         title: 'a',
         draft: false,
       ));
-      final second = scope.getWithParam<NoteEditor, $NoteEditorArgs>((
+      final second = scope.getWithParam<NoteEditor, NoteEditorArgs>((
         id: 1,
         title: 'a',
         draft: false,
@@ -291,7 +303,7 @@ void main() {
 
   group('an async class built from a call-site value', () {
     test('is built by getAsyncWithParam, init awaited', () async {
-      final document = await scope.getAsyncWithParam<Document, $DocumentArgs>((
+      final document = await scope.getAsyncWithParam<Document, DocumentArgs>((
         id: 5,
       ));
 
@@ -304,16 +316,16 @@ void main() {
     });
 
     test('builds a new one on every call, and startup built none', () async {
-      final first = await scope.getAsyncWithParam<Document, $DocumentArgs>((
+      final first = await scope.getAsyncWithParam<Document, DocumentArgs>((
         id: 1,
       ));
-      final second = await scope.getAsyncWithParam<Document, $DocumentArgs>((
+      final second = await scope.getAsyncWithParam<Document, DocumentArgs>((
         id: 1,
       ));
 
       expect(first, isNot(same(second)));
       expect(
-        () => scope.getWithParam<Document, $DocumentArgs>((id: 1)),
+        () => scope.getWithParam<Document, DocumentArgs>((id: 1)),
         throwsA(isA<CobaltAsyncParamError>()),
       );
     });
@@ -377,7 +389,7 @@ void main() {
 
     test('an overridden eager singleton is never built at all', () async {
       LicenseCheck.built = 0;
-      final overridden = await $startCobalt(
+      final overridden = await startCobalt(
         overrides: [CobaltOverride<LicenseCheck>.value(_ValidLicense())],
       );
       addTearDown(overridden.dispose);
@@ -387,7 +399,7 @@ void main() {
     });
 
     test('a replaced exposed type reaches the generated consumer', () async {
-      final overridden = await $startCobalt(
+      final overridden = await startCobalt(
         overrides: [CobaltOverride<Clock>.value(_FrozenClock())],
       );
       addTearDown(overridden.dispose);
@@ -399,7 +411,7 @@ void main() {
       'a replaced async singleton reaches a lazy build that needs it',
       () async {
         final database = Database()..isOpen = true;
-        final overridden = await $startCobalt(
+        final overridden = await startCobalt(
           overrides: [CobaltOverride<Database>.value(database)],
         );
         addTearDown(overridden.dispose);
@@ -475,7 +487,7 @@ class _EagerFirst implements CobaltScopeBuilder {
         const SupportBundleFactory().create(scope),
       )
       ..registerSingleton<DeviceInfo>(const DeviceInfo('late'));
-    const $CobaltRootScope().build(scope);
+    const CobaltRoot().build(scope);
   }
 }
 

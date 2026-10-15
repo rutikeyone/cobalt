@@ -15,39 +15,38 @@ void main() {
 
       expect(
         source,
-        contains(r'typedef $NoteEditorArgs = ({int id, bool draft});'),
+        contains('typedef NoteEditorArgs = ({int id, bool draft});'),
       );
       expect(
         source,
-        contains(r'CobaltParamFactory<_i137.NoteEditor, $NoteEditorArgs>'),
+        contains('CobaltParamFactory<_i137.NoteEditor, NoteEditorArgs>'),
       );
       expect(
         source,
-        contains(r'registerParamFactory<_i137.NoteEditor, $NoteEditorArgs>'),
+        contains('registerParamFactory<_i137.NoteEditor, NoteEditorArgs>'),
       );
     });
 
-    test(
-      'reads the marked ones from the record and the rest from the graph',
-      () {
-        final source = generate([
-          declare('Repo'),
-          declare('NoteEditor', constructor: [dep('Repo'), arg('id', 'int')]),
-        ]);
+    test('reads the marked ones from the record and the rest from the graph', () {
+      final source = generate([
+        declare('Repo'),
+        declare('NoteEditor', constructor: [dep('Repo'), arg('id', 'int')]),
+      ]);
 
-        // Whitespace-insensitive: the formatter wraps this signature or not
-        // depending on how long the type names happen to be, and that is not
-        // what the test is about.
-        expect(
-          source.replaceAll(RegExp(r'\s+'), ' '),
-          contains(
-            r'create( _i573.CobaltResolver resolver, $NoteEditorArgs args',
+      // Whitespace-insensitive: the formatter wraps this signature or not
+      // depending on how long the type names happen to be, and that is not
+      // what the test is about.
+      expect(
+        source,
+        matches(
+          RegExp(
+            r'create\(\s*_i573\.CobaltResolver resolver,\s*NoteEditorArgs args',
           ),
-        );
-        expect(source, contains('resolver.get<_i137.Repo>()'));
-        expect(source, contains('id: args.id'));
-      },
-    );
+        ),
+      );
+      expect(source, contains('resolver.get<_i137.Repo>()'));
+      expect(source, contains('id: args.id'));
+    });
 
     /// The check that would otherwise demand a registration for `int`.
     test('a call-site value is not a missing dependency', () {
@@ -79,15 +78,22 @@ void main() {
         declare('Detail', constructor: [arg('id', 'int')]),
       ]);
 
-      expect(source, contains(r'typedef $DetailArgs = ({int id});'));
+      expect(source, contains('typedef DetailArgs = ({int id});'));
     });
 
-    test('the record has a name without the dollar sign too', () {
+    test('the dollar name stays as a deprecated alias', () {
       final source = generate([
         declare('NoteEditor', constructor: [arg('id', 'int')]),
       ]);
 
-      expect(source, contains(r'typedef NoteEditorArgs = $NoteEditorArgs;'));
+      expect(source, contains('typedef NoteEditorArgs = ({int id});'));
+      expect(
+        source,
+        contains(
+          "@Deprecated('Use NoteEditorArgs. Removed in 2.0.')\n"
+          r'typedef $NoteEditorArgs = NoteEditorArgs;',
+        ),
+      );
     });
 
     test('the plain name is left out when a class already has it', () {
@@ -105,7 +111,7 @@ void main() {
         declare('Detail', name: 'wide', constructor: [arg('id', 'int')]),
       ]);
 
-      expect(source, contains(r'typedef $DetailWideArgs'));
+      expect(source, contains('typedef DetailWideArgs'));
       expect(source, contains("name: 'wide'"));
     });
   });

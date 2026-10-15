@@ -43,7 +43,7 @@
 | **관측성** | 문자열이 아니라 타입이 있는 이벤트입니다. 로그, 구조화된 수집, 직전 경위가 담긴 크래시 리포트 |
 | **앱 내 인스펙터** | 실시간 스코프 트리, 무엇이 어떤 수명으로 빌드되었는지, 그리고 보고된 모든 것 |
 | **내비게이션 플로우** | 수명이 go_router 플로우와 같은 스코프이며, 라우터를 따라 하는 장치가 없습니다 |
-| **린트 플러그인** | 제너레이터가 쓰는 것과 같은 파싱 계층 위에 만든 규칙 스무 개 |
+| **린트 플러그인** | 제너레이터가 쓰는 것과 같은 파싱 계층 위에 만든 규칙 스물한 개 |
 | **재정의** | 등록을 그것이 소유된 곳에서 교체하므로, 모든 소비자가 대역을 보게 됩니다. 테스트, 플레이버, 디버그 메뉴 어디서든 됩니다 |
 | **테스트 헬퍼** | 테스트와 함께 해제되는 스코프, 프로덕션과 같은 방식으로 동작하는 재정의 |
 | **전역 컨테이너 없음** | 암묵적으로 주어지는 것이 없으므로 테스트가 병렬로 실행되고, 한 프로세스 안의 두 그래프는 서로 무관합니다 |
@@ -191,8 +191,8 @@ something outside the generated container registers it.
 패키지 전체를 `lib/cobalt.g.dart`로 집계합니다. 집계가 두 단계인 이유는 단일 빌드 단계로는 프로그램 전체를
 볼 수 없기 때문입니다.
 
-출력은 private const 팩토리 클래스들과 `$CobaltRootScope` 하나이며, 컴파일 타임 위상 정렬로 순서가
-정해집니다. 클로저도, 리플렉션도, 런타임 스캔도 없습니다. `$cobaltBootstrap`은 저장된 리스트가 아니라
+출력은 private const 팩토리 클래스들과 `CobaltRoot` 하나이며, 컴파일 타임 위상 정렬로 순서가
+정해집니다. 클로저도, 리플렉션도, 런타임 스캔도 없습니다. `cobaltBootstrapSteps`은 저장된 리스트가 아니라
 getter이므로, 재시작하면 이전 시작에서 이미 소비된 단계가 아니라 새 단계를 받습니다.
 
 제네릭 타입은 의존성으로도, `exposeAs` 대상으로도 동작합니다. `Repository<User>`와
@@ -280,5 +280,5 @@ UI가 있는 항목은 각각 **자기만의** 그래프로 열립니다. 열 �
 [`cobalt_inspector` README](../packages/cobalt_inspector/README.md)를, 예제가 어떻게 연결되어 있는지는
 [갤러리 README](../examples/gallery/README.md)를 참고하십시오.
 
-린트 플러그인의 스무 개 규칙은 [`cobalt_lint` README](../packages/cobalt_lint/README.md)와
+린트 플러그인의 스물한 개 규칙은 [`cobalt_lint` README](../packages/cobalt_lint/README.md)와
 [GUIDE_CODEGEN.ko.md](../GUIDE_CODEGEN.ko.md#16-린트-플러그인)에 정리되어 있습니다.

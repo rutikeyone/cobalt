@@ -78,7 +78,7 @@ void main() {
         hooks: [hook('JoinRegistry', 'Loggable')],
       );
 
-      expect(source, contains(r'class $CobaltRootScope'));
+      expect(source, contains(r'class CobaltRoot'));
       expect(hooksOf(source), hasLength(1));
     });
   });

@@ -40,8 +40,9 @@ import 'package:notes_app/features/session/data/session_activity_log.dart'
     as _i832;
 import 'package:notes_app/features/session/domain/session_user.dart' as _i630;
 
-typedef $NoteTitleCardArgs = ({String title});
-typedef NoteTitleCardArgs = $NoteTitleCardArgs;
+typedef NoteTitleCardArgs = ({String title});
+@Deprecated('Use NoteTitleCardArgs. Removed in 2.0.')
+typedef $NoteTitleCardArgs = NoteTitleCardArgs;
 
 final class _AppConfigFactory
     implements
@@ -251,7 +252,7 @@ final class _NoteDraftFactory
 
 final class _NoteTitleCardFactory
     implements
-        _i573.CobaltParamFactory<_i485.NoteTitleCard, $NoteTitleCardArgs>,
+        _i573.CobaltParamFactory<_i485.NoteTitleCard, NoteTitleCardArgs>,
         _i573.CobaltDescribedFactory {
   const _NoteTitleCardFactory();
 
@@ -261,7 +262,7 @@ final class _NoteTitleCardFactory
   @override
   _i485.NoteTitleCard create(
     _i573.CobaltResolver resolver,
-    $NoteTitleCardArgs args,
+    NoteTitleCardArgs args,
   ) => _i485.NoteTitleCard(
     resolver.get<_i293.NoteFormatter>(name: 'markdown'),
     args.title,
@@ -299,21 +300,22 @@ final class _SessionActivityLogFactory
       );
 }
 
-final class $CobaltRootScope extends _i573.CobaltRootBuilder {
-  const $CobaltRootScope({
+final class CobaltRoot extends _i573.CobaltRootBuilder {
+  const CobaltRoot({
     this.environment = _i573.CobaltEnvironment.defaultEnvironment,
   });
 
   final _i573.CobaltEnvironment environment;
 
   @override
-  String get name => $cobaltRootScopeName;
+  String get name => cobaltRootScopeName;
 
   @override
   bool get hasBootstrap => true;
 
   @override
-  List<_i573.CobaltBootstrapStep> bootstrap() => $cobaltBootstrap(environment);
+  List<_i573.CobaltBootstrapStep> bootstrap() =>
+      cobaltBootstrapSteps(environment);
 
   @override
   void build(_i573.CobaltScope scope) {
@@ -359,7 +361,8 @@ final class $CobaltRootScope extends _i573.CobaltRootBuilder {
   }
 }
 
-typedef CobaltRoot = $CobaltRootScope;
+@Deprecated('Use CobaltRoot. Removed in 2.0.')
+typedef $CobaltRootScope = CobaltRoot;
 
 final class NoteDetailScope implements _i573.CobaltScopeBuilder {
   const NoteDetailScope();
@@ -367,7 +370,7 @@ final class NoteDetailScope implements _i573.CobaltScopeBuilder {
   @override
   void build(_i573.CobaltScope scope) {
     scope.registerLazySingleton<_i682.NoteDraft>(const _NoteDraftFactory());
-    scope.registerParamFactory<_i485.NoteTitleCard, $NoteTitleCardArgs>(
+    scope.registerParamFactory<_i485.NoteTitleCard, NoteTitleCardArgs>(
       const _NoteTitleCardFactory(),
     );
   }
@@ -399,7 +402,7 @@ final class SessionScope implements _i573.CobaltScopeBuilder {
   }
 }
 
-List<_i573.CobaltBootstrapStep> $cobaltBootstrap(
+List<_i573.CobaltBootstrapStep> cobaltBootstrapSteps(
   _i573.CobaltEnvironment environment,
 ) => [
   _i253.BindPlatform(),
@@ -408,16 +411,33 @@ List<_i573.CobaltBootstrapStep> $cobaltBootstrap(
   if (environment.matches(const <String>{'prod', 'stage'}))
     _i861.ReportCrashes(),
 ];
-const String $cobaltRootScopeName = 'app';
-_i687.Future<_i573.CobaltScope> $startCobalt({
+@Deprecated('Use cobaltBootstrapSteps. Removed in 2.0.')
+List<_i573.CobaltBootstrapStep> $cobaltBootstrap(
+  _i573.CobaltEnvironment environment,
+) => cobaltBootstrapSteps(environment);
+const String cobaltRootScopeName = 'app';
+@Deprecated('Use cobaltRootScopeName. Removed in 2.0.')
+const String $cobaltRootScopeName = cobaltRootScopeName;
+_i687.Future<_i573.CobaltScope> startCobalt({
   _i573.CobaltEnvironment environment =
       _i573.CobaltEnvironment.defaultEnvironment,
   List<_i573.CobaltOverride<Object>> overrides = const [],
   Duration? initTimeout,
 }) => _i573.CobaltApplication.start(
-  root: $CobaltRootScope(environment: environment),
-  bootstrap: $cobaltBootstrap(environment),
-  rootName: $cobaltRootScopeName,
+  root: CobaltRoot(environment: environment),
+  bootstrap: cobaltBootstrapSteps(environment),
+  rootName: cobaltRootScopeName,
+  overrides: overrides,
+  initTimeout: initTimeout,
+);
+@Deprecated('Use startCobalt. Removed in 2.0.')
+_i687.Future<_i573.CobaltScope> $startCobalt({
+  _i573.CobaltEnvironment environment =
+      _i573.CobaltEnvironment.defaultEnvironment,
+  List<_i573.CobaltOverride<Object>> overrides = const [],
+  Duration? initTimeout,
+}) => startCobalt(
+  environment: environment,
   overrides: overrides,
   initTimeout: initTimeout,
 );

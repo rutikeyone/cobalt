@@ -58,7 +58,7 @@ one for `dev`/`test`. Only the one naming the active environment is registered, 
 downstream knows which it got. The `report-crashes` bootstrap step is restricted the same way and
 simply does not appear in the boot log outside `prod` and `stage`.
 
-The environment is a compile-time constant handed to `$startCobalt`, not something a bootstrap step
+The environment is a compile-time constant handed to `startCobalt`, not something a bootstrap step
 loads — the graph cannot be built before it is known. `LoadRemoteConfig` is the separate case: a
 phase-0 step that fetches values the graph then uses.
 
@@ -102,7 +102,7 @@ features/
 ```
 
 `lib/cobalt.g.dart` is generated: it holds the container, the bootstrap list and
-`$startCobalt()`. `lib/features/notes/ui/notes_controller.g.dart` is the
+`startCobalt()`. `lib/features/notes/ui/notes_controller.g.dart` is the
 property-injection mixin. Both are committed so the example reads without
 running the generator first.
 

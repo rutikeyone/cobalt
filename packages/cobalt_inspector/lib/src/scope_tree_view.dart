@@ -1,5 +1,7 @@
 import 'package:cobalt_flutter/cobalt_flutter.dart';
 import 'package:cobalt_inspector/src/cobalt_inspector_log.dart';
+import 'package:cobalt_inspector/src/graph_mermaid.dart';
+import 'package:cobalt_inspector/src/l10n/mermaid_strings.dart';
 import 'package:cobalt_inspector/src/registration_detail_sheet.dart';
 import 'package:cobalt_inspector/src/registration_view.dart';
 import 'package:cobalt_inspector/src/theme/cobalt_inspector_theme.dart';
@@ -7,6 +9,7 @@ import 'package:cobalt_inspector/src/theme/cobalt_inspector_theme_data.dart';
 import 'package:cobalt_inspector/src/widgets/chrome.dart';
 import 'package:cobalt_inspector/src/l10n/inspector_strings.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// The live scope tree, with what each scope registers.
 ///
@@ -61,6 +64,12 @@ class _ScopeTreeViewState extends State<ScopeTreeView> {
                 ),
               ),
               IconButton(
+                key: const Key('copy-mermaid'),
+                tooltip: strings.copyMermaid,
+                icon: Icon(Icons.schema_outlined, color: theme.muted),
+                onPressed: () => _copyMermaid(context, strings.mermaidCopied),
+              ),
+              IconButton(
                 key: const Key('collapse-all'),
                 tooltip: _collapsed.isEmpty
                     ? strings.collapseAll
@@ -103,6 +112,14 @@ class _ScopeTreeViewState extends State<ScopeTreeView> {
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _copyMermaid(BuildContext context, String copied) async {
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    await Clipboard.setData(ClipboardData(text: graphMermaidOf(widget.root)));
+    messenger?.showSnackBar(
+      SnackBar(behavior: SnackBarBehavior.floating, content: Text(copied)),
     );
   }
 

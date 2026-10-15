@@ -63,6 +63,8 @@ export 'package:cobalt/src/logging/cobalt_log_sink.dart';
 export 'package:cobalt/src/logging/cobalt_multi_sink.dart';
 export 'package:cobalt/src/logging/cobalt_print_log_sink.dart';
 export 'package:cobalt/src/logging/cobalt_recording_observer.dart';
+export 'package:cobalt/src/logging/cobalt_startup_observer.dart';
+export 'package:cobalt/src/logging/cobalt_startup_report.dart';
 export 'package:cobalt/src/observer/cobalt_event_kind.dart';
 export 'package:cobalt/src/observer/cobalt_observer.dart';
 export 'package:cobalt/src/observer/cobalt_scope_ref.dart';

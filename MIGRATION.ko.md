@@ -144,7 +144,7 @@ final tabB = app.push('tab:b');   // 형제이며, tabA 위에 쌓이지 않습�
 | `@disposeMethod` | `implements Disposable` / `AsyncDisposable` |
 | `@factoryMethod` | 첫 번째 public 생성(generative) 생성자, 그것이 아닐 때는 `@CobaltModule` 멤버 |
 | `@factoryParam` | 생성자 파라미터에 붙인 `@CobaltParam` |
-| `@InjectableInit()` + `configureDependencies()` | `@CobaltScopeRoot()` + 생성된 `$startCobalt()` |
+| `@InjectableInit()` + `configureDependencies()` | `@CobaltScopeRoot()` + 생성된 `startCobalt()` |
 
 ### 형태가 바뀌는 것
 

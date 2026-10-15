@@ -4,7 +4,7 @@ import 'package:notes_app/bootstrap/load_remote_config.dart';
 /// Clears everything phase 0 writes outside the graph.
 ///
 /// Bootstrap steps run before the container exists, so nothing can be injected
-/// into them — the generated `$cobaltBootstrap` builds them with no arguments at
+/// into them — the generated `cobaltBootstrapSteps` builds them with no arguments at
 /// all. Whatever they record therefore has to live somewhere that outlives the
 /// graph, which in this example means statics.
 ///

@@ -119,7 +119,7 @@ jobs:
         run: ./tool/get.sh
 
       - name: Analyze
-        run: dart analyze --fatal-infos .
+        run: ./tool/analyze_forward.sh
 
       - name: Generated code does not depend on the SDK
         run: |

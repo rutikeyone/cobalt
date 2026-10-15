@@ -147,7 +147,7 @@ Be aware of these before you commit to the move:
 | `@disposeMethod` | `implements Disposable` / `AsyncDisposable` |
 | `@factoryMethod` | the first public generative constructor, or an `@CobaltModule` member when it is not that one |
 | `@factoryParam` | `@CobaltParam` on the constructor parameter |
-| `@InjectableInit()` + `configureDependencies()` | `@CobaltScopeRoot()` + generated `$startCobalt()` |
+| `@InjectableInit()` + `configureDependencies()` | `@CobaltScopeRoot()` + generated `startCobalt()` |
 
 ### What changes shape
 

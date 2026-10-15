@@ -51,14 +51,14 @@ void main() {
     test('the root scope takes its name from @CobaltScopeRoot', () async {
       final app = await startNotesGraph();
 
-      expect($cobaltRootScopeName, 'app');
+      expect(cobaltRootScopeName, 'app');
       expect(app.name, 'app');
     });
 
     test('a failing step aborts the start and names itself', () async {
       await expectLater(
         CobaltApplication.start(
-          root: const $CobaltRootScope(environment: CobaltEnvironment.test),
+          root: const CobaltRoot(environment: CobaltEnvironment.test),
           bootstrap: [_ExplodingStep()],
         ),
         throwsA(
@@ -137,7 +137,7 @@ void main() {
 
     test('async services are unavailable before init', () {
       final scope = CobaltScope.root();
-      const $CobaltRootScope(environment: CobaltEnvironment.test).build(scope);
+      const CobaltRoot(environment: CobaltEnvironment.test).build(scope);
 
       expect(
         () => scope.get<NoteDatabase>(),

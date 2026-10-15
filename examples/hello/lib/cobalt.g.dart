@@ -32,11 +32,11 @@ final class _GreeterFactory
       _i583.Greeter(resolver.get<_i583.Clock>());
 }
 
-final class $CobaltRootScope extends _i573.CobaltRootBuilder {
-  const $CobaltRootScope();
+final class CobaltRoot extends _i573.CobaltRootBuilder {
+  const CobaltRoot();
 
   @override
-  String get name => $cobaltRootScopeName;
+  String get name => cobaltRootScopeName;
 
   @override
   void build(_i573.CobaltScope scope) {
@@ -45,14 +45,22 @@ final class $CobaltRootScope extends _i573.CobaltRootBuilder {
   }
 }
 
-typedef CobaltRoot = $CobaltRootScope;
-const String $cobaltRootScopeName = 'root';
-_i687.Future<_i573.CobaltScope> $startCobalt({
+@Deprecated('Use CobaltRoot. Removed in 2.0.')
+typedef $CobaltRootScope = CobaltRoot;
+const String cobaltRootScopeName = 'root';
+@Deprecated('Use cobaltRootScopeName. Removed in 2.0.')
+const String $cobaltRootScopeName = cobaltRootScopeName;
+_i687.Future<_i573.CobaltScope> startCobalt({
   List<_i573.CobaltOverride<Object>> overrides = const [],
   Duration? initTimeout,
 }) => _i573.CobaltApplication.start(
-  root: const $CobaltRootScope(),
-  rootName: $cobaltRootScopeName,
+  root: const CobaltRoot(),
+  rootName: cobaltRootScopeName,
   overrides: overrides,
   initTimeout: initTimeout,
 );
+@Deprecated('Use startCobalt. Removed in 2.0.')
+_i687.Future<_i573.CobaltScope> $startCobalt({
+  List<_i573.CobaltOverride<Object>> overrides = const [],
+  Duration? initTimeout,
+}) => startCobalt(overrides: overrides, initTimeout: initTimeout);

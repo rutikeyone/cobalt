@@ -19,6 +19,7 @@ import 'package:cobalt_lint/src/rules/lazy_registration_injected_synchronously.d
 import 'package:cobalt_lint/src/rules/missing_injection_mixin.dart';
 import 'package:cobalt_lint/src/rules/override_needs_type_argument.dart';
 import 'package:cobalt_lint/src/rules/param_needs_an_injectable.dart';
+import 'package:cobalt_lint/src/rules/read_does_not_match_registration.dart';
 import 'package:cobalt_lint/src/rules/registration_is_never_released.dart';
 import 'package:cobalt_lint/src/rules/resource_is_never_closed.dart';
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
@@ -43,6 +44,7 @@ void main() {
     defineReflectiveTests(LazyRegistrationInjectedSynchronouslyIsQuiet);
     defineReflectiveTests(MissingInjectionMixinIsQuiet);
     defineReflectiveTests(OverrideNeedsTypeArgumentIsQuiet);
+    defineReflectiveTests(ReadDoesNotMatchRegistrationIsQuiet);
     defineReflectiveTests(ParamNeedsAnInjectableIsQuiet);
     defineReflectiveTests(RegistrationIsNeverReleasedIsQuiet);
     defineReflectiveTests(ResourceIsNeverClosedIsQuiet);
@@ -190,6 +192,13 @@ class ArchiveIndex {
   Future<void> init() async {}
 }
 
+void read(CobaltScope scope) {
+  scope.get<Clock>();
+  scope.getWithParam<Editor, ({int id})>((id: 1));
+  scope.getAsync<Archive>();
+  scope.getAsync<Snapshot>();
+}
+
 @CobaltScopeRoot(name: 'app')
 class AppScope {
   const AppScope();
@@ -309,4 +318,10 @@ class DependsOnLazyRegistrationIsQuiet extends _QuietTest {
 class OverrideNeedsTypeArgumentIsQuiet extends _QuietTest {
   @override
   AnalysisRule makeRule() => OverrideNeedsTypeArgument();
+}
+
+@reflectiveTest
+class ReadDoesNotMatchRegistrationIsQuiet extends _QuietTest {
+  @override
+  AbstractAnalysisRule makeRule() => ReadDoesNotMatchRegistration();
 }

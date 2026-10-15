@@ -38,8 +38,8 @@ class _NotesExampleState extends State<_NotesExample> {
   @override
   Widget build(BuildContext context) => ExampleHost(
     root: const NotesScope(notesEnvironment),
-    bootstrap: () => $cobaltBootstrap(notesEnvironment),
-    rootName: $cobaltRootScopeName,
+    bootstrap: () => cobaltBootstrapSteps(notesEnvironment),
+    rootName: cobaltRootScopeName,
     child: widget.screen,
   );
 }

@@ -90,7 +90,7 @@ of the screens are mounted from the example packages next door:
 | `gallery` itself | Lazy async · Async transient · Decorators · In-app inspector, each in `lib/catalog/` |
 
 Those stay separate packages for a reason that is not tidiness: `cobalt_container` aggregates a
-whole package into a single `$CobaltRootScope`, and two `@CobaltScopeRoot` classes in one package is
+whole package into a single `CobaltRoot`, and two `@CobaltScopeRoot` classes in one package is
 a generation error. Merged, `notes_app` and `codegen_basics` would share one graph — which is
 exactly what a gallery of independent examples must not do.
 

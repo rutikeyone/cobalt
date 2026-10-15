@@ -2,7 +2,7 @@ import 'package:meta/meta_meta.dart';
 
 /// Marks a phase-0 startup step, run before the container exists.
 ///
-/// The generator collects every annotated class into `$cobaltBootstrap`, sorted
+/// The generator collects every annotated class into `cobaltBootstrapSteps`, sorted
 /// by [order] and then by class name so the list is stable across builds.
 /// Steps run strictly one after another — this phase is for work that must
 /// finish before anything can be resolved, such as `WidgetsFlutterBinding`,

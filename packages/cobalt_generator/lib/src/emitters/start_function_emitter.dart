@@ -24,10 +24,19 @@ class StartFunctionEmitter {
 
   Field emitName(String name) => Field(
     (f) => f
-      ..name = r'$cobaltRootScopeName'
+      ..name = 'cobaltRootScopeName'
       ..modifier = FieldModifier.constant
       ..type = refer('String', 'dart:core')
       ..assignment = literalString(name).code,
+  );
+
+  Field emitDeprecatedName() => Field(
+    (f) => f
+      ..name = r'$cobaltRootScopeName'
+      ..annotations.add(deprecatedFor('cobaltRootScopeName'))
+      ..modifier = FieldModifier.constant
+      ..type = refer('String', 'dart:core')
+      ..assignment = refer('cobaltRootScopeName').code,
   );
 
   Method emitStart({
@@ -40,71 +49,95 @@ class StartFunctionEmitter {
 
     return Method(
       (m) => m
-        ..name = r'$startCobalt'
-        ..optionalParameters.addAll([
-          if (usesEnvironments)
-            Parameter(
-              (p) => p
-                ..name = 'environment'
-                ..named = true
-                ..type = cobaltRef('CobaltEnvironment')
-                ..defaultTo = defaultEnvironment.code,
-            ),
-          Parameter(
-            (p) => p
-              ..name = 'overrides'
-              ..named = true
-              ..type = TypeReference(
-                (b) => b
-                  ..symbol = 'List'
-                  ..url = 'dart:core'
-                  ..types.add(
-                    TypeReference(
-                      (o) => o
-                        ..symbol = 'CobaltOverride'
-                        ..url = cobaltUrl
-                        ..types.add(refer('Object', 'dart:core')),
-                    ),
-                  ),
-              )
-              ..defaultTo = literalConstList(const []).code,
-          ),
-          Parameter(
-            (p) => p
-              ..name = 'initTimeout'
-              ..named = true
-              ..type = TypeReference(
-                (b) => b
-                  ..symbol = 'Duration'
-                  ..url = 'dart:core'
-                  ..isNullable = true,
-              ),
-          ),
-        ])
-        ..returns = TypeReference(
-          (b) => b
-            ..symbol = 'Future'
-            ..url = 'dart:async'
-            ..types.add(cobaltRef('CobaltScope')),
-        )
+        ..name = 'startCobalt'
+        ..optionalParameters.addAll(_parameters(usesEnvironments))
+        ..returns = _returns
         ..lambda = true
         ..body = cobaltRef('CobaltApplication').property('start').call(
           const [],
           {
             'root': usesEnvironments
                 ? refer(
-                    r'$CobaltRootScope',
+                    'CobaltRoot',
                   ).newInstance(const [], {'environment': environment})
-                : refer(r'$CobaltRootScope').constInstance(const []),
+                : refer('CobaltRoot').constInstance(const []),
             if (hasBootstrap)
               'bootstrap': bootstrapUsesEnvironments
-                  ? refer(r'$cobaltBootstrap').call([environment])
-                  : refer(r'$cobaltBootstrap'),
-            'rootName': refer(r'$cobaltRootScopeName'),
+                  ? refer('cobaltBootstrapSteps').call([environment])
+                  : refer('cobaltBootstrapSteps'),
+            'rootName': refer('cobaltRootScopeName'),
             'overrides': refer('overrides'),
             'initTimeout': refer('initTimeout'),
           },
         ).code,
     );
   }
+
+  Method emitDeprecatedStart({
+    required bool scopeUsesEnvironments,
+    required bool bootstrapUsesEnvironments,
+  }) {
+    final usesEnvironments = scopeUsesEnvironments || bootstrapUsesEnvironments;
+    return Method(
+      (m) => m
+        ..name = r'$startCobalt'
+        ..annotations.add(deprecatedFor('startCobalt'))
+        ..optionalParameters.addAll(_parameters(usesEnvironments))
+        ..returns = _returns
+        ..lambda = true
+        ..body = refer('startCobalt').call(const [], {
+          if (usesEnvironments) 'environment': refer('environment'),
+          'overrides': refer('overrides'),
+          'initTimeout': refer('initTimeout'),
+        }).code,
+    );
+  }
+
+  static final _returns = TypeReference(
+    (b) => b
+      ..symbol = 'Future'
+      ..url = 'dart:async'
+      ..types.add(cobaltRef('CobaltScope')),
+  );
+
+  static List<Parameter> _parameters(bool usesEnvironments) => [
+    if (usesEnvironments)
+      Parameter(
+        (p) => p
+          ..name = 'environment'
+          ..named = true
+          ..type = cobaltRef('CobaltEnvironment')
+          ..defaultTo = defaultEnvironment.code,
+      ),
+    Parameter(
+      (p) => p
+        ..name = 'overrides'
+        ..named = true
+        ..type = TypeReference(
+          (b) => b
+            ..symbol = 'List'
+            ..url = 'dart:core'
+            ..types.add(
+              TypeReference(
+                (o) => o
+                  ..symbol = 'CobaltOverride'
+                  ..url = cobaltUrl
+                  ..types.add(refer('Object', 'dart:core')),
+              ),
+            ),
+        )
+        ..defaultTo = literalConstList(const []).code,
+    ),
+    Parameter(
+      (p) => p
+        ..name = 'initTimeout'
+        ..named = true
+        ..type = TypeReference(
+          (b) => b
+            ..symbol = 'Duration'
+            ..url = 'dart:core'
+            ..isNullable = true,
+        ),
+    ),
+  ];
 }

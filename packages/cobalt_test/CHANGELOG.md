@@ -1,3 +1,10 @@
+## 1.7.0
+
+- No code changes in this package. Republished in lockstep with 1.7.0:
+  a widget-tree hint in `cobalt_flutter`, a lint rule for reads that always
+  throw, generated names without `$`, `CobaltStartupObserver`, a Mermaid
+  copy in the inspector, and decorators in child scopes.
+
 ## 1.6.0
 
 - `openForTest(builder)` opens a child scope the way the app does, with

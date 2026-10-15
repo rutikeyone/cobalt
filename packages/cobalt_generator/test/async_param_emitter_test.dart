@@ -24,7 +24,7 @@ void main() {
         matches(
           RegExp(
             r'implements\s+_i\d+\.CobaltAsyncParamFactory<_i\d+\.Document, '
-            r'\$DocumentArgs>',
+            r'DocumentArgs>',
           ),
         ),
       );
@@ -33,7 +33,7 @@ void main() {
         matches(
           RegExp(
             r'Future<_i\d+\.Document> create\(\s*_i\d+\.CobaltResolver '
-            r'resolver,\s*\$DocumentArgs args,?\s*\) async \{\s*'
+            r'resolver,\s*DocumentArgs args,?\s*\) async \{\s*'
             r'final instance = _i\d+\.Document\(\s*resolver\.get<_i\d+\.Repo>\(\),'
             r'\s*id: args\.id,?\s*\);\s*await instance\.init\(\);\s*'
             r'return instance;',
@@ -47,12 +47,12 @@ void main() {
         source,
         matches(
           RegExp(
-            r'scope\.registerAsyncParamFactory<_i\d+\.Document, \$DocumentArgs>'
+            r'scope\.registerAsyncParamFactory<_i\d+\.Document, DocumentArgs>'
             r'\(\s*const _DocumentFactory\(\),?\s*\);',
           ),
         ),
       );
-      expect(source, contains(r'typedef $DocumentArgs = ({int id});'));
+      expect(source, contains('typedef DocumentArgs = ({int id});'));
     });
 
     test('awaits a lazy dependency instead of reading it', () {

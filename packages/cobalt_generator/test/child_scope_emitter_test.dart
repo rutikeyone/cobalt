@@ -45,8 +45,8 @@ void main() {
           'scope.registerLazySingleton<_i137.Draft>(const _DraftFactory());',
         ),
       );
-      expect(classOf(source, r'$CobaltRootScope'), isNot(contains('Draft')));
-      expect(classOf(source, r'$CobaltRootScope'), contains('Clock'));
+      expect(classOf(source, r'CobaltRoot'), isNot(contains('Draft')));
+      expect(classOf(source, r'CobaltRoot'), contains('Clock'));
     });
 
     test('registers the values of its marker and takes them as the marker '
@@ -142,7 +142,92 @@ void main() {
       );
 
       expect(classOf(source, 'ScreenScope'), contains('registerSingleton'));
-      expect(source, isNot(contains(r'$startCobalt')));
+      expect(source, isNot(contains(r'startCobalt')));
+    });
+  });
+
+  group('a decorator of what a child scope registers', () {
+    test('is applied in that scope, not in the root', () {
+      final source = generate(
+        [declare('Api', scope: 'Session')],
+        childScopes: [childScope('Session')],
+        decorators: [decorator('LoggingApi', 'Api')],
+      );
+
+      expect(
+        classOf(source, 'SessionScope'),
+        matches(
+          RegExp(
+            r'scope\.decorate<_i\d+\.Api>\(\s*const _LoggingApiDecorator\(\)',
+          ),
+        ),
+      );
+      expect(classOf(source, 'CobaltRoot'), isNot(contains('decorate')));
+    });
+
+    test('is applied in every scope that registers it', () {
+      final source = generate(
+        [declare('Draft', scope: 'Session'), declare('Draft', scope: 'Editor')],
+        childScopes: [childScope('Session'), childScope('Editor')],
+        decorators: [decorator('TrackedDraft', 'Draft', allNames: true)],
+      );
+
+      expect(classOf(source, 'SessionScope'), contains('decorateAll'));
+      expect(classOf(source, 'EditorScope'), contains('decorateAll'));
+    });
+
+    test('may inject what that scope and the root register', () {
+      expect(
+        () => generate(
+          [declare('Clock'), declare('Api', scope: 'Session')],
+          childScopes: [
+            childScope('Session', values: [value('user', 'User')]),
+          ],
+          decorators: [
+            decorator(
+              'AuditedApi',
+              'Api',
+              dependencies: [dep('User'), dep('Clock')],
+            ),
+          ],
+        ),
+        returnsNormally,
+      );
+    });
+
+    test('may not inject what a sibling registers', () {
+      expect(
+        () => generate(
+          [declare('Api', scope: 'Editor')],
+          childScopes: [
+            childScope('Session', values: [value('user', 'User')]),
+            childScope('Editor'),
+          ],
+          decorators: [
+            decorator('AuditedApi', 'Api', dependencies: [dep('User')]),
+          ],
+        ),
+        failsWith(
+          allOf(
+            contains('AuditedApi in scope Editor requires User'),
+            contains('which only scope Session registers'),
+          ),
+        ),
+      );
+    });
+
+    test('wraps nothing where its target is left out', () {
+      expect(
+        () => generate(
+          [
+            declare('Api', scope: 'Session', environments: {'dev'}),
+            declare('Clock', scope: 'Session', environments: {'prod'}),
+          ],
+          childScopes: [childScope('Session')],
+          decorators: [decorator('LoggingApi', 'Api')],
+        ),
+        failsWith(contains('A decorator wraps a registration nothing makes')),
+      );
     });
   });
 
@@ -285,17 +370,6 @@ void main() {
       );
     });
 
-    test('a decorator of what only a child scope registers', () {
-      expect(
-        () => generate(
-          [declare('Api', scope: 'Session')],
-          childScopes: [childScope('Session')],
-          decorators: [decorator('LoggingApi', 'Api')],
-        ),
-        failsWith(contains('applies decorators in the root only')),
-      );
-    });
-
     test('dependsOn across scopes', () {
       expect(
         () => generate(
@@ -325,6 +399,6 @@ void main() {
     );
 
     expect(classOf(source, 'SessionScope'), contains('_FakeApiFactory'));
-    expect(classOf(source, r'$CobaltRootScope'), contains('_LiveApiFactory'));
+    expect(classOf(source, r'CobaltRoot'), contains('_LiveApiFactory'));
   });
 }

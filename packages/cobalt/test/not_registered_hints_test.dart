@@ -225,6 +225,27 @@ void main() {
     });
   });
 
+  group('a hint from the caller', () {
+    test('ends the message', () {
+      final error = CobaltNotRegisteredError(
+        const CobaltKey(Config),
+        'app',
+        registeredElsewhere: const ['session'],
+        hint: 'Publish the session.',
+      );
+
+      expect(error.hint, 'Publish the session.');
+      expect(error.message, endsWith('never down. Publish the session.'));
+    });
+
+    test('is left out when nobody gives one', () {
+      final error = CobaltNotRegisteredError(const CobaltKey(Config), 'app');
+
+      expect(error.hint, isNull);
+      expect(error.message, endsWith('run build_runner again.'));
+    });
+  });
+
   group('every lookup carries the hints', () {
     test('getAsync', () async {
       final app = cobaltTestRoot(name: 'app');

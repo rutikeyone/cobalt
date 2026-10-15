@@ -25,15 +25,15 @@ void main() {
         ),
       ]);
 
-      expect(source, contains(r'typedef $FileEditorArgs = ({int id});'));
+      expect(source, contains('typedef FileEditorArgs = ({int id});'));
       expect(
         source,
-        contains(r'CobaltParamFactory<_i137.Editor, $FileEditorArgs>'),
+        contains('CobaltParamFactory<_i137.Editor, FileEditorArgs>'),
         reason: 'the factory produces what is registered, not what is built',
       );
       expect(
         source,
-        contains(r'registerParamFactory<_i137.Editor, $FileEditorArgs>'),
+        contains('registerParamFactory<_i137.Editor, FileEditorArgs>'),
       );
     });
 
@@ -95,7 +95,7 @@ void main() {
         ),
       ]);
 
-      expect(source, contains(r'typedef $EditorArgs = ({String? title});'));
+      expect(source, contains('typedef EditorArgs = ({String? title});'));
     });
   });
 

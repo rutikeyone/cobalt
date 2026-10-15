@@ -20,8 +20,7 @@ import 'package:meta/meta_meta.dart';
 ///   final bool draft;
 /// }
 ///
-/// // typedef $NoteEditorArgs = ({int id, bool draft});
-/// // typedef NoteEditorArgs = $NoteEditorArgs;
+/// // typedef NoteEditorArgs = ({int id, bool draft});
 /// context.cobaltWithParam<NoteEditor, NoteEditorArgs>((id: 7, draft: true));
 /// ```
 ///

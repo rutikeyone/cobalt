@@ -14,8 +14,8 @@ Future<CobaltScope> startNotesGraph({
   CobaltEnvironment environment = notesEnvironment,
 }) => cobaltTestScope(
   root: NotesScope(environment),
-  bootstrap: $cobaltBootstrap(environment),
-  rootName: $cobaltRootScopeName,
+  bootstrap: cobaltBootstrapSteps(environment),
+  rootName: cobaltRootScopeName,
 );
 
 /// Mounts one screen with the notes graph beneath it.
@@ -37,8 +37,8 @@ Widget notesScreenUnderTest(
   supportedLocales: NotesL10n.supportedLocales,
   home: CobaltAppScope(
     root: NotesScope(environment),
-    bootstrap: () => $cobaltBootstrap(environment),
-    rootName: $cobaltRootScopeName,
+    bootstrap: () => cobaltBootstrapSteps(environment),
+    rootName: cobaltRootScopeName,
     loading: const Scaffold(body: Center(child: CircularProgressIndicator())),
     child: screen,
   ),

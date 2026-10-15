@@ -33,13 +33,13 @@ build_runner again.
 - 调用链之后是一条提示。如果当前作用域下层或旁支的作用域注册了这个键，消息会列出其中最多三个：解析只向上查找，从不向下，所以把注册移到上层，或从那个作用域解析。如果同一类型以其他名称注册过，消息会列出这些键，例如 `Api, Api(fake)`：检查 `name:`。两者都没有时，消息会说明整个作用域树都没有注册它：参见前两条。错误对象的 `registeredElsewhere` 和 `sameType` 字段提供同样的信息。
 - 如果消息说作用域还在构建中：一个 eager 的 `registerSingleton` 在 `build()` 后面的注册完成之前就解析了它的依赖。把它挪到那些注册之后，或改成 lazy。
 - 作用域只能看到自己和上层作用域。注册在会话或屏幕作用域里的类型，从根作用域看不到。
-- 在 Flutter 中，用 `open` 打开的作用域不在 widget 树里：它下面的 `context.cobalt<T>()` 读的是上层作用域。用 `CobaltScopeProvider(scope: session, child: ...)` 包住这些 widget，或者让 `CobaltScopeWidget(builder: SessionScope(user), child: ...)` 拥有会话。
+- 在 Flutter 中，用 `open` 打开的作用域不在 widget 树里：它下面的 `context.cobalt<T>()` 读的是上层作用域。用 `CobaltScopeProvider(scope: session, child: ...)` 包住这些 widget，或者让 `CobaltScopeWidget(builder: SessionScope(user), child: ...)` 拥有会话。通过 `context.cobalt<T>()` 读取时，错误消息末尾也会这样提示。
 
 ### CobaltNotReadyError
 
 一个异步注册——`registerAsyncSingleton` 或带 `@CobaltInit` 的类——在 `init()` 构建完它之前就被读取了。
 
-- 等待启动完成：`await CobaltApplication.start(...)` 或 `await $startCobalt()`。在 Flutter 中，`CobaltAppScope` 在图就绪之前显示 `loading`，所以要在应用内部读取，而不是在 `runApp` 之前。
+- 等待启动完成：`await CobaltApplication.start(...)` 或 `await startCobalt()`。在 Flutter 中，`CobaltAppScope` 在图就绪之前显示 `loading`，所以要在应用内部读取，而不是在 `runApp` 之前。
 - 对于自己 push 的作用域，读取前先 `await child.init()`。
 
 ### CobaltLazyAsyncError
@@ -60,18 +60,21 @@ build_runner again.
 这个注册需要调用方传入一个值——`registerParamFactory`，或带 `@CobaltParam` 的类——但读取时没有传。
 
 - 使用 `scope.getWithParam<T, P>(value)`；异步构建时用 `getAsyncWithParam`。在 widget 里用 `context.cobaltWithParam<T, P>(value)`。
+- lint 规则 `cobalt_read_does_not_match_registration` 会在编辑器里标出这里。
 
 ### CobaltNotParameterizedError
 
 相反的情况：对一个不接受参数的注册调用了 `getWithParam`。
 
 - 使用 `get<T>()`。
+- lint 规则 `cobalt_read_does_not_match_registration` 会在编辑器里标出这里。
 
 ### CobaltAsyncParamError
 
 对一个根据参数异步构建的注册（`registerAsyncParamFactory`）调用了 `getWithParam`。
 
 - 使用 `await scope.getAsyncWithParam<T, P>(value)`。
+- lint 规则 `cobalt_read_does_not_match_registration` 会在编辑器里标出这里。
 
 ### CobaltParamTypeError
 

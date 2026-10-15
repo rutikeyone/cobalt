@@ -894,6 +894,29 @@ final app = await CobaltApplication.start(
 被它丢弃的记录根本不会格式化——级别在记录创建之前就被询问——所以在降低级别之前，挂上日志几乎不增加每次构建的开销。
 你自己的 `CobaltRecordingObserver` 覆盖 `accepts(level)` 即可获得同样效果。
 
+### 启动把时间花在了哪里
+
+`CobaltStartupObserver` 收集 bootstrap 步骤，以及启动在根作用域里构建的东西（eager 单例和异步单例），并在启动返回后汇总：
+
+```dart
+final startup = CobaltStartupObserver();
+final app = await CobaltApplication.start(
+  root: const AppScope(),
+  observers: [startup],
+);
+print(startup.report);
+```
+
+```
+Startup took 412ms.
+Bootstrap: 120ms in 2 steps, the slowest LoadRemoteConfig (90ms).
+Slowest builds:
+  SearchIndex 250ms, 210ms waiting for its dependencies
+  Database 210ms
+```
+
+大部分时间在等待的构建不是该优化的那个：去看它在等什么。之后由某个屏幕构建的惰性单例不算启动的一部分。在 Flutter 中，把它传给 `CobaltAppScope` 的 `observers:`，等第一个屏幕出现后读取 `report`。
+
 ### 送到哪里去
 
 | 包 | 形态 |
@@ -1019,9 +1042,9 @@ scope "app"
 test('each environment keeps its shape', () async {
   await expectGraphSnapshots(
     (environment) => cobaltTestScope(
-      root: $CobaltRootScope(environment: environment),
-      bootstrap: $cobaltBootstrap(environment),
-      rootName: $cobaltRootScopeName,
+      root: CobaltRoot(environment: environment),
+      bootstrap: cobaltBootstrapSteps(environment),
+      rootName: cobaltRootScopeName,
     ),
     environments: {CobaltEnvironment.dev, CobaltEnvironment.prod},
     directory: 'test/snapshots',
@@ -1157,7 +1180,7 @@ class AppScope implements CobaltScopeBuilder {
 
   @override
   void build(CobaltScope scope) {
-    $CobaltRootScope().build(scope);          // 生成器找到的部分
+    CobaltRoot().build(scope);          // 生成器找到的部分
     scope.registerSingleton<Config>(config); // 它无从知晓的部分
   }
 }
@@ -1167,7 +1190,7 @@ class AppScope implements CobaltScopeBuilder {
 
 - **完整性在构建期被检查**，而不是靠测试期的 `expectGraphResolves`；
 - **属性注入**，让已经长到五个以上协作对象的构造函数清空；
-- **二十条 lint 规则**，在编辑器里就抓住 §14 里的那些错误。
+- **二十一条 lint 规则**，在编辑器里就抓住 §14 里的那些错误。
 
 保持原样不变的部分：作用域、销毁、两个阶段、参数化注册、可观测性、测试。
 [GUIDE_CODEGEN.zh-CN.md](GUIDE_CODEGEN.zh-CN.md) 从这里接着讲，

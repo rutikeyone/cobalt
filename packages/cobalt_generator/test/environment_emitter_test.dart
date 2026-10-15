@@ -11,12 +11,12 @@ void main() {
         scopeRoots: [scopeRoot('AppScope', name: 'app')],
       );
 
-      expect(source, contains(r'const $CobaltRootScope();'));
+      expect(source, contains(r'const CobaltRoot();'));
       expect(
         source,
         matches(
           RegExp(
-            r'\$startCobalt\(\{\s*List<_i\d+\.CobaltOverride<Object>> '
+            r'startCobalt\(\{\s*List<_i\d+\.CobaltOverride<Object>> '
             r'overrides = const \[\],\s*Duration\? initTimeout,?\s*\}\) =>',
           ),
         ),
@@ -43,7 +43,7 @@ void main() {
         source,
         matches(
           RegExp(
-            r'const \$CobaltRootScope\(\{\s*this\.environment\s*=\s*'
+            r'const CobaltRoot\(\{\s*this\.environment\s*=\s*'
             r'_i\d+\.CobaltEnvironment\.defaultEnvironment,?\s*\}\)',
           ),
         ),
@@ -56,7 +56,7 @@ void main() {
         source,
         matches(
           RegExp(
-            r'\$startCobalt\(\{\s*_i\d+\.CobaltEnvironment environment\s*=\s*'
+            r'startCobalt\(\{\s*_i\d+\.CobaltEnvironment environment\s*=\s*'
             r'_i\d+\.CobaltEnvironment\.defaultEnvironment,\s*'
             r'List<_i\d+\.CobaltOverride<Object>> overrides = const \[\],\s*'
             r'Duration\? initTimeout,?\s*\}\)',
@@ -64,10 +64,7 @@ void main() {
         ),
         reason: 'environments are opt-in, so startup still works without one',
       );
-      expect(
-        source,
-        contains(r'root: $CobaltRootScope(environment: environment),'),
-      );
+      expect(source, contains(r'root: CobaltRoot(environment: environment),'));
     });
 
     test('guards only the restricted registrations', () {
@@ -97,8 +94,8 @@ void main() {
         bootstrap: [step('BindPlatform')],
       );
 
-      expect(source, contains(r'get $cobaltBootstrap'));
-      expect(source, contains(r'bootstrap: $cobaltBootstrap,'));
+      expect(source, contains(r'get cobaltBootstrapSteps'));
+      expect(source, contains(r'bootstrap: cobaltBootstrapSteps,'));
     });
 
     test('become a function of the environment once one does', () {
@@ -110,16 +107,19 @@ void main() {
         ],
       );
 
-      expect(source, isNot(contains(r'get $cobaltBootstrap')));
+      expect(source, isNot(contains(r'get cobaltBootstrapSteps')));
       expect(
         source,
         matches(
           RegExp(
-            r'\$cobaltBootstrap\(\s*_i\d+\.CobaltEnvironment environment,?\s*\)',
+            r'cobaltBootstrapSteps\(\s*_i\d+\.CobaltEnvironment environment,?\s*\)',
           ),
         ),
       );
-      expect(source, contains(r'bootstrap: $cobaltBootstrap(environment),'));
+      expect(
+        source,
+        contains(r'bootstrap: cobaltBootstrapSteps(environment),'),
+      );
       expect(
         source,
         contains("if (environment.matches(const <String>{'prod'}))"),

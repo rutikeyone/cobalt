@@ -7,7 +7,7 @@ import 'dart:async';
 /// phase, and why implementations are expected to be constructible with no
 /// arguments.
 ///
-/// Classes annotated `@CobaltBootstrap` are collected into `$cobaltBootstrap`
+/// Classes annotated `@CobaltBootstrap` are collected into `cobaltBootstrapSteps`
 /// automatically; implementing this interface and passing the list by hand is
 /// the Manual Mode equivalent.
 abstract interface class CobaltBootstrapStep {

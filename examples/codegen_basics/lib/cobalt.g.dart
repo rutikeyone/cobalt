@@ -13,8 +13,9 @@ import 'package:codegen_basics/platform_module.dart' as _i122;
 import 'package:codegen_basics/services.dart' as _i700;
 import 'package:codegen_basics/tracked_repository.dart' as _i421;
 
-typedef $GreetingArgs = ({String name, bool loud});
-typedef GreetingArgs = $GreetingArgs;
+typedef GreetingArgs = ({String name, bool loud});
+@Deprecated('Use GreetingArgs. Removed in 2.0.')
+typedef $GreetingArgs = GreetingArgs;
 
 final class _PlatformModuleEventsFactory
     implements
@@ -58,7 +59,7 @@ final class _CounterBlocFactory
 
 final class _GreetingFactory
     implements
-        _i573.CobaltParamFactory<_i767.Greeting, $GreetingArgs>,
+        _i573.CobaltParamFactory<_i767.Greeting, GreetingArgs>,
         _i573.CobaltDescribedFactory {
   const _GreetingFactory();
 
@@ -66,7 +67,7 @@ final class _GreetingFactory
   String get implementation => 'Greeting';
 
   @override
-  _i767.Greeting create(_i573.CobaltResolver resolver, $GreetingArgs args) =>
+  _i767.Greeting create(_i573.CobaltResolver resolver, GreetingArgs args) =>
       _i767.Greeting(
         resolver.get<_i700.Config>(),
         name: args.name,
@@ -140,11 +141,11 @@ final class _TrackedRepositoryDecorator
   ) => _i421.TrackedRepository(inner);
 }
 
-final class $CobaltRootScope extends _i573.CobaltRootBuilder {
-  const $CobaltRootScope();
+final class CobaltRoot extends _i573.CobaltRootBuilder {
+  const CobaltRoot();
 
   @override
-  String get name => $cobaltRootScopeName;
+  String get name => cobaltRootScopeName;
 
   @override
   void build(_i573.CobaltScope scope) {
@@ -157,7 +158,7 @@ final class $CobaltRootScope extends _i573.CobaltRootBuilder {
     );
     scope.registerLazySingleton<_i700.Config>(const _ConfigFactory());
     scope.registerLazySingleton<_i700.Telemetry>(const _TelemetryFactory());
-    scope.registerParamFactory<_i767.Greeting, $GreetingArgs>(
+    scope.registerParamFactory<_i767.Greeting, GreetingArgs>(
       const _GreetingFactory(),
     );
     scope.registerLazySingleton<_i700.Repository>(const _RepositoryFactory());
@@ -172,14 +173,22 @@ final class $CobaltRootScope extends _i573.CobaltRootBuilder {
   }
 }
 
-typedef CobaltRoot = $CobaltRootScope;
-const String $cobaltRootScopeName = 'root';
-_i687.Future<_i573.CobaltScope> $startCobalt({
+@Deprecated('Use CobaltRoot. Removed in 2.0.')
+typedef $CobaltRootScope = CobaltRoot;
+const String cobaltRootScopeName = 'root';
+@Deprecated('Use cobaltRootScopeName. Removed in 2.0.')
+const String $cobaltRootScopeName = cobaltRootScopeName;
+_i687.Future<_i573.CobaltScope> startCobalt({
   List<_i573.CobaltOverride<Object>> overrides = const [],
   Duration? initTimeout,
 }) => _i573.CobaltApplication.start(
-  root: const $CobaltRootScope(),
-  rootName: $cobaltRootScopeName,
+  root: const CobaltRoot(),
+  rootName: cobaltRootScopeName,
   overrides: overrides,
   initTimeout: initTimeout,
 );
+@Deprecated('Use startCobalt. Removed in 2.0.')
+_i687.Future<_i573.CobaltScope> $startCobalt({
+  List<_i573.CobaltOverride<Object>> overrides = const [],
+  Duration? initTimeout,
+}) => startCobalt(overrides: overrides, initTimeout: initTimeout);

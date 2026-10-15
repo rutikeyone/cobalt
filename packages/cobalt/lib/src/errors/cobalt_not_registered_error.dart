@@ -15,6 +15,9 @@ final class CobaltNotRegisteredError extends CobaltError {
   ///
   /// [registeredElsewhere] and [sameType] are what the scope tree knows
   /// about the key elsewhere, and turn the message into a hint at the fix.
+  ///
+  /// [hint] is added at the end of the message by whoever knows more about
+  /// where the call came from, as `cobalt_flutter` does for a widget.
   CobaltNotRegisteredError(
     this.key,
     this.scopeName, {
@@ -22,6 +25,7 @@ final class CobaltNotRegisteredError extends CobaltError {
     this.whileBuilding = false,
     this.registeredElsewhere = const [],
     this.sameType = const [],
+    this.hint,
   }) : super(
          _message(
            key,
@@ -30,6 +34,7 @@ final class CobaltNotRegisteredError extends CobaltError {
            whileBuilding,
            registeredElsewhere,
            sameType,
+           hint,
          ),
        );
 
@@ -62,6 +67,9 @@ final class CobaltNotRegisteredError extends CobaltError {
   /// Usually the name was misspelled or left out.
   final List<CobaltKey> sameType;
 
+  /// A sentence about the fix that only the caller could write, or null.
+  final String? hint;
+
   static String _message(
     CobaltKey key,
     String scopeName,
@@ -69,6 +77,7 @@ final class CobaltNotRegisteredError extends CobaltError {
     bool whileBuilding,
     List<String> registeredElsewhere,
     List<CobaltKey> sameType,
+    String? hint,
   ) {
     final where =
         '$key is not registered in scope "$scopeName" or its ancestors.';
@@ -81,7 +90,8 @@ final class CobaltNotRegisteredError extends CobaltError {
         ? ''
         : ' Resolving: ${[...resolving, key].join(' -> ')}.';
     return '$where$when$path'
-        '${_hints(key, scopeName, whileBuilding, registeredElsewhere, sameType)}';
+        '${_hints(key, scopeName, whileBuilding, registeredElsewhere, sameType)}'
+        '${hint == null ? '' : ' $hint'}';
   }
 
   static String _hints(

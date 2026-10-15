@@ -11,7 +11,7 @@ echo "Flutter $version"
 
 for member in $(./tool/members.sh); do rm -rf "$member/build"; done
 ./tool/get.sh upgrade > /dev/null
-dart analyze --fatal-infos .
+./tool/analyze_forward.sh
 for package in examples/hello examples/codegen_basics examples/notes_app compat/external_consumer; do
   (cd "$package" && dart run build_runner build --delete-conflicting-outputs)
 done

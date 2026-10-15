@@ -18,7 +18,7 @@ What the build step buys you, and what this document is mostly about:
   gap at once, instead of failing on whichever screen resolves it first;
 - **property injection** — `late final` fields filled by a generated mixin, so a class with five
   collaborators has an empty constructor;
-- **twenty lint rules** that catch the rest in the editor.
+- **twenty-one lint rules** that catch the rest in the editor.
 
 If you want none of that, or you are migrating an existing container gradually, everything works
 without the generator: [GUIDE_MANUAL.md](GUIDE_MANUAL.md).
@@ -188,7 +188,7 @@ dart run build_runner build
 which is how stale generated code gets caught rather than shipped.
 
 **One root per package.** `cobalt_container` aggregates the whole package into a single
-`$CobaltRootScope`; two `@CobaltScopeRoot` classes in one package is a generation error. Two
+`CobaltRoot`; two `@CobaltScopeRoot` classes in one package is a generation error. Two
 independent generated graphs therefore need two packages — which is exactly why the examples in this
 repository are separate packages rather than folders.
 
@@ -206,11 +206,11 @@ final class _RepositoryFactory implements CobaltFactory<Repository> {
   Repository create(CobaltResolver resolver) => Repository(resolver.get<Config>());
 }
 
-final class $CobaltRootScope extends CobaltRootBuilder {
-  const $CobaltRootScope();
+final class CobaltRoot extends CobaltRootBuilder {
+  const CobaltRoot();
 
   @override
-  String get name => $cobaltRootScopeName;
+  String get name => cobaltRootScopeName;
 
   @override
   void build(CobaltScope scope) {
@@ -220,22 +220,20 @@ final class $CobaltRootScope extends CobaltRootBuilder {
   }
 }
 
-typedef CobaltRoot = $CobaltRootScope;
+const String cobaltRootScopeName = 'app';
 
-const String $cobaltRootScopeName = 'app';
-
-Future<CobaltScope> $startCobalt() => CobaltApplication.start(
-  root: const $CobaltRootScope(),
-  rootName: $cobaltRootScopeName,
+Future<CobaltScope> startCobalt() => CobaltApplication.start(
+  root: const CobaltRoot(),
+  rootName: cobaltRootScopeName,
 );
 ```
 
 ```dart
-final scope = await $startCobalt();
+final scope = await startCobalt();
 ```
 
-`CobaltRoot` is the same class under a name without the `$`, so the Quick start's
-`const CobaltRoot()` and `const $CobaltRootScope()` are interchangeable. It extends
+Before 1.7.0 these were `$CobaltRootScope`, `$cobaltRootScopeName` and `$startCobalt`; the generator
+still writes those names as deprecated aliases until 2.0. `CobaltRoot` extends
 `CobaltRootBuilder`, so it carries the name from `@CobaltScopeRoot`, and with bootstrap steps a
 `bootstrap()` that hands them out; [§7](#7-starting-a-flutter-app) shows both in use.
 
@@ -251,7 +249,7 @@ Four things about that output are deliberate:
 - **Registrations in topological order**, worked out at build time. Property-injected fields count as
   edges too, so a bloc is always registered after what it injects.
 - **No reflection and no runtime scanning.** Whatever is in that file is the whole graph.
-- **`$cobaltBootstrap` is a getter**, not a stored list, so a restart gets fresh steps — see
+- **`cobaltBootstrapSteps` is a getter**, not a stored list, so a restart gets fresh steps — see
   [§11](#11-work-that-has-to-finish-before-the-app-starts).
 
 The generator formats its output with the same `dart_style` your format check uses, so the two never
@@ -361,7 +359,7 @@ factory resolves inside `create`, so nothing static can see what it will ask for
 ---
 
 **A hand-written registration composed around the container follows the same rule.** A lazy one may
-sit above `$CobaltRootScope().build(scope)` and still resolve what the generator registered; an
+sit above `CobaltRoot().build(scope)` and still resolve what the generator registered; an
 eager one may not, and the error says so — it names the missing type and adds that the scope is
 still being built.
 
@@ -379,7 +377,7 @@ class NotesScope implements CobaltScopeBuilder {
 
   @override
   void build(CobaltScope scope) {
-    $CobaltRootScope(environment: environment).build(scope);
+    CobaltRoot(environment: environment).build(scope);
     scope
       ..registerSingleton<CobaltEnvironment>(environment)
       ..registerSingleton<SessionManager>(SessionManager(scope));
@@ -387,7 +385,7 @@ class NotesScope implements CobaltScopeBuilder {
 }
 ```
 
-Wrapping rather than registering after `$startCobalt()` returns is what keeps these inside phase 1 —
+Wrapping rather than registering after `startCobalt()` returns is what keeps these inside phase 1 —
 registered before async initializers run, not bolted on after the graph is already up.
 
 Now tell the completeness check about them, or it will report them as missing:
@@ -405,7 +403,7 @@ failure — the list is a statement you are making, not one the generator can ve
 
 The scope checks it instead, once the builder has run: a promised type nothing registered is reported
 to observers as `onPromiseBroken`, a warning in the log and in `cobalt_inspector`, and in a debug
-build also in the IDE console. It is not an error, because a test that starts `$startCobalt()` or
+build also in the IDE console. It is not an error, because a test that starts `startCobalt()` or
 `CobaltRoot` on its own breaks the promise on purpose.
 
 ---
@@ -426,8 +424,8 @@ void main() => runApp(
     theme: appTheme,
     builder: CobaltAppScope.builder(
       root: const NotesScope(notesEnvironment),
-      bootstrap: () => $cobaltBootstrap(notesEnvironment),
-      rootName: $cobaltRootScopeName,
+      bootstrap: () => cobaltBootstrapSteps(notesEnvironment),
+      rootName: cobaltRootScopeName,
       loading: const Scaffold(body: Center(child: CircularProgressIndicator())),
       errorBuilder: (context, error, retry) => StartupFailed(error: error, retry: retry),
     ),
@@ -436,7 +434,7 @@ void main() => runApp(
 );
 ```
 
-`bootstrap` is a function rather than a list on purpose, and the generator emits `$cobaltBootstrap` as
+`bootstrap` is a function rather than a list on purpose, and the generator emits `cobaltBootstrapSteps` as
 a getter for the same reason: steps hold resources, and a restart has to get new ones.
 
 Without a wrapper of your own, the generated root carries both. The scope takes the name from
@@ -455,9 +453,9 @@ root with steps starts without them; `bootstrap: () => const []` says it is on p
 
 `CobaltAppScope.of(context).restart()` rebuilds the graph — the same call retries a failed start.
 
-Outside Flutter, `await $startCobalt()` is the whole of it.
+Outside Flutter, `await startCobalt()` is the whole of it.
 
-`$startCobalt(initTimeout: ...)` bounds phase 1 — past it the start fails with `CobaltInitTimeoutError`
+`startCobalt(initTimeout: ...)` bounds phase 1 — past it the start fails with `CobaltInitTimeoutError`
 naming what had not been built. Manual Mode, section 8, has the details.
 
 ---
@@ -509,8 +507,9 @@ scope opened under another child scope says so with `@CobaltChildScope(parent: S
 belongs in a session, and when it ends, stay your decisions: the annotation says neither.
 
 The marker is named without `Scope`, which the generator appends; `SessionScope` as a marker would
-give `SessionScopeScope`, and the build refuses it. Decorators and hooks are generated in the root
-only. A `CobaltScopeBuilder` written by hand still works next to the generated ones, from the same
+give `SessionScopeScope`, and the build refuses it. A decorator goes where its target is registered:
+in the root, or, for a class only child scopes register, in each of those scopes, injecting what that
+scope sees. A hook is added in the root and already sees what child scopes build. A `CobaltScopeBuilder` written by hand still works next to the generated ones, from the same
 public API they use.
 
 ### A session
@@ -851,13 +850,12 @@ The generator writes the argument type beside the container as a named record an
 parameterized factory:
 
 ```dart
-// typedef $GreetingArgs = ({String name, bool loud});
-// typedef GreetingArgs = $GreetingArgs;
+// typedef GreetingArgs = ({String name, bool loud});
 final greeting = context.cobaltWithParam<Greeting, GreetingArgs>((name: 'Cobalt', loud: false));
 ```
 
-`GreetingArgs` is the same type under a name without the `$`, which call sites use. The `$` name
-stays until 2.0. When two classes would share a plain name, only the `$` names are written.
+The `$GreetingArgs` spelling of earlier releases still compiles and is deprecated; it goes in 2.0.
+When two classes would share a plain name, the generator writes only `$` names, as before.
 
 A named record rather than positional even for a single argument: adding a second changes the
 contents of the type, not its name or the shape of the call.
@@ -891,8 +889,7 @@ class Document implements AsyncInitializable {
   Future<void> init() => _store.load(this);
 }
 
-// typedef $DocumentArgs = ({int id});
-// typedef DocumentArgs = $DocumentArgs;
+// typedef DocumentArgs = ({int id});
 final document = await scope.getAsyncWithParam<Document, DocumentArgs>((id: 42));
 ```
 
@@ -1068,7 +1065,7 @@ final class JoinRegistry extends CobaltHook<Loggable> {
 ## 15. One graph, several builds
 
 Skip this until one build genuinely needs a different implementation than another. A project that
-never writes `@CobaltEnvironment` has one graph, every registration belongs to it, and `$startCobalt()`
+never writes `@CobaltEnvironment` has one graph, every registration belongs to it, and `startCobalt()`
 takes no argument at all.
 
 ```dart
@@ -1084,7 +1081,7 @@ class FakeApiClient implements ApiClient { ... }
 ```
 
 ```dart
-final scope = await $startCobalt(environment: CobaltEnvironment.prod);
+final scope = await startCobalt(environment: CobaltEnvironment.prod);
 ```
 
 The annotation repeats rather than taking a list: a registration belongs to a *set* of environments
@@ -1113,7 +1110,7 @@ Three things follow:
 - **Completeness is checked per environment**, so a `dev`-only registration cannot satisfy a
   dependent that also runs in `prod`.
 
-Bootstrap steps take environments too. When any of them does, `$cobaltBootstrap` becomes a function of
+Bootstrap steps take environments too. When any of them does, `cobaltBootstrapSteps` becomes a function of
 the chosen environment, and skipped steps never run and never get adopted.
 
 `cobalt_environment_needs_a_registration` catches the case where `@CobaltEnvironment` sits on a class
@@ -1123,7 +1120,7 @@ nothing registers, where it silently does nothing.
 
 ## 16. The lint plugin
 
-Twenty rules, built on the same parsing layer the generator uses, so a mistake surfaces in the editor
+Twenty-one rules, built on the same parsing layer the generator uses, so a mistake surfaces in the editor
 rather than only when `build_runner` runs.
 
 ```yaml
@@ -1149,6 +1146,7 @@ plugins:
 | `cobalt_resource_is_never_closed` | A registration holds something closeable and offers no way to close it |
 | `cobalt_lazy_registration_injected_synchronously` | a lazy async registration injected where nothing can wait for it — a synchronous or eager constructor, an `@injected` field, or a decorator |
 | `cobalt_async_transient_read_synchronously` | `get`, `getOrNull`, `getAll` or `context.cobalt` on an async transient, which always throws — resolve it with `getAsync` |
+| `cobalt_read_does_not_match_registration` | a read that always throws: `get`, `getAsync` or `context.cobalt` on a registration that takes a call-site value, `getWithParam` on one built asynchronously from it, or `getWithParam` on one that takes none |
 | `cobalt_depends_on_lazy_registration` | `@CobaltInit(dependsOn: [...])` naming a lazy async registration, which `init()` never builds |
 | `cobalt_override_needs_type_argument` | a `CobaltOverride` or `CobaltParamOverride` with no type argument, so Dart infers the key it replaces |
 | `cobalt_hook_added_too_late` | `hookAll` after an eager registration or a `get` on the same scope — in one cascade or earlier in the block — which the scope refuses with `CobaltHookError`; add hooks before anything is built |
@@ -1179,14 +1177,14 @@ build is the authority; the editor is the fast path.
 Observers see scopes appearing, instances being built, startup finishing, teardown failing. Pass them
 where the graph is created; every scope pushed below inherits them.
 
-`$startCobalt()` does not take observers — it is the short path. Once you want them, go through the
+`startCobalt()` does not take observers — it is the short path. Once you want them, go through the
 builder you are already composing:
 
 ```dart
 final scope = await CobaltApplication.start(
   root: const NotesScope(notesEnvironment),
-  bootstrap: $cobaltBootstrap(notesEnvironment),
-  rootName: $cobaltRootScopeName,
+  bootstrap: cobaltBootstrapSteps(notesEnvironment),
+  rootName: cobaltRootScopeName,
   observers: [CobaltLogObserver(const CobaltDeveloperLogSink())],
 );
 ```
@@ -1220,6 +1218,32 @@ CobaltLogObserver(CobaltLogSink.from((r) => gelf.send(r.toStructured())))
 The record is not just a string: `level`, `scope`, `key`, `error`, `stackTrace` and `kind` are all
 there, and `kind` is a value — `CobaltEventKind.scopeInitFailed` rather than a sentence you would have
 to parse.
+
+### What the start spent its time on
+
+`CobaltStartupObserver` collects the bootstrap steps and what the start builds in the root scope,
+eager and async singletons, and sums them up once the start has returned:
+
+```dart
+final startup = CobaltStartupObserver();
+final app = await CobaltApplication.start(
+  root: const CobaltRoot(),
+  observers: [startup],
+);
+print(startup.report);
+```
+
+```
+Startup took 412ms.
+Bootstrap: 120ms in 2 steps, the slowest LoadRemoteConfig (90ms).
+Slowest builds:
+  SearchIndex 250ms, 210ms waiting for its dependencies
+  Database 210ms
+```
+
+A build that mostly waits is not the one to speed up: look at what it waits for. A lazy singleton a
+screen builds later is not part of the start. In Flutter, pass it to `observers:` of `CobaltAppScope`
+and read `report` once the first screen shows.
 
 ### Crash reports are a different shape
 
@@ -1267,7 +1291,7 @@ whole-graph assertions in a plain `test`.
 late CobaltScope scope;
 
 setUp(() async {
-  scope = await cobaltTestScope(root: const $CobaltRootScope());
+  scope = await cobaltTestScope(root: const CobaltRoot());
 });
 ```
 
@@ -1283,12 +1307,12 @@ key is skipped rather than rejected as a duplicate:
 
 ```dart
 final scope = await cobaltTestScope(
-  root: const $CobaltRootScope(),
+  root: const CobaltRoot(),
   overrides: [CobaltOverride<ApiClient>.value(FakeApiClient())],
 );
 ```
 
-`$startCobalt(overrides: [...])` takes the same list, and `CobaltAppScope(overrides: () => [...])`
+`startCobalt(overrides: [...])` takes the same list, and `CobaltAppScope(overrides: () => [...])`
 a function called on every start, so a restart does not get back a value the previous graph already
 closed — a flavour or a debug menu is the case in an app. `.value` takes a built object, `.lazy` and
 `.transient` a factory, and `CobaltParamOverride<T, P>` a parameterized one. An eager singleton is
@@ -1387,9 +1411,9 @@ builds differ:
 test('each environment keeps its shape', () async {
   await expectGraphSnapshots(
     (environment) => cobaltTestScope(
-      root: $CobaltRootScope(environment: environment),
-      bootstrap: $cobaltBootstrap(environment),
-      rootName: $cobaltRootScopeName,
+      root: CobaltRoot(environment: environment),
+      bootstrap: cobaltBootstrapSteps(environment),
+      rootName: cobaltRootScopeName,
     ),
     environments: {CobaltEnvironment.dev, CobaltEnvironment.prod},
     directory: 'test/snapshots',

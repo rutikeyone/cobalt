@@ -49,7 +49,7 @@ final class CobaltApplication {
   /// `@CobaltScopeRoot` gives without repeating it here.
   ///
   /// The caller owns the returned scope and must dispose it. In Code-Gen Mode
-  /// the generated `$startCobalt()` is this call with the generated container,
+  /// the generated `startCobalt()` is this call with the generated container,
   /// bootstrap list and root name already filled in.
   static Future<CobaltScope> start({
     required CobaltScopeBuilder root,

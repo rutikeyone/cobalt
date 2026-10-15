@@ -20,7 +20,7 @@ const notesEnvironment = _requestedEnvironment == ''
 /// The whole root scope: what the generator found, plus the two things it
 /// cannot know about.
 ///
-/// Composing a builder rather than registering after `$startCobalt` returns is
+/// Composing a builder rather than registering after `startCobalt` returns is
 /// what keeps these two inside phase 1 — registered before async initializers
 /// run, not bolted on after the graph is already up.
 class NotesScope implements CobaltScopeBuilder {
@@ -30,7 +30,7 @@ class NotesScope implements CobaltScopeBuilder {
 
   @override
   void build(CobaltScope scope) {
-    $CobaltRootScope(environment: environment).build(scope);
+    CobaltRoot(environment: environment).build(scope);
     scope
       ..registerSingleton<CobaltEnvironment>(environment)
       ..registerSingleton<SessionManager>(SessionManager(scope));

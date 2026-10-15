@@ -957,6 +957,32 @@ final app = await CobaltApplication.start(
 пока уровень не понижен. Собственный `CobaltRecordingObserver` получает то же, переопределив
 `accepts(level)`.
 
+### На что ушел старт
+
+`CobaltStartupObserver` собирает шаги bootstrap и то, что старт строит в корневом скоупе (eager- и
+async-синглтоны), и сводит это в отчет, когда старт вернулся:
+
+```dart
+final startup = CobaltStartupObserver();
+final app = await CobaltApplication.start(
+  root: const AppScope(),
+  observers: [startup],
+);
+print(startup.report);
+```
+
+```
+Startup took 412ms.
+Bootstrap: 120ms in 2 steps, the slowest LoadRemoteConfig (90ms).
+Slowest builds:
+  SearchIndex 250ms, 210ms waiting for its dependencies
+  Database 210ms
+```
+
+Сборку, которая в основном ждет, ускорять бесполезно: смотрите, чего она ждет. Ленивый синглтон,
+который экран строит позже, в старт не входит. Во Flutter передайте наблюдателя в `observers:`
+`CobaltAppScope` и прочитайте `report`, когда покажется первый экран.
+
 ### Куда это отправить
 
 | Пакет | Форма |
@@ -1091,9 +1117,9 @@ LiveApiClient`, — и перечисляет, что скоуп принял, �
 test('each environment keeps its shape', () async {
   await expectGraphSnapshots(
     (environment) => cobaltTestScope(
-      root: $CobaltRootScope(environment: environment),
-      bootstrap: $cobaltBootstrap(environment),
-      rootName: $cobaltRootScopeName,
+      root: CobaltRoot(environment: environment),
+      bootstrap: cobaltBootstrapSteps(environment),
+      rootName: cobaltRootScopeName,
     ),
     environments: {CobaltEnvironment.dev, CobaltEnvironment.prod},
     directory: 'test/snapshots',
@@ -1238,7 +1264,7 @@ class AppScope implements CobaltScopeBuilder {
 
   @override
   void build(CobaltScope scope) {
-    $CobaltRootScope().build(scope);          // то, что нашёл генератор
+    CobaltRoot().build(scope);          // то, что нашёл генератор
     scope.registerSingleton<Config>(config); // то, о чём он знать не может
   }
 }
@@ -1248,7 +1274,7 @@ class AppScope implements CobaltScopeBuilder {
 
 - **полнота, проверенная на сборке**, а не через `expectGraphResolves` на тестах;
 - **property injection**, опустошающий конструкторы, доросшие до пяти и более зависимостей;
-- **двадцать правил линтера**, ловящих ошибки из §14 прямо в редакторе.
+- **двадцать одно правило линтера**, которое ловит ошибки из §14 прямо в редакторе.
 
 Что остаётся ровно как есть: скоупы, разбор, две фазы, параметризованные регистрации,
 наблюдаемость, тесты. [GUIDE_CODEGEN.ru.md](GUIDE_CODEGEN.ru.md) продолжает отсюда, а

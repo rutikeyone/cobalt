@@ -4,8 +4,8 @@ import 'package:meta/meta_meta.dart';
 /// Names the root scope and makes the generator emit a start function.
 ///
 /// Annotate any one class in the package — it is a marker, nothing is
-/// registered from it. The generator then emits `$cobaltRootScopeName` and
-/// `$startCobalt()`, which wires the container, the bootstrap list and the name
+/// registered from it. The generator then emits `cobaltRootScopeName` and
+/// `startCobalt()`, which wires the container, the bootstrap list and the name
 /// together:
 ///
 /// ```dart
@@ -14,7 +14,7 @@ import 'package:meta/meta_meta.dart';
 ///   const AppScope();
 /// }
 ///
-/// final scope = await $startCobalt();
+/// final scope = await startCobalt();
 /// ```
 ///
 /// Without the annotation the root scope is called `root`. Two annotated
@@ -35,7 +35,7 @@ class CobaltScopeRoot {
   /// by nothing, which is how a missing registration becomes a build failure
   /// instead of a `CobaltNotRegisteredError` at startup. It only sees this
   /// package's annotations, so anything registered by hand is invisible to it:
-  /// a scope builder that wraps `$CobaltRootScope` and adds to it, or a
+  /// a scope builder that wraps `CobaltRoot` and adds to it, or a
   /// provider from another package. Name those here.
   ///
   /// An element is either a `Type`, or an [CobaltProvided] when the

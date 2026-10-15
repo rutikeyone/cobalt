@@ -41,7 +41,7 @@
 | **可观测性** | 类型化事件而不是字符串——日志、结构化上报，以及带线索的崩溃报告 |
 | **应用内检查器** | 实时作用域树、构建了什么及其生命周期，以及上报过的一切 |
 | **导航流程** | 生命周期即一段 go_router 流程的作用域，并且没有任何东西去镜像路由 |
-| **lint 插件** | 二十条规则，建立在生成器所用的同一套解析层上 |
+| **lint 插件** | 二十一条规则，建立在生成器所用的同一套解析层上 |
 | **依赖覆盖** | 在注册所属的作用域里替换它，让每个消费者都看到替身——无论是在测试、风味构建还是调试菜单里 |
 | **测试辅助** | 随测试一起销毁的作用域，以及与生产环境同一套机制的依赖覆盖 |
 | **没有全局容器** | 没有任何东西是环境隐式的，所以测试可以并行，同一进程里的两张图互不相关 |
@@ -173,8 +173,8 @@ something outside the generated container registers it.
 三个构建器：一个写属性注入的 mixin，一个把每个库扫描成 IR，一个把整个包聚合成 `lib/cobalt.g.dart`。
 聚合之所以分两阶段，是因为单个构建步骤看不到整个程序。
 
-产物是私有 const 工厂类和一个 `$CobaltRootScope`，其顺序由编译期拓扑排序确定——
-没有闭包、没有反射、没有运行时扫描。`$cobaltBootstrap` 是 getter 而不是存下来的列表，
+产物是私有 const 工厂类和一个 `CobaltRoot`，其顺序由编译期拓扑排序确定——
+没有闭包、没有反射、没有运行时扫描。`cobaltBootstrapSteps` 是 getter 而不是存下来的列表，
 所以重启拿到的是新的步骤，而不是上次启动已经用掉的那些。
 
 泛型作为依赖和 `exposeAs` 目标都可用：`Repository<User>` 和 `Repository<Order>` 是两条注册，
@@ -255,5 +255,5 @@ cd examples/gallery && flutter run
 [`cobalt_inspector` 的 README](../packages/cobalt_inspector/README.md)；
 示例如何接线，见[画廊的 README](../examples/gallery/README.md)。
 
-lint 插件的二十条规则列在 [`cobalt_lint` README](../packages/cobalt_lint/README.md) 和
+lint 插件的二十一条规则列在 [`cobalt_lint` README](../packages/cobalt_lint/README.md) 和
 [GUIDE_CODEGEN.zh-CN.md](../GUIDE_CODEGEN.zh-CN.md#16-lint-插件) 中。

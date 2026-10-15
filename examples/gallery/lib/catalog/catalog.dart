@@ -267,8 +267,8 @@ List<ExampleEntry> buildCatalog(GalleryL10n l10n) => [
     transcriptLabel: l10n.whereItLives,
     transcript: 'examples/codegen_basics/lib/counter_screen.dart',
     open: (_) => const ExampleHost(
-      root: codegen.$CobaltRootScope(),
-      rootName: codegen.$cobaltRootScopeName,
+      root: codegen.CobaltRoot(),
+      rootName: codegen.cobaltRootScopeName,
       child: CounterScreen(),
     ),
   ),

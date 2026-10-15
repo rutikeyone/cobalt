@@ -60,6 +60,8 @@ cobalt  CobaltScopeBuilder  abstract interface class
 cobalt  CobaltScopeRef  final class
 cobalt  CobaltScopeState  enum
 cobalt  CobaltScopeStateError  final class
+cobalt  CobaltStartupObserver  final class
+cobalt  CobaltStartupReport  final class
 cobalt  CobaltWarmUpError  final class
 cobalt  Disposable  abstract interface class
 cobalt_analyzer  CobaltAnnotationMatcher  class

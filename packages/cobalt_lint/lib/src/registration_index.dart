@@ -36,6 +36,9 @@ class CobaltRegistrationIndex {
     this.rootNames = const {},
     this.scopedNames = const {},
     this.parents = const {},
+    this.withParams = const {},
+    this.asyncWithParams = const {},
+    this.withoutParams = const {},
   ]);
 
   /// Every type name something in the package registers, except a generic
@@ -113,6 +116,12 @@ class CobaltRegistrationIndex {
   /// opened under the root.
   final Map<String, String?> parents;
 
+  final Set<String> withParams;
+
+  final Set<String> asyncWithParams;
+
+  final Set<String> withoutParams;
+
   /// The child scopes that register [name], when the root does not.
   ///
   /// Null when the root registers it, or when no child scope does, so a rule
@@ -186,6 +195,14 @@ class _IndexBuilder {
   final rootNames = <String>{};
   final scopedNames = <String, Set<String>>{};
   final parents = <String, String?>{};
+  final _withParams = <String>{};
+  final _asyncWithParams = <String>{};
+  final _withoutParams = <String>{};
+  final _unsure = <String>{};
+  final _readClaims = <String, int>{};
+
+  void _claimRead(String node) =>
+      _readClaims[node] = (_readClaims[node] ?? 0) + 1;
 
   void _place(String? scope, Iterable<String> registered) {
     for (final name in registered) {
@@ -243,6 +260,12 @@ class _IndexBuilder {
       cycle = error.cycle;
     }
 
+    final certain = {
+      for (final MapEntry(key: node, value: claims) in _readClaims.entries)
+        if (claims == 1 && !_unsure.contains(node) && !ambiguous.contains(node))
+          node,
+    };
+
     return CobaltRegistrationIndex(
       names,
       edges,
@@ -257,6 +280,9 @@ class _IndexBuilder {
           if (!rootNames.contains(name)) name: scopes,
       },
       parents,
+      _withParams.intersection(certain),
+      _asyncWithParams.intersection(certain),
+      _withoutParams.intersection(certain),
     );
   }
 
@@ -275,6 +301,7 @@ class _IndexBuilder {
       var isTransient = false;
       String? exposed;
       String? scope;
+      var generic = false;
       final wanted = <String>{};
 
       for (final annotation in declaration.metadata) {
@@ -304,6 +331,7 @@ class _IndexBuilder {
             if (listed == null) {
               names.add(declaration.namePart.typeName.lexeme);
             } else {
+              generic = true;
               instantiations
                   .putIfAbsent(declaration.namePart.typeName.lexeme, () => {})
                   .addAll(listed);
@@ -316,6 +344,7 @@ class _IndexBuilder {
             final provided = <String>{};
             _addArgumentList(annotation, 'provides', provided);
             names.addAll(provided);
+            _unsure.addAll(provided);
             _place(null, provided);
           case 'CobaltChildScope':
             final marker = declaration.namePart.typeName.lexeme;
@@ -323,6 +352,7 @@ class _IndexBuilder {
             _addArgumentList(annotation, 'provides', held);
             _addConstructorParameters(declaration, held);
             names.addAll(held);
+            _unsure.addAll(held);
             _place(marker, held);
             parents[marker] = _firstName(_namedArgument(annotation, 'parent'));
           case 'CobaltModule':
@@ -351,6 +381,14 @@ class _IndexBuilder {
         _addConstructorParameters(declaration, wanted);
         _addInjectedFields(declaration, wanted);
         _link(node, wanted);
+        _claimRead(node);
+        if (generic) {
+          _unsure.add(node);
+        } else if (_takesCallSiteValues(declaration)) {
+          (isAsync ? _asyncWithParams : _withParams).add(node);
+        } else {
+          _withoutParams.add(node);
+        }
         if (isLazy || (isAsync && isTransient)) lazy.add(node);
         if (isAsync &&
             isTransient &&
@@ -395,6 +433,8 @@ class _IndexBuilder {
             // module registering `Channel` and an unrelated `Channel` class
             // elsewhere in the package read as one node.
             _claims[node] = (_claims[node] ?? 0) + 1;
+            _claimRead(node);
+            _unsure.add(node);
             final lazyInit = _isTrue(_namedArgument(annotation, 'lazyInit'));
             final asyncTransient =
                 _isFuture(member.returnType) && _isTransient(annotation);
