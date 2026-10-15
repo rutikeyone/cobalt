@@ -1,3 +1,19 @@
+## 1.7.0
+
+- The generated names lose the `$`: `CobaltRoot` is the class,
+  `startCobalt`, `cobaltBootstrapSteps`, `cobaltRootScopeName` and
+  `NoteEditorArgs` the functions, constant and records. The bootstrap list
+  is `cobaltBootstrapSteps` because `cobaltBootstrap` is the annotation.
+- The `$` names are still written, as `@Deprecated` aliases, and go in 2.0.
+  Code that uses them gets a deprecation hint; with `--fatal-infos` that
+  fails the analysis, so rename: `$CobaltRootScope` to `CobaltRoot`,
+  `$startCobalt` to `startCobalt`, `$cobaltBootstrap` to
+  `cobaltBootstrapSteps`, `$cobaltRootScopeName` to `cobaltRootScopeName`,
+  `$XArgs` to `XArgs`.
+- A decorator of a class only child scopes register is applied in each of
+  those scopes and may inject what that scope sees. Before, the build
+  refused it.
+
 ## 1.6.0
 
 - Each call-site record also gets a name without the `$`:

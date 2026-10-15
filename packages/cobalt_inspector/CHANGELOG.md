@@ -1,3 +1,8 @@
+## 1.7.0
+
+- The tree copies the whole graph as a Mermaid flowchart, the text
+  `describeGraphMermaid` in `cobalt_test` writes.
+
 ## 1.6.0
 
 - No code changes in this package. Republished in lockstep with 1.6.0:

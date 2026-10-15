@@ -1,3 +1,12 @@
+## 1.7.0
+
+- `CobaltStartupObserver` and `CobaltStartupReport`: what a cold start spent
+  its time on. Pass the observer to the start and read `report` once it has
+  returned: the bootstrap steps, the eager and async singletons the start
+  built, and how long each waited for its dependencies.
+- `CobaltNotRegisteredError` takes an optional `hint`, added at the end of
+  the message by a caller that knows more, as `cobalt_flutter` does.
+
 ## 1.6.0
 
 - `CobaltRootBuilder.hasBootstrap`: whether the root has bootstrap steps,

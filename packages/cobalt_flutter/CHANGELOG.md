@@ -1,3 +1,11 @@
+## 1.7.0
+
+- `context.cobalt`, `cobaltWithParam`, `cobaltAsync` and
+  `cobaltAsyncWithParam` add a hint to `CobaltNotRegisteredError` when the
+  widget asked for a type that lives in a scope outside the widget tree, a
+  session from `open` most often: wrap the widgets in `CobaltScopeProvider`,
+  or let a `CobaltScopeWidget` own the scope. Requires `cobalt` 1.7.0.
+
 ## 1.6.0
 
 - In a debug build, `CobaltAppScope` prints a reminder when a root with

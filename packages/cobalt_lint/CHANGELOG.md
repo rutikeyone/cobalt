@@ -1,3 +1,10 @@
+## 1.7.0
+
+- `cobalt_read_does_not_match_registration` reports a read that always
+  throws: `get`, `getAsync` or `context.cobalt` on a registration that
+  takes a call-site value, `getWithParam` on one built asynchronously from
+  it, and `getWithParam` on one that takes none.
+
 ## 1.6.0
 
 - `cobalt_dependency_is_not_registered` also reports a dependency that
