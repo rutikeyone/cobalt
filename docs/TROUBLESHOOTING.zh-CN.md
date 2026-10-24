@@ -205,5 +205,6 @@ override 什么也没替换。
 - **`test/widget_test.dart` 里的 `The name 'MyApp' isn't a class`。** 这个测试是 `flutter create` 生成的，测的是你已经替换掉的计数器应用。把它换成[快速开始](../README.zh-CN.md#快速开始)里的测试。
 - **`lib/cobalt.g.dart` 里的 `The imported package 'cobalt' isn't a dependency`。** 生成的代码直接导入运行时，所以应用必须依赖它：`flutter pub add cobalt`。
 - **`Classes can only mix in mixins and classes` 或 `Undefined class '_$Foo'`。** 类混入了生成的 `_$Foo`，但文件没有包含它所在的 part。在 import 下面加上 `part 'foo.g.dart';` 并运行构建；`cobalt_missing_injection_mixin` 的快速修复会把两者都写上。
+- **`flutter analyze` 或 `dart analyze` 里每个错误都出现两次。** 任何分析器插件都会这样，无论是 `cobalt_lint` 还是一条规则都没有的插件（在 Flutter 3.38.9 和 Dart 3.10.8 上验证）：插件应答后 analysis server 会再发一次报告，命令行把每一次都保留了下来。并没有两处出错，修好每对中的第一个即可。`flutter analyze` 的修复已经合入 Flutter 的 master 分支（[flutter/flutter#193279](https://github.com/flutter/flutter/pull/193279)）。
 
-`dart run cobalt:doctor` 会检查这些原因以及另外几项：`cobalt_generator` 比 `cobalt` 新；analyzer 版本让生成器装不上，以及是哪些包把它固定住的；用了注解却没有生成器；`lib/cobalt.g.dart` 比生成它的代码旧；生成的名字后来改了名；`cobalt_lint` 是否启用。发现错误时以 1 退出，所以可以放进 CI。
+`dart run cobalt:doctor` 会检查其中大部分原因以及另外几项：`cobalt_generator` 比 `cobalt` 新；analyzer 版本让生成器装不上，以及是哪些包把它固定住的；用了注解却没有生成器；`lib/cobalt.g.dart` 比生成它的代码旧；生成的名字后来改了名；`cobalt_lint` 是否启用。发现错误时以 1 退出，所以可以放进 CI。
