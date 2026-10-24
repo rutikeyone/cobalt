@@ -130,6 +130,43 @@ void main() {
       expect(timing.self['Branch'], lessThan(_leafWork));
     });
 
+    test('a dependency built in an unwatched parent is still not counted', () {
+      final timing = _Timing();
+      final root = cobaltTestRoot()
+        ..registerLazySingleton<Leaf>(
+          FnFactory((_) {
+            sleep(_leafWork);
+            return Leaf();
+          }),
+        );
+      root.push('watched', observers: [timing])
+        ..registerLazySingleton<Branch>(
+          FnFactory((resolver) => Branch(resolver.get<Leaf>())),
+        )
+        ..get<Branch>();
+
+      expect(timing.took['Branch'], greaterThanOrEqualTo(_leafWork));
+      expect(timing.self['Branch'], lessThan(_leafWork));
+      expect(timing.took, isNot(contains('Leaf')));
+    });
+
+    test('an unwatched graph builds and starts as before', () async {
+      final scope = cobaltTestRoot()
+        ..registerLazySingleton<Leaf>(FnFactory((_) => Leaf()))
+        ..registerLazySingleton<Branch>(
+          FnFactory((resolver) => Branch(resolver.get<Leaf>())),
+        )
+        ..registerAsyncSingleton<Left>(AsyncFnFactory((_) async => Left()))
+        ..registerLazyAsyncSingleton<Right>(
+          AsyncFnFactory((_) async => Right()),
+        );
+      await scope.init();
+
+      expect(scope.get<Branch>().leaf, same(scope.get<Leaf>()));
+      expect(scope.get<Left>(), isA<Left>());
+      expect(await scope.getAsync<Right>(), isA<Right>());
+    });
+
     test('dependencies awaited side by side never make it negative', () async {
       final timing = _Timing();
       final scope = cobaltTestRoot(observers: [timing])

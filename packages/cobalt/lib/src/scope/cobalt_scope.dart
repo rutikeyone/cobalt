@@ -413,7 +413,9 @@ final class CobaltScope extends CobaltResolver {
       );
     }
     return found.scope._tracker.guard(key, () {
-      final timing = BuildTiming.start();
+      final timing = BuildTiming.start(
+        observed: found.scope._observers.isNotEmpty,
+      );
       final instance = timing.during(
         () => registration.factory.create(found.scope, param),
       );
@@ -800,7 +802,7 @@ final class CobaltScope extends CobaltResolver {
     }
     final teardown = _teardownOf(dispose);
     final instance = _tracker.guard(key, () {
-      final timing = BuildTiming.start();
+      final timing = BuildTiming.start(observed: _observers.isNotEmpty);
       final built = timing.during(() => factory.create(this));
       _afterCreate(
         built,
@@ -1119,7 +1121,9 @@ final class CobaltScope extends CobaltResolver {
       );
     }
     return found.scope._tracker.guard(key, () {
-      final timing = BuildTiming.start();
+      final timing = BuildTiming.start(
+        observed: found.scope._observers.isNotEmpty,
+      );
       final instance = timing.during(
         () => registration.factory.create(found.scope, param),
       );
@@ -1623,7 +1627,7 @@ final class CobaltScope extends CobaltResolver {
 
       case TransientRegistration():
         return _tracker.guard(registration.key, () {
-          final timing = BuildTiming.start();
+          final timing = BuildTiming.start(observed: _observers.isNotEmpty);
           final instance = timing.during(
             () => registration.factory.create(this),
           );
@@ -1641,7 +1645,7 @@ final class CobaltScope extends CobaltResolver {
         final existing =
             registration.instance ??
             _tracker.guard<Object>(registration.key, () {
-              final timing = BuildTiming.start();
+              final timing = BuildTiming.start(observed: _observers.isNotEmpty);
               final instance = timing.during(
                 () => registration.factory.create(this),
               );
@@ -1712,7 +1716,7 @@ final class CobaltScope extends CobaltResolver {
 
       case AsyncTransientRegistration():
         final key = registration.key;
-        final timing = BuildTiming.start();
+        final timing = BuildTiming.start(observed: _observers.isNotEmpty);
         final instance = await CobaltResolutionTracker.guardLazy(
           key,
           () => timing.during(() => registration.factory.create(this)),
@@ -1757,7 +1761,7 @@ final class CobaltScope extends CobaltResolver {
           );
         }
         return _tracker.guard(key, () {
-          final timing = BuildTiming.start();
+          final timing = BuildTiming.start(observed: _observers.isNotEmpty);
           final instance = timing.during(
             () => registration.factory.create(this, param),
           );
@@ -1779,7 +1783,7 @@ final class CobaltScope extends CobaltResolver {
             param.runtimeType,
           );
         }
-        final timing = BuildTiming.start();
+        final timing = BuildTiming.start(observed: _observers.isNotEmpty);
         final instance = await CobaltResolutionTracker.guardLazy(
           key,
           () => timing.during(() => registration.factory.create(this, param)),
@@ -1845,7 +1849,7 @@ final class CobaltScope extends CobaltResolver {
       onError: (Object _) => _settleLazy(registration, build),
     );
 
-    final timing = BuildTiming.start();
+    final timing = BuildTiming.start(observed: _observers.isNotEmpty);
     CobaltResolutionTracker.guardLazy(
       registration.key,
       () async {
@@ -1926,7 +1930,7 @@ final class CobaltScope extends CobaltResolver {
 
   Future<void> _createAsync(AsyncSingletonRegistration registration) =>
       _tracker.guardAsync(registration.key, () async {
-        final timing = BuildTiming.start();
+        final timing = BuildTiming.start(observed: _observers.isNotEmpty);
         final instance = await CobaltResolutionTracker.inPhaseOne(
           this,
           () => timing.during(() => registration.factory.create(this)),
