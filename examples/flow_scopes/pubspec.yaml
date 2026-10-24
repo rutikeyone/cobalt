@@ -9,6 +9,7 @@ environment:
 
 
 dependencies:
+  cobalt_flutter: ^1.0.0
   cobalt_go_router: ^1.0.0
   flutter:
     sdk: flutter

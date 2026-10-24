@@ -219,6 +219,40 @@ class OrderFlowRoute extends CobaltShellRoute {
 
 可运行的代码：[`examples/notes_app/lib/features/order_flow`](../examples/notes_app/lib/features/order_flow)。
 
+### 不用 cobalt_go_router
+
+`cobalt_go_router` 需要 go_router 17 或更高版本：它会转交 `notifyRootObserver`，而这是 go_router 17.0.0 才加入的。在更早的 go_router 上，流程就是一个普通的 `ShellRoute`，它的 builder 用 `CobaltScopeWidget` 包住外壳。key 里放的是订单 id，所以切到另一个订单会换掉作用域，离开外壳下的路由则会销毁它：
+
+<!-- from: examples/flow_scopes/test/plain_shell_route_test.dart -->
+
+```dart
+final orderFlow = ShellRoute(
+  builder: (context, state, child) {
+    final orderId = state.pathParameters['orderId']!;
+    return CobaltScopeWidget(
+      key: ValueKey(orderId),
+      name: 'order:$orderId',
+      builder: OrderFlowScope(orderId),
+      child: OrderFlowChrome(child: child),
+    );
+  },
+  routes: [
+    GoRoute(
+      path: '/orders/:orderId/summary',
+      builder: (_, state) =>
+          OrderSummaryScreen(orderId: state.pathParameters['orderId']!),
+    ),
+    GoRoute(
+      path: '/orders/:orderId/payment',
+      builder: (_, state) =>
+          OrderPaymentScreen(orderId: state.pathParameters['orderId']!),
+    ),
+  ],
+);
+```
+
+和 `CobaltShellRoute` 一样，这个路由只创建一次，和路由表的其他部分放在一起：对 go_router 来说，新的 `ShellRoute` 对象就是新的页面，作用域会随之重建。代码来自 [`examples/flow_scopes/test/plain_shell_route_test.dart`](../examples/flow_scopes/test/plain_shell_route_test.dart)，测试检查了进入流程、在流程内移动、切换订单和离开。
+
 ## 在测试里替换依赖
 
 override 在拥有该注册的作用域里替换它，所以那里的每个工厂拿到的都是替换后的对象：

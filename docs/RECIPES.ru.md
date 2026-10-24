@@ -246,6 +246,45 @@ class OrderFlowRoute extends CobaltShellRoute {
 
 Рабочий код: [`examples/notes_app/lib/features/order_flow`](../examples/notes_app/lib/features/order_flow).
 
+### Без cobalt_go_router
+
+`cobalt_go_router` требует go_router 17 или новее: он передает дальше `notifyRootObserver`, который
+появился в go_router 17.0.0. На более старом go_router флоу собирается из обычного `ShellRoute`, чей
+builder оборачивает оболочку в `CobaltScopeWidget`. В ключе лежит id заказа, поэтому переход к
+другому заказу заменяет скоуп, а выход за маршруты оболочки разбирает его:
+
+<!-- from: examples/flow_scopes/test/plain_shell_route_test.dart -->
+
+```dart
+final orderFlow = ShellRoute(
+  builder: (context, state, child) {
+    final orderId = state.pathParameters['orderId']!;
+    return CobaltScopeWidget(
+      key: ValueKey(orderId),
+      name: 'order:$orderId',
+      builder: OrderFlowScope(orderId),
+      child: OrderFlowChrome(child: child),
+    );
+  },
+  routes: [
+    GoRoute(
+      path: '/orders/:orderId/summary',
+      builder: (_, state) =>
+          OrderSummaryScreen(orderId: state.pathParameters['orderId']!),
+    ),
+    GoRoute(
+      path: '/orders/:orderId/payment',
+      builder: (_, state) =>
+          OrderPaymentScreen(orderId: state.pathParameters['orderId']!),
+    ),
+  ],
+);
+```
+
+Маршрут создается один раз, вместе с остальной таблицей маршрутов, как и `CobaltShellRoute`: новый
+объект `ShellRoute` для go_router означает новую страницу, и скоуп пересоздастся вместе с ней. Код
+взят из [`examples/flow_scopes/test/plain_shell_route_test.dart`](../examples/flow_scopes/test/plain_shell_route_test.dart), тест проверяет вход во флоу, переходы внутри него, смену заказа и выход.
+
 ## Подмена зависимости в тесте
 
 Override заменяет регистрацию в том скоупе, которому она принадлежит, поэтому замену получает каждая

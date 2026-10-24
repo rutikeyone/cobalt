@@ -240,6 +240,45 @@ class OrderFlowRoute extends CobaltShellRoute {
 
 실행되는 코드: [`examples/notes_app/lib/features/order_flow`](../examples/notes_app/lib/features/order_flow).
 
+### cobalt_go_router 없이
+
+`cobalt_go_router`는 go_router 17 이상이 필요합니다. go_router 17.0.0에서 추가된 `notifyRootObserver`를
+넘겨주기 때문입니다. 그보다 오래된 go_router에서는 평범한 `ShellRoute`의 builder가 셸을
+`CobaltScopeWidget`으로 감싸면 플로우가 됩니다. 키에 주문 id가 들어 있으므로 다른 주문으로 가면 스코프가
+교체되고, 셸의 라우트를 벗어나면 해제됩니다:
+
+<!-- from: examples/flow_scopes/test/plain_shell_route_test.dart -->
+
+```dart
+final orderFlow = ShellRoute(
+  builder: (context, state, child) {
+    final orderId = state.pathParameters['orderId']!;
+    return CobaltScopeWidget(
+      key: ValueKey(orderId),
+      name: 'order:$orderId',
+      builder: OrderFlowScope(orderId),
+      child: OrderFlowChrome(child: child),
+    );
+  },
+  routes: [
+    GoRoute(
+      path: '/orders/:orderId/summary',
+      builder: (_, state) =>
+          OrderSummaryScreen(orderId: state.pathParameters['orderId']!),
+    ),
+    GoRoute(
+      path: '/orders/:orderId/payment',
+      builder: (_, state) =>
+          OrderPaymentScreen(orderId: state.pathParameters['orderId']!),
+    ),
+  ],
+);
+```
+
+`CobaltShellRoute`와 마찬가지로 이 라우트는 나머지 라우트 테이블과 함께 한 번만 만듭니다. go_router에게
+새 `ShellRoute` 객체는 새 페이지이고, 스코프도 함께 다시 만들어집니다. 코드는 [`examples/flow_scopes/test/plain_shell_route_test.dart`](../examples/flow_scopes/test/plain_shell_route_test.dart)에서 가져왔고,
+이 테스트는 플로우 진입, 플로우 안에서의 이동, 주문 변경, 이탈을 확인합니다.
+
 ## 테스트에서 의존성 바꿔 끼우기
 
 override는 그 등록을 가진 스코프에서 등록을 바꾸므로, 그 스코프의 모든 팩토리가 바뀐 것을 받습니다:

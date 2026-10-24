@@ -246,6 +246,45 @@ class OrderFlowRoute extends CobaltShellRoute {
 
 Running code: [`examples/notes_app/lib/features/order_flow`](../examples/notes_app/lib/features/order_flow).
 
+### Without cobalt_go_router
+
+`cobalt_go_router` needs go_router 17 or later: it passes on `notifyRootObserver`, which go_router
+added in 17.0.0. On an older go_router the flow is a plain `ShellRoute` whose builder wraps the shell
+in `CobaltScopeWidget`. The key holds the order id, so going to another order replaces the scope, and
+leaving the routes of the shell disposes it:
+
+<!-- from: examples/flow_scopes/test/plain_shell_route_test.dart -->
+
+```dart
+final orderFlow = ShellRoute(
+  builder: (context, state, child) {
+    final orderId = state.pathParameters['orderId']!;
+    return CobaltScopeWidget(
+      key: ValueKey(orderId),
+      name: 'order:$orderId',
+      builder: OrderFlowScope(orderId),
+      child: OrderFlowChrome(child: child),
+    );
+  },
+  routes: [
+    GoRoute(
+      path: '/orders/:orderId/summary',
+      builder: (_, state) =>
+          OrderSummaryScreen(orderId: state.pathParameters['orderId']!),
+    ),
+    GoRoute(
+      path: '/orders/:orderId/payment',
+      builder: (_, state) =>
+          OrderPaymentScreen(orderId: state.pathParameters['orderId']!),
+    ),
+  ],
+);
+```
+
+Build the route once, with the rest of the route table, as with `CobaltShellRoute`: a new
+`ShellRoute` object is a new page to go_router, and the scope would be rebuilt with it. The code is
+from [`examples/flow_scopes/test/plain_shell_route_test.dart`](../examples/flow_scopes/test/plain_shell_route_test.dart), which checks entering the flow, moving inside it, switching orders and leaving.
+
 ## Swapping a dependency in a test
 
 An override replaces a registration in the scope that owns it, so every factory there gets the
