@@ -13,6 +13,7 @@ export 'package:cobalt_annotations/cobalt_annotations.dart';
 
 export 'package:cobalt/src/bootstrap/cobalt_application.dart';
 export 'package:cobalt/src/bootstrap/cobalt_bootstrap_step.dart';
+export 'package:cobalt/src/bootstrap/cobalt_child_scope_builder.dart';
 export 'package:cobalt/src/bootstrap/cobalt_root_builder.dart';
 export 'package:cobalt/src/bootstrap/cobalt_scope_builder.dart';
 export 'package:cobalt/src/decorator/cobalt_decorator.dart';

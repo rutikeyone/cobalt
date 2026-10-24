@@ -10,6 +10,7 @@ cobalt  CobaltAsyncParamOverride  final class
 cobalt  CobaltAsyncTransientError  final class
 cobalt  CobaltBootstrapError  final class
 cobalt  CobaltBootstrapStep  abstract interface class
+cobalt  CobaltChildScopeBuilder  abstract base class
 cobalt  CobaltCycleError  final class
 cobalt  CobaltDecorator  abstract interface class
 cobalt  CobaltDecoratorError  final class

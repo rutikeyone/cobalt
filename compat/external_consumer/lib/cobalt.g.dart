@@ -606,10 +606,13 @@ final class CobaltRoot extends _i573.CobaltRootBuilder {
 @Deprecated('Use CobaltRoot. Removed in 2.0.')
 typedef $CobaltRootScope = CobaltRoot;
 
-final class VisitScope implements _i573.CobaltScopeBuilder {
+final class VisitScope extends _i573.CobaltChildScopeBuilder {
   const VisitScope(this.visitor);
 
   final String visitor;
+
+  @override
+  Type get marker => _i296.Visit;
 
   @override
   void build(_i573.CobaltScope scope) {

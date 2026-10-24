@@ -474,7 +474,7 @@ class Draft {
 
 生成器据此写出 `SessionScope`，一个注册 `user` 和 `Draft` 的 `CobaltScopeBuilder`。
 构建像检查根一样检查它：`Draft` 可以注入会话和应用注册的东西，应用里的任何东西都不能注入 `Draft`，
-有缺口就让构建失败并指出两边。在另一个子作用域之下打开的作用域，用 `@CobaltChildScope(parent: Session)` 说明。
+有缺口就让构建失败并指出两边。在另一个子作用域之下打开的作用域，用 `@CobaltChildScope(parent: Session)` 说明；如果在别处打开，观察者会收到 `onScopeParentMismatch`，日志和 `cobalt_inspector` 里会出现警告，早于第一个缺失的注册报错。
 会话里放什么、何时结束，仍然由你决定：注解对这两者都不作声明。
 
 标记类的名字不带 `Scope`，由生成器补上；把标记类命名为 `SessionScope` 会得到 `SessionScopeScope`，构建会拒绝。

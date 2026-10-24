@@ -32,6 +32,7 @@ enum CobaltInspectorFamily {
     CobaltEventKind.instanceCreated ||
     CobaltEventKind.instanceDisposed => CobaltInspectorFamily.instance,
     CobaltEventKind.promiseBroken ||
+    CobaltEventKind.scopeParentMismatch ||
     CobaltEventKind.scopeInitFailed ||
     CobaltEventKind.scopeDisposeFailed ||
     CobaltEventKind.bootstrapStepFailed ||

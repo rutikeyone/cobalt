@@ -496,7 +496,9 @@ class Draft {
 이로부터 제너레이터는 `user`와 `Draft`를 등록하는 `CobaltScopeBuilder`인 `SessionScope`를 작성합니다.
 빌드는 루트와 같은 방식으로 이를 검사합니다. `Draft`는 세션과 앱이 등록한 것을 주입할 수 있고, 앱의 어떤 것도
 `Draft`를 주입할 수 없으며, 빈틈이 있으면 양쪽을 모두 밝히며 빌드가 실패합니다. 다른 자식 스코프 아래에서
-열리는 스코프는 `@CobaltChildScope(parent: Session)`로 그렇다고 말합니다. 세션에 무엇이 들어가고 언제
+열리는 스코프는 `@CobaltChildScope(parent: Session)`로 그렇다고 말합니다. 다른 곳에서 열면 첫 번째로
+빠진 등록이 실패하기 전에 옵저버가 `onScopeParentMismatch`를 받고, 로그와 `cobalt_inspector`에 경고가
+나타납니다. 세션에 무엇이 들어가고 언제
 끝나는지는 여전히 여러분이 정합니다. 어노테이션은 둘 다 말하지 않습니다.
 
 마커 이름에는 `Scope`를 붙이지 않으며, 제너레이터가 덧붙입니다. 마커를 `SessionScope`라고 하면

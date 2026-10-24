@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer' as developer;
 
+import 'package:cobalt/src/bootstrap/cobalt_child_scope_builder.dart';
 import 'package:cobalt/src/bootstrap/cobalt_scope_builder.dart';
 import 'package:cobalt/src/decorator/cobalt_decorator.dart';
 import 'package:cobalt/src/errors/cobalt_async_param_error.dart';
@@ -120,6 +121,8 @@ final class CobaltScope extends CobaltResolver {
   final _overriddenKeys = <CobaltKey>{};
   final _claimed = <CobaltKey>{};
   final _promised = <CobaltKey>{};
+
+  final _markers = <Type>{};
   var _applyingOverrides = false;
 
   final _decorators = <CobaltKey, List<_Decoration>>{};
@@ -2066,6 +2069,7 @@ final class CobaltScope extends CobaltResolver {
   /// this scope replaced something, and throws [CobaltOverrideError] naming
   /// the first that did not.
   void runBuilder(CobaltScopeBuilder builder) {
+    if (builder is CobaltChildScopeBuilder) _placeChild(builder);
     _building = true;
     try {
       builder.build(this);
@@ -2075,6 +2079,33 @@ final class CobaltScope extends CobaltResolver {
     _assertOverridesClaimed();
     _assertDecoratorsOwned();
     _reportBrokenPromises();
+  }
+
+  void _placeChild(CobaltChildScopeBuilder builder) {
+    _markers.add(builder.marker);
+    final declared = builder.parent;
+    if (declared == null) return;
+    for (var above = parent; above != null; above = above.parent) {
+      if (above._markers.contains(declared)) return;
+    }
+    _notify(
+      (observer) => observer.onScopeParentMismatch(
+        ref,
+        marker: builder.marker,
+        declaredParent: declared,
+      ),
+    );
+    assert(() {
+      developer.log(
+        'Scope "$name" was built for ${builder.marker}, which is declared to '
+        'open under $declared, but no scope above it was built for '
+        '$declared. Open it under that scope, or change parent: in its '
+        '@CobaltChildScope.',
+        name: 'cobalt',
+        level: 900,
+      );
+      return true;
+    }());
   }
 
   void _reportBrokenPromises() {

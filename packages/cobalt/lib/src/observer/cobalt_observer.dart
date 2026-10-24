@@ -45,6 +45,19 @@ abstract base class CobaltObserver {
   /// promise on purpose and never resolves the key.
   void onPromiseBroken(CobaltScopeRef scope, CobaltKey key) {}
 
+  /// [scope] was built for the `@CobaltChildScope` class [marker], which is
+  /// declared to open under [declaredParent], and no scope above it was built
+  /// for that class.
+  ///
+  /// A warning rather than an error: resolution goes up through whatever the
+  /// scope was opened under, so it may still work until it needs something
+  /// only [declaredParent] registers.
+  void onScopeParentMismatch(
+    CobaltScopeRef scope, {
+    required Type marker,
+    required Type declaredParent,
+  }) {}
+
   /// `init()` started, with [levels] levels of async singletons to build.
   ///
   /// Not called when the scope has no async registrations.

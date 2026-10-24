@@ -503,7 +503,9 @@ class Draft {
 From these the generator writes `SessionScope`, a `CobaltScopeBuilder` that registers `user` and
 `Draft`. The build checks it the way it checks the root: `Draft` may inject what the session and the
 app register, nothing in the app may inject `Draft`, and a gap fails the build naming both sides. A
-scope opened under another child scope says so with `@CobaltChildScope(parent: Session)`. What
+scope opened under another child scope says so with `@CobaltChildScope(parent: Session)`; opened
+under anything else, it reaches observers as `onScopeParentMismatch`, a warning in the log and in
+`cobalt_inspector`, before the first missing registration fails. What
 belongs in a session, and when it ends, stay your decisions: the annotation says neither.
 
 The marker is named without `Scope`, which the generator appends; `SessionScope` as a marker would

@@ -35,7 +35,7 @@ void main() {
       expect(
         session,
         contains(
-          'final class SessionScope implements _i573.CobaltScopeBuilder',
+          'final class SessionScope extends _i573.CobaltChildScopeBuilder',
         ),
       );
       expect(session, contains('const SessionScope();'));
@@ -250,6 +250,23 @@ void main() {
         ),
         returnsNormally,
       );
+    });
+
+    test('the builder names its marker and its declared parent', () {
+      final source = generate(
+        [declare('Draft', scope: 'Editor')],
+        childScopes: [
+          childScope('Session'),
+          childScope('Editor', parent: 'Session'),
+        ],
+      );
+      final session = classOf(source, 'SessionScope');
+      final editor = classOf(source, 'EditorScope');
+
+      expect(session, matches(RegExp(r'Type get marker => _i\d+\.Session;')));
+      expect(session, isNot(contains('get parent')));
+      expect(editor, matches(RegExp(r'Type get marker => _i\d+\.Editor;')));
+      expect(editor, matches(RegExp(r'Type\? get parent => _i\d+\.Session;')));
     });
 
     test('what its parent registers', () {

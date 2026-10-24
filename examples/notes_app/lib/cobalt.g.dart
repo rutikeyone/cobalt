@@ -27,6 +27,7 @@ import 'package:notes_app/features/formatting/data/shouting_formatter.dart'
     as _i652;
 import 'package:notes_app/features/formatting/domain/note_formatter.dart'
     as _i293;
+import 'package:notes_app/features/note_detail/ui/note_detail.dart' as _i948;
 import 'package:notes_app/features/note_detail/ui/note_draft.dart' as _i682;
 import 'package:notes_app/features/note_detail/ui/note_title_card.dart'
     as _i485;
@@ -35,10 +36,12 @@ import 'package:notes_app/features/notes/data/note_repository.dart' as _i98;
 import 'package:notes_app/features/notes/data/search_index.dart' as _i501;
 import 'package:notes_app/features/notes/domain/note_store.dart' as _i387;
 import 'package:notes_app/features/notes/ui/notes_controller.dart' as _i1050;
+import 'package:notes_app/features/order_flow/order_flow.dart' as _i644;
 import 'package:notes_app/features/order_flow/order_note.dart' as _i1048;
 import 'package:notes_app/features/session/data/session_activity_log.dart'
     as _i832;
 import 'package:notes_app/features/session/domain/session_user.dart' as _i630;
+import 'package:notes_app/features/session/session.dart' as _i401;
 
 typedef NoteTitleCardArgs = ({String title});
 @Deprecated('Use NoteTitleCardArgs. Removed in 2.0.')
@@ -364,8 +367,11 @@ final class CobaltRoot extends _i573.CobaltRootBuilder {
 @Deprecated('Use CobaltRoot. Removed in 2.0.')
 typedef $CobaltRootScope = CobaltRoot;
 
-final class NoteDetailScope implements _i573.CobaltScopeBuilder {
+final class NoteDetailScope extends _i573.CobaltChildScopeBuilder {
   const NoteDetailScope();
+
+  @override
+  Type get marker => _i948.NoteDetail;
 
   @override
   void build(_i573.CobaltScope scope) {
@@ -376,10 +382,13 @@ final class NoteDetailScope implements _i573.CobaltScopeBuilder {
   }
 }
 
-final class OrderFlowScope implements _i573.CobaltScopeBuilder {
+final class OrderFlowScope extends _i573.CobaltChildScopeBuilder {
   const OrderFlowScope(this.orderId);
 
   final String orderId;
+
+  @override
+  Type get marker => _i644.OrderFlow;
 
   @override
   void build(_i573.CobaltScope scope) {
@@ -388,10 +397,13 @@ final class OrderFlowScope implements _i573.CobaltScopeBuilder {
   }
 }
 
-final class SessionScope implements _i573.CobaltScopeBuilder {
+final class SessionScope extends _i573.CobaltChildScopeBuilder {
   const SessionScope(this.user);
 
   final _i630.SessionUser user;
+
+  @override
+  Type get marker => _i401.Session;
 
   @override
   void build(_i573.CobaltScope scope) {
