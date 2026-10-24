@@ -4,6 +4,7 @@ import 'package:cobalt_inspector/src/build_time.dart';
 import 'package:cobalt_inspector/src/cobalt_inspector_log.dart';
 import 'package:cobalt_inspector/src/l10n/cobalt_inspector_l10n.dart';
 import 'package:cobalt_inspector/src/l10n/inspector_strings.dart';
+import 'package:cobalt_inspector/src/startup_card.dart';
 import 'package:cobalt_inspector/src/theme/cobalt_inspector_theme.dart';
 import 'package:cobalt_inspector/src/theme/cobalt_inspector_theme_data.dart';
 import 'package:cobalt_inspector/src/widgets/chrome.dart';
@@ -83,6 +84,14 @@ class _CreatedViewState extends State<CreatedView> {
                 onChanged: (grouping) => setState(() => _grouping = grouping),
               ),
               Divider(height: 1, color: theme.outline),
+              if (StartupCard.hasContent(widget.log.startup)) ...[
+                StartupCard(
+                  report: widget.log.startup,
+                  theme: theme,
+                  strings: strings,
+                ),
+                Divider(height: 1, color: theme.outline),
+              ],
               Expanded(
                 child: created.isEmpty
                     ? EmptyNote(
