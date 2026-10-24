@@ -4,6 +4,7 @@ library;
 import 'dart:io';
 
 import 'package:cobalt/src/doctor/doctor_checks.dart';
+import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 
 /// Adding a package means naming it in five places, and nothing checked four.
@@ -357,6 +358,72 @@ void main() {
             'Declared: $declared',
       );
     });
+  });
+
+  group('screenshots on pub.dev', () {
+    List<({String description, String path})> screenshotsOf(String package) {
+      final lines = read('packages/$package/pubspec.yaml').split('\n');
+      final start = lines.indexOf('screenshots:');
+      if (start == -1) return const [];
+      final shots = <({String description, String path})>[];
+      var description = '';
+      for (final line in lines.skip(start + 1)) {
+        if (!line.startsWith(' ')) break;
+        if (RegExp(r'^  - description: "(.*)"$').firstMatch(line)
+            case final it?) {
+          description = it.group(1)!;
+        }
+        if (RegExp(r'^    path: (\S+)$').firstMatch(line) case final it?) {
+          shots.add((description: description, path: it.group(1)!));
+        }
+      }
+      return shots;
+    }
+
+    String original(String path) {
+      final name = path.split('/').last;
+      return name.endsWith('.gif')
+          ? 'assets/$name'
+          : 'assets/screenshots/$name';
+    }
+
+    final showing = {
+      for (final package in shipped)
+        if (screenshotsOf(package) case final shots when shots.isNotEmpty)
+          package: shots,
+    };
+
+    test('some packages show them', () => expect(showing, isNotEmpty));
+
+    for (final MapEntry(key: package, value: shots) in showing.entries) {
+      test('$package shows copies of the repository pictures', () {
+        expect(shots.length, lessThanOrEqualTo(10));
+        expect(
+          Directory('${root.path}/packages/$package/screenshots')
+              .listSync()
+              .map((it) => 'screenshots/${it.uri.pathSegments.last}')
+              .toSet(),
+          shots.map((it) => it.path).toSet(),
+          reason: 'a picture nobody lists still ships in the archive',
+        );
+        for (final (:description, :path) in shots) {
+          expect(description.length, lessThanOrEqualTo(160), reason: path);
+          final copy = File('${root.path}/packages/$package/$path');
+          expect(copy.lengthSync(), lessThan(4 * 1024 * 1024), reason: path);
+          expect(
+            const ListEquality<int>().equals(
+              copy.readAsBytesSync(),
+              File('${root.path}/${original(path)}').readAsBytesSync(),
+            ),
+            isTrue,
+            reason:
+                'packages/$package/$path is a copy of ${original(path)}: '
+                'pub.dev shows only files inside the package. '
+                'tool/screenshots.sh and tool/quick_tour.sh refresh both',
+          );
+        }
+      });
+    }
   });
 
   test('the release note counts the packages it lists', () {

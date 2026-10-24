@@ -45,6 +45,9 @@ mac-sim test "$REPO/examples/gallery" integration_test/screenshots_test.dart "$D
     case " $SHOTS " in *" $shot "*) ;; *) continue ;; esac
     # ssh would otherwise read the rest of the test's output as its stdin.
     mac-sim screenshot "$REPO/assets/screenshots/$shot.png" "$DEVICE" "$SIZE" </dev/null >/dev/null
+    for copy in packages/*/screenshots/$shot.png; do
+      if [ -f "$copy" ]; then cp "assets/screenshots/$shot.png" "$copy"; fi
+    done
     echo "$shot: assets/screenshots/$shot.png"
   done
 

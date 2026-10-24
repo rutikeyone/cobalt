@@ -8,6 +8,13 @@ topics:
   - di
   - flutter
   - scopes
+screenshots:
+  - description: "A tour of the gallery: a session scope opened, then the live scope tree."
+    path: screenshots/quick-tour.gif
+  - description: "The live scope tree in cobalt_inspector: each scope, what it registers, and how long each registration lives."
+    path: screenshots/tree.png
+  - description: "A scope owned by a navigation flow: the order draft lives while the user stays inside the checkout."
+    path: screenshots/flow.png
 
 environment:
   sdk: ^3.10.0
