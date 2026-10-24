@@ -29,6 +29,7 @@ void main() {
     'docs/OVERVIEW',
     'docs/TROUBLESHOOTING',
     'docs/RECIPES',
+    'docs/COMPARISON',
   };
 
   String path(String stem) => '${root.path}/$stem';

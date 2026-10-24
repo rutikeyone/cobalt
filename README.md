@@ -189,6 +189,7 @@ runtime alone, in pure Dart.
 | **Step by step, with the generator** | [GUIDE_CODEGEN.md](GUIDE_CODEGEN.md) |
 | **Step by step, without code generation** | [GUIDE_MANUAL.md](GUIDE_MANUAL.md) |
 | **Coming from get_it, injectable or provider** | [MIGRATION.md](MIGRATION.md) |
+| **Cobalt or get_it, injectable, riverpod, provider, yx_scope** | [docs/COMPARISON.md](docs/COMPARISON.md): side by side, and when Cobalt is not needed |
 | **How do I do X** | [docs/RECIPES.md](docs/RECIPES.md): a session, a screen scope, a bloc, a flow, a test |
 | **Something threw** | [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) — every error, and what to do |
 | **Every feature, how it works, compatibility, performance** | [docs/OVERVIEW.md](docs/OVERVIEW.md) |
