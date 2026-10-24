@@ -31,12 +31,15 @@ const cobaltPackages = {
 const generatorAnalyzer = (min: '10.0.1', max: '15.0.0');
 
 const renamedGeneratedNames = {
+  r'$CobaltRootScope': 'CobaltRoot',
   r'$startCobalt': 'startCobalt',
   r'$cobaltRootScopeName': 'cobaltRootScopeName',
   r'$cobaltBootstrap': 'cobaltBootstrapSteps',
 };
 
 const _generated = 'lib/cobalt.g.dart';
+
+final _renamedArgs = RegExp(r'\$([A-Z]\w*Args)\b');
 
 final _annotation = RegExp(
   r'@(cobaltInject|cobaltSingleton|cobaltTransient|cobaltModule|'
@@ -204,8 +207,13 @@ Iterable<DoctorFinding> checkTemplateTest(DoctorProject project) sync* {
 }
 
 Iterable<DoctorFinding> checkRenamedNames(DoctorProject project) sync* {
-  for (final MapEntry(key: old, value: current)
-      in renamedGeneratedNames.entries) {
+  final renamed = {
+    ...renamedGeneratedNames,
+    for (final file in project.sources)
+      for (final match in _renamedArgs.allMatches(file.content))
+        match.group(0)!: match.group(1)!,
+  };
+  for (final MapEntry(key: old, value: current) in renamed.entries) {
     final pattern = RegExp('${RegExp.escape(old)}\\b');
     final users = [
       for (final file in project.sources)

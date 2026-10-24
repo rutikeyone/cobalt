@@ -297,6 +297,24 @@ void main() {
       expect(findings.single.details.single, contains('lib/main.dart'));
     });
 
+    test('the old root class and argument records count too', () {
+      final findings = checkRenamedNames(
+        project(
+          files: [
+            file(
+              'test/app_test.dart',
+              r'const $CobaltRootScope(); $NoteEditorArgs args;',
+            ),
+          ],
+        ),
+      ).toList();
+
+      expect(findings.map((it) => it.summary), [
+        r'$CobaltRootScope is now CobaltRoot',
+        r'$NoteEditorArgs is now NoteEditorArgs',
+      ]);
+    });
+
     test('the generated file declaring it does not count', () {
       expect(
         checkRenamedNames(
