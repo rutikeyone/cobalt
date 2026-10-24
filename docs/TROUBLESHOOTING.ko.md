@@ -274,3 +274,8 @@ override가 아무것도 바꾸지 않았습니다.
 - **`Classes can only mix in mixins and classes` 또는 `Undefined class '_$Foo'`.** 클래스가 생성된
   `_$Foo`를 섞지만, 파일이 그 믹스인이 있는 part를 포함하지 않습니다. import 아래에 `part 'foo.g.dart';`를
   추가하고 빌드를 실행하십시오. `cobalt_missing_injection_mixin`의 빠른 수정은 둘 다 써 줍니다.
+
+`dart run cobalt:doctor`는 이 원인들과 몇 가지를 더 찾습니다. `cobalt`보다 새로운 `cobalt_generator`,
+제너레이터를 설치할 수 없게 하는 analyzer와 그것을 붙잡고 있는 패키지, 제너레이터 없이 쓴 어노테이션,
+생성 원본 코드보다 오래된 `lib/cobalt.g.dart`, 이후 이름이 바뀐 생성 이름, `cobalt_lint` 활성화 여부입니다.
+오류를 찾으면 1로 종료하므로 CI 단계에서 실행할 수 있습니다.

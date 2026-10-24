@@ -277,3 +277,9 @@ What a new app shows on the way through the [Quick start](../README.md#quick-sta
   its generated `_$Foo`, but the file does not include the part it lives in. Add
   `part 'foo.g.dart';` under the imports and run the build; the quick fix of
   `cobalt_missing_injection_mixin` writes both.
+
+`dart run cobalt:doctor` looks for these causes and a few more: a `cobalt_generator` newer than
+`cobalt`, an analyzer that keeps the generator out and the packages that hold it there, annotations
+without the generator, a `lib/cobalt.g.dart` older than the code it was built from, generated names
+renamed since, and whether `cobalt_lint` is on. It exits with 1 when it finds an error, so a CI step
+can run it.

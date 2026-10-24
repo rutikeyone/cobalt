@@ -89,8 +89,9 @@ class HomeScreen extends StatelessWidget {
 2. **Generate.** `dart run build_runner build` writes `lib/cobalt.g.dart`, whose `CobaltRoot`
    connects the two. Replace `test/widget_test.dart`, which tests the counter app that is gone,
    with [the Quick start's test](https://github.com/rutikeyone/cobalt#quick-start), then
-   `flutter run`. Anything else in red is in
-   [the first build](https://github.com/rutikeyone/cobalt/blob/main/docs/TROUBLESHOOTING.md#the-first-build).
+   `flutter run`. Anything else in red: `dart run cobalt:doctor` names the usual causes, and
+   [the first build](https://github.com/rutikeyone/cobalt/blob/main/docs/TROUBLESHOOTING.md#the-first-build)
+   explains each.
 3. **Read.** `CobaltAppScope` builds the graph when the app starts and closes it when the app goes,
    and `context.cobalt<Greeter>()` reads from it in any widget below.
 

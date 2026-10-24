@@ -133,7 +133,8 @@ flutter run
 ```
 
 Until the build has run, the editor marks `cobalt.g.dart` and `CobaltRoot` as missing. That
-is expected: the build writes them. If something else goes red, see [the first build](docs/TROUBLESHOOTING.md#the-first-build).
+is expected: the build writes them. If something else goes red,
+`dart run cobalt:doctor` names the usual causes, and [the first build](docs/TROUBLESHOOTING.md#the-first-build) explains each.
 
 `@cobaltInject` registers a class. `Greeter` asks for a `Clock` in its constructor, and the generator
 connects the two in `lib/cobalt.g.dart`. `CobaltAppScope` builds the graph when the app starts and

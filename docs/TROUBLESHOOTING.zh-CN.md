@@ -205,3 +205,5 @@ override 什么也没替换。
 - **`test/widget_test.dart` 里的 `The name 'MyApp' isn't a class`。** 这个测试是 `flutter create` 生成的，测的是你已经替换掉的计数器应用。把它换成[快速开始](../README.zh-CN.md#快速开始)里的测试。
 - **`lib/cobalt.g.dart` 里的 `The imported package 'cobalt' isn't a dependency`。** 生成的代码直接导入运行时，所以应用必须依赖它：`flutter pub add cobalt`。
 - **`Classes can only mix in mixins and classes` 或 `Undefined class '_$Foo'`。** 类混入了生成的 `_$Foo`，但文件没有包含它所在的 part。在 import 下面加上 `part 'foo.g.dart';` 并运行构建；`cobalt_missing_injection_mixin` 的快速修复会把两者都写上。
+
+`dart run cobalt:doctor` 会检查这些原因以及另外几项：`cobalt_generator` 比 `cobalt` 新；analyzer 版本让生成器装不上，以及是哪些包把它固定住的；用了注解却没有生成器；`lib/cobalt.g.dart` 比生成它的代码旧；生成的名字后来改了名；`cobalt_lint` 是否启用。发现错误时以 1 退出，所以可以放进 CI。

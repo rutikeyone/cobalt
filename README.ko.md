@@ -136,7 +136,8 @@ flutter run
 ```
 
 빌드를 실행하기 전에는 편집기가 `cobalt.g.dart`와 `CobaltRoot`를 없는 것으로 표시합니다. 정상입니다.
-빌드가 이 파일들을 만듭니다. 다른 곳이 빨갛게 표시되면 [첫 빌드](docs/TROUBLESHOOTING.ko.md#첫-빌드)를 보세요.
+빌드가 이 파일들을 만듭니다. 다른 곳이 빨갛게 표시되면
+`dart run cobalt:doctor`가 흔한 원인을 짚어 주고, [첫 빌드](docs/TROUBLESHOOTING.ko.md#첫-빌드)에 각각의 설명이 있습니다.
 
 `@cobaltInject`는 클래스를 등록합니다. `Greeter`는 생성자에서 `Clock`을 요구하고, 제너레이터가
 `lib/cobalt.g.dart`에서 둘을 연결합니다. `CobaltAppScope`는 앱이 시작될 때 그래프를 만들고 앱이
