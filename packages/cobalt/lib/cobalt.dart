@@ -74,4 +74,5 @@ export 'package:cobalt/src/overrides/cobalt_param_override.dart';
 export 'package:cobalt/src/scope/cobalt_registration_info.dart';
 export 'package:cobalt/src/scope/cobalt_registration_kind.dart';
 export 'package:cobalt/src/scope/cobalt_scope.dart';
+export 'package:cobalt/src/scope/cobalt_scope_holder.dart';
 export 'package:cobalt/src/scope/cobalt_scope_state.dart';

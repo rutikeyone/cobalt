@@ -6,34 +6,32 @@ import 'package:notes_app/cobalt.g.dart';
 import 'package:notes_app/features/session/domain/session_user.dart';
 
 class SessionManager extends ChangeNotifier {
-  SessionManager(this._appScope);
+  SessionManager(CobaltScope appScope)
+    : _session = CobaltScopeHolder(appScope) {
+    _changes = _session.changes.listen((_) => notifyListeners());
+  }
 
-  final CobaltScope _appScope;
-  CobaltScope? _session;
+  final CobaltScopeHolder _session;
+  late final StreamSubscription<CobaltScope?> _changes;
 
-  CobaltScope? get scope => _session;
+  CobaltScope? get scope => _session.current;
 
-  bool get isSignedIn => _session != null;
+  bool get isSignedIn => scope != null;
 
-  SessionUser? get user => _session?.get<SessionUser>();
+  SessionUser? get user => scope?.get<SessionUser>();
 
   Future<void> signIn(SessionUser user) async {
-    await signOut();
-    _session = await _appScope.open('session:${user.id}', SessionScope(user));
-    notifyListeners();
+    await _session.open('session:${user.id}', SessionScope(user));
   }
 
   Future<void> signOut() async {
-    final scope = _session;
-    if (scope == null) return;
-    _session = null;
-    await scope.dispose();
-    notifyListeners();
+    await _session.close();
   }
 
   @override
   void dispose() {
-    unawaited(signOut());
+    unawaited(_changes.cancel());
+    unawaited(_session.dispose());
     super.dispose();
   }
 }

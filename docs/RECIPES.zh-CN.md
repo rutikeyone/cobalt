@@ -37,30 +37,28 @@ class SessionActivityLog implements Disposable {
   SessionActivityLog(this._user, this._appLog);
 ```
 
-生成器根据这两者写出 `SessionScope`：它注册用户以及每个标了 `scope: Session` 的类；如果其中某个类要的东西会话和应用都不注册，构建就会失败。登录时在应用作用域之下打开它；退出时销毁它：
+生成器根据这两者写出 `SessionScope`：它注册用户以及每个标了 `scope: Session` 的类；如果其中某个类要的东西会话和应用都不注册，构建就会失败。由 `CobaltScopeHolder` 持有它：登录时在应用作用域之下打开它并关闭之前那个，退出时关闭它。这些调用依次执行，所以登录还在启动时到来的退出会关闭这个会话，而不是扑空：
 
 <!-- from: examples/notes_app/lib/features/session/session_manager.dart -->
 
 ```dart
 Future<void> signIn(SessionUser user) async {
-  await signOut();
-  _session = await _appScope.open('session:${user.id}', SessionScope(user));
-  notifyListeners();
+  await _session.open('session:${user.id}', SessionScope(user));
 }
 
 Future<void> signOut() async {
-  final scope = _session;
-  if (scope == null) return;
-  _session = null;
-  await scope.dispose();
-  notifyListeners();
+  await _session.close();
 }
 ```
 
-`open` 打开的作用域不在 widget 树里，所以它下面的 widget 读的是应用作用域。把会话发布给它们，或者在会话寿命等于界面一部分时让 widget 拥有它：
+被持有的作用域不在 widget 树里，所以它下面的 widget 读的是应用作用域。`CobaltHeldScope` 把持有者当前持有的作用域发布给它们，没人登录时显示别的 widget；或者在会话寿命等于界面一部分时让 widget 拥有它：
 
 ```dart
-CobaltScopeProvider(scope: session, child: const HomeScreen())
+CobaltHeldScope(
+  holder: session,
+  absent: const SignInScreen(),
+  child: const HomeScreen(),
+)
 ```
 
 ```dart

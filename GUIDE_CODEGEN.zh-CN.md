@@ -484,22 +484,20 @@ class Draft {
 
 ```dart
 class SessionManager {
-  SessionManager(this._root);
+  SessionManager(CobaltScope root) : _session = CobaltScopeHolder(root);
 
-  final CobaltScope _root;
-  CobaltScope? _session;
+  final CobaltScopeHolder _session;
 
-  Future<void> signIn(User user) async {
-    await signOut();
-    _session = await _root.open('session:${user.id}', SessionScope(user));
-  }
+  CobaltScope? get scope => _session.current;
 
-  Future<void> signOut() async {
-    await _session?.dispose();
-    _session = null;
-  }
+  Future<void> signIn(User user) =>
+      _session.open('session:${user.id}', SessionScope(user));
+
+  Future<void> signOut() => _session.close();
 }
 ```
+
+`CobaltScopeHolder` 一次只持有一个会话：`open` 会关闭之前那个，每次 `open` 和 `close` 都在之前的调用之后执行。所以登录还在启动时到来的退出会关闭这个会话，而不是扑空后让它一直开着。
 
 `open` 在应用之下压入作用域，在它上面运行 `SessionScope`，并等待 `init()`；其中任何一步抛出异常，
 作用域都会在错误到达你之前被销毁。
@@ -510,7 +508,11 @@ class SessionManager {
 `open` 打开的作用域不在 widget 树里。在它下面，`context.cobalt<T>()` 读的仍是应用作用域，只有会话注册的东西会以 `CobaltNotRegisteredError` 失败。把会话发布给需要它的 widget：
 
 ```dart
-CobaltScopeProvider(scope: session, child: const HomeScreen())
+CobaltHeldScope(
+  holder: session,
+  absent: const SignInScreen(),
+  child: const HomeScreen(),
+)
 ```
 
 如果会话的寿命恰好等于界面的一部分，就让一个 widget 拥有它。widget 挂载时打开，卸载时销毁：

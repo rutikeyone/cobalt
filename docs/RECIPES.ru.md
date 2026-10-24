@@ -42,31 +42,32 @@ class SessionActivityLog implements Disposable {
 
 Из этих двух генератор пишет `SessionScope`: он регистрирует пользователя и каждый класс с
 `scope: Session`, а сборка падает, если кто-то из них просит то, чего не регистрируют ни сессия, ни
-приложение. Вход открывает его под скоупом приложения, выход разбирает:
+приложение. Его держит `CobaltScopeHolder`: вход открывает его под скоупом приложения и закрывает
+предыдущий, выход закрывает. Вызовы идут по очереди, поэтому выход, пришедший, пока вход еще
+запускается, закроет эту сессию, а не промахнется мимо:
 
 <!-- from: examples/notes_app/lib/features/session/session_manager.dart -->
 
 ```dart
 Future<void> signIn(SessionUser user) async {
-  await signOut();
-  _session = await _appScope.open('session:${user.id}', SessionScope(user));
-  notifyListeners();
+  await _session.open('session:${user.id}', SessionScope(user));
 }
 
 Future<void> signOut() async {
-  final scope = _session;
-  if (scope == null) return;
-  _session = null;
-  await scope.dispose();
-  notifyListeners();
+  await _session.close();
 }
 ```
 
-Скоупа из `open` нет в дереве виджетов, поэтому виджеты ниже читают скоуп приложения. Покажите им
-сессию или отдайте ее виджету, если она живет столько же, сколько часть интерфейса:
+Удерживаемого скоупа нет в дереве виджетов, поэтому виджеты ниже читают скоуп приложения.
+`CobaltHeldScope` показывает им то, что держит держатель, а пока никто не вошел, показывает другой
+виджет; или отдайте сессию виджету, если она живет столько же, сколько часть интерфейса:
 
 ```dart
-CobaltScopeProvider(scope: session, child: const HomeScreen())
+CobaltHeldScope(
+  holder: session,
+  absent: const SignInScreen(),
+  child: const HomeScreen(),
+)
 ```
 
 ```dart

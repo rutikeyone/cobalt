@@ -42,31 +42,32 @@ class SessionActivityLog implements Disposable {
 
 From the two the generator writes `SessionScope`: it registers the user and every class marked
 `scope: Session`, and the build fails if one of them asks for something neither the session nor the
-app registers. Signing in opens it under the app scope; signing out disposes it:
+app registers. A `CobaltScopeHolder` holds it: signing in opens it under the app scope and closes
+the one before, signing out closes it. The calls run one after another, so a sign-out that arrives
+while a sign-in is still starting closes that session instead of finding nothing to close:
 
 <!-- from: examples/notes_app/lib/features/session/session_manager.dart -->
 
 ```dart
 Future<void> signIn(SessionUser user) async {
-  await signOut();
-  _session = await _appScope.open('session:${user.id}', SessionScope(user));
-  notifyListeners();
+  await _session.open('session:${user.id}', SessionScope(user));
 }
 
 Future<void> signOut() async {
-  final scope = _session;
-  if (scope == null) return;
-  _session = null;
-  await scope.dispose();
-  notifyListeners();
+  await _session.close();
 }
 ```
 
-A scope from `open` is not in the widget tree, so widgets below it read the app scope. Publish the
-session to them, or let a widget own a session that lives as long as part of the UI:
+A held scope is not in the widget tree, so widgets below it read the app scope. `CobaltHeldScope`
+publishes whatever the holder holds and shows something else while nobody is signed in; or let a
+widget own a session that lives as long as part of the UI:
 
 ```dart
-CobaltScopeProvider(scope: session, child: const HomeScreen())
+CobaltHeldScope(
+  holder: session,
+  absent: const SignInScreen(),
+  child: const HomeScreen(),
+)
 ```
 
 ```dart

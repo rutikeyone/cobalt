@@ -516,22 +516,22 @@ public API they use.
 
 ```dart
 class SessionManager {
-  SessionManager(this._root);
+  SessionManager(CobaltScope root) : _session = CobaltScopeHolder(root);
 
-  final CobaltScope _root;
-  CobaltScope? _session;
+  final CobaltScopeHolder _session;
 
-  Future<void> signIn(User user) async {
-    await signOut();
-    _session = await _root.open('session:${user.id}', SessionScope(user));
-  }
+  CobaltScope? get scope => _session.current;
 
-  Future<void> signOut() async {
-    await _session?.dispose();
-    _session = null;
-  }
+  Future<void> signIn(User user) =>
+      _session.open('session:${user.id}', SessionScope(user));
+
+  Future<void> signOut() => _session.close();
 }
 ```
+
+`CobaltScopeHolder` holds one session at a time: `open` closes the one before, and every `open` and
+`close` runs after the ones called before it. A sign-out that arrives while a sign-in is still
+starting therefore closes that session, instead of finding nothing to close and leaving it open.
 
 `open` pushes the scope under the app, runs `SessionScope` against it and awaits `init()`; if any of
 that throws, the scope is disposed before the error reaches you.
@@ -544,7 +544,11 @@ scope, and anything only the session registers fails with `CobaltNotRegisteredEr
 session to the widgets that need it:
 
 ```dart
-CobaltScopeProvider(scope: session, child: const HomeScreen())
+CobaltHeldScope(
+  holder: session,
+  absent: const SignInScreen(),
+  child: const HomeScreen(),
+)
 ```
 
 When the session lives exactly as long as part of the UI, let a widget own it instead. It is opened

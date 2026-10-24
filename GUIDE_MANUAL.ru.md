@@ -448,22 +448,22 @@ class SessionScope implements CobaltScopeBuilder {
 }
 
 class SessionManager {
-  SessionManager(this._root);
+  SessionManager(CobaltScope root) : _session = CobaltScopeHolder(root);
 
-  final CobaltScope _root;
-  CobaltScope? _session;
+  final CobaltScopeHolder _session;
 
-  Future<void> signIn(User user) async {
-    await signOut();
-    _session = await _root.open('session:${user.id}', const SessionScope());
-  }
+  CobaltScope? get scope => _session.current;
 
-  Future<void> signOut() async {
-    await _session?.dispose();
-    _session = null;
-  }
+  Future<void> signIn(User user) =>
+      _session.open('session:${user.id}', const SessionScope());
+
+  Future<void> signOut() => _session.close();
 }
 ```
+
+`CobaltScopeHolder` держит одну сессию за раз: `open` закрывает предыдущую, а каждый `open` и
+`close` выполняется после вызванных раньше. Поэтому выход, пришедший, пока вход еще запускается,
+закроет эту сессию, а не промахнется и не оставит ее открытой.
 
 Логаут — это `await scope.dispose()`. Ни один репозиторий не подписывается на сессионный стрим, и ни
 один доменный интерфейс не обрастает методом `reset()`, которого он не хотел.
