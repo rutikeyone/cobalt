@@ -51,8 +51,7 @@ class ChildScopeEmitter {
                     (p) => p
                       ..name = 'environment'
                       ..named = true
-                      ..toThis = true
-                      ..defaultTo = defaultEnvironment.code,
+                      ..toThis = true,
                   ),
               ]),
           ),
@@ -70,7 +69,12 @@ class ChildScopeEmitter {
               (f) => f
                 ..name = 'environment'
                 ..modifier = FieldModifier.final$
-                ..type = cobaltRef('CobaltEnvironment'),
+                ..type = TypeReference(
+                  (t) => t
+                    ..symbol = 'CobaltEnvironment'
+                    ..url = cobaltUrl
+                    ..isNullable = true,
+                ),
             ),
         ])
         ..methods.addAll([
@@ -112,6 +116,19 @@ class ChildScopeEmitter {
                 ),
               )
               ..body = Block.of([
+                if (usesEnvironments) ...[
+                  declareFinal('environment')
+                      .assign(
+                        refer('this')
+                            .property('environment')
+                            .ifNullThen(refer('scope').property('environment'))
+                            .ifNullThen(defaultEnvironment),
+                      )
+                      .statement,
+                  refer('scope').property('useEnvironment').call([
+                    refer('environment'),
+                  ]).statement,
+                ],
                 for (final entry in scope.provides) _root.promise(entry),
                 for (final value in scope.values) _value(value),
                 for (final declaration in ordered)

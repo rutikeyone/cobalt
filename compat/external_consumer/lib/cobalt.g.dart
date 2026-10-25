@@ -30,6 +30,7 @@ import 'package:cobalt_external_consumer/src/system_clock.dart' as _i271;
 import 'package:cobalt_external_consumer/src/telemetry.dart' as _i186;
 import 'package:cobalt_external_consumer/src/traced.dart' as _i160;
 import 'package:cobalt_external_consumer/src/visit.dart' as _i296;
+import 'package:cobalt_external_consumer/src/visit_badge.dart' as _i112;
 
 typedef DocumentArgs = ({int id});
 typedef NoteEditorArgs = ({int id, String title, bool draft});
@@ -476,6 +477,20 @@ final class _GreetingFactory
       _i296.Greeting(resolver.get<String>());
 }
 
+final class _VisitBadgeFactory
+    implements
+        _i573.CobaltFactory<_i112.VisitBadge>,
+        _i573.CobaltDescribedFactory {
+  const _VisitBadgeFactory();
+
+  @override
+  String get implementation => 'VisitBadge';
+
+  @override
+  _i112.VisitBadge create(_i573.CobaltResolver resolver) =>
+      _i112.VisitBadge(resolver.get<String>());
+}
+
 final class _AuditedDatabaseDecorator
     implements _i573.CobaltDecorator<_i530.Database> {
   const _AuditedDatabaseDecorator();
@@ -510,7 +525,11 @@ final class _LoudGreetingDecorator
 }
 
 final class CobaltRoot extends _i573.CobaltRootBuilder {
-  const CobaltRoot();
+  const CobaltRoot({
+    this.environment = _i573.CobaltEnvironment.defaultEnvironment,
+  });
+
+  final _i573.CobaltEnvironment environment;
 
   @override
   String get name => cobaltRootScopeName;
@@ -523,6 +542,7 @@ final class CobaltRoot extends _i573.CobaltRootBuilder {
 
   @override
   void build(_i573.CobaltScope scope) {
+    scope.useEnvironment(environment);
     scope.promise<_i829.DeviceInfo>();
     scope.hookAll<_i160.Traced>(_i160.LogTraced(), debugLabel: 'LogTraced');
     scope.registerAsyncSingleton<_i604.AuditSink>(const _AuditSinkFactory());
@@ -607,17 +627,27 @@ final class CobaltRoot extends _i573.CobaltRootBuilder {
 typedef $CobaltRootScope = CobaltRoot;
 
 final class VisitScope extends _i573.CobaltChildScopeBuilder {
-  const VisitScope(this.visitor);
+  const VisitScope(this.visitor, {this.environment});
 
   final String visitor;
+
+  final _i573.CobaltEnvironment? environment;
 
   @override
   Type get marker => _i296.Visit;
 
   @override
   void build(_i573.CobaltScope scope) {
+    final environment =
+        this.environment ??
+        scope.environment ??
+        _i573.CobaltEnvironment.defaultEnvironment;
+    scope.useEnvironment(environment);
     scope.registerSingleton<String>(visitor);
     scope.registerLazySingleton<_i296.Greeting>(const _GreetingFactory());
+    if (environment.matches(const <String>{'prod'})) {
+      scope.registerLazySingleton<_i112.VisitBadge>(const _VisitBadgeFactory());
+    }
     scope.decorate<_i296.Greeting>(
       const _LoudGreetingDecorator(),
       debugLabel: 'LoudGreeting',
@@ -634,10 +664,12 @@ const String cobaltRootScopeName = 'consumer';
 @Deprecated('Use cobaltRootScopeName. Removed in 2.0.')
 const String $cobaltRootScopeName = cobaltRootScopeName;
 _i687.Future<_i573.CobaltScope> startCobalt({
+  _i573.CobaltEnvironment environment =
+      _i573.CobaltEnvironment.defaultEnvironment,
   List<_i573.CobaltOverride<Object>> overrides = const [],
   Duration? initTimeout,
 }) => _i573.CobaltApplication.start(
-  root: const CobaltRoot(),
+  root: CobaltRoot(environment: environment),
   bootstrap: cobaltBootstrapSteps,
   rootName: cobaltRootScopeName,
   overrides: overrides,
@@ -645,6 +677,12 @@ _i687.Future<_i573.CobaltScope> startCobalt({
 );
 @Deprecated('Use startCobalt. Removed in 2.0.')
 _i687.Future<_i573.CobaltScope> $startCobalt({
+  _i573.CobaltEnvironment environment =
+      _i573.CobaltEnvironment.defaultEnvironment,
   List<_i573.CobaltOverride<Object>> overrides = const [],
   Duration? initTimeout,
-}) => startCobalt(overrides: overrides, initTimeout: initTimeout);
+}) => startCobalt(
+  environment: environment,
+  overrides: overrides,
+  initTimeout: initTimeout,
+);

@@ -322,6 +322,7 @@ final class CobaltRoot extends _i573.CobaltRootBuilder {
 
   @override
   void build(_i573.CobaltScope scope) {
+    scope.useEnvironment(environment);
     scope.registerEagerSingleton<_i189.AppConfig>(const _AppConfigFactory());
     scope.registerLazySingleton<_i510.Clock>(const _ClockFactory());
     scope.registerLazySingleton<_i153.EventLog>(const _EventLogFactory());

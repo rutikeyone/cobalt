@@ -184,6 +184,10 @@ class ContainerSourceEmitter {
     final bootstrapUsesEnvironments = declarations.bootstrapSteps.any(
       (step) => step.environments.isNotEmpty,
     );
+    final graphUsesEnvironments =
+        scopeUsesEnvironments ||
+        injectables.any((declaration) => declaration.environments.isNotEmpty) ||
+        decorators.any((decorator) => decorator.environments.isNotEmpty);
     final hasRoot =
         injectables.isNotEmpty || decorators.isNotEmpty || hooks.isNotEmpty;
 
@@ -210,7 +214,7 @@ class ContainerSourceEmitter {
             _rootScope.emit(
               _ordered(rootOrdered, rootDecorators, keysByType),
               names,
-              usesEnvironments: scopeUsesEnvironments,
+              usesEnvironments: graphUsesEnvironments,
               hasBootstrap: hasBootstrap,
               bootstrapUsesEnvironments: bootstrapUsesEnvironments,
               decorators: rootDecorators,
@@ -251,11 +255,11 @@ class ContainerSourceEmitter {
             _start.emitDeprecatedName(),
             _start.emitStart(
               hasBootstrap: hasBootstrap,
-              scopeUsesEnvironments: scopeUsesEnvironments,
+              scopeUsesEnvironments: graphUsesEnvironments,
               bootstrapUsesEnvironments: bootstrapUsesEnvironments,
             ),
             _start.emitDeprecatedStart(
-              scopeUsesEnvironments: scopeUsesEnvironments,
+              scopeUsesEnvironments: graphUsesEnvironments,
               bootstrapUsesEnvironments: bootstrapUsesEnvironments,
             ),
           ],

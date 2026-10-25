@@ -1119,6 +1119,12 @@ Three things follow:
 Bootstrap steps take environments too. When any of them does, `cobaltBootstrapSteps` becomes a function of
 the chosen environment, and skipped steps never run and never get adopted.
 
+A child scope inherits the environment. The generated root records the one it is built with on its
+scope, `scope.environment`, and a generated child scope builder that is not given one takes it from
+there: `SessionScope(user)` under a root started for `prod` registers the session's `prod` classes.
+`SessionScope(user, environment: CobaltEnvironment.dev)` overrides it for that scope and the scopes
+below. A hand-written builder reads `scope.environment` the same way.
+
 `cobalt_environment_needs_a_registration` catches the case where `@CobaltEnvironment` sits on a class
 nothing registers, where it silently does nothing.
 

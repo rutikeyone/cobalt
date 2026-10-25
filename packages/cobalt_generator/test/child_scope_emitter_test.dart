@@ -129,8 +129,43 @@ void main() {
       );
 
       final session = classOf(source, 'SessionScope');
-      expect(session, contains('this.environment ='));
+      expect(session, contains('const SessionScope({this.environment});'));
+      expect(session, contains('CobaltEnvironment? environment;'));
+      expect(
+        session,
+        contains(
+          'final environment =\n'
+          '        this.environment ??\n'
+          '        scope.environment ??',
+        ),
+      );
+      expect(session, contains('scope.useEnvironment(environment);'));
       expect(session, contains("environment.matches(const <String>{'prod'})"));
+    });
+
+    test('makes the root take the environment it passes down', () {
+      final source = generate(
+        [
+          declare('Clock'),
+          declare('Draft', scope: 'Session', environments: {'prod'}),
+        ],
+        childScopes: [childScope('Session')],
+      );
+
+      final root = classOf(source, 'CobaltRoot');
+      expect(root, contains('this.environment ='));
+      expect(root, contains('scope.useEnvironment(environment);'));
+      expect(source, contains('CobaltEnvironment environment ='));
+      expect(source, contains('CobaltRoot(environment: environment)'));
+    });
+
+    test('leaves the environment alone when nothing names one', () {
+      final source = generate(
+        [declare('Draft', scope: 'Session')],
+        childScopes: [childScope('Session')],
+      );
+
+      expect(source, isNot(contains('environment')));
     });
 
     test('a child scope without registrations is still written', () {

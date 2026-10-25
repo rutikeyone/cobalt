@@ -69,6 +69,40 @@ void main() {
     });
   });
 
+  group('the environment of a scope', () {
+    test('is null until something sets it', () {
+      expect(cobaltTestRoot().environment, isNull);
+    });
+
+    test('is read by every scope below the one that set it', () {
+      final root = cobaltTestRoot()..useEnvironment(CobaltEnvironment.prod);
+      final session = root.push('session');
+      final screen = session.push('screen');
+
+      expect(session.environment, CobaltEnvironment.prod);
+      expect(screen.environment, CobaltEnvironment.prod);
+    });
+
+    test('set on a child, applies to it and below, not above', () {
+      final root = cobaltTestRoot()..useEnvironment(CobaltEnvironment.prod);
+      final session = root.push('session')
+        ..useEnvironment(CobaltEnvironment.dev);
+
+      expect(session.push('screen').environment, CobaltEnvironment.dev);
+      expect(root.environment, CobaltEnvironment.prod);
+    });
+
+    test('cannot be set on a disposed scope', () async {
+      final scope = cobaltTestRoot();
+      await scope.dispose();
+
+      expect(
+        () => scope.useEnvironment(CobaltEnvironment.prod),
+        throwsA(isA<CobaltScopeStateError>()),
+      );
+    });
+  });
+
   group('a manually built graph', () {
     test('selects an implementation the same way the generator does', () async {
       Future<String> noteStoreIn(CobaltEnvironment environment) async {
