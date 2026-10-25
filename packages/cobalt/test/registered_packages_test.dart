@@ -370,7 +370,7 @@ void main() {
 
     String original(String path) {
       final name = path.split('/').last;
-      return File('${root.path}/assets/$name').existsSync()
+      return name.endsWith('.gif')
           ? 'assets/$name'
           : 'assets/screenshots/$name';
     }
@@ -407,8 +407,7 @@ void main() {
             reason:
                 'packages/$package/$path is a copy of ${original(path)}: '
                 'pub.dev shows only files inside the package. '
-                'tool/screenshots.sh, tool/quick_tour.sh and tool/icon.py '
-                'refresh both',
+                'tool/screenshots.sh and tool/quick_tour.sh refresh both',
           );
         }
       });

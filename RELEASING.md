@@ -333,12 +333,6 @@ originals, and `registered_packages_test` fails when a copy differs from its
 original in `assets/`, when a picture is not listed, or when one breaks a pub.dev
 limit (ten per package, 4 MB each, a description of 160 characters).
 
-Every package lists `screenshots/icon.png` first: pub.dev uses the first picture
-as the thumbnail in search results, where a phone screenshot shrinks to
-nothing. `python3 tool/icon.py` (needs Pillow) draws `assets/icon.png` and
-writes the fifteen copies; the drawing is deterministic, so running it again
-changes nothing unless the script did.
-
 ## Performance numbers
 
 The table under **Performance** in the four `docs/OVERVIEW` pages is a measurement, and goes stale like one.
