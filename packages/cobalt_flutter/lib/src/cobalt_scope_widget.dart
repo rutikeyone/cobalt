@@ -19,6 +19,13 @@ import 'package:flutter/widgets.dart';
 ///   child: const NoteDetailPage(),
 /// )
 /// ```
+///
+/// Rebuilt with a generated child scope builder that is not equal to the one
+/// it holds, `SessionScope(ada)` in place of `SessionScope(bob)`, it disposes
+/// its scope and opens one from the new builder; generated builders compare
+/// by the values of their marker. Any other builder is read once, when the
+/// widget mounts, and so is one generated before 1.9.0 until `build_runner`
+/// runs again: give the widget a new `key` to start the scope over.
 class CobaltScopeWidget extends StatefulWidget {
   /// Creates a widget owning a scope.
   const CobaltScopeWidget({
@@ -87,7 +94,27 @@ class _CobaltScopeWidgetState extends State<CobaltScopeWidget> {
     super.didChangeDependencies();
     if (_started) return;
     _started = true;
+    _open();
+  }
 
+  @override
+  void didUpdateWidget(CobaltScopeWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final builder = widget.builder;
+    if (builder is! CobaltChildScopeBuilder ||
+        builder.markerValues == null ||
+        builder == oldWidget.builder) {
+      return;
+    }
+    final previous = _scope;
+    _scope = null;
+    _error = null;
+    _isReady = false;
+    if (previous != null) unawaited(_disposeScope(previous));
+    _open();
+  }
+
+  void _open() {
     final parent = CobaltScopeProvider.of(context);
     final CobaltScope scope;
     try {
@@ -116,7 +143,7 @@ class _CobaltScopeWidgetState extends State<CobaltScopeWidget> {
   Future<void> _initialize(CobaltScope scope) async {
     try {
       await scope.init();
-      if (mounted) setState(() => _isReady = true);
+      if (mounted && identical(scope, _scope)) setState(() => _isReady = true);
     } catch (error, stackTrace) {
       if (!mounted) {
         // The widget is gone, so nothing will render this. Report it rather
@@ -134,7 +161,7 @@ class _CobaltScopeWidgetState extends State<CobaltScopeWidget> {
         );
         return;
       }
-      setState(() => _error = error);
+      if (identical(scope, _scope)) setState(() => _error = error);
     }
   }
 

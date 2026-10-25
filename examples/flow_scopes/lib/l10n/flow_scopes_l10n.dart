@@ -186,7 +186,7 @@ abstract class FlowScopesL10n {
   /// **'Scope tree'**
   String get scopeTree;
 
-  /// One node of the tree: its state, which is an Cobalt identifier, and how many scopes hang from it.
+  /// One node of the tree: its state, which is a Cobalt identifier, and how many scopes hang from it.
   ///
   /// In en, this message translates to:
   /// **'{state} · {count, plural, =0{no children} =1{1 child} other{{count} children}}'**

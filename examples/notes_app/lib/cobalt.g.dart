@@ -322,6 +322,7 @@ final class CobaltRoot extends _i573.CobaltRootBuilder {
 
   @override
   void build(_i573.CobaltScope scope) {
+    scope.useEnvironment(environment);
     scope.registerEagerSingleton<_i189.AppConfig>(const _AppConfigFactory());
     scope.registerLazySingleton<_i510.Clock>(const _ClockFactory());
     scope.registerLazySingleton<_i153.EventLog>(const _EventLogFactory());
@@ -374,6 +375,9 @@ final class NoteDetailScope extends _i573.CobaltChildScopeBuilder {
   Type get marker => _i948.NoteDetail;
 
   @override
+  List<Object?> get markerValues => const <Object?>[];
+
+  @override
   void build(_i573.CobaltScope scope) {
     scope.registerLazySingleton<_i682.NoteDraft>(const _NoteDraftFactory());
     scope.registerParamFactory<_i485.NoteTitleCard, NoteTitleCardArgs>(
@@ -391,6 +395,9 @@ final class OrderFlowScope extends _i573.CobaltChildScopeBuilder {
   Type get marker => _i644.OrderFlow;
 
   @override
+  List<Object?> get markerValues => [orderId];
+
+  @override
   void build(_i573.CobaltScope scope) {
     scope.registerSingleton<String>(orderId);
     scope.registerLazySingleton<_i1048.OrderNote>(const _OrderNoteFactory());
@@ -404,6 +411,9 @@ final class SessionScope extends _i573.CobaltChildScopeBuilder {
 
   @override
   Type get marker => _i401.Session;
+
+  @override
+  List<Object?> get markerValues => [user];
 
   @override
   void build(_i573.CobaltScope scope) {

@@ -129,8 +129,72 @@ void main() {
       );
 
       final session = classOf(source, 'SessionScope');
-      expect(session, contains('this.environment ='));
+      expect(session, contains('const SessionScope({this.environment});'));
+      expect(session, contains('CobaltEnvironment? environment;'));
+      expect(
+        session,
+        contains(
+          'final environment =\n'
+          '        this.environment ??\n'
+          '        scope.environment ??',
+        ),
+      );
+      expect(session, contains('scope.useEnvironment(environment);'));
       expect(session, contains("environment.matches(const <String>{'prod'})"));
+      expect(session, contains('markerValues => [environment];'));
+    });
+
+    test('makes the root take the environment it passes down', () {
+      final source = generate(
+        [
+          declare('Clock'),
+          declare('Draft', scope: 'Session', environments: {'prod'}),
+        ],
+        childScopes: [childScope('Session')],
+      );
+
+      final root = classOf(source, 'CobaltRoot');
+      expect(root, contains('this.environment ='));
+      expect(root, contains('scope.useEnvironment(environment);'));
+      expect(source, contains('CobaltEnvironment environment ='));
+      expect(source, contains('CobaltRoot(environment: environment)'));
+    });
+
+    test('names the values of its marker', () {
+      final source = generate(
+        const [],
+        childScopes: [
+          childScope(
+            'Session',
+            values: [value('user', 'User'), value('token', 'Token')],
+          ),
+        ],
+      );
+
+      final session = classOf(source, 'SessionScope');
+      expect(
+        session,
+        contains('List<Object?> get markerValues => [user, token];'),
+      );
+      expect(session, isNot(contains('operator ==')));
+    });
+
+    test('a marker without values names an empty list', () {
+      final source = generate(const [], childScopes: [childScope('Screen')]);
+
+      expect(
+        classOf(source, 'ScreenScope'),
+        contains('List<Object?> get markerValues => const <Object?>[];'),
+      );
+    });
+
+    test('leaves the environment alone when nothing names one', () {
+      final source = generate(
+        [declare('Draft', scope: 'Session')],
+        childScopes: [childScope('Session')],
+      );
+
+      expect(source, isNot(contains('environment')));
     });
 
     test('a child scope without registrations is still written', () {

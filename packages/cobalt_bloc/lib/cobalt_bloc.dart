@@ -1,4 +1,4 @@
-/// Lets an Cobalt scope close the blocs it built.
+/// Lets a Cobalt scope close the blocs it built.
 ///
 /// Pure Dart on `bloc` rather than `flutter_bloc`, the same split
 /// [`cobalt_talker`](https://pub.dev/packages/cobalt_talker) makes: nothing here

@@ -243,6 +243,9 @@ Override ничего не заменил.
 - **`which only scope Session registers`.** Регистрация внедряет то, что регистрируют ее скоуп и
   скоупы над ним. Положите класс в этот скоуп, `@CobaltInject(scope: Session)`, или зарегистрируйте
   нужное там, где он это видит. `cobalt_lint` показывает это в редакторе и предлагает перенос. См. [GUIDE_CODEGEN.ru.md](../GUIDE_CODEGEN.ru.md#9-скоупы-которые-кончаются-раньше-приложения).
+- **Два значения одного типа в маркере `@CobaltChildScope`.** Скоуп держит одну регистрацию на тип и
+  имя, поэтому `Order(this.orderId, this.couponId)` с двумя `String` не принимается. Назовите одно из
+  них: `@Named('coupon') this.couponId`, а внедряйте как `@Named('coupon') String coupon`.
 - **Маркер `@CobaltChildScope`, чье имя кончается на `Scope`.** Генератор сам дописывает `Scope` к
   имени builder'а. Назовите маркер `Session` и открывайте `SessionScope`.
 - **`requires int` у параметра со значением по умолчанию.** Значение по умолчанию работает, только

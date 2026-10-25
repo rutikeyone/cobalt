@@ -18,7 +18,7 @@ typedef CobaltRouteIdentity = Object? Function(GoRouterState state);
 typedef CobaltRouteOverrides =
     List<CobaltOverride<Object>> Function(GoRouterState state);
 
-/// A [ShellRoute] whose subtree owns an Cobalt scope.
+/// A [ShellRoute] whose subtree owns a Cobalt scope.
 ///
 /// The scope is created when the flow is entered, survives every navigation
 /// between [routes], and is disposed when navigation leaves the flow. That

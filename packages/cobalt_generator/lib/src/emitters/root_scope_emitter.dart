@@ -101,6 +101,10 @@ class RootScopeEmitter {
                 ),
               )
               ..body = Block.of([
+                if (takesEnvironment)
+                  refer('scope').property('useEnvironment').call([
+                    refer('environment'),
+                  ]).statement,
                 for (final entry in promises) promise(entry),
                 for (final hook in hooks)
                   guardedBy(hook.environments, _hook(hook)),

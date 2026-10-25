@@ -32,6 +32,57 @@ void main() {
     },
   );
 
+  test('a generated child scope builder compares by its values', () {
+    const ada = VisitScope('ada');
+
+    expect(VisitScope('ada'), ada);
+    expect(VisitScope('ada').hashCode, ada.hashCode);
+    expect(const VisitScope('bob'), isNot(ada));
+    expect(
+      const VisitScope('ada', environment: CobaltEnvironment.dev),
+      isNot(ada),
+    );
+  });
+
+  group('a child scope opened without an environment', () {
+    test('takes the one its root was built for', () async {
+      final app = await CobaltApplication.start(
+        root: const CobaltRoot(environment: CobaltEnvironment.prod),
+      );
+      addTearDown(app.dispose);
+
+      final visit = await app.open('visit', const VisitScope('ada'));
+
+      expect(visit.environment, CobaltEnvironment.prod);
+      expect(visit.get<VisitBadge>().visitor, 'ada');
+    });
+
+    test('keeps one it was given', () async {
+      final app = await CobaltApplication.start(
+        root: const CobaltRoot(environment: CobaltEnvironment.prod),
+      );
+      addTearDown(app.dispose);
+
+      final visit = await app.open(
+        'visit',
+        const VisitScope('ada', environment: CobaltEnvironment.dev),
+      );
+
+      expect(visit.environment, CobaltEnvironment.dev);
+      expect(visit.isRegistered<VisitBadge>(), isFalse);
+    });
+
+    test('under a root built for none, gets the default', () async {
+      final app = await CobaltApplication.start(root: const CobaltRoot());
+      addTearDown(app.dispose);
+
+      final visit = await app.open('visit', const VisitScope('ada'));
+
+      expect(visit.environment, CobaltEnvironment.defaultEnvironment);
+      expect(visit.isRegistered<VisitBadge>(), isFalse);
+    });
+  });
+
   test('the generated container is named by @CobaltScopeRoot', () {
     expect(scope.name, 'consumer');
   });

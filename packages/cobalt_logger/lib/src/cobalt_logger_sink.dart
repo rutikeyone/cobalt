@@ -30,7 +30,7 @@ final class CobaltLoggerSink implements CobaltLogSink {
     stackTrace: record.stackTrace,
   );
 
-  /// Maps an Cobalt level onto `package:logger`'s enum.
+  /// Maps a Cobalt level onto `package:logger`'s enum.
   ///
   /// Every value maps to a real level: `Logger.log` throws `ArgumentError` on
   /// `all`, `off` and `nothing`, so none of those may appear here.

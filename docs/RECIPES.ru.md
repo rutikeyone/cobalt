@@ -74,6 +74,11 @@ CobaltHeldScope(
 CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
 ```
 
+Когда входит другой пользователь, виджет перестраивается с `SessionScope` с другими значениями.
+Сгенерированный builder сравнивается по ним, поэтому виджет закрывает старую сессию и открывает новую
+для нового пользователя. Builder, написанный руками, читается один раз: дайте виджету
+`key: ValueKey(user.id)`.
+
 Рабочий код: [`examples/notes_app/lib/features/session`](../examples/notes_app/lib/features/session)
 и запись «Сессионный скоуп» в галерее. Подробнее в
 [GUIDE_CODEGEN.ru.md](../GUIDE_CODEGEN.ru.md#9-скоупы-которые-кончаются-раньше-приложения).

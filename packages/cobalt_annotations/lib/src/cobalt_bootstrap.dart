@@ -11,7 +11,7 @@ import 'package:meta/meta_meta.dart';
 /// Nothing can be injected into a bootstrap step, because there is no
 /// container yet. A constructor with required parameters is rejected at build
 /// time and flagged in the IDE by `cobalt_bootstrap_step_cannot_inject`. Work
-/// that needs dependencies belongs in an [CobaltInit] service instead.
+/// that needs dependencies belongs in a [CobaltInit] service instead.
 ///
 /// ```dart
 /// @CobaltBootstrap(order: -10)

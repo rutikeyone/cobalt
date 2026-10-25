@@ -1,6 +1,6 @@
 import 'package:cobalt_flutter/cobalt_flutter.dart';
 
-/// The four things an Cobalt event can be about.
+/// The four things a Cobalt event can be about.
 ///
 /// Fifteen kinds is too many to give a colour each, and colouring by level
 /// says how loud an event is rather than what it concerns. These four are the

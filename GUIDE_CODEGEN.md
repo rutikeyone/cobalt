@@ -9,7 +9,7 @@ graph is checked before it builds. What comes out is ordinary Dart that uses not
 API of `cobalt` — you can read it, and everything in it could have been written by hand.
 
 That is the project's standing invariant, and it has a practical consequence you will use: the
-generated container is an `CobaltScopeBuilder` like any other, so hand-written registrations compose
+generated container is a `CobaltScopeBuilder` like any other, so hand-written registrations compose
 with it in one graph. Nothing here is all-or-nothing.
 
 What the build step buys you, and what this document is mostly about:
@@ -559,6 +559,10 @@ when the widget mounts and disposed when it unmounts:
 ```dart
 CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
 ```
+
+When another user signs in, the widget is rebuilt with a `SessionScope` of other values. A generated
+builder compares by them, so the widget closes the old session and opens one for the new user. A
+builder you write is read once: give the widget `key: ValueKey(user.id)` instead.
 
 ### A screen
 
@@ -1118,6 +1122,12 @@ Three things follow:
 
 Bootstrap steps take environments too. When any of them does, `cobaltBootstrapSteps` becomes a function of
 the chosen environment, and skipped steps never run and never get adopted.
+
+A child scope inherits the environment. The generated root records the one it is built with on its
+scope, `scope.environment`, and a generated child scope builder that is not given one takes it from
+there: `SessionScope(user)` under a root started for `prod` registers the session's `prod` classes.
+`SessionScope(user, environment: CobaltEnvironment.dev)` overrides it for that scope and the scopes
+below. A hand-written builder reads `scope.environment` the same way.
 
 `cobalt_environment_needs_a_registration` catches the case where `@CobaltEnvironment` sits on a class
 nothing registers, where it silently does nothing.

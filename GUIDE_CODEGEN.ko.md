@@ -552,6 +552,10 @@ CobaltHeldScope(
 CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
 ```
 
+다른 사용자가 로그인하면 위젯은 값이 다른 `SessionScope`로 다시 빌드됩니다. 생성된 builder는 그 값으로
+비교하므로, 위젯은 이전 세션을 닫고 새 사용자의 세션을 엽니다. 직접 작성한 builder는 한 번만 읽히므로
+대신 위젯에 `key: ValueKey(user.id)`를 주십시오.
+
 ### 화면
 
 ```dart
@@ -1106,6 +1110,11 @@ if (environment.matches(const <String>{'dev', 'test'})) {
 
 부트스트랩 단계도 환경을 받습니다. 그중 하나라도 환경을 받으면 `cobaltBootstrapSteps`은 선택한 환경을 받는 함수가
 되며, 건너뛴 단계는 실행되지도 `adopt`되지도 않습니다.
+
+자식 스코프는 환경을 물려받습니다. 생성된 루트는 자신이 빌드된 환경을 스코프에 기록하고(`scope.environment`),
+환경을 받지 않은 생성된 자식 스코프 builder는 그곳에서 가져옵니다. `prod`로 시작한 루트 아래의 `SessionScope(user)`는
+세션의 `prod` 클래스를 등록합니다. `SessionScope(user, environment: CobaltEnvironment.dev)`는 그 스코프와 아래
+스코프에 대해 이를 바꿉니다. 직접 작성한 builder도 같은 방식으로 `scope.environment`를 읽습니다.
 
 `cobalt_environment_needs_a_registration`은 `@CobaltEnvironment`가 아무것도 등록하지 않는 클래스에 붙어 조용히
 아무 일도 하지 않는 경우를 잡아냅니다.

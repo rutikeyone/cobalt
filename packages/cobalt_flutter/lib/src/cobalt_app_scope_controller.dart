@@ -1,4 +1,4 @@
-/// Restarts the root scope an [CobaltAppScope] owns.
+/// Restarts the root scope a [CobaltAppScope] owns.
 ///
 /// Reach it with `CobaltAppScope.of(context)`.
 abstract interface class CobaltAppScopeController {

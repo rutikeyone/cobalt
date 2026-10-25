@@ -110,8 +110,10 @@ void main() {
     await holder.open('session:1', const Session('1'));
 
     await app.dispose();
+    await pumpEventQueue();
 
     expect(holder.current, isNull);
+    expect(changes, ['session:1', null]);
   });
 
   test('dispose closes the held scope and refuses another open', () async {

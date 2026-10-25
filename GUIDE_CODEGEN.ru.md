@@ -562,6 +562,11 @@ CobaltHeldScope(
 CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
 ```
 
+Когда входит другой пользователь, виджет перестраивается с `SessionScope` с другими значениями.
+Сгенерированный builder сравнивается по ним, поэтому виджет закрывает старую сессию и открывает новую
+для нового пользователя. Builder, написанный руками, читается один раз: дайте виджету
+`key: ValueKey(user.id)`.
+
 ### Экран
 
 ```dart
@@ -1119,6 +1124,12 @@ if (environment.matches(const <String>{'dev', 'test'})) {
 
 Bootstrap-шаги тоже принимают окружения. Когда хоть один это делает, `cobaltBootstrapSteps` становится
 функцией выбранного окружения, а пропущенные шаги не запускаются и не усыновляются.
+
+Дочерний скоуп наследует окружение. Сгенерированный root записывает в свой скоуп то, с которым его
+построили, `scope.environment`, и сгенерированный builder дочернего скоупа, которому окружение не
+передали, берет его оттуда: `SessionScope(user)` под root, запущенным для `prod`, регистрирует
+`prod`-классы сессии. `SessionScope(user, environment: CobaltEnvironment.dev)` заменяет его для этого
+скоупа и скоупов ниже. Builder, написанный руками, читает `scope.environment` так же.
 
 `cobalt_environment_needs_a_registration` ловит случай, когда `@CobaltEnvironment` стоит на классе,
 который никто не регистрирует, — там она молча ничего не делает.

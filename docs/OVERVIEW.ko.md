@@ -70,7 +70,7 @@ Dart 3.11을 요구하기 때문입니다.
 |---|---|---|---|---|---|
 | Flutter 3.38 | 10.0.1 | 0.14.1 | 0.3.7 | 0.1.9 | 3.1.7 |
 | 그보다 새로운 환경, 다른 무언가가 analyzer 13을 요구하기 전까지 | 12.1.0 | 0.14.8 | 0.3.14 | 0.2.5 | 3.1.8 |
-| Flutter 3.49의 `test`, `build` 4.0.8+, 최신 `freezed` 또는 `json_serializable` | 13.x - 14.x | 0.14.9 - 0.14.17 | 0.3.15 - 0.3.23 | 0.2.6 - 0.4.2 | 3.1.9 - 3.1.13 |
+| Flutter 3.49의 `test`, `build` 4.0.8+ 또는 `build_runner` 2.17과 함께 5, 최신 `freezed` 또는 `json_serializable` | 13.x - 14.x | 0.14.9 - 0.14.17 | 0.3.15 - 0.3.23 | 0.2.6 - 0.4.2 | 3.1.9 - 3.1.13 |
 
 제너레이터는 의존성 해결로 정해진 `dart_style`이 최신이라고 여기는 버전이 아니라 고정된 언어 버전 3.10으로
 포맷합니다. 그래서 모든 행이 같은 바이트를 내보내며, 더 새로운 언어 버전용 스타일 규칙을 추가한 포매터
@@ -94,6 +94,8 @@ CI의 `verify` 작업은 모든 것을 Flutter 3.38.9에서 실행하고, `forwa
 - **공개 enum에 새 값이 추가되는 것은 마이너 변경입니다.** `CobaltRegistrationKind`는 세 번의 릴리스에서
   값이 늘었고 앞으로도 늘어납니다. 값으로 분기하는 대신 getter인 `isRetained`, `takesParam`, `isAsync`,
   `isBuiltByInit`에 물어보십시오. 완전한(exhaustive) `switch`는 직접 갱신해야 합니다.
+  `CobaltEventKind`도 같은 방식으로 늘어나며 새 옵저버 이벤트마다 값이 하나씩 생기므로(1.5.0의 `promiseBroken`,
+  1.8.0의 `scopeParentMismatch`), 이를 `switch`하는 sink는 `default` 분기를 두십시오.
 - **`CobaltResolver`는 Cobalt 밖에서 구현할 수 없습니다.** `base` 클래스이므로 새로운 해석 방식이
   마이너 릴리스로 추가될 수 있습니다. 테스트에서는 mock 대신 실제 스코프를 빌드합니다. `cobalt_test`의
   `cobaltTestRoot`를 사용하십시오.

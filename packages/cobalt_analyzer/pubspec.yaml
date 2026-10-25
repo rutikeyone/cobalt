@@ -1,6 +1,6 @@
 name: cobalt_analyzer
 description: Internal analysis layer of cobalt_generator and cobalt_lint — parses Cobalt annotations once for both. Not covered by semver; depend on those packages instead.
-version: 1.8.0
+version: 1.9.0
 repository: https://github.com/rutikeyone/cobalt
 issue_tracker: https://github.com/rutikeyone/cobalt/issues
 topics:
@@ -8,6 +8,10 @@ topics:
   - analyzer
   - codegen
   - static-analysis
+
+screenshots:
+  - description: "The Cobalt icon: scopes inside scopes, each closing what it built."
+    path: screenshots/icon.png
 
 environment:
   sdk: ^3.10.0

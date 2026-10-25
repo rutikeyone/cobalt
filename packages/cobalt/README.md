@@ -622,7 +622,7 @@ final scope = await CobaltApplication.start(
 );
 ```
 
-An `CobaltErrorReport` is the failing record plus its breadcrumbs, oldest first. The exception alone
+A `CobaltErrorReport` is the failing record plus its breadcrumbs, oldest first. The exception alone
 says a teardown threw; the breadcrumbs say which scope had just been pushed and what it had built
 by then, which is usually the part that makes the report actionable. `toStructured()` hands the
 whole thing over as a map for a destination that takes structured input.

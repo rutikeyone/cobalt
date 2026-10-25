@@ -45,6 +45,8 @@ import 'package:cobalt/src/scope/cobalt_registration_info.dart';
 import 'package:cobalt/src/scope/cobalt_registration_kind.dart';
 import 'package:cobalt/src/scope/cobalt_scope_state.dart';
 import 'package:cobalt/src/scope/resolution_tracker.dart';
+import 'package:cobalt_annotations/cobalt_annotations.dart'
+    show CobaltEnvironment;
 import 'package:meta/meta.dart';
 
 /// A container of registrations with a lifetime of its own.
@@ -121,6 +123,7 @@ final class CobaltScope extends CobaltResolver {
   final _overriddenKeys = <CobaltKey>{};
   final _claimed = <CobaltKey>{};
   final _promised = <CobaltKey>{};
+  CobaltEnvironment? _environment;
 
   final _markers = <Type>{};
   var _applyingOverrides = false;
@@ -713,6 +716,22 @@ final class CobaltScope extends CobaltResolver {
     if (wide == null) return exact;
     if (exact == null) return wide;
     return [...exact, ...wide]..sort((a, b) => a.order.compareTo(b.order));
+  }
+
+  /// The environment this scope was built for, or `null` when nothing said.
+  ///
+  /// Set with [useEnvironment]; a scope that was not given one reads its
+  /// parent's, so a child scope sees the environment its root was built with.
+  /// The generated root sets it from the environment it is constructed with,
+  /// and a generated child scope builder that is not given an environment
+  /// uses this one.
+  CobaltEnvironment? get environment => _environment ?? parent?.environment;
+
+  /// Records [environment] as the one this scope and the scopes below it are
+  /// built for. See [environment].
+  void useEnvironment(CobaltEnvironment environment) {
+    _assertUsable();
+    _environment = environment;
   }
 
   /// Says that [T] will be registered in this scope by someone else.
@@ -2158,7 +2177,7 @@ final class CobaltScope extends CobaltResolver {
     }
   }
 
-  /// How this scope is described to an [CobaltObserver].
+  /// How this scope is described to a [CobaltObserver].
   CobaltScopeRef get ref =>
       CobaltScopeRef(name: name, depth: depth, parentName: parent?.name);
 

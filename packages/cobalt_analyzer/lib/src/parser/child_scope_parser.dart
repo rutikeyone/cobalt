@@ -72,10 +72,28 @@ class CobaltChildScopeParser {
         .firstOrNull;
     if (constructor == null) return const [];
 
-    return [
+    final values = [
       for (final parameter in constructor.formalParameters)
         _value(clazz, parameter),
     ];
+    final seen = <String, CobaltInjectedProperty>{};
+    for (final value in values) {
+      final key = '${value.type.signature}#${value.name ?? ''}';
+      final earlier = seen[key];
+      if (earlier == null) {
+        seen[key] = value;
+        continue;
+      }
+      final named = value.name == null ? '' : " named '${value.name}'";
+      throw CobaltParseError(
+        '${clazz.displayName} registers ${earlier.field} and ${value.field} '
+        'both as ${value.type.name}$named, and a scope holds one registration '
+        "per type and name. Tell them apart with @Named, as in @Named('${value.field}') "
+        'this.${value.field}.',
+        clazz,
+      );
+    }
+    return values;
   }
 
   CobaltInjectedProperty _value(

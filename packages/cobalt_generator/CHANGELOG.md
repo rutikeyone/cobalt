@@ -1,3 +1,20 @@
+## 1.9.0
+
+- A generated child scope opened without an environment takes the one its
+  root was started with. A package that names environments only in child
+  scopes now gets a root and `startCobalt` that take `environment` too.
+  The `environment` of a child scope builder is nullable now: null means
+  the one from the scope above.
+- A generated child scope builder lists the values of its marker in
+  `markerValues`, so builders with equal values are equal and
+  `CobaltScopeWidget` opens a new scope only when the values change.
+- Two values of one type and name in a `@CobaltChildScope` marker fail the
+  build with a hint to tell them apart with `@Named`. Before, the scope
+  failed the first time it opened.
+- Accepts `build` 5, which `build_runner` 2.17 needs.
+- Depends on `cobalt` ^1.9.0.
+- The Cobalt icon is the first screenshot on pub.dev.
+
 ## 1.8.0
 
 - A generated child scope builder extends `CobaltChildScopeBuilder` and

@@ -1252,7 +1252,7 @@ Each of these was found the hard way, in this repository or in the applications 
 
 ## 15. When to add the generator
 
-Nothing here has to be thrown away to do it. The generated container is an `CobaltScopeBuilder` like
+Nothing here has to be thrown away to do it. The generated container is a `CobaltScopeBuilder` like
 the ones above, so it composes with what you already wrote:
 
 ```dart

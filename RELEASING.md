@@ -39,9 +39,11 @@ wait for the previous group to appear on pub.dev — the index is not instant.
       pubspec_overrides.yaml", from every package whose siblings come from the
       repository: the overrides are the development setup, never part of the
       archive, and a hint does not change the exit code.
-- [ ] Archives are kilobytes, not megabytes, apart from the pictures under
-      `screenshots/`: `cobalt_flutter` carries the 2.7 MB tour GIF. Anything
-      else that large means the previous two boxes are not really ticked.
+- [ ] Archives are kilobytes, not megabytes. The pictures under `screenshots/`
+      are a few hundred KB at most; the 2.7 MB tour GIF stays out of every
+      archive (1.8.0 shipped it in `cobalt_flutter` and grew the archive from
+      32 KB to 2.9 MB). Anything larger means the previous two boxes are not
+      really ticked.
 - [ ] `repository:` and `issue_tracker:` point at a repository that actually
       exists and has the code pushed. They are currently
       `github.com/rutikeyone/cobalt`.
@@ -187,7 +189,7 @@ all do. So the constraint does not permit a span, it selects a row:
 |---|---|---|---|---|---|
 | Flutter 3.38 | 10.0.1 | 0.14.1 | 0.3.7 | 0.1.9 | 3.1.7 |
 | newer, until something else needs analyzer 13 | 12.1.0 | 0.14.8 | 0.3.14 | 0.2.5 | 3.1.8 |
-| Flutter 3.49's `test`, `build` 4.0.8+, current `freezed` | 13.x – 14.x | 0.14.9 – 0.14.17 | 0.3.15 – 0.3.23 | 0.2.6 – 0.4.2 | 3.1.9 – 3.1.13 |
+| Flutter 3.49's `test`, `build` 4.0.8+ or 5, current `freezed` | 13.x – 14.x | 0.14.9 – 0.14.17 | 0.3.15 – 0.3.23 | 0.2.6 – 0.4.2 | 3.1.9 – 3.1.13 |
 
 The three toolchain packages therefore declare `analyzer: ">=10.0.1 <15.0.0"`,
 and `cobalt_generator` declares `dart_style: ">=3.1.7 <3.2.0"`. The range was
@@ -330,6 +332,12 @@ listed in their `pubspec.yaml`. Both scripts refresh the copies with the
 originals, and `registered_packages_test` fails when a copy differs from its
 original in `assets/`, when a picture is not listed, or when one breaks a pub.dev
 limit (ten per package, 4 MB each, a description of 160 characters).
+
+Every package lists `screenshots/icon.png` first: pub.dev uses the first picture
+as the thumbnail in search results, where a phone screenshot shrinks to
+nothing. `python3 tool/icon.py` (needs Pillow) draws `assets/icon.png` and
+writes the fifteen copies; the drawing is deterministic, so running it again
+changes nothing unless the script did.
 
 ## Performance numbers
 

@@ -1,6 +1,6 @@
 name: cobalt_go_router
 description: go_router bindings for Cobalt — dependency scopes whose lifetime is a navigation flow, created on entry and disposed on exit.
-version: 1.8.0
+version: 1.9.0
 repository: https://github.com/rutikeyone/cobalt
 issue_tracker: https://github.com/rutikeyone/cobalt/issues
 topics:
@@ -9,6 +9,8 @@ topics:
   - go-router
   - navigation
 screenshots:
+  - description: "The Cobalt icon: scopes inside scopes, each closing what it built."
+    path: screenshots/icon.png
   - description: "A scope owned by a navigation flow: the order draft lives while the user stays inside the checkout."
     path: screenshots/flow.png
   - description: "The flow example's event log: each order's draft is created on entry and disposed on exit."

@@ -82,7 +82,7 @@ class AppScope {
           isA<CobaltParseError>().having(
             (e) => e.message,
             'message',
-            contains('neither a type nor an CobaltProvided'),
+            contains('neither a type nor a CobaltProvided'),
           ),
         ),
       );

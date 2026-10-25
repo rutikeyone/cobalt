@@ -1,6 +1,6 @@
 import 'package:meta/meta.dart';
 
-/// Identifies a scope in an [CobaltObserver] callback.
+/// Identifies a scope in a [CobaltObserver] callback.
 ///
 /// A description, not the scope itself. Handing an observer the live
 /// [CobaltScope] would let it resolve from a scope that is halfway through

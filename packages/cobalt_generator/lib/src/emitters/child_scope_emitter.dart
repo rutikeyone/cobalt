@@ -51,8 +51,7 @@ class ChildScopeEmitter {
                     (p) => p
                       ..name = 'environment'
                       ..named = true
-                      ..toThis = true
-                      ..defaultTo = defaultEnvironment.code,
+                      ..toThis = true,
                   ),
               ]),
           ),
@@ -70,7 +69,12 @@ class ChildScopeEmitter {
               (f) => f
                 ..name = 'environment'
                 ..modifier = FieldModifier.final$
-                ..type = cobaltRef('CobaltEnvironment'),
+                ..type = TypeReference(
+                  (t) => t
+                    ..symbol = 'CobaltEnvironment'
+                    ..url = cobaltUrl
+                    ..isNullable = true,
+                ),
             ),
         ])
         ..methods.addAll([
@@ -97,6 +101,7 @@ class ChildScopeEmitter {
                 ..lambda = true
                 ..body = typeReferenceOf(parent).code,
             ),
+          _markerValues(scope, usesEnvironments: usesEnvironments),
         ])
         ..methods.add(
           Method(
@@ -112,6 +117,19 @@ class ChildScopeEmitter {
                 ),
               )
               ..body = Block.of([
+                if (usesEnvironments) ...[
+                  declareFinal('environment')
+                      .assign(
+                        refer('this')
+                            .property('environment')
+                            .ifNullThen(refer('scope').property('environment'))
+                            .ifNullThen(defaultEnvironment),
+                      )
+                      .statement,
+                  refer('scope').property('useEnvironment').call([
+                    refer('environment'),
+                  ]).statement,
+                ],
                 for (final entry in scope.provides) _root.promise(entry),
                 for (final value in scope.values) _value(value),
                 for (final declaration in ordered)
@@ -127,6 +145,36 @@ class ChildScopeEmitter {
               ]),
           ),
         ),
+    );
+  }
+
+  Method _markerValues(
+    CobaltChildScopeClass scope, {
+    required bool usesEnvironments,
+  }) {
+    final fields = [
+      for (final value in scope.values) refer(value.field),
+      if (usesEnvironments) refer('environment'),
+    ];
+    final type = TypeReference(
+      (t) => t
+        ..symbol = 'Object'
+        ..isNullable = true,
+    );
+    return Method(
+      (m) => m
+        ..name = 'markerValues'
+        ..type = MethodType.getter
+        ..annotations.add(refer('override'))
+        ..returns = TypeReference(
+          (t) => t
+            ..symbol = 'List'
+            ..types.add(type),
+        )
+        ..lambda = true
+        ..body = fields.isEmpty
+            ? literalConstList(const [], type).code
+            : literalList(fields).code,
     );
   }
 

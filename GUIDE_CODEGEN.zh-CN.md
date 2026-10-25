@@ -521,6 +521,8 @@ CobaltHeldScope(
 CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
 ```
 
+另一个用户登录时，控件会用值不同的 `SessionScope` 重建。生成的 builder 按这些值比较，所以控件会关闭旧会话，为新用户打开一个新会话。手写的 builder 只读一次：改为给控件 `key: ValueKey(user.id)`。
+
 ### 界面
 
 ```dart
@@ -1030,6 +1032,8 @@ if (environment.matches(const <String>{'dev', 'test'})) {
 
 bootstrap 步骤同样接受环境。只要其中任何一个用到，`cobaltBootstrapSteps` 就变成所选环境的函数，
 被跳过的步骤既不会运行，也不会被收养。
+
+子作用域会继承环境。生成的根会把构建它时用的环境记在自己的作用域上，即 `scope.environment`；生成的子作用域 builder 如果没有收到环境，就从那里取：在为 `prod` 启动的根之下，`SessionScope(user)` 会注册会话里的 `prod` 类。`SessionScope(user, environment: CobaltEnvironment.dev)` 会为这个作用域及其下面的作用域覆盖它。手写的 builder 也用同样的方式读取 `scope.environment`。
 
 `cobalt_environment_needs_a_registration` 会抓住这种情况：`@CobaltEnvironment` 落在一个
 没人注册的类上，此时它静默地什么也不做。

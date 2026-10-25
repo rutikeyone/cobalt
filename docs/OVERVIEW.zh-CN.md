@@ -67,7 +67,7 @@
 |---|---|---|---|---|---|
 | Flutter 3.38 | 10.0.1 | 0.14.1 | 0.3.7 | 0.1.9 | 3.1.7 |
 | 更新的版本，只要没有别的依赖需要 analyzer 13 | 12.1.0 | 0.14.8 | 0.3.14 | 0.2.5 | 3.1.8 |
-| Flutter 3.49 的 `test`、`build` 4.0.8+、较新的 `freezed` 或 `json_serializable` | 13.x – 14.x | 0.14.9 – 0.14.17 | 0.3.15 – 0.3.23 | 0.2.6 – 0.4.2 | 3.1.9 – 3.1.13 |
+| Flutter 3.49 的 `test`、`build` 4.0.8+ 或配合 `build_runner` 2.17 的 5、较新的 `freezed` 或 `json_serializable` | 13.x – 14.x | 0.14.9 – 0.14.17 | 0.3.15 – 0.3.23 | 0.2.6 – 0.4.2 | 3.1.9 – 3.1.13 |
 
 生成器以固定的语言版本 3.10 进行格式化，而不是用解析到的 `dart_style` 认为的最新版本——
 因此每一行产出的字节都相同，为更新语言版本新增样式规则的格式化器版本也改变不了已提交的内容。
@@ -89,7 +89,8 @@ CI 的 `verify` job 在 Flutter 3.38.9 上运行全部检查，`forward` 则在 
 
 - **公开枚举新增取值属于次版本变更。** `CobaltRegistrationKind` 已在三个版本中增长，以后还会增长。请使用
   它的属性——`isRetained`、`takesParam`、`isAsync`、`isBuiltByInit`——而不是对取值做 `switch`；
-  穷尽式 `switch` 需要你自己更新。
+  穷尽式 `switch` 需要你自己更新。`CobaltEventKind` 也以同样方式增长，每个新的观察者事件对应一个取值
+  （1.5.0 的 `promiseBroken`、1.8.0 的 `scopeParentMismatch`），所以对它做 `switch` 的 sink 要保留 `default` 分支。
 - **`CobaltResolver` 不能在 Cobalt 之外实现。** 它是 `base` 类，所以新的解析方式可以在次版本中加入。
   测试里请构建真实的作用域——`cobalt_test` 的 `cobaltTestRoot`——而不是 mock。
 - **新增观察者钩子属于次版本变更。** `CobaltObserver` 是带空钩子的基类，针对旧版本写的观察者依然能编译

@@ -24,7 +24,7 @@ CobaltProvidedRef _provided(DartObject value, ClassElement clazz) {
   }
   throw CobaltParseError(
     '${clazz.displayName} lists something in provides that is neither a '
-    'type nor an CobaltProvided. Write the type itself, or '
+    'type nor a CobaltProvided. Write the type itself, or '
     "CobaltProvided(Type, name: 'qualifier') when the registration is named.",
     clazz,
   );

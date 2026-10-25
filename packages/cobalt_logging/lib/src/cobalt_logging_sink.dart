@@ -31,7 +31,7 @@ final class CobaltLoggingSink implements CobaltLogSink {
     record.stackTrace,
   );
 
-  /// Maps an Cobalt level onto `package:logging`'s scale.
+  /// Maps a Cobalt level onto `package:logging`'s scale.
   ///
   /// `trace` lands on `FINEST` rather than `FINE`, because Cobalt's trace is
   /// per-instance and a graph of any size produces a lot of it.

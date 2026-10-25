@@ -1,3 +1,15 @@
+## 1.9.0
+
+- `CobaltScopeWidget` rebuilt with a generated child scope builder of
+  other values, `SessionScope(bob)` in place of `SessionScope(ada)`, closes
+  its scope and opens one for the new values. Before, the widget kept the
+  scope of the first user. A builder written by hand is still read once, and
+  so is one generated before 1.9.0: run `build_runner` after the upgrade.
+  Requires `cobalt` 1.9.0.
+- The quick tour GIF is no longer in the package archive, which is 2.7 MB
+  smaller for it.
+- The Cobalt icon is the first screenshot on pub.dev.
+
 ## 1.8.0
 
 - `CobaltHeldScope` publishes whatever a `CobaltScopeHolder` holds to the

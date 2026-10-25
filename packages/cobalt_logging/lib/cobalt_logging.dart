@@ -1,6 +1,6 @@
 /// `package:logging` adapter for Cobalt.
 ///
-/// One class: [CobaltLoggingSink], which an `CobaltLogObserver` writes through.
+/// One class: [CobaltLoggingSink], which a `CobaltLogObserver` writes through.
 /// Everything else — which events exist, how they are worded — lives in
 /// `package:cobalt`.
 library;
