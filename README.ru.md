@@ -217,7 +217,7 @@ flutter run
 | `cobalt_logging` | `cobalt`, `logging` | да, опционально |
 | `cobalt_logger` | `cobalt`, `logger` | да, опционально |
 | `cobalt_analyzer` | `cobalt_annotations`, `analyzer` | нет |
-| `cobalt_generator` | `cobalt_analyzer`, `build`, `source_gen`, `code_builder` | только dev_dependency |
+| `cobalt_generator` | `cobalt`, `cobalt_analyzer`, `build`, `source_gen`, `code_builder` | только dev_dependency |
 | `cobalt_lint` | `cobalt_analyzer`, `analysis_server_plugin` | только dev_dependency |
 | `cobalt_test` | `cobalt`, `test_api`, `matcher` | только dev_dependency |
 | `cobalt_test_flutter` | `cobalt_flutter`, `flutter_test` | только dev_dependency |

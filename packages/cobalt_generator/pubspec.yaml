@@ -14,6 +14,7 @@ environment:
 
 
 dependencies:
+  cobalt: ^1.8.0
   cobalt_analyzer: ^1.5.0
   cobalt_annotations: ^1.5.0
   analyzer: ">=10.0.1 <15.0.0"

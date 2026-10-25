@@ -214,7 +214,7 @@ flutter run
 | `cobalt_logging` | `cobalt`, `logging` | 예, 선택 |
 | `cobalt_logger` | `cobalt`, `logger` | 예, 선택 |
 | `cobalt_analyzer` | `cobalt_annotations`, `analyzer` | 아니요 |
-| `cobalt_generator` | `cobalt_analyzer`, `build`, `source_gen`, `code_builder` | dev_dependency 전용 |
+| `cobalt_generator` | `cobalt`, `cobalt_analyzer`, `build`, `source_gen`, `code_builder` | dev_dependency 전용 |
 | `cobalt_lint` | `cobalt_analyzer`, `analysis_server_plugin` | dev_dependency 전용 |
 | `cobalt_test` | `cobalt`, `test_api`, `matcher` | dev_dependency 전용 |
 | `cobalt_test_flutter` | `cobalt_flutter`, `flutter_test` | dev_dependency 전용 |

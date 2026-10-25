@@ -196,7 +196,7 @@ flutter run
 | `cobalt_logging` | `cobalt`、`logging` | 是，可选 |
 | `cobalt_logger` | `cobalt`、`logger` | 是，可选 |
 | `cobalt_analyzer` | `cobalt_annotations`、`analyzer` | 否 |
-| `cobalt_generator` | `cobalt_analyzer`、`build`、`source_gen`、`code_builder` | 仅 dev_dependency |
+| `cobalt_generator` | `cobalt`、`cobalt_analyzer`、`build`、`source_gen`、`code_builder` | 仅 dev_dependency |
 | `cobalt_lint` | `cobalt_analyzer`、`analysis_server_plugin` | 仅 dev_dependency |
 | `cobalt_test` | `cobalt`、`test_api`、`matcher` | 仅 dev_dependency |
 | `cobalt_test_flutter` | `cobalt_flutter`、`flutter_test` | 仅 dev_dependency |

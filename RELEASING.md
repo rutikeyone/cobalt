@@ -16,7 +16,7 @@ version solving fails.
    cobalt_talker               (cobalt)
    cobalt_test                 (cobalt)
    cobalt_bloc                 (cobalt)
-4. cobalt_generator            (cobalt_analyzer, cobalt_annotations)
+4. cobalt_generator            (cobalt, cobalt_analyzer, cobalt_annotations)
    cobalt_lint                 (cobalt_analyzer)
    cobalt_go_router            (cobalt_flutter)
    cobalt_inspector            (cobalt_flutter)

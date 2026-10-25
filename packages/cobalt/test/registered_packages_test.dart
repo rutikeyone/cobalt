@@ -50,6 +50,17 @@ void main() {
     };
   }
 
+  String? constraintOf(String package, String key) {
+    for (final line in File(
+      '${root.path}/packages/$package/pubspec.yaml',
+    ).readAsLinesSync()) {
+      if (line.startsWith('  $key:')) {
+        return line.substring('  $key:'.length).trim();
+      }
+    }
+    return null;
+  }
+
   test('there are packages to check', () => expect(shipped, isNotEmpty));
 
   group('every package is named in', () {
@@ -235,6 +246,18 @@ void main() {
       );
     });
 
+    test('the generator needs the runtime of its own version', () {
+      expect(
+        constraintOf('cobalt_generator', 'cobalt'),
+        '^${versionsOf('cobalt_generator').$1}',
+        reason:
+            'the generated code calls the runtime it was released with, so a '
+            'generator resolved next to an older cobalt writes code that does '
+            'not compile; the constraint is what keeps pub from choosing that '
+            'pair',
+      );
+    });
+
     for (final package in shipped) {
       test('$package changelogs the version it declares', () {
         final (pubspec, changelog) = versionsOf(package);
@@ -268,18 +291,6 @@ void main() {
     /// the three have to agree on the range, or they stop agreeing about what a
     /// declaration means.
     const toolchain = {'cobalt_analyzer', 'cobalt_generator', 'cobalt_lint'};
-
-    /// The constraint a package declares, by key.
-    String? constraintOf(String package, String key) {
-      for (final line in File(
-        '${root.path}/packages/$package/pubspec.yaml',
-      ).readAsLinesSync()) {
-        if (line.startsWith('  $key:')) {
-          return line.substring('  $key:'.length).trim();
-        }
-      }
-      return null;
-    }
 
     Map<String, String?> declaredBy(Iterable<String> packages, String key) => {
       for (final package in packages) package: constraintOf(package, key),
