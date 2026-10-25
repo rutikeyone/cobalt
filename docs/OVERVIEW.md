@@ -68,7 +68,7 @@ analyzer pins it exactly, so which row you get is decided by your project rather
 |---|---|---|---|---|---|
 | Flutter 3.38 | 10.0.1 | 0.14.1 | 0.3.7 | 0.1.9 | 3.1.7 |
 | anything newer, until something else needs analyzer 13 | 12.1.0 | 0.14.8 | 0.3.14 | 0.2.5 | 3.1.8 |
-| Flutter 3.49's `test`, `build` 4.0.8+, current `freezed` or `json_serializable` | 13.x – 14.x | 0.14.9 – 0.14.17 | 0.3.15 – 0.3.23 | 0.2.6 – 0.4.2 | 3.1.9 – 3.1.13 |
+| Flutter 3.49's `test`, `build` 4.0.8+ or 5 with `build_runner` 2.17, current `freezed` or `json_serializable` | 13.x – 14.x | 0.14.9 – 0.14.17 | 0.3.15 – 0.3.23 | 0.2.6 – 0.4.2 | 3.1.9 – 3.1.13 |
 
 The generator formats at a fixed language version, 3.10, rather than at whatever the resolved
 `dart_style` calls latest — so every row emits identical bytes, and a formatter release that adds
