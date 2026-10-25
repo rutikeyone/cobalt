@@ -42,31 +42,32 @@ class SessionActivityLog implements Disposable {
 
 From the two the generator writes `SessionScope`: it registers the user and every class marked
 `scope: Session`, and the build fails if one of them asks for something neither the session nor the
-app registers. Signing in opens it under the app scope; signing out disposes it:
+app registers. A `CobaltScopeHolder` holds it: signing in opens it under the app scope and closes
+the one before, signing out closes it. The calls run one after another, so a sign-out that arrives
+while a sign-in is still starting closes that session instead of finding nothing to close:
 
 <!-- from: examples/notes_app/lib/features/session/session_manager.dart -->
 
 ```dart
 Future<void> signIn(SessionUser user) async {
-  await signOut();
-  _session = await _appScope.open('session:${user.id}', SessionScope(user));
-  notifyListeners();
+  await _session.open('session:${user.id}', SessionScope(user));
 }
 
 Future<void> signOut() async {
-  final scope = _session;
-  if (scope == null) return;
-  _session = null;
-  await scope.dispose();
-  notifyListeners();
+  await _session.close();
 }
 ```
 
-A scope from `open` is not in the widget tree, so widgets below it read the app scope. Publish the
-session to them, or let a widget own a session that lives as long as part of the UI:
+A held scope is not in the widget tree, so widgets below it read the app scope. `CobaltHeldScope`
+publishes whatever the holder holds and shows something else while nobody is signed in; or let a
+widget own a session that lives as long as part of the UI:
 
 ```dart
-CobaltScopeProvider(scope: session, child: const HomeScreen())
+CobaltHeldScope(
+  holder: session,
+  absent: const SignInScreen(),
+  child: const HomeScreen(),
+)
 ```
 
 ```dart
@@ -244,6 +245,45 @@ class OrderFlowRoute extends CobaltShellRoute {
 ```
 
 Running code: [`examples/notes_app/lib/features/order_flow`](../examples/notes_app/lib/features/order_flow).
+
+### Without cobalt_go_router
+
+`cobalt_go_router` needs go_router 17 or later: it passes on `notifyRootObserver`, which go_router
+added in 17.0.0. On an older go_router the flow is a plain `ShellRoute` whose builder wraps the shell
+in `CobaltScopeWidget`. The key holds the order id, so going to another order replaces the scope, and
+leaving the routes of the shell disposes it:
+
+<!-- from: examples/flow_scopes/test/plain_shell_route_test.dart -->
+
+```dart
+final orderFlow = ShellRoute(
+  builder: (context, state, child) {
+    final orderId = state.pathParameters['orderId']!;
+    return CobaltScopeWidget(
+      key: ValueKey(orderId),
+      name: 'order:$orderId',
+      builder: OrderFlowScope(orderId),
+      child: OrderFlowChrome(child: child),
+    );
+  },
+  routes: [
+    GoRoute(
+      path: '/orders/:orderId/summary',
+      builder: (_, state) =>
+          OrderSummaryScreen(orderId: state.pathParameters['orderId']!),
+    ),
+    GoRoute(
+      path: '/orders/:orderId/payment',
+      builder: (_, state) =>
+          OrderPaymentScreen(orderId: state.pathParameters['orderId']!),
+    ),
+  ],
+);
+```
+
+Build the route once, with the rest of the route table, as with `CobaltShellRoute`: a new
+`ShellRoute` object is a new page to go_router, and the scope would be rebuilt with it. The code is
+from [`examples/flow_scopes/test/plain_shell_route_test.dart`](../examples/flow_scopes/test/plain_shell_route_test.dart), which checks entering the flow, moving inside it, switching orders and leaving.
 
 ## Swapping a dependency in a test
 

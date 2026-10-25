@@ -191,6 +191,7 @@ flutter run
 | **По шагам, с генератором** | [GUIDE_CODEGEN.ru.md](GUIDE_CODEGEN.ru.md) |
 | **По шагам, без кодогенерации** | [GUIDE_MANUAL.ru.md](GUIDE_MANUAL.ru.md) |
 | **Переход с get_it, injectable или provider** | [MIGRATION.ru.md](MIGRATION.ru.md) |
+| **Cobalt или get_it, injectable, riverpod, provider, yx_scope** | [docs/COMPARISON.ru.md](docs/COMPARISON.ru.md): рядом, и когда Cobalt не нужен |
 | **Как сделать X** | [docs/RECIPES.ru.md](docs/RECIPES.ru.md): сессия, скоуп экрана, блок, флоу, тест |
 | **Что-то упало** | [docs/TROUBLESHOOTING.ru.md](docs/TROUBLESHOOTING.ru.md) — все ошибки и что с ними делать |
 | **Все возможности, устройство, совместимость, производительность** | [docs/OVERVIEW.ru.md](docs/OVERVIEW.ru.md) |
@@ -216,7 +217,7 @@ flutter run
 | `cobalt_logging` | `cobalt`, `logging` | да, опционально |
 | `cobalt_logger` | `cobalt`, `logger` | да, опционально |
 | `cobalt_analyzer` | `cobalt_annotations`, `analyzer` | нет |
-| `cobalt_generator` | `cobalt_analyzer`, `build`, `source_gen`, `code_builder` | только dev_dependency |
+| `cobalt_generator` | `cobalt`, `cobalt_analyzer`, `build`, `source_gen`, `code_builder` | только dev_dependency |
 | `cobalt_lint` | `cobalt_analyzer`, `analysis_server_plugin` | только dev_dependency |
 | `cobalt_test` | `cobalt`, `test_api`, `matcher` | только dev_dependency |
 | `cobalt_test_flutter` | `cobalt_flutter`, `flutter_test` | только dev_dependency |

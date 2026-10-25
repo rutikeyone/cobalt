@@ -121,23 +121,23 @@ cannot see — so CI fails until a changed modifier is written down.
 ## Performance
 
 Cobalt next to get_it, from [`benchmark/`](../benchmark/README.md), which describes what each row does.
-Compiled AOT, on arm64 with Dart SDK 3.10.8 (stable, `macos_arm64`). Median of three runs; they agreed
-within ten percent.
+Compiled AOT, on arm64 with Dart SDK 3.10.8 (stable, `macos_arm64`). Median of three runs; most cells agreed
+within ten percent, the rest within twenty-five.
 
 | | Cobalt | get_it | Cobalt / get_it |
 |---|---:|---:|---:|
-| get a built singleton | 80 ns | 423 ns | 0.19× |
-| build a transient with two dependencies | 375 ns | 1.21 µs | 0.31× |
-| register 200, then get each once | 137 µs | 374 µs | 0.37× |
-| start 20 async singletons | 26.6 µs | 28.6 µs | 0.93× |
-| the transient, with an empty observer | 403 ns | — | — |
-| the transient, with a recording observer | 884 ns | — | — |
-| the transient, with a log observer at its default level | 418 ns | — | — |
+| get a built singleton | 84 ns | 444 ns | 0.19× |
+| build a transient with two dependencies | 341 ns | 1.26 µs | 0.27× |
+| register 200, then get each once | 140 µs | 411 µs | 0.34× |
+| start 20 async singletons | 25.8 µs | 30.9 µs | 0.84× |
+| the transient, with an empty observer | 419 ns | — | — |
+| the transient, with a recording observer | 955 ns | — | — |
+| the transient, with a log observer at its default level | 438 ns | — | — |
 
 Below 1 in the last column, Cobalt took less time. The absolute numbers belong to this machine; what carries over is the order of
 magnitude. A resolution costs well under a microsecond, a graph of 200 registrations a fraction of a
 millisecond, the async start of twenty singletons tens of microseconds — none of it registers against
-a 16 ms frame. An observer that turns every event into a record about doubles the cost of a build; the log
+a 16 ms frame. An observer that turns every event into a record makes a build two to three times as costly; the log
 observer at its default level does not, because the per-instance records it drops are never made —
 it costs what an observer that overrides nothing costs.
 

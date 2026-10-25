@@ -1,6 +1,6 @@
 name: cobalt_inspector
 description: In-app inspector for Cobalt — the live scope tree, what was built and with what lifetime, and the event log, on a screen inside your app.
-version: 1.7.0
+version: 1.8.0
 repository: https://github.com/rutikeyone/cobalt
 issue_tracker: https://github.com/rutikeyone/cobalt/issues
 topics:
@@ -8,6 +8,11 @@ topics:
   - di
   - devtools
   - debugging
+screenshots:
+  - description: "The live scope tree in cobalt_inspector: each scope, what it registers, and how long each registration lives."
+    path: screenshots/tree.png
+  - description: "Everything the graph reported: scopes opened and ready, instances built with their build time, overrides."
+    path: screenshots/log.png
 
 environment:
   sdk: ^3.10.0
@@ -15,7 +20,7 @@ environment:
 
 
 dependencies:
-  cobalt: ^1.5.0
+  cobalt: ^1.8.0
   cobalt_flutter: ^1.2.0
   flutter:
     sdk: flutter

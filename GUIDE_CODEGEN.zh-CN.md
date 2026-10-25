@@ -474,7 +474,7 @@ class Draft {
 
 生成器据此写出 `SessionScope`，一个注册 `user` 和 `Draft` 的 `CobaltScopeBuilder`。
 构建像检查根一样检查它：`Draft` 可以注入会话和应用注册的东西，应用里的任何东西都不能注入 `Draft`，
-有缺口就让构建失败并指出两边。在另一个子作用域之下打开的作用域，用 `@CobaltChildScope(parent: Session)` 说明。
+有缺口就让构建失败并指出两边。在另一个子作用域之下打开的作用域，用 `@CobaltChildScope(parent: Session)` 说明；如果在别处打开，观察者会收到 `onScopeParentMismatch`，日志和 `cobalt_inspector` 里会出现警告，早于第一个缺失的注册报错。
 会话里放什么、何时结束，仍然由你决定：注解对这两者都不作声明。
 
 标记类的名字不带 `Scope`，由生成器补上；把标记类命名为 `SessionScope` 会得到 `SessionScopeScope`，构建会拒绝。
@@ -484,22 +484,20 @@ class Draft {
 
 ```dart
 class SessionManager {
-  SessionManager(this._root);
+  SessionManager(CobaltScope root) : _session = CobaltScopeHolder(root);
 
-  final CobaltScope _root;
-  CobaltScope? _session;
+  final CobaltScopeHolder _session;
 
-  Future<void> signIn(User user) async {
-    await signOut();
-    _session = await _root.open('session:${user.id}', SessionScope(user));
-  }
+  CobaltScope? get scope => _session.current;
 
-  Future<void> signOut() async {
-    await _session?.dispose();
-    _session = null;
-  }
+  Future<void> signIn(User user) =>
+      _session.open('session:${user.id}', SessionScope(user));
+
+  Future<void> signOut() => _session.close();
 }
 ```
+
+`CobaltScopeHolder` 一次只持有一个会话：`open` 会关闭之前那个，每次 `open` 和 `close` 都在之前的调用之后执行。所以登录还在启动时到来的退出会关闭这个会话，而不是扑空后让它一直开着。
 
 `open` 在应用之下压入作用域，在它上面运行 `SessionScope`，并等待 `init()`；其中任何一步抛出异常，
 作用域都会在错误到达你之前被销毁。
@@ -510,7 +508,11 @@ class SessionManager {
 `open` 打开的作用域不在 widget 树里。在它下面，`context.cobalt<T>()` 读的仍是应用作用域，只有会话注册的东西会以 `CobaltNotRegisteredError` 失败。把会话发布给需要它的 widget：
 
 ```dart
-CobaltScopeProvider(scope: session, child: const HomeScreen())
+CobaltHeldScope(
+  holder: session,
+  absent: const SignInScreen(),
+  child: const HomeScreen(),
+)
 ```
 
 如果会话的寿命恰好等于界面的一部分，就让一个 widget 拥有它。widget 挂载时打开，卸载时销毁：

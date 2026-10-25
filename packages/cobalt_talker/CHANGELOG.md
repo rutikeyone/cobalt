@@ -1,3 +1,8 @@
+## 1.8.0
+
+- `onScopeParentMismatch` is logged as a warning, beside a broken promise.
+  Requires `cobalt` 1.8.0.
+
 ## 1.7.0
 
 - No code changes in this package. Republished in lockstep with 1.7.0:

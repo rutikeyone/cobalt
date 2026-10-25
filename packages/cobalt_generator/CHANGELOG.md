@@ -1,3 +1,12 @@
+## 1.8.0
+
+- A generated child scope builder extends `CobaltChildScopeBuilder` and
+  names its marker and the `parent` the marker declares, so opening it under
+  a different scope is reported.
+- Depends on `cobalt` ^1.8.0, which the generated code needs. Generated code
+  has always used the runtime of its own version, but nothing made pub keep
+  the two together; now a generator newer than the runtime does not resolve.
+
 ## 1.7.0
 
 - The generated names lose the `$`: `CobaltRoot` is the class,

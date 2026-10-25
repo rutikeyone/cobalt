@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer' as developer;
 
+import 'package:cobalt/src/bootstrap/cobalt_child_scope_builder.dart';
 import 'package:cobalt/src/bootstrap/cobalt_scope_builder.dart';
 import 'package:cobalt/src/decorator/cobalt_decorator.dart';
 import 'package:cobalt/src/errors/cobalt_async_param_error.dart';
@@ -120,6 +121,8 @@ final class CobaltScope extends CobaltResolver {
   final _overriddenKeys = <CobaltKey>{};
   final _claimed = <CobaltKey>{};
   final _promised = <CobaltKey>{};
+
+  final _markers = <Type>{};
   var _applyingOverrides = false;
 
   final _decorators = <CobaltKey, List<_Decoration>>{};
@@ -413,7 +416,9 @@ final class CobaltScope extends CobaltResolver {
       );
     }
     return found.scope._tracker.guard(key, () {
-      final timing = BuildTiming.start();
+      final timing = BuildTiming.start(
+        observed: found.scope._observers.isNotEmpty,
+      );
       final instance = timing.during(
         () => registration.factory.create(found.scope, param),
       );
@@ -800,7 +805,7 @@ final class CobaltScope extends CobaltResolver {
     }
     final teardown = _teardownOf(dispose);
     final instance = _tracker.guard(key, () {
-      final timing = BuildTiming.start();
+      final timing = BuildTiming.start(observed: _observers.isNotEmpty);
       final built = timing.during(() => factory.create(this));
       _afterCreate(
         built,
@@ -1119,7 +1124,9 @@ final class CobaltScope extends CobaltResolver {
       );
     }
     return found.scope._tracker.guard(key, () {
-      final timing = BuildTiming.start();
+      final timing = BuildTiming.start(
+        observed: found.scope._observers.isNotEmpty,
+      );
       final instance = timing.during(
         () => registration.factory.create(found.scope, param),
       );
@@ -1623,7 +1630,7 @@ final class CobaltScope extends CobaltResolver {
 
       case TransientRegistration():
         return _tracker.guard(registration.key, () {
-          final timing = BuildTiming.start();
+          final timing = BuildTiming.start(observed: _observers.isNotEmpty);
           final instance = timing.during(
             () => registration.factory.create(this),
           );
@@ -1641,7 +1648,7 @@ final class CobaltScope extends CobaltResolver {
         final existing =
             registration.instance ??
             _tracker.guard<Object>(registration.key, () {
-              final timing = BuildTiming.start();
+              final timing = BuildTiming.start(observed: _observers.isNotEmpty);
               final instance = timing.during(
                 () => registration.factory.create(this),
               );
@@ -1712,7 +1719,7 @@ final class CobaltScope extends CobaltResolver {
 
       case AsyncTransientRegistration():
         final key = registration.key;
-        final timing = BuildTiming.start();
+        final timing = BuildTiming.start(observed: _observers.isNotEmpty);
         final instance = await CobaltResolutionTracker.guardLazy(
           key,
           () => timing.during(() => registration.factory.create(this)),
@@ -1757,7 +1764,7 @@ final class CobaltScope extends CobaltResolver {
           );
         }
         return _tracker.guard(key, () {
-          final timing = BuildTiming.start();
+          final timing = BuildTiming.start(observed: _observers.isNotEmpty);
           final instance = timing.during(
             () => registration.factory.create(this, param),
           );
@@ -1779,7 +1786,7 @@ final class CobaltScope extends CobaltResolver {
             param.runtimeType,
           );
         }
-        final timing = BuildTiming.start();
+        final timing = BuildTiming.start(observed: _observers.isNotEmpty);
         final instance = await CobaltResolutionTracker.guardLazy(
           key,
           () => timing.during(() => registration.factory.create(this, param)),
@@ -1845,7 +1852,7 @@ final class CobaltScope extends CobaltResolver {
       onError: (Object _) => _settleLazy(registration, build),
     );
 
-    final timing = BuildTiming.start();
+    final timing = BuildTiming.start(observed: _observers.isNotEmpty);
     CobaltResolutionTracker.guardLazy(
       registration.key,
       () async {
@@ -1926,7 +1933,7 @@ final class CobaltScope extends CobaltResolver {
 
   Future<void> _createAsync(AsyncSingletonRegistration registration) =>
       _tracker.guardAsync(registration.key, () async {
-        final timing = BuildTiming.start();
+        final timing = BuildTiming.start(observed: _observers.isNotEmpty);
         final instance = await CobaltResolutionTracker.inPhaseOne(
           this,
           () => timing.during(() => registration.factory.create(this)),
@@ -2062,6 +2069,7 @@ final class CobaltScope extends CobaltResolver {
   /// this scope replaced something, and throws [CobaltOverrideError] naming
   /// the first that did not.
   void runBuilder(CobaltScopeBuilder builder) {
+    if (builder is CobaltChildScopeBuilder) _placeChild(builder);
     _building = true;
     try {
       builder.build(this);
@@ -2071,6 +2079,33 @@ final class CobaltScope extends CobaltResolver {
     _assertOverridesClaimed();
     _assertDecoratorsOwned();
     _reportBrokenPromises();
+  }
+
+  void _placeChild(CobaltChildScopeBuilder builder) {
+    _markers.add(builder.marker);
+    final declared = builder.parent;
+    if (declared == null) return;
+    for (var above = parent; above != null; above = above.parent) {
+      if (above._markers.contains(declared)) return;
+    }
+    _notify(
+      (observer) => observer.onScopeParentMismatch(
+        ref,
+        marker: builder.marker,
+        declaredParent: declared,
+      ),
+    );
+    assert(() {
+      developer.log(
+        'Scope "$name" was built for ${builder.marker}, which is declared to '
+        'open under $declared, but no scope above it was built for '
+        '$declared. Open it under that scope, or change parent: in its '
+        '@CobaltChildScope.',
+        name: 'cobalt',
+        level: 900,
+      );
+      return true;
+    }());
   }
 
   void _reportBrokenPromises() {

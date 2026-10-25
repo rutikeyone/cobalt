@@ -41,10 +41,11 @@ class CobaltChildScope {
 
   /// The child scope this one opens under, or null for the root.
   ///
-  /// It decides only what the build lets registrations here inject. At run
-  /// time the scope resolves through whatever it was opened under, so a
-  /// scope opened somewhere else fails with `CobaltNotRegisteredError` on the
-  /// first thing it cannot find.
+  /// It decides what the build lets registrations here inject. At run time
+  /// the scope resolves through whatever it was opened under; opened where
+  /// no scope above was built for [parent], it is reported to observers as
+  /// `onScopeParentMismatch`, and fails with `CobaltNotRegisteredError` on
+  /// the first thing it cannot find.
   final Type? parent;
 
   /// Registrations made in this scope by hand, which registrations here may

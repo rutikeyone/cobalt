@@ -3,6 +3,7 @@ library;
 
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 
 /// Adding a package means naming it in five places, and nothing checked four.
@@ -47,6 +48,17 @@ void main() {
         if (RegExp(r'^  (cobalt[a-z_]*):').firstMatch(line) case final it?)
           it.group(1)!,
     };
+  }
+
+  String? constraintOf(String package, String key) {
+    for (final line in File(
+      '${root.path}/packages/$package/pubspec.yaml',
+    ).readAsLinesSync()) {
+      if (line.startsWith('  $key:')) {
+        return line.substring('  $key:'.length).trim();
+      }
+    }
+    return null;
   }
 
   test('there are packages to check', () => expect(shipped, isNotEmpty));
@@ -234,6 +246,18 @@ void main() {
       );
     });
 
+    test('the generator needs the runtime of its own version', () {
+      expect(
+        constraintOf('cobalt_generator', 'cobalt'),
+        '^${versionsOf('cobalt_generator').$1}',
+        reason:
+            'the generated code calls the runtime it was released with, so a '
+            'generator resolved next to an older cobalt writes code that does '
+            'not compile; the constraint is what keeps pub from choosing that '
+            'pair',
+      );
+    });
+
     for (final package in shipped) {
       test('$package changelogs the version it declares', () {
         final (pubspec, changelog) = versionsOf(package);
@@ -267,18 +291,6 @@ void main() {
     /// the three have to agree on the range, or they stop agreeing about what a
     /// declaration means.
     const toolchain = {'cobalt_analyzer', 'cobalt_generator', 'cobalt_lint'};
-
-    /// The constraint a package declares, by key.
-    String? constraintOf(String package, String key) {
-      for (final line in File(
-        '${root.path}/packages/$package/pubspec.yaml',
-      ).readAsLinesSync()) {
-        if (line.startsWith('  $key:')) {
-          return line.substring('  $key:'.length).trim();
-        }
-      }
-      return null;
-    }
 
     Map<String, String?> declaredBy(Iterable<String> packages, String key) => {
       for (final package in packages) package: constraintOf(package, key),
@@ -334,6 +346,72 @@ void main() {
             'Declared: $declared',
       );
     });
+  });
+
+  group('screenshots on pub.dev', () {
+    List<({String description, String path})> screenshotsOf(String package) {
+      final lines = read('packages/$package/pubspec.yaml').split('\n');
+      final start = lines.indexOf('screenshots:');
+      if (start == -1) return const [];
+      final shots = <({String description, String path})>[];
+      var description = '';
+      for (final line in lines.skip(start + 1)) {
+        if (!line.startsWith(' ')) break;
+        if (RegExp(r'^  - description: "(.*)"$').firstMatch(line)
+            case final it?) {
+          description = it.group(1)!;
+        }
+        if (RegExp(r'^    path: (\S+)$').firstMatch(line) case final it?) {
+          shots.add((description: description, path: it.group(1)!));
+        }
+      }
+      return shots;
+    }
+
+    String original(String path) {
+      final name = path.split('/').last;
+      return name.endsWith('.gif')
+          ? 'assets/$name'
+          : 'assets/screenshots/$name';
+    }
+
+    final showing = {
+      for (final package in shipped)
+        if (screenshotsOf(package) case final shots when shots.isNotEmpty)
+          package: shots,
+    };
+
+    test('some packages show them', () => expect(showing, isNotEmpty));
+
+    for (final MapEntry(key: package, value: shots) in showing.entries) {
+      test('$package shows copies of the repository pictures', () {
+        expect(shots.length, lessThanOrEqualTo(10));
+        expect(
+          Directory('${root.path}/packages/$package/screenshots')
+              .listSync()
+              .map((it) => 'screenshots/${it.uri.pathSegments.last}')
+              .toSet(),
+          shots.map((it) => it.path).toSet(),
+          reason: 'a picture nobody lists still ships in the archive',
+        );
+        for (final (:description, :path) in shots) {
+          expect(description.length, lessThanOrEqualTo(160), reason: path);
+          final copy = File('${root.path}/packages/$package/$path');
+          expect(copy.lengthSync(), lessThan(4 * 1024 * 1024), reason: path);
+          expect(
+            const ListEquality<int>().equals(
+              copy.readAsBytesSync(),
+              File('${root.path}/${original(path)}').readAsBytesSync(),
+            ),
+            isTrue,
+            reason:
+                'packages/$package/$path is a copy of ${original(path)}: '
+                'pub.dev shows only files inside the package. '
+                'tool/screenshots.sh and tool/quick_tour.sh refresh both',
+          );
+        }
+      });
+    }
   });
 
   test('the release note counts the packages it lists', () {

@@ -441,22 +441,22 @@ class SessionScope implements CobaltScopeBuilder {
 }
 
 class SessionManager {
-  SessionManager(this._root);
+  SessionManager(CobaltScope root) : _session = CobaltScopeHolder(root);
 
-  final CobaltScope _root;
-  CobaltScope? _session;
+  final CobaltScopeHolder _session;
 
-  Future<void> signIn(User user) async {
-    await signOut();
-    _session = await _root.open('session:${user.id}', const SessionScope());
-  }
+  CobaltScope? get scope => _session.current;
 
-  Future<void> signOut() async {
-    await _session?.dispose();
-    _session = null;
-  }
+  Future<void> signIn(User user) =>
+      _session.open('session:${user.id}', const SessionScope());
+
+  Future<void> signOut() => _session.close();
 }
 ```
+
+`CobaltScopeHolder`는 한 번에 세션 하나만 보관합니다. `open`은 이전 세션을 닫고, 모든 `open`과 `close`는 먼저
+호출된 것 다음에 실행됩니다. 그래서 로그인이 아직 시작 중일 때 온 로그아웃은 빈손으로 끝나 세션을 열어 두지
+않고 그 세션을 닫습니다.
 
 로그아웃은 `await scope.dispose()`입니다. 세션 스트림을 구독하는 리포지토리도 없고, 원하지 않던 `reset()`
 메서드가 생겨나는 도메인 인터페이스도 없습니다.

@@ -110,10 +110,14 @@ final class CobaltResolutionTracker {
     }
     return runZoned(
       build,
-      zoneValues: {
-        ...zoneValues,
-        _lazyChainKey: List<CobaltKey>.unmodifiable([...chain, key]),
-      },
+      zoneValues: zoneValues.isEmpty
+          ? {
+              _lazyChainKey: List<CobaltKey>.unmodifiable([...chain, key]),
+            }
+          : {
+              ...zoneValues,
+              _lazyChainKey: List<CobaltKey>.unmodifiable([...chain, key]),
+            },
     );
   }
 
@@ -127,5 +131,10 @@ final class CobaltResolutionTracker {
     Object owner,
     Future<T> Function() build, {
     Map<Object?, Object?> zoneValues = const {},
-  }) => runZoned(build, zoneValues: {...zoneValues, _phaseOneKey: owner});
+  }) => runZoned(
+    build,
+    zoneValues: zoneValues.isEmpty
+        ? {_phaseOneKey: owner}
+        : {...zoneValues, _phaseOneKey: owner},
+  );
 }

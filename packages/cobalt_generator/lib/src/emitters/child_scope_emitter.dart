@@ -22,7 +22,7 @@ class ChildScopeEmitter {
       (b) => b
         ..name = scope.builderName
         ..modifier = ClassModifier.final$
-        ..implements.add(cobaltRef('CobaltScopeBuilder'))
+        ..extend = cobaltRef('CobaltChildScopeBuilder')
         ..constructors.add(
           Constructor(
             (c) => c
@@ -71,6 +71,31 @@ class ChildScopeEmitter {
                 ..name = 'environment'
                 ..modifier = FieldModifier.final$
                 ..type = cobaltRef('CobaltEnvironment'),
+            ),
+        ])
+        ..methods.addAll([
+          Method(
+            (m) => m
+              ..name = 'marker'
+              ..type = MethodType.getter
+              ..annotations.add(refer('override'))
+              ..returns = refer('Type')
+              ..lambda = true
+              ..body = typeReferenceOf(scope.type).code,
+          ),
+          if (scope.parent case final parent?)
+            Method(
+              (m) => m
+                ..name = 'parent'
+                ..type = MethodType.getter
+                ..annotations.add(refer('override'))
+                ..returns = TypeReference(
+                  (r) => r
+                    ..symbol = 'Type'
+                    ..isNullable = true,
+                )
+                ..lambda = true
+                ..body = typeReferenceOf(parent).code,
             ),
         ])
         ..methods.add(

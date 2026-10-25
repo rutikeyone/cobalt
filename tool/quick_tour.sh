@@ -25,3 +25,6 @@ mac-sim test "$REPO/examples/gallery" integration_test/quick_tour_test.dart "$DE
 
 [ -f "$VIDEO" ] || { echo "Not recorded: $VIDEO"; exit 1; }
 mac-sim gif "$VIDEO" "$PWD/assets/quick-tour.gif" "$FPS" "$START" "$DURATION" "$WIDTH"
+for copy in packages/*/screenshots/quick-tour.gif; do
+  if [ -f "$copy" ]; then cp assets/quick-tour.gif "$copy"; fi
+done

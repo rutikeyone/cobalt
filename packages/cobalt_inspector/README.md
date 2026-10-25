@@ -94,6 +94,10 @@ waited on, with the whole time beside it when they differ; a build whose own tim
 class that only waited on a slow dependency is not. A registration's sheet shows how long its last
 build took, and how much of it without its dependencies.
 
+Above the list, a folded card sums up the cold start, when the log was installed with the graph:
+how long it took, the bootstrap steps, and the singletons that waited longest for their
+dependencies. `log.startup` returns the same as a `CobaltStartupReport`.
+
 **Log** is everything, filterable by event kind.
 
 ## Two things it will not do

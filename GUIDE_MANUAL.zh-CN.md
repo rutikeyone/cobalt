@@ -416,22 +416,20 @@ class SessionScope implements CobaltScopeBuilder {
 }
 
 class SessionManager {
-  SessionManager(this._root);
+  SessionManager(CobaltScope root) : _session = CobaltScopeHolder(root);
 
-  final CobaltScope _root;
-  CobaltScope? _session;
+  final CobaltScopeHolder _session;
 
-  Future<void> signIn(User user) async {
-    await signOut();
-    _session = await _root.open('session:${user.id}', const SessionScope());
-  }
+  CobaltScope? get scope => _session.current;
 
-  Future<void> signOut() async {
-    await _session?.dispose();
-    _session = null;
-  }
+  Future<void> signIn(User user) =>
+      _session.open('session:${user.id}', const SessionScope());
+
+  Future<void> signOut() => _session.close();
 }
 ```
+
+`CobaltScopeHolder` 一次只持有一个会话：`open` 会关闭之前那个，每次 `open` 和 `close` 都在之前的调用之后执行。所以登录还在启动时到来的退出会关闭这个会话，而不是扑空后让它一直开着。
 
 登出就是 `await scope.dispose()`。没有仓储去订阅会话流，
 也没有领域接口被迫长出一个它并不想要的 `reset()`。

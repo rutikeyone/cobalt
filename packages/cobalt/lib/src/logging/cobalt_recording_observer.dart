@@ -94,6 +94,20 @@ abstract base class CobaltRecordingObserver extends CobaltObserver {
   );
 
   @override
+  void onScopeParentMismatch(
+    CobaltScopeRef scope, {
+    required Type marker,
+    required Type declaredParent,
+  }) => _emit(
+    CobaltEventKind.scopeParentMismatch,
+    CobaltLogLevel.warning,
+    () =>
+        '"$scope" was built for $marker, declared under $declaredParent, but no '
+        'scope above it was built for $declaredParent',
+    scope: scope,
+  );
+
+  @override
   void onScopeInitStarted(CobaltScopeRef scope, int levels) => _emit(
     CobaltEventKind.scopeInitStarted,
     CobaltLogLevel.debug,

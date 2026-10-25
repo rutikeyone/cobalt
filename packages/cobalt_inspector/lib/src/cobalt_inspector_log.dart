@@ -95,6 +95,58 @@ final class CobaltInspectorLog extends CobaltRecordingObserver
     _notify();
   }
 
+  final _startup = CobaltStartupObserver();
+
+  /// What the cold start of the graph spent its time on: the bootstrap
+  /// steps, the singletons the start built, and how long each waited for its
+  /// dependencies.
+  ///
+  /// Read from the same events as the records, so it needs the log installed
+  /// when the graph starts; empty when it was installed later.
+  CobaltStartupReport get startup => _startup.report;
+
+  @override
+  void onBootstrapStepStarted(String step) {
+    _startup.onBootstrapStepStarted(step);
+    super.onBootstrapStepStarted(step);
+  }
+
+  @override
+  void onBootstrapStepCompleted(String step, Duration took) {
+    _startup.onBootstrapStepCompleted(step, took);
+    super.onBootstrapStepCompleted(step, took);
+  }
+
+  @override
+  void onInstanceSelfTime(CobaltScopeRef scope, CobaltKey key, Duration self) {
+    _startup.onInstanceSelfTime(scope, key, self);
+    super.onInstanceSelfTime(scope, key, self);
+  }
+
+  @override
+  void onInstanceBuilt(
+    CobaltScopeRef scope,
+    CobaltKey key, {
+    required CobaltRegistrationKind kind,
+    required bool retained,
+    required Duration took,
+  }) {
+    _startup.onInstanceBuilt(
+      scope,
+      key,
+      kind: kind,
+      retained: retained,
+      took: took,
+    );
+    super.onInstanceBuilt(
+      scope,
+      key,
+      kind: kind,
+      retained: retained,
+      took: took,
+    );
+  }
+
   @override
   void onRecord(CobaltLogRecord record) {
     if (_entries.length == capacity) _entries.removeAt(0);

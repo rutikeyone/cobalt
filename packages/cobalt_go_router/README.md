@@ -3,6 +3,10 @@
 go_router bindings for [Cobalt](https://github.com/rutikeyone/cobalt). A scope whose lifetime is a
 navigation flow: created when the flow opens, disposed when it closes.
 
+Needs go_router 17 or later. On an older go_router, a plain `ShellRoute` and `CobaltScopeWidget` give
+a flow the same lifetime:
+[a flow without cobalt_go_router](https://github.com/rutikeyone/cobalt/blob/main/docs/RECIPES.md#without-cobalt_go_router).
+
 ```dart
 CobaltShellRoute(
   name: 'checkout',

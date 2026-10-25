@@ -188,6 +188,7 @@ flutter run
 | **단계별로, 제너레이터와 함께** | [GUIDE_CODEGEN.ko.md](GUIDE_CODEGEN.ko.md) |
 | **단계별로, 코드 생성 없이** | [GUIDE_MANUAL.ko.md](GUIDE_MANUAL.ko.md) |
 | **get_it, injectable, provider에서 옮겨 오기** | [MIGRATION.ko.md](MIGRATION.ko.md) |
+| **Cobalt냐 get_it, injectable, riverpod, provider, yx_scope냐** | [docs/COMPARISON.ko.md](docs/COMPARISON.ko.md): 나란히, 그리고 Cobalt가 필요 없을 때 |
 | **X를 하는 방법** | [docs/RECIPES.ko.md](docs/RECIPES.ko.md): 세션, 화면 스코프, bloc, 플로우, 테스트 |
 | **오류가 났을 때** | [docs/TROUBLESHOOTING.ko.md](docs/TROUBLESHOOTING.ko.md): 모든 오류와 해결 방법 |
 | **모든 기능, 동작 방식, 호환성, 성능** | [docs/OVERVIEW.ko.md](docs/OVERVIEW.ko.md) |
@@ -213,7 +214,7 @@ flutter run
 | `cobalt_logging` | `cobalt`, `logging` | 예, 선택 |
 | `cobalt_logger` | `cobalt`, `logger` | 예, 선택 |
 | `cobalt_analyzer` | `cobalt_annotations`, `analyzer` | 아니요 |
-| `cobalt_generator` | `cobalt_analyzer`, `build`, `source_gen`, `code_builder` | dev_dependency 전용 |
+| `cobalt_generator` | `cobalt`, `cobalt_analyzer`, `build`, `source_gen`, `code_builder` | dev_dependency 전용 |
 | `cobalt_lint` | `cobalt_analyzer`, `analysis_server_plugin` | dev_dependency 전용 |
 | `cobalt_test` | `cobalt`, `test_api`, `matcher` | dev_dependency 전용 |
 | `cobalt_test_flutter` | `cobalt_flutter`, `flutter_test` | dev_dependency 전용 |

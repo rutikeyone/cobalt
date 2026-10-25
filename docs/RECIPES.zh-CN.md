@@ -37,30 +37,28 @@ class SessionActivityLog implements Disposable {
   SessionActivityLog(this._user, this._appLog);
 ```
 
-生成器根据这两者写出 `SessionScope`：它注册用户以及每个标了 `scope: Session` 的类；如果其中某个类要的东西会话和应用都不注册，构建就会失败。登录时在应用作用域之下打开它；退出时销毁它：
+生成器根据这两者写出 `SessionScope`：它注册用户以及每个标了 `scope: Session` 的类；如果其中某个类要的东西会话和应用都不注册，构建就会失败。由 `CobaltScopeHolder` 持有它：登录时在应用作用域之下打开它并关闭之前那个，退出时关闭它。这些调用依次执行，所以登录还在启动时到来的退出会关闭这个会话，而不是扑空：
 
 <!-- from: examples/notes_app/lib/features/session/session_manager.dart -->
 
 ```dart
 Future<void> signIn(SessionUser user) async {
-  await signOut();
-  _session = await _appScope.open('session:${user.id}', SessionScope(user));
-  notifyListeners();
+  await _session.open('session:${user.id}', SessionScope(user));
 }
 
 Future<void> signOut() async {
-  final scope = _session;
-  if (scope == null) return;
-  _session = null;
-  await scope.dispose();
-  notifyListeners();
+  await _session.close();
 }
 ```
 
-`open` 打开的作用域不在 widget 树里，所以它下面的 widget 读的是应用作用域。把会话发布给它们，或者在会话寿命等于界面一部分时让 widget 拥有它：
+被持有的作用域不在 widget 树里，所以它下面的 widget 读的是应用作用域。`CobaltHeldScope` 把持有者当前持有的作用域发布给它们，没人登录时显示别的 widget；或者在会话寿命等于界面一部分时让 widget 拥有它：
 
 ```dart
-CobaltScopeProvider(scope: session, child: const HomeScreen())
+CobaltHeldScope(
+  holder: session,
+  absent: const SignInScreen(),
+  child: const HomeScreen(),
+)
 ```
 
 ```dart
@@ -220,6 +218,40 @@ class OrderFlowRoute extends CobaltShellRoute {
 ```
 
 可运行的代码：[`examples/notes_app/lib/features/order_flow`](../examples/notes_app/lib/features/order_flow)。
+
+### 不用 cobalt_go_router
+
+`cobalt_go_router` 需要 go_router 17 或更高版本：它会转交 `notifyRootObserver`，而这是 go_router 17.0.0 才加入的。在更早的 go_router 上，流程就是一个普通的 `ShellRoute`，它的 builder 用 `CobaltScopeWidget` 包住外壳。key 里放的是订单 id，所以切到另一个订单会换掉作用域，离开外壳下的路由则会销毁它：
+
+<!-- from: examples/flow_scopes/test/plain_shell_route_test.dart -->
+
+```dart
+final orderFlow = ShellRoute(
+  builder: (context, state, child) {
+    final orderId = state.pathParameters['orderId']!;
+    return CobaltScopeWidget(
+      key: ValueKey(orderId),
+      name: 'order:$orderId',
+      builder: OrderFlowScope(orderId),
+      child: OrderFlowChrome(child: child),
+    );
+  },
+  routes: [
+    GoRoute(
+      path: '/orders/:orderId/summary',
+      builder: (_, state) =>
+          OrderSummaryScreen(orderId: state.pathParameters['orderId']!),
+    ),
+    GoRoute(
+      path: '/orders/:orderId/payment',
+      builder: (_, state) =>
+          OrderPaymentScreen(orderId: state.pathParameters['orderId']!),
+    ),
+  ],
+);
+```
+
+和 `CobaltShellRoute` 一样，这个路由只创建一次，和路由表的其他部分放在一起：对 go_router 来说，新的 `ShellRoute` 对象就是新的页面，作用域会随之重建。代码来自 [`examples/flow_scopes/test/plain_shell_route_test.dart`](../examples/flow_scopes/test/plain_shell_route_test.dart)，测试检查了进入流程、在流程内移动、切换订单和离开。
 
 ## 在测试里替换依赖
 

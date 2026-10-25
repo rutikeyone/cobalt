@@ -274,3 +274,8 @@ override가 아무것도 바꾸지 않았습니다.
 - **`Classes can only mix in mixins and classes` 또는 `Undefined class '_$Foo'`.** 클래스가 생성된
   `_$Foo`를 섞지만, 파일이 그 믹스인이 있는 part를 포함하지 않습니다. import 아래에 `part 'foo.g.dart';`를
   추가하고 빌드를 실행하십시오. `cobalt_missing_injection_mixin`의 빠른 수정은 둘 다 써 줍니다.
+- **`flutter analyze`나 `dart analyze`에서 모든 오류가 두 번씩 나옵니다.** 분석기 플러그인이면
+  `cobalt_lint`든 규칙이 하나도 없는 플러그인이든 모두 그렇습니다 (Flutter 3.38.9, Dart 3.10.8에서 확인).
+  플러그인이 응답한 뒤 analysis server가 다시 보내는 보고를 명령줄이 모두 남기기 때문입니다. 두 군데가
+  잘못된 것은 아니니 각 쌍의 첫 번째를 고치십시오. `flutter analyze`의 수정은 Flutter master 브랜치에
+  들어가 있습니다 ([flutter/flutter#193279](https://github.com/flutter/flutter/pull/193279)).

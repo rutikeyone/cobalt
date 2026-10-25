@@ -1,3 +1,10 @@
+## 1.8.0
+
+- No code changes in this package. Republished in lockstep with 1.8.0:
+  `CobaltScopeHolder` for sessions, a warning when a generated child scope
+  opens under the wrong parent, a startup card in the inspector, and faster
+  builds when nothing observes them.
+
 ## 1.7.0
 
 - No code changes in this package. Republished in lockstep with 1.7.0:

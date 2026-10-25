@@ -41,32 +41,32 @@ class SessionActivityLog implements Disposable {
 ```
 
 이 둘에서 제너레이터가 `SessionScope`를 씁니다. 사용자와 `scope: Session`이 붙은 모든 클래스를 등록하고,
-그중 하나가 세션도 앱도 등록하지 않는 것을 요구하면 빌드가 실패합니다. 로그인은 앱 스코프 아래에서 그것을
-열고, 로그아웃은 해제합니다:
+그중 하나가 세션도 앱도 등록하지 않는 것을 요구하면 빌드가 실패합니다. `CobaltScopeHolder`가 그것을
+보관합니다. 로그인은 앱 스코프 아래에서 그것을 열고 이전 것을 닫으며, 로그아웃은 닫습니다. 호출은 차례로
+실행되므로, 로그인이 아직 시작 중일 때 온 로그아웃은 빈손으로 끝나지 않고 그 세션을 닫습니다:
 
 <!-- from: examples/notes_app/lib/features/session/session_manager.dart -->
 
 ```dart
 Future<void> signIn(SessionUser user) async {
-  await signOut();
-  _session = await _appScope.open('session:${user.id}', SessionScope(user));
-  notifyListeners();
+  await _session.open('session:${user.id}', SessionScope(user));
 }
 
 Future<void> signOut() async {
-  final scope = _session;
-  if (scope == null) return;
-  _session = null;
-  await scope.dispose();
-  notifyListeners();
+  await _session.close();
 }
 ```
 
-`open`으로 연 스코프는 위젯 트리에 없으므로, 그 아래 위젯은 앱 스코프를 읽습니다. 세션을 위젯에 공개하거나,
-세션이 UI 일부와 수명이 같다면 위젯이 소유하게 하십시오.
+보관된 스코프는 위젯 트리에 없으므로, 그 아래 위젯은 앱 스코프를 읽습니다. `CobaltHeldScope`는 보관자가
+가진 스코프를 위젯에 공개하고, 아무도 로그인하지 않았을 때는 다른 위젯을 보여 줍니다. 또는 세션이 UI
+일부와 수명이 같다면 위젯이 소유하게 하십시오.
 
 ```dart
-CobaltScopeProvider(scope: session, child: const HomeScreen())
+CobaltHeldScope(
+  holder: session,
+  absent: const SignInScreen(),
+  child: const HomeScreen(),
+)
 ```
 
 ```dart
@@ -239,6 +239,45 @@ class OrderFlowRoute extends CobaltShellRoute {
 ```
 
 실행되는 코드: [`examples/notes_app/lib/features/order_flow`](../examples/notes_app/lib/features/order_flow).
+
+### cobalt_go_router 없이
+
+`cobalt_go_router`는 go_router 17 이상이 필요합니다. go_router 17.0.0에서 추가된 `notifyRootObserver`를
+넘겨주기 때문입니다. 그보다 오래된 go_router에서는 평범한 `ShellRoute`의 builder가 셸을
+`CobaltScopeWidget`으로 감싸면 플로우가 됩니다. 키에 주문 id가 들어 있으므로 다른 주문으로 가면 스코프가
+교체되고, 셸의 라우트를 벗어나면 해제됩니다:
+
+<!-- from: examples/flow_scopes/test/plain_shell_route_test.dart -->
+
+```dart
+final orderFlow = ShellRoute(
+  builder: (context, state, child) {
+    final orderId = state.pathParameters['orderId']!;
+    return CobaltScopeWidget(
+      key: ValueKey(orderId),
+      name: 'order:$orderId',
+      builder: OrderFlowScope(orderId),
+      child: OrderFlowChrome(child: child),
+    );
+  },
+  routes: [
+    GoRoute(
+      path: '/orders/:orderId/summary',
+      builder: (_, state) =>
+          OrderSummaryScreen(orderId: state.pathParameters['orderId']!),
+    ),
+    GoRoute(
+      path: '/orders/:orderId/payment',
+      builder: (_, state) =>
+          OrderPaymentScreen(orderId: state.pathParameters['orderId']!),
+    ),
+  ],
+);
+```
+
+`CobaltShellRoute`와 마찬가지로 이 라우트는 나머지 라우트 테이블과 함께 한 번만 만듭니다. go_router에게
+새 `ShellRoute` 객체는 새 페이지이고, 스코프도 함께 다시 만들어집니다. 코드는 [`examples/flow_scopes/test/plain_shell_route_test.dart`](../examples/flow_scopes/test/plain_shell_route_test.dart)에서 가져왔고,
+이 테스트는 플로우 진입, 플로우 안에서의 이동, 주문 변경, 이탈을 확인합니다.
 
 ## 테스트에서 의존성 바꿔 끼우기
 

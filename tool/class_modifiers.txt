@@ -10,6 +10,7 @@ cobalt  CobaltAsyncParamOverride  final class
 cobalt  CobaltAsyncTransientError  final class
 cobalt  CobaltBootstrapError  final class
 cobalt  CobaltBootstrapStep  abstract interface class
+cobalt  CobaltChildScopeBuilder  abstract base class
 cobalt  CobaltCycleError  final class
 cobalt  CobaltDecorator  abstract interface class
 cobalt  CobaltDecoratorError  final class
@@ -57,6 +58,7 @@ cobalt  CobaltResolver  abstract base class
 cobalt  CobaltRootBuilder  abstract base class
 cobalt  CobaltScope  final class
 cobalt  CobaltScopeBuilder  abstract interface class
+cobalt  CobaltScopeHolder  final class
 cobalt  CobaltScopeRef  final class
 cobalt  CobaltScopeState  enum
 cobalt  CobaltScopeStateError  final class
@@ -106,6 +108,7 @@ cobalt_flutter  CobaltAppScope  class
 cobalt_flutter  CobaltAppScopeController  abstract interface class
 cobalt_flutter  CobaltAsyncBuilder  class
 cobalt_flutter  CobaltBuildContext  extension
+cobalt_flutter  CobaltHeldScope  class
 cobalt_flutter  CobaltNoAppScopeError  final class
 cobalt_flutter  CobaltNoScopeError  final class
 cobalt_flutter  CobaltScopeProvider  class

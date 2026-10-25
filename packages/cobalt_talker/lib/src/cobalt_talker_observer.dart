@@ -51,6 +51,19 @@ final class CobaltTalkerObserver extends CobaltObserver {
   );
 
   @override
+  void onScopeParentMismatch(
+    CobaltScopeRef scope, {
+    required Type marker,
+    required Type declaredParent,
+  }) => talker.logCustom(
+    CobaltFailureLog(
+      '"$scope" was built for $marker, declared under $declaredParent, but no '
+      'scope above it was built for $declaredParent',
+      logLevel: LogLevel.warning,
+    ),
+  );
+
+  @override
   void onScopeInitStarted(CobaltScopeRef scope, int levels) => talker.logCustom(
     CobaltStartupLog(
       'scope "$scope" initializing, $levels level(s)',

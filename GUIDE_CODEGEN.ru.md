@@ -504,7 +504,9 @@ class Draft {
 `Draft`. Сборка проверяет его так же, как корень: `Draft` может внедрять то, что регистрируют сессия
 и приложение, ничто в приложении не может внедрять `Draft`, а пробел роняет сборку с указанием обеих
 сторон. Скоуп, который открывается под другим дочерним скоупом, говорит об этом через
-`@CobaltChildScope(parent: Session)`. Что положить в сессию и когда она кончается, решаете по-прежнему
+`@CobaltChildScope(parent: Session)`; если открыть его под чем-то другим, наблюдатели получат
+`onScopeParentMismatch`, предупреждение в логе и в `cobalt_inspector`, еще до первой регистрации,
+которой не хватит. Что положить в сессию и когда она кончается, решаете по-прежнему
 вы: аннотация не говорит ни того, ни другого.
 
 Маркер называется без `Scope`, генератор дописывает его сам; маркер `SessionScope` дал бы
@@ -518,22 +520,22 @@ class Draft {
 
 ```dart
 class SessionManager {
-  SessionManager(this._root);
+  SessionManager(CobaltScope root) : _session = CobaltScopeHolder(root);
 
-  final CobaltScope _root;
-  CobaltScope? _session;
+  final CobaltScopeHolder _session;
 
-  Future<void> signIn(User user) async {
-    await signOut();
-    _session = await _root.open('session:${user.id}', SessionScope(user));
-  }
+  CobaltScope? get scope => _session.current;
 
-  Future<void> signOut() async {
-    await _session?.dispose();
-    _session = null;
-  }
+  Future<void> signIn(User user) =>
+      _session.open('session:${user.id}', SessionScope(user));
+
+  Future<void> signOut() => _session.close();
 }
 ```
+
+`CobaltScopeHolder` держит одну сессию за раз: `open` закрывает предыдущую, а каждый `open` и
+`close` выполняется после вызванных раньше. Поэтому выход, пришедший, пока вход еще запускается,
+закроет эту сессию, а не промахнется и не оставит ее открытой.
 
 `open` создает скоуп под приложением, выполняет над ним `SessionScope` и ждет `init()`; если что-то
 из этого бросает исключение, скоуп разбирается до того, как ошибка дойдет до вас.
@@ -546,7 +548,11 @@ class SessionManager {
 сессию виджетам, которым она нужна:
 
 ```dart
-CobaltScopeProvider(scope: session, child: const HomeScreen())
+CobaltHeldScope(
+  holder: session,
+  absent: const SignInScreen(),
+  child: const HomeScreen(),
+)
 ```
 
 Если сессия живет ровно столько, сколько часть интерфейса, пусть ею владеет виджет. Скоуп

@@ -42,31 +42,32 @@ class SessionActivityLog implements Disposable {
 
 Из этих двух генератор пишет `SessionScope`: он регистрирует пользователя и каждый класс с
 `scope: Session`, а сборка падает, если кто-то из них просит то, чего не регистрируют ни сессия, ни
-приложение. Вход открывает его под скоупом приложения, выход разбирает:
+приложение. Его держит `CobaltScopeHolder`: вход открывает его под скоупом приложения и закрывает
+предыдущий, выход закрывает. Вызовы идут по очереди, поэтому выход, пришедший, пока вход еще
+запускается, закроет эту сессию, а не промахнется мимо:
 
 <!-- from: examples/notes_app/lib/features/session/session_manager.dart -->
 
 ```dart
 Future<void> signIn(SessionUser user) async {
-  await signOut();
-  _session = await _appScope.open('session:${user.id}', SessionScope(user));
-  notifyListeners();
+  await _session.open('session:${user.id}', SessionScope(user));
 }
 
 Future<void> signOut() async {
-  final scope = _session;
-  if (scope == null) return;
-  _session = null;
-  await scope.dispose();
-  notifyListeners();
+  await _session.close();
 }
 ```
 
-Скоупа из `open` нет в дереве виджетов, поэтому виджеты ниже читают скоуп приложения. Покажите им
-сессию или отдайте ее виджету, если она живет столько же, сколько часть интерфейса:
+Удерживаемого скоупа нет в дереве виджетов, поэтому виджеты ниже читают скоуп приложения.
+`CobaltHeldScope` показывает им то, что держит держатель, а пока никто не вошел, показывает другой
+виджет; или отдайте сессию виджету, если она живет столько же, сколько часть интерфейса:
 
 ```dart
-CobaltScopeProvider(scope: session, child: const HomeScreen())
+CobaltHeldScope(
+  holder: session,
+  absent: const SignInScreen(),
+  child: const HomeScreen(),
+)
 ```
 
 ```dart
@@ -244,6 +245,45 @@ class OrderFlowRoute extends CobaltShellRoute {
 ```
 
 Рабочий код: [`examples/notes_app/lib/features/order_flow`](../examples/notes_app/lib/features/order_flow).
+
+### Без cobalt_go_router
+
+`cobalt_go_router` требует go_router 17 или новее: он передает дальше `notifyRootObserver`, который
+появился в go_router 17.0.0. На более старом go_router флоу собирается из обычного `ShellRoute`, чей
+builder оборачивает оболочку в `CobaltScopeWidget`. В ключе лежит id заказа, поэтому переход к
+другому заказу заменяет скоуп, а выход за маршруты оболочки разбирает его:
+
+<!-- from: examples/flow_scopes/test/plain_shell_route_test.dart -->
+
+```dart
+final orderFlow = ShellRoute(
+  builder: (context, state, child) {
+    final orderId = state.pathParameters['orderId']!;
+    return CobaltScopeWidget(
+      key: ValueKey(orderId),
+      name: 'order:$orderId',
+      builder: OrderFlowScope(orderId),
+      child: OrderFlowChrome(child: child),
+    );
+  },
+  routes: [
+    GoRoute(
+      path: '/orders/:orderId/summary',
+      builder: (_, state) =>
+          OrderSummaryScreen(orderId: state.pathParameters['orderId']!),
+    ),
+    GoRoute(
+      path: '/orders/:orderId/payment',
+      builder: (_, state) =>
+          OrderPaymentScreen(orderId: state.pathParameters['orderId']!),
+    ),
+  ],
+);
+```
+
+Маршрут создается один раз, вместе с остальной таблицей маршрутов, как и `CobaltShellRoute`: новый
+объект `ShellRoute` для go_router означает новую страницу, и скоуп пересоздастся вместе с ней. Код
+взят из [`examples/flow_scopes/test/plain_shell_route_test.dart`](../examples/flow_scopes/test/plain_shell_route_test.dart), тест проверяет вход во флоу, переходы внутри него, смену заказа и выход.
 
 ## Подмена зависимости в тесте
 

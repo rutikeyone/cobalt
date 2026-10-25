@@ -1,3 +1,8 @@
+## 1.8.0
+
+- No code changes in this package. The documentation of
+  `CobaltChildScope.parent` says what is checked when the scope opens.
+
 ## 1.7.0
 
 - No code changes in this package. Republished in lockstep with 1.7.0:

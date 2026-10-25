@@ -277,3 +277,8 @@ What a new app shows on the way through the [Quick start](../README.md#quick-sta
   its generated `_$Foo`, but the file does not include the part it lives in. Add
   `part 'foo.g.dart';` under the imports and run the build; the quick fix of
   `cobalt_missing_injection_mixin` writes both.
+- **Every error shows up twice in `flutter analyze` or `dart analyze`.** Any analyzer plugin does
+  that, `cobalt_lint` or one with no rules at all (checked on Flutter 3.38.9 and Dart 3.10.8): the
+  command line keeps each report the analysis server sends again once a plugin has answered.
+  Nothing is broken twice; fix the first of each pair. `flutter analyze` has a fix on Flutter's
+  master branch ([flutter/flutter#193279](https://github.com/flutter/flutter/pull/193279)).
