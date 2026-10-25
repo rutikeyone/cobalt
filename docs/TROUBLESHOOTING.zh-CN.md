@@ -187,6 +187,7 @@ override 什么也没替换。
 
 - **没人注册的依赖。** 修法和 [CobaltNotRegisteredError](#cobaltnotregisterederror) 一样：给类加注解，或把它写进 `@CobaltScopeRoot(provides: [...])`。消息会一次列出所有缺口。
 - **`which only scope Session registers`。** 一个注册能注入的是它自己的作用域以及上方作用域注册的东西。把这个类放进那个作用域，`@CobaltInject(scope: Session)`，或者把它需要的东西注册到它看得见的地方。`cobalt_lint` 会在编辑器里指出并提供移动。见 [GUIDE_CODEGEN.zh-CN.md](../GUIDE_CODEGEN.zh-CN.md#9-比应用先结束的作用域)。
+- **`@CobaltChildScope` 标记类里有两个同类型的值。** 一个作用域对每个类型和名字只保留一个注册，所以带两个 `String` 的 `Order(this.orderId, this.couponId)` 会被拒绝。给其中一个命名：`@Named('coupon') this.couponId`，注入时写 `@Named('coupon') String coupon`。
 - **名字以 `Scope` 结尾的 `@CobaltChildScope` 标记类。** 生成器会自己给 builder 的名字补上 `Scope`。把标记类叫作 `Session`，打开的是 `SessionScope`。
 - **带默认值的参数报 `requires int`。** 只有生成器能省略的参数才会用上默认值：命名参数，或末尾的位置参数。如果它后面还有要注入的位置参数，就不能跳过，消息会说明这一点；把它改成命名参数。
 - **一个包里有两个 `@CobaltScopeRoot` 类。** 一个包只有一个生成的根。保留一个。

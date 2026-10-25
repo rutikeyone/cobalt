@@ -135,6 +135,42 @@ class Session {
       expect(() => parser.parseClass(clazz), failsWith('is nullable'));
     });
 
+    test('two values of one type and name are refused', () async {
+      final clazz = await classNamed('Order', '''
+@CobaltChildScope()
+class Order {
+  const Order(this.orderId, this.couponId);
+  final String orderId;
+  final String couponId;
+}
+''');
+
+      expect(
+        () => parser.parseClass(clazz),
+        failsWith(
+          "registers orderId and couponId both as String, and a scope holds "
+          "one registration per type and name. Tell them apart with @Named, "
+          "as in @Named('couponId') this.couponId.",
+        ),
+      );
+    });
+
+    test('two values of one type with different names are kept', () async {
+      final clazz = await classNamed('Order', '''
+@CobaltChildScope()
+class Order {
+  const Order(this.orderId, @Named('coupon') this.couponId);
+  final String orderId;
+  final String couponId;
+}
+''');
+
+      expect(parser.parseClass(clazz).values.map((v) => v.name), [
+        null,
+        'coupon',
+      ]);
+    });
+
     test('a parent that is not a marker is refused', () async {
       final clazz = await classNamed('Editor', '''
 class Session {}
