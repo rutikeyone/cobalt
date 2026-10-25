@@ -1,3 +1,8 @@
+## 1.9.1
+
+- No code changes in this package. The icon is gone from the screenshots on
+  pub.dev.
+
 ## 1.9.0
 
 - No code changes in this package. Republished in lockstep with 1.9.0:

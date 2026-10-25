@@ -1,3 +1,8 @@
+## 1.9.1
+
+- No code changes in this package. The icon is gone from the screenshots on
+  pub.dev.
+
 ## 1.9.0
 
 - `CobaltScope.environment`: the environment a scope was built for, or

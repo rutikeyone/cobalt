@@ -1,6 +1,6 @@
 name: cobalt_annotations
 description: Annotations for Cobalt read by cobalt_generator, covering registrations, child scopes, modules, decorators, environments and startup steps. No runtime code.
-version: 1.9.0
+version: 1.9.1
 repository: https://github.com/rutikeyone/cobalt
 issue_tracker: https://github.com/rutikeyone/cobalt/issues
 topics:
