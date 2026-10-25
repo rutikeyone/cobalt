@@ -9,6 +9,8 @@ topics:
   - go-router
   - navigation
 screenshots:
+  - description: "The Cobalt icon: scopes inside scopes, each closing what it built."
+    path: screenshots/icon.png
   - description: "A scope owned by a navigation flow: the order draft lives while the user stays inside the checkout."
     path: screenshots/flow.png
   - description: "The flow example's event log: each order's draft is created on entry and disposed on exit."

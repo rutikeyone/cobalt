@@ -9,6 +9,10 @@ topics:
   - analyzer-plugin
   - di
 
+screenshots:
+  - description: "The Cobalt icon: scopes inside scopes, each closing what it built."
+    path: screenshots/icon.png
+
 environment:
   sdk: ^3.10.0
 

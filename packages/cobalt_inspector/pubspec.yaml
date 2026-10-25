@@ -9,6 +9,8 @@ topics:
   - devtools
   - debugging
 screenshots:
+  - description: "The Cobalt icon: scopes inside scopes, each closing what it built."
+    path: screenshots/icon.png
   - description: "The live scope tree in cobalt_inspector: each scope, what it registers, and how long each registration lives."
     path: screenshots/tree.png
   - description: "Everything the graph reported: scopes opened and ready, instances built with their build time, overrides."

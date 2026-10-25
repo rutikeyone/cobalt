@@ -9,6 +9,8 @@ topics:
   - service-locator
   - scopes
 screenshots:
+  - description: "The Cobalt icon: scopes inside scopes, each closing what it built."
+    path: screenshots/icon.png
   - description: "The live scope tree in cobalt_inspector: each scope, what it registers, and how long each registration lives."
     path: screenshots/tree.png
   - description: "The examples gallery: one runnable example per capability, in four languages."
