@@ -141,6 +141,7 @@ void main() {
       );
       expect(session, contains('scope.useEnvironment(environment);'));
       expect(session, contains("environment.matches(const <String>{'prod'})"));
+      expect(session, contains('markerValues => [environment];'));
     });
 
     test('makes the root take the environment it passes down', () {
@@ -159,7 +160,7 @@ void main() {
       expect(source, contains('CobaltRoot(environment: environment)'));
     });
 
-    test('compares by the values of its marker', () {
+    test('names the values of its marker', () {
       final source = generate(
         const [],
         childScopes: [
@@ -173,22 +174,18 @@ void main() {
       final session = classOf(source, 'SessionScope');
       expect(
         session,
-        contains(
-          'other is SessionScope && other.user == user && other.token == token',
-        ),
+        contains('List<Object?> get markerValues => [user, token];'),
       );
-      expect(session, contains('Object.hashAll([SessionScope, user, token])'));
+      expect(session, isNot(contains('operator ==')));
     });
 
-    test('a marker without values compares by type alone', () {
+    test('a marker without values names an empty list', () {
       final source = generate(const [], childScopes: [childScope('Screen')]);
 
-      final screen = classOf(source, 'ScreenScope');
       expect(
-        screen,
-        contains('bool operator ==(Object other) => other is ScreenScope;'),
+        classOf(source, 'ScreenScope'),
+        contains('List<Object?> get markerValues => const <Object?>[];'),
       );
-      expect(screen, contains('Object.hashAll([ScreenScope])'));
     });
 
     test('leaves the environment alone when nothing names one', () {

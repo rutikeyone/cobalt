@@ -375,10 +375,7 @@ final class NoteDetailScope extends _i573.CobaltChildScopeBuilder {
   Type get marker => _i948.NoteDetail;
 
   @override
-  bool operator ==(Object other) => other is NoteDetailScope;
-
-  @override
-  int get hashCode => Object.hashAll([NoteDetailScope]);
+  List<Object?> get markerValues => const <Object?>[];
 
   @override
   void build(_i573.CobaltScope scope) {
@@ -398,11 +395,7 @@ final class OrderFlowScope extends _i573.CobaltChildScopeBuilder {
   Type get marker => _i644.OrderFlow;
 
   @override
-  bool operator ==(Object other) =>
-      other is OrderFlowScope && other.orderId == orderId;
-
-  @override
-  int get hashCode => Object.hashAll([OrderFlowScope, orderId]);
+  List<Object?> get markerValues => [orderId];
 
   @override
   void build(_i573.CobaltScope scope) {
@@ -420,10 +413,7 @@ final class SessionScope extends _i573.CobaltChildScopeBuilder {
   Type get marker => _i401.Session;
 
   @override
-  bool operator ==(Object other) => other is SessionScope && other.user == user;
-
-  @override
-  int get hashCode => Object.hashAll([SessionScope, user]);
+  List<Object?> get markerValues => [user];
 
   @override
   void build(_i573.CobaltScope scope) {

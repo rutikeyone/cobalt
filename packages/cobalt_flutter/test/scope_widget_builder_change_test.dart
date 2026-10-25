@@ -20,10 +20,19 @@ final class SessionScope extends CobaltChildScopeBuilder {
   Type get marker => Session;
 
   @override
-  bool operator ==(Object other) => other is SessionScope && other.user == user;
+  List<Object?> get markerValues => [user];
 
   @override
-  int get hashCode => Object.hashAll([SessionScope, user]);
+  void build(CobaltScope scope) => scope.registerSingleton<User>(user);
+}
+
+final class OlderSessionScope extends CobaltChildScopeBuilder {
+  const OlderSessionScope(this.user);
+
+  final User user;
+
+  @override
+  Type get marker => Session;
 
   @override
   void build(CobaltScope scope) => scope.registerSingleton<User>(user);
@@ -91,6 +100,18 @@ void main() {
 
     expect(again, same(first));
     expect(first.state, CobaltScopeState.active);
+  });
+
+  testWidgets('a builder that does not name its values is read once', (
+    tester,
+  ) async {
+    final app = cobaltTestRoot(name: 'app');
+
+    final first = await show(tester, app, OlderSessionScope(ada));
+    final again = await show(tester, app, OlderSessionScope(bob));
+
+    expect(again, same(first));
+    expect(find.text('ada'), findsOneWidget);
   });
 
   testWidgets('a hand-written builder is read once', (tester) async {

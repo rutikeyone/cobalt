@@ -24,7 +24,8 @@ import 'package:flutter/widgets.dart';
 /// it holds, `SessionScope(ada)` in place of `SessionScope(bob)`, it disposes
 /// its scope and opens one from the new builder; generated builders compare
 /// by the values of their marker. Any other builder is read once, when the
-/// widget mounts: give the widget a new `key` to start the scope over.
+/// widget mounts, and so is one generated before 1.9.0 until `build_runner`
+/// runs again: give the widget a new `key` to start the scope over.
 class CobaltScopeWidget extends StatefulWidget {
   /// Creates a widget owning a scope.
   const CobaltScopeWidget({
@@ -100,7 +101,9 @@ class _CobaltScopeWidgetState extends State<CobaltScopeWidget> {
   void didUpdateWidget(CobaltScopeWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     final builder = widget.builder;
-    if (builder is! CobaltChildScopeBuilder || builder == oldWidget.builder) {
+    if (builder is! CobaltChildScopeBuilder ||
+        builder.markerValues == null ||
+        builder == oldWidget.builder) {
       return;
     }
     final previous = _scope;
