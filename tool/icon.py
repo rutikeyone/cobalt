@@ -6,9 +6,21 @@ from PIL import Image, ImageDraw
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 BACKGROUND = (27, 30, 36)
 ACCENT = (95, 212, 200)
-CORE = (237, 239, 242)
+NODE = (38, 42, 49)
+BRANCH = (64, 70, 80)
 SIZE = 512
 SCALE = 4
+
+
+def _curve(start, end, pull, steps=96):
+    (x0, y0), (x3, y3) = start, end
+    x1, y1, x2, y2 = x0 + pull, y0, x3 - pull, y3
+    points = []
+    for i in range(steps + 1):
+        t = i / steps
+        a, b, c, d = (1 - t) ** 3, 3 * (1 - t) ** 2 * t, 3 * (1 - t) * t * t, t**3
+        points.append((a * x0 + b * x1 + c * x2 + d * x3, a * y0 + b * y1 + c * y2 + d * y3))
+    return points
 
 
 def render() -> Image.Image:
@@ -32,23 +44,29 @@ def render() -> Image.Image:
     icon.putalpha(card)
 
     draw = ImageDraw.Draw(icon)
-    draw.rounded_rectangle(
-        tuple(v * unit for v in (100, 100, 412, 412)),
-        radius=int(56 * unit),
-        outline=ACCENT + (255,),
-        width=int(18 * unit),
-    )
-    draw.rounded_rectangle(
-        tuple(v * unit for v in (162, 162, 350, 350)),
-        radius=int(38 * unit),
-        outline=ACCENT + (150,),
-        width=int(14 * unit),
-    )
-    draw.rounded_rectangle(
-        tuple(v * unit for v in (216, 216, 296, 296)),
-        radius=int(20 * unit),
-        fill=CORE + (255,),
-    )
+    root = tuple(v * unit for v in (84, 216, 220, 296))
+    children = [
+        (tuple(v * unit for v in (300, 120, 432, 200)), ACCENT),
+        (tuple(v * unit for v in (300, 312, 432, 392)), BRANCH),
+    ]
+    start = (220 * unit, 256 * unit)
+    for box, _ in children:
+        end = (box[0], (box[1] + box[3]) / 2)
+        radius = 7 * unit
+        for x, y in _curve(start, end, 52 * unit, steps=1200):
+            draw.ellipse(
+                (x - radius, y - radius, x + radius, y + radius),
+                fill=BRANCH + (255,),
+            )
+    draw.rounded_rectangle(root, radius=int(24 * unit), fill=ACCENT + (255,))
+    for box, outline in children:
+        draw.rounded_rectangle(
+            box,
+            radius=int(24 * unit),
+            fill=NODE + (255,),
+            outline=outline + (255,),
+            width=int(12 * unit),
+        )
     return icon.resize((SIZE, SIZE), Image.LANCZOS)
 
 
