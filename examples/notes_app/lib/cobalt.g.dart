@@ -375,6 +375,12 @@ final class NoteDetailScope extends _i573.CobaltChildScopeBuilder {
   Type get marker => _i948.NoteDetail;
 
   @override
+  bool operator ==(Object other) => other is NoteDetailScope;
+
+  @override
+  int get hashCode => Object.hashAll([NoteDetailScope]);
+
+  @override
   void build(_i573.CobaltScope scope) {
     scope.registerLazySingleton<_i682.NoteDraft>(const _NoteDraftFactory());
     scope.registerParamFactory<_i485.NoteTitleCard, NoteTitleCardArgs>(
@@ -392,6 +398,13 @@ final class OrderFlowScope extends _i573.CobaltChildScopeBuilder {
   Type get marker => _i644.OrderFlow;
 
   @override
+  bool operator ==(Object other) =>
+      other is OrderFlowScope && other.orderId == orderId;
+
+  @override
+  int get hashCode => Object.hashAll([OrderFlowScope, orderId]);
+
+  @override
   void build(_i573.CobaltScope scope) {
     scope.registerSingleton<String>(orderId);
     scope.registerLazySingleton<_i1048.OrderNote>(const _OrderNoteFactory());
@@ -405,6 +418,12 @@ final class SessionScope extends _i573.CobaltChildScopeBuilder {
 
   @override
   Type get marker => _i401.Session;
+
+  @override
+  bool operator ==(Object other) => other is SessionScope && other.user == user;
+
+  @override
+  int get hashCode => Object.hashAll([SessionScope, user]);
 
   @override
   void build(_i573.CobaltScope scope) {

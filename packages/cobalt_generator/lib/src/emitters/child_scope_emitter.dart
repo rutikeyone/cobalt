@@ -101,6 +101,8 @@ class ChildScopeEmitter {
                 ..lambda = true
                 ..body = typeReferenceOf(parent).code,
             ),
+          _equals(scope, usesEnvironments: usesEnvironments),
+          _hashCode(scope, usesEnvironments: usesEnvironments),
         ])
         ..methods.add(
           Method(
@@ -146,6 +148,61 @@ class ChildScopeEmitter {
         ),
     );
   }
+
+  static List<String> _fieldsOf(
+    CobaltChildScopeClass scope, {
+    required bool usesEnvironments,
+  }) => [
+    for (final value in scope.values) value.field,
+    if (usesEnvironments) 'environment',
+  ];
+
+  Method _equals(
+    CobaltChildScopeClass scope, {
+    required bool usesEnvironments,
+  }) {
+    var body = refer('other').isA(refer(scope.builderName));
+    for (final field in _fieldsOf(scope, usesEnvironments: usesEnvironments)) {
+      body = body.and(refer('other').property(field).equalTo(refer(field)));
+    }
+    return Method(
+      (m) => m
+        ..name = 'operator =='
+        ..annotations.add(refer('override'))
+        ..returns = refer('bool')
+        ..requiredParameters.add(
+          Parameter(
+            (p) => p
+              ..name = 'other'
+              ..type = refer('Object'),
+          ),
+        )
+        ..lambda = true
+        ..body = body.code,
+    );
+  }
+
+  Method _hashCode(
+    CobaltChildScopeClass scope, {
+    required bool usesEnvironments,
+  }) => Method(
+    (m) => m
+      ..name = 'hashCode'
+      ..type = MethodType.getter
+      ..annotations.add(refer('override'))
+      ..returns = refer('int')
+      ..lambda = true
+      ..body = refer('Object').property('hashAll').call([
+        literalList([
+          refer(scope.builderName),
+          for (final field in _fieldsOf(
+            scope,
+            usesEnvironments: usesEnvironments,
+          ))
+            refer(field),
+        ]),
+      ]).code,
+  );
 
   Code _value(CobaltInjectedProperty value) {
     final name = value.name;

@@ -159,6 +159,38 @@ void main() {
       expect(source, contains('CobaltRoot(environment: environment)'));
     });
 
+    test('compares by the values of its marker', () {
+      final source = generate(
+        const [],
+        childScopes: [
+          childScope(
+            'Session',
+            values: [value('user', 'User'), value('token', 'Token')],
+          ),
+        ],
+      );
+
+      final session = classOf(source, 'SessionScope');
+      expect(
+        session,
+        contains(
+          'other is SessionScope && other.user == user && other.token == token',
+        ),
+      );
+      expect(session, contains('Object.hashAll([SessionScope, user, token])'));
+    });
+
+    test('a marker without values compares by type alone', () {
+      final source = generate(const [], childScopes: [childScope('Screen')]);
+
+      final screen = classOf(source, 'ScreenScope');
+      expect(
+        screen,
+        contains('bool operator ==(Object other) => other is ScreenScope;'),
+      );
+      expect(screen, contains('Object.hashAll([ScreenScope])'));
+    });
+
     test('leaves the environment alone when nothing names one', () {
       final source = generate(
         [declare('Draft', scope: 'Session')],

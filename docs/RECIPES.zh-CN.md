@@ -65,6 +65,8 @@ CobaltHeldScope(
 CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
 ```
 
+另一个用户登录时，控件会用值不同的 `SessionScope` 重建。生成的 builder 按这些值比较，所以控件会关闭旧会话，为新用户打开一个新会话。手写的 builder 只读一次：改为给控件 `key: ValueKey(user.id)`。
+
 可运行的代码：[`examples/notes_app/lib/features/session`](../examples/notes_app/lib/features/session)，以及 gallery 里的「会话作用域」条目。更多见 [GUIDE_CODEGEN.zh-CN.md](../GUIDE_CODEGEN.zh-CN.md#9-比应用先结束的作用域)。
 
 ## 拥有自己作用域的界面

@@ -521,6 +521,8 @@ CobaltHeldScope(
 CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
 ```
 
+另一个用户登录时，控件会用值不同的 `SessionScope` 重建。生成的 builder 按这些值比较，所以控件会关闭旧会话，为新用户打开一个新会话。手写的 builder 只读一次：改为给控件 `key: ValueKey(user.id)`。
+
 ### 界面
 
 ```dart

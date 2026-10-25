@@ -74,6 +74,10 @@ CobaltHeldScope(
 CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
 ```
 
+When another user signs in, the widget is rebuilt with a `SessionScope` of other values. A generated
+builder compares by them, so the widget closes the old session and opens one for the new user. A
+builder you write is read once: give the widget `key: ValueKey(user.id)` instead.
+
 Running code: [`examples/notes_app/lib/features/session`](../examples/notes_app/lib/features/session)
 and the *Session scope* entry in the gallery. More in
 [GUIDE_CODEGEN.md](../GUIDE_CODEGEN.md#9-scopes-that-end-before-the-app-does).

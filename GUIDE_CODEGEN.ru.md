@@ -562,6 +562,11 @@ CobaltHeldScope(
 CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
 ```
 
+Когда входит другой пользователь, виджет перестраивается с `SessionScope` с другими значениями.
+Сгенерированный builder сравнивается по ним, поэтому виджет закрывает старую сессию и открывает новую
+для нового пользователя. Builder, написанный руками, читается один раз: дайте виджету
+`key: ValueKey(user.id)`.
+
 ### Экран
 
 ```dart

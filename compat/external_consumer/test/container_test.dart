@@ -32,6 +32,18 @@ void main() {
     },
   );
 
+  test('a generated child scope builder compares by its values', () {
+    const ada = VisitScope('ada');
+
+    expect(VisitScope('ada'), ada);
+    expect(VisitScope('ada').hashCode, ada.hashCode);
+    expect(const VisitScope('bob'), isNot(ada));
+    expect(
+      const VisitScope('ada', environment: CobaltEnvironment.dev),
+      isNot(ada),
+    );
+  });
+
   group('a child scope opened without an environment', () {
     test('takes the one its root was built for', () async {
       final app = await CobaltApplication.start(

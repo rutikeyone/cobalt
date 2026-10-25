@@ -637,6 +637,15 @@ final class VisitScope extends _i573.CobaltChildScopeBuilder {
   Type get marker => _i296.Visit;
 
   @override
+  bool operator ==(Object other) =>
+      other is VisitScope &&
+      other.visitor == visitor &&
+      other.environment == environment;
+
+  @override
+  int get hashCode => Object.hashAll([VisitScope, visitor, environment]);
+
+  @override
   void build(_i573.CobaltScope scope) {
     final environment =
         this.environment ??

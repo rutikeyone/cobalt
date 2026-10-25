@@ -73,6 +73,10 @@ CobaltHeldScope(
 CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
 ```
 
+다른 사용자가 로그인하면 위젯은 값이 다른 `SessionScope`로 다시 빌드됩니다. 생성된 builder는 그 값으로
+비교하므로, 위젯은 이전 세션을 닫고 새 사용자의 세션을 엽니다. 직접 작성한 builder는 한 번만 읽히므로
+대신 위젯에 `key: ValueKey(user.id)`를 주십시오.
+
 실행되는 코드: [`examples/notes_app/lib/features/session`](../examples/notes_app/lib/features/session),
 그리고 갤러리의 「세션 스코프」 항목. 자세한 내용은
 [GUIDE_CODEGEN.ko.md](../GUIDE_CODEGEN.ko.md#9-앱보다-먼저-끝나는-스코프)에 있습니다.

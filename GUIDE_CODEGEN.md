@@ -560,6 +560,10 @@ when the widget mounts and disposed when it unmounts:
 CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
 ```
 
+When another user signs in, the widget is rebuilt with a `SessionScope` of other values. A generated
+builder compares by them, so the widget closes the old session and opens one for the new user. A
+builder you write is read once: give the widget `key: ValueKey(user.id)` instead.
+
 ### A screen
 
 ```dart
