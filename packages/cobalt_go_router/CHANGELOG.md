@@ -1,3 +1,10 @@
+## 1.8.0
+
+- No code changes in this package. The README points at a recipe for a flow
+  on go_router before 17, which this package does not support: a plain
+  `ShellRoute` around `CobaltScopeWidget`.
+- Screenshots on pub.dev.
+
 ## 1.7.0
 
 - No code changes in this package. Republished in lockstep with 1.7.0:

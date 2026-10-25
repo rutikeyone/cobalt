@@ -39,8 +39,9 @@ wait for the previous group to appear on pub.dev — the index is not instant.
       pubspec_overrides.yaml", from every package whose siblings come from the
       repository: the overrides are the development setup, never part of the
       archive, and a hint does not change the exit code.
-- [ ] Archives are kilobytes, not megabytes. Anything larger means the previous
-      two boxes are not really ticked.
+- [ ] Archives are kilobytes, not megabytes, apart from the pictures under
+      `screenshots/`: `cobalt_flutter` carries the 2.7 MB tour GIF. Anything
+      else that large means the previous two boxes are not really ticked.
 - [ ] `repository:` and `issue_tracker:` point at a repository that actually
       exists and has the code pushed. They are currently
       `github.com/rutikeyone/cobalt`.
@@ -53,7 +54,7 @@ wait for the previous group to appear on pub.dev — the index is not instant.
       jobs test the toolchain packages on each row of the table below;
       `tool/matrix.sh <version>` runs one row locally.
 - [ ] Translations updated. `README.ru.md`, `README.zh-CN.md`, `README.ko.md`,
-      the three translated `docs/OVERVIEW` and `docs/TROUBLESHOOTING` pages, the six translated guides, `MIGRATION.ru.md`, `MIGRATION.zh-CN.md` and
+      the three translated `docs/OVERVIEW`, `docs/TROUBLESHOOTING`, `docs/RECIPES` and `docs/COMPARISON` pages, the six translated guides, `MIGRATION.ru.md`, `MIGRATION.zh-CN.md` and
       `MIGRATION.ko.md` track the English originals; a test checks that every set exists and links to each
       other, and CI checks they are not empty, but nothing checks that they still
       say the same thing — so this box is the only thing that does. English is
@@ -322,6 +323,13 @@ picture.
 
 The Mac builds with its own Flutter, which may be newer than 3.38.9: fine for a
 picture, and the reason a screenshot is never evidence that the floor works.
+
+pub.dev shows only pictures inside a package, so `cobalt`, `cobalt_flutter`,
+`cobalt_go_router` and `cobalt_inspector` carry copies under `screenshots/`,
+listed in their `pubspec.yaml`. Both scripts refresh the copies with the
+originals, and `registered_packages_test` fails when a copy differs from its
+original in `assets/`, when a picture is not listed, or when one breaks a pub.dev
+limit (ten per package, 4 MB each, a description of 160 characters).
 
 ## Performance numbers
 

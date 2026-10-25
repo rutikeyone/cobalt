@@ -1,3 +1,10 @@
+## 1.8.0
+
+- `CobaltHeldScope` publishes whatever a `CobaltScopeHolder` holds to the
+  widgets below it, and shows `absent` while it holds nothing. Requires
+  `cobalt` 1.8.0.
+- Screenshots on pub.dev.
+
 ## 1.7.0
 
 - `context.cobalt`, `cobaltWithParam`, `cobaltAsync` and

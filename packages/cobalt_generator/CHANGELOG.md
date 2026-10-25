@@ -1,3 +1,9 @@
+## 1.8.0
+
+- A generated child scope builder extends `CobaltChildScopeBuilder` and
+  names its marker and the `parent` the marker declares, so opening it under
+  a different scope is reported.
+
 ## 1.7.0
 
 - The generated names lose the `$`: `CobaltRoot` is the class,

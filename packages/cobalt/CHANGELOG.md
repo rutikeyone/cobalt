@@ -1,3 +1,20 @@
+## 1.8.0
+
+- `CobaltScopeHolder` holds one child scope at a time, a signed-in session
+  most often: `open` closes the scope it holds and opens the next, `close`
+  closes it, `changes` reports each switch. Calls run one after another, so
+  a sign-out that arrives while a sign-in is still starting closes that
+  session instead of finding nothing to close.
+- A generated child scope opened under a scope that is not the `parent` its
+  marker names is reported: `CobaltObserver.onScopeParentMismatch`,
+  `CobaltEventKind.scopeParentMismatch`, a warning from
+  `CobaltRecordingObserver` and a message in debug builds. Nothing throws.
+  The generated builders now extend `CobaltChildScopeBuilder`, which names
+  the marker and its parent.
+- A scope nobody observes no longer times its builds: resolving a transient
+  costs about 10% less, and an async start about 5% less.
+- Screenshots on pub.dev.
+
 ## 1.7.0
 
 - `CobaltStartupObserver` and `CobaltStartupReport`: what a cold start spent

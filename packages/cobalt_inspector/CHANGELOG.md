@@ -1,3 +1,13 @@
+## 1.8.0
+
+- The Built tab opens with a folded card that sums up the cold start: the
+  total, the bootstrap steps, and the builds that waited longest for their
+  dependencies. `CobaltInspectorLog.startup` holds the report; there is
+  nothing to set up.
+- `scopeParentMismatch` is shown with the failures.
+- Requires `cobalt` 1.8.0.
+- Screenshots on pub.dev.
+
 ## 1.7.0
 
 - The tree copies the whole graph as a Mermaid flowchart, the text
