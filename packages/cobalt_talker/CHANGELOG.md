@@ -1,3 +1,11 @@
+## 1.9.0
+
+- No code changes in this package. Republished in lockstep with 1.9.0:
+  child scopes take the environment of their root, `CobaltScopeWidget`
+  follows a session builder with new values, `cobalt_generator` accepts
+  `build` 5, and an icon on pub.dev.
+- The Cobalt icon is the first screenshot on pub.dev.
+
 ## 1.8.0
 
 - `onScopeParentMismatch` is logged as a warning, beside a broken promise.

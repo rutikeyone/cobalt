@@ -1,3 +1,10 @@
+## 1.9.0
+
+- No code changes in this package. The description on pub.dev lists what
+  the annotations cover today: registrations, child scopes, modules,
+  decorators, environments and startup steps.
+- The Cobalt icon is the first screenshot on pub.dev.
+
 ## 1.8.0
 
 - No code changes in this package. The documentation of

@@ -1,3 +1,19 @@
+## 1.9.0
+
+- `CobaltScope.environment`: the environment a scope was built for, or
+  that of the nearest scope above that has one; `useEnvironment` sets it.
+  Generated code sets it, so a child scope opened without an environment
+  takes the one its root was started with. Before, it took
+  `CobaltEnvironment.defaultEnvironment`, and in an app started for `prod`
+  a session left out everything registered for `prod` only.
+- `CobaltChildScopeBuilder.markerValues`: the values a builder fills its
+  scope from. Two builders of one class with equal values are equal, which
+  lets `CobaltScopeWidget` tell a new session from the same one. A builder
+  that does not name its values stays equal only to itself.
+- `CobaltScopeHolder.changes` reports null when the scope it holds closes
+  with its parent, not only when the holder closes it.
+- The Cobalt icon is the first screenshot on pub.dev.
+
 ## 1.8.0
 
 - `CobaltScopeHolder` holds one child scope at a time, a signed-in session

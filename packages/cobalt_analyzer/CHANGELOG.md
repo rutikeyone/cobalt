@@ -1,3 +1,10 @@
+## 1.9.0
+
+- `CobaltChildScopeParser` rejects a marker with two values of one type
+  and name: a scope holds one registration per type and name, and the error
+  says to tell them apart with `@Named`.
+- The Cobalt icon is the first screenshot on pub.dev.
+
 ## 1.8.0
 
 - No code changes in this package. Republished in lockstep with 1.8.0:
