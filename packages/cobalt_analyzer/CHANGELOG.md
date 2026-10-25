@@ -1,3 +1,8 @@
+## 1.9.2
+
+- No code changes in this package. No pictures on pub.dev: search shows no
+  thumbnail.
+
 ## 1.9.1
 
 - No code changes in this package. The icon is gone from the screenshots on
