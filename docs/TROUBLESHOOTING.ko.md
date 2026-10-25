@@ -279,8 +279,3 @@ override가 아무것도 바꾸지 않았습니다.
   플러그인이 응답한 뒤 analysis server가 다시 보내는 보고를 명령줄이 모두 남기기 때문입니다. 두 군데가
   잘못된 것은 아니니 각 쌍의 첫 번째를 고치십시오. `flutter analyze`의 수정은 Flutter master 브랜치에
   들어가 있습니다 ([flutter/flutter#193279](https://github.com/flutter/flutter/pull/193279)).
-
-`dart run cobalt:doctor`는 이 원인들 대부분과 몇 가지를 더 찾습니다. `cobalt`보다 새로운 `cobalt_generator`,
-제너레이터를 설치할 수 없게 하는 analyzer와 그것을 붙잡고 있는 패키지, 제너레이터 없이 쓴 어노테이션,
-생성 원본 코드보다 오래된 `lib/cobalt.g.dart`, 이후 이름이 바뀐 생성 이름, `cobalt_lint` 활성화 여부입니다.
-오류를 찾으면 1로 종료하므로 CI 단계에서 실행할 수 있습니다.

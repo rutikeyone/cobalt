@@ -282,9 +282,3 @@ What a new app shows on the way through the [Quick start](../README.md#quick-sta
   command line keeps each report the analysis server sends again once a plugin has answered.
   Nothing is broken twice; fix the first of each pair. `flutter analyze` has a fix on Flutter's
   master branch ([flutter/flutter#193279](https://github.com/flutter/flutter/pull/193279)).
-
-`dart run cobalt:doctor` looks for most of these causes and a few more: a `cobalt_generator`
-newer than `cobalt`, an analyzer that keeps the generator out and the packages that hold it there,
-annotations without the generator, a `lib/cobalt.g.dart` older than the code it was built from,
-generated names renamed since, and whether `cobalt_lint` is on. It exits with 1 when it finds an
-error, so a CI step can run it.

@@ -3,7 +3,6 @@ library;
 
 import 'dart:io';
 
-import 'package:cobalt/src/doctor/doctor_checks.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 
@@ -196,16 +195,6 @@ void main() {
             'checks before it is published',
       );
     });
-
-    test('cobalt:doctor', () {
-      expect(
-        cobaltPackages,
-        shipped,
-        reason:
-            'the doctor checks that these share one version, and a package it '
-            'does not know is one whose drift it never reports',
-      );
-    });
   });
 
   group('versions move in lockstep', () {
@@ -328,18 +317,6 @@ void main() {
             'the Dart floor and the Flutter floor have to mean the same '
             'release, and only one of them is checked by pub\n'
             'Declared: $declared',
-      );
-    });
-
-    test('cobalt:doctor knows the analyzer the generator takes', () {
-      final (:min, :max) = generatorAnalyzer;
-
-      expect(
-        constraintOf('cobalt_generator', 'analyzer'),
-        '">=$min <$max"',
-        reason:
-            'the doctor tells a project whether cobalt_generator can be added '
-            'by this range, so it has to be the one the generator declares',
       );
     });
 
