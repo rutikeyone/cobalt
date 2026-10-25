@@ -92,6 +92,8 @@ releases any minor could; since 1.0 none does. Three rules say what that covers:
 - **A new value in a public enum is a minor change.** `CobaltRegistrationKind` has grown in three
   releases and will again. Ask its getters — `isRetained`, `takesParam`, `isAsync`,
   `isBuiltByInit` — instead of switching over the values; an exhaustive `switch` is yours to update.
+  `CobaltEventKind` grows the same way, one value per new observer event (`promiseBroken` in 1.5.0,
+  `scopeParentMismatch` in 1.8.0), so a sink that switches over it keeps a `default` branch.
 - **`CobaltResolver` cannot be implemented outside Cobalt.** It is a `base` class, so a new way of
   resolving arrives in a minor release. A test builds a real scope — `cobaltTestRoot` from
   `cobalt_test` — rather than a mock.

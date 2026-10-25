@@ -89,7 +89,7 @@ class CobaltAppScope extends StatefulWidget {
   ///
   /// A function and not a list, deliberately. Bootstrap steps are instances
   /// that hold resources — a stored list would hand a restart the same objects
-  /// it just released. An [CobaltScopeBuilder] carries no such risk, which is
+  /// it just released. A [CobaltScopeBuilder] carries no such risk, which is
   /// why [root] *is* a value: it only registers, and the generated one is
   /// `const`.
   ///
@@ -146,7 +146,7 @@ class CobaltAppScope extends StatefulWidget {
   /// how you replace a graph deliberately.
   final Future<CobaltScope> Function()? start;
 
-  /// Shown once the graph is ready, below an [CobaltScopeProvider].
+  /// Shown once the graph is ready, below a [CobaltScopeProvider].
   final Widget child;
 
   /// Shown while the graph starts, and again while a restart is in flight.
@@ -197,7 +197,7 @@ class CobaltAppScope extends StatefulWidget {
   /// [CobaltAppScope.start], which has no builder to run.
   final bool restartOnGraphChange;
 
-  /// An [CobaltAppScope] shaped for [MaterialApp.builder] and its siblings.
+  /// A [CobaltAppScope] shaped for [MaterialApp.builder] and its siblings.
   ///
   /// Putting the scope there instead of above the app is what lets [loading]
   /// and [errorBuilder] be ordinary screens: everything `builder` returns sits

@@ -11,7 +11,7 @@ library;
 export 'package:cobalt/cobalt.dart'
     show CobaltCycleError, layeredTopologicalSort;
 // The IR exposes these in its own public API — `CobaltInjectableClass.lifetime`
-// is an CobaltLifetime — so a reader of the model needs them to say anything
+// is a CobaltLifetime — so a reader of the model needs them to say anything
 // about what it read.
 export 'package:cobalt_annotations/cobalt_annotations.dart' show CobaltLifetime;
 

@@ -1,5 +1,5 @@
 name: cobalt_annotations
-description: Annotations for Cobalt — @CobaltInject, @injected, @CobaltBootstrap, @CobaltInit and @CobaltScopeRoot.
+description: Annotations for Cobalt read by cobalt_generator, covering registrations, child scopes, modules, decorators, environments and startup steps. No runtime code.
 version: 1.8.0
 repository: https://github.com/rutikeyone/cobalt
 issue_tracker: https://github.com/rutikeyone/cobalt/issues

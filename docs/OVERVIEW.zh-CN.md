@@ -89,7 +89,8 @@ CI 的 `verify` job 在 Flutter 3.38.9 上运行全部检查，`forward` 则在 
 
 - **公开枚举新增取值属于次版本变更。** `CobaltRegistrationKind` 已在三个版本中增长，以后还会增长。请使用
   它的属性——`isRetained`、`takesParam`、`isAsync`、`isBuiltByInit`——而不是对取值做 `switch`；
-  穷尽式 `switch` 需要你自己更新。
+  穷尽式 `switch` 需要你自己更新。`CobaltEventKind` 也以同样方式增长，每个新的观察者事件对应一个取值
+  （1.5.0 的 `promiseBroken`、1.8.0 的 `scopeParentMismatch`），所以对它做 `switch` 的 sink 要保留 `default` 分支。
 - **`CobaltResolver` 不能在 Cobalt 之外实现。** 它是 `base` 类，所以新的解析方式可以在次版本中加入。
   测试里请构建真实的作用域——`cobalt_test` 的 `cobaltTestRoot`——而不是 mock。
 - **新增观察者钩子属于次版本变更。** `CobaltObserver` 是带空钩子的基类，针对旧版本写的观察者依然能编译

@@ -65,7 +65,7 @@ abstract class CobaltScopedStatefulWidget extends StatefulWidget {
   CobaltScopedState<CobaltScopedStatefulWidget> createState();
 }
 
-/// State for an [CobaltScopedStatefulWidget].
+/// State for a [CobaltScopedStatefulWidget].
 ///
 /// Override [buildScoped] instead of `build`; it runs below the scope, so
 /// `context.cobalt<T>()` there resolves from it.
@@ -86,7 +86,7 @@ abstract class CobaltScopedState<W extends CobaltScopedStatefulWidget>
   );
 }
 
-/// Adapts an [CobaltScopedStatefulWidget] to [CobaltScopeBuilder].
+/// Adapts a [CobaltScopedStatefulWidget] to [CobaltScopeBuilder].
 final class CobaltStatefulScopeBuilder implements CobaltScopeBuilder {
   /// Wraps [widget] so its `registerScope` can be passed as a builder.
   const CobaltStatefulScopeBuilder(this.widget);
@@ -98,7 +98,7 @@ final class CobaltStatefulScopeBuilder implements CobaltScopeBuilder {
   void build(CobaltScope scope) => widget.registerScope(scope);
 }
 
-/// Renders an [CobaltScopedState]'s content below its scope.
+/// Renders a [CobaltScopedState]'s content below its scope.
 final class CobaltScopedStateChild extends StatelessWidget {
   /// Renders the content of [owner].
   const CobaltScopedStateChild(this.owner, {super.key});

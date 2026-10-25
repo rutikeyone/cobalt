@@ -9,7 +9,7 @@ graph is checked before it builds. What comes out is ordinary Dart that uses not
 API of `cobalt` — you can read it, and everything in it could have been written by hand.
 
 That is the project's standing invariant, and it has a practical consequence you will use: the
-generated container is an `CobaltScopeBuilder` like any other, so hand-written registrations compose
+generated container is a `CobaltScopeBuilder` like any other, so hand-written registrations compose
 with it in one graph. Nothing here is all-or-nothing.
 
 What the build step buys you, and what this document is mostly about:

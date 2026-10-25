@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 /// A [StatefulShellBranch] whose routes own a scope.
 ///
-/// One tab, one scope. The branch's routes are wrapped in an [CobaltShellRoute],
+/// One tab, one scope. The branch's routes are wrapped in a [CobaltShellRoute],
 /// so everything in the branch resolves from a scope of its own and the other
 /// branches cannot see it.
 ///

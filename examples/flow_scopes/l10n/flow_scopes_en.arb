@@ -50,7 +50,7 @@
   "@scopeTree": { "description": "Title of the live scope tree screen." },
   "scopeNode": "{state} · {count, plural, =0{no children} =1{1 child} other{{count} children}}",
   "@scopeNode": {
-    "description": "One node of the tree: its state, which is an Cobalt identifier, and how many scopes hang from it.",
+    "description": "One node of the tree: its state, which is a Cobalt identifier, and how many scopes hang from it.",
     "placeholders": {
       "state": { "type": "String", "example": "active" },
       "count": { "type": "int" }

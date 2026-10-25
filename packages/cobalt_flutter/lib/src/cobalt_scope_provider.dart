@@ -2,7 +2,7 @@ import 'package:cobalt/cobalt.dart';
 import 'package:cobalt_flutter/src/errors/cobalt_no_scope_error.dart';
 import 'package:flutter/widgets.dart';
 
-/// Publishes an [CobaltScope] to a widget subtree.
+/// Publishes a [CobaltScope] to a widget subtree.
 ///
 /// This only exposes a scope; it never owns one. Mount it at the root with the
 /// scope returned by startup, and use [CobaltScopeWidget] further down when a

@@ -4,6 +4,7 @@ import 'package:cobalt/src/bootstrap/cobalt_scope_builder.dart';
 import 'package:cobalt/src/errors/cobalt_dispose_error.dart';
 import 'package:cobalt/src/errors/cobalt_scope_state_error.dart';
 import 'package:cobalt/src/observer/cobalt_observer.dart';
+import 'package:cobalt/src/observer/cobalt_scope_ref.dart';
 import 'package:cobalt/src/overrides/cobalt_override.dart';
 import 'package:cobalt/src/scope/cobalt_scope.dart';
 
@@ -80,7 +81,7 @@ final class CobaltScopeHolder {
       final scope = await parent.open(
         childName,
         builder,
-        observers: observers,
+        observers: [...observers, _HeldScopeWatcher(this, parent.depth + 1)],
         overrides: overrides,
         initTimeout: initTimeout,
       );
@@ -127,7 +128,26 @@ final class CobaltScopeHolder {
     }
   }
 
+  void _released() {
+    final scope = _current;
+    if (scope == null || scope.isUsable) return;
+    _current = null;
+    _emit(null);
+  }
+
   void _emit(CobaltScope? scope) {
     if (!_changes.isClosed) _changes.add(scope);
+  }
+}
+
+final class _HeldScopeWatcher extends CobaltObserver {
+  _HeldScopeWatcher(this._holder, this._depth);
+
+  final CobaltScopeHolder _holder;
+  final int _depth;
+
+  @override
+  void onScopeDisposeStarted(CobaltScopeRef scope) {
+    if (scope.depth == _depth) _holder._released();
   }
 }

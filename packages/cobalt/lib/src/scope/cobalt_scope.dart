@@ -2177,7 +2177,7 @@ final class CobaltScope extends CobaltResolver {
     }
   }
 
-  /// How this scope is described to an [CobaltObserver].
+  /// How this scope is described to a [CobaltObserver].
   CobaltScopeRef get ref =>
       CobaltScopeRef(name: name, depth: depth, parentName: parent?.name);
 

@@ -5,7 +5,7 @@ import 'package:cobalt/src/observer/cobalt_scope_ref.dart';
 import 'package:cobalt/src/scope/cobalt_registration_kind.dart';
 import 'package:meta/meta.dart';
 
-/// One line an [CobaltLogSink] is asked to write.
+/// One line a [CobaltLogSink] is asked to write.
 ///
 /// [message] is already formatted, but [kind], [scope], [key] and [error] are
 /// kept alongside it so a sink that can do better than a string — attaching the

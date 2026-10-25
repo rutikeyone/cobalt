@@ -4,7 +4,7 @@ import 'package:talker/talker.dart';
 
 /// Reports Cobalt's events to talker as typed logs.
 ///
-/// This is an [CobaltObserver] rather than an `CobaltLogSink`, which is the
+/// This is a [CobaltObserver] rather than a `CobaltLogSink`, which is the
 /// whole point of using talker: each kind of event becomes its own
 /// [TalkerLog] with a title and a colour, so `TalkerScreen` can filter them
 /// apart. A sink would flatten everything into one stream of strings.

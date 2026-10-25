@@ -94,6 +94,8 @@ CI의 `verify` 작업은 모든 것을 Flutter 3.38.9에서 실행하고, `forwa
 - **공개 enum에 새 값이 추가되는 것은 마이너 변경입니다.** `CobaltRegistrationKind`는 세 번의 릴리스에서
   값이 늘었고 앞으로도 늘어납니다. 값으로 분기하는 대신 getter인 `isRetained`, `takesParam`, `isAsync`,
   `isBuiltByInit`에 물어보십시오. 완전한(exhaustive) `switch`는 직접 갱신해야 합니다.
+  `CobaltEventKind`도 같은 방식으로 늘어나며 새 옵저버 이벤트마다 값이 하나씩 생기므로(1.5.0의 `promiseBroken`,
+  1.8.0의 `scopeParentMismatch`), 이를 `switch`하는 sink는 `default` 분기를 두십시오.
 - **`CobaltResolver`는 Cobalt 밖에서 구현할 수 없습니다.** `base` 클래스이므로 새로운 해석 방식이
   마이너 릴리스로 추가될 수 있습니다. 테스트에서는 mock 대신 실제 스코프를 빌드합니다. `cobalt_test`의
   `cobaltTestRoot`를 사용하십시오.

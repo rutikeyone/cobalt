@@ -1,6 +1,6 @@
 import 'package:cobalt/cobalt.dart';
 
-/// An [CobaltFactory] built from a function.
+/// A [CobaltFactory] built from a function.
 ///
 /// Registering a lazy singleton needs a factory object, so a test that only
 /// wants to return a stub had to declare a class for it. This is that class,
@@ -16,7 +16,7 @@ class FnFactory<T extends Object> implements CobaltFactory<T> {
   T create(CobaltResolver resolver) => build(resolver);
 }
 
-/// An [CobaltFactory] that always returns the same value.
+/// A [CobaltFactory] that always returns the same value.
 ///
 /// Unlike `registerSingleton`, this keeps the registration lazy — the value is
 /// handed out on first resolution, so a test can assert that nothing resolved
@@ -32,7 +32,7 @@ class ValueFactory<T extends Object> implements CobaltFactory<T> {
   T create(CobaltResolver resolver) => value;
 }
 
-/// An [CobaltAsyncFactory] built from a function.
+/// A [CobaltAsyncFactory] built from a function.
 class AsyncFnFactory<T extends Object> implements CobaltAsyncFactory<T> {
   /// Creates a factory that calls [build].
   const AsyncFnFactory(this.build);
@@ -44,7 +44,7 @@ class AsyncFnFactory<T extends Object> implements CobaltAsyncFactory<T> {
   Future<T> create(CobaltResolver resolver) => build(resolver);
 }
 
-/// An [CobaltParamFactory] built from a function.
+/// A [CobaltParamFactory] built from a function.
 ///
 /// The sibling of [FnFactory] for `registerParamFactory`, which needs its own
 /// interface because the argument the container cannot supply is passed in.
@@ -60,7 +60,7 @@ class FnParamFactory<T extends Object, P extends Object>
   T create(CobaltResolver resolver, P param) => build(resolver, param);
 }
 
-/// An [CobaltAsyncParamFactory] built from a function.
+/// A [CobaltAsyncParamFactory] built from a function.
 ///
 /// The async sibling of [FnParamFactory], for `registerAsyncParamFactory`.
 class AsyncFnParamFactory<T extends Object, P extends Object>
@@ -75,7 +75,7 @@ class AsyncFnParamFactory<T extends Object, P extends Object>
   Future<T> create(CobaltResolver resolver, P param) => build(resolver, param);
 }
 
-/// An [CobaltDecorator] built from a function.
+/// A [CobaltDecorator] built from a function.
 ///
 /// The sibling of [FnFactory] for `CobaltScope.decorate`, so a test that only
 /// wants to wrap something need not declare a class for it.

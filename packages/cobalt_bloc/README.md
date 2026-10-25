@@ -1,6 +1,6 @@
 # cobalt_bloc
 
-Lets an [Cobalt](https://github.com/rutikeyone/cobalt) scope close the blocs it built.
+Lets a [Cobalt](https://github.com/rutikeyone/cobalt) scope close the blocs it built.
 
 ```yaml
 dependencies:

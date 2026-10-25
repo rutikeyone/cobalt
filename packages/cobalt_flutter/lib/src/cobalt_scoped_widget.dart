@@ -5,7 +5,7 @@ import 'package:flutter/widgets.dart';
 /// A stateless widget that owns a scope for as long as it is mounted.
 ///
 /// Collapses the three pieces an owned scope otherwise needs — a scope builder,
-/// an [CobaltScopeWidget] wrapper and a separate child widget — into one class.
+/// a [CobaltScopeWidget] wrapper and a separate child widget — into one class.
 /// Declare what the scope holds in [registerScope] and the UI in [buildScoped];
 /// the scope is pushed on mount and disposed on unmount.
 ///
@@ -60,7 +60,7 @@ abstract class CobaltScopedWidget extends StatelessWidget {
   );
 }
 
-/// Adapts an [CobaltScopedWidget] to [CobaltScopeBuilder].
+/// Adapts a [CobaltScopedWidget] to [CobaltScopeBuilder].
 ///
 /// An object rather than a closure, so nothing is captured beyond the widget
 /// itself and the builder compares by the widget it wraps.
@@ -75,7 +75,7 @@ final class CobaltWidgetScopeBuilder implements CobaltScopeBuilder {
   void build(CobaltScope scope) => widget.registerScope(scope);
 }
 
-/// Renders an [CobaltScopedWidget]'s content below its scope.
+/// Renders a [CobaltScopedWidget]'s content below its scope.
 final class CobaltScopedChild extends StatelessWidget {
   /// Renders the content of [owner].
   const CobaltScopedChild(this.owner, {super.key});

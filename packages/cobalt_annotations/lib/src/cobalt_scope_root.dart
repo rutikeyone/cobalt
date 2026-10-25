@@ -38,7 +38,7 @@ class CobaltScopeRoot {
   /// a scope builder that wraps `CobaltRoot` and adds to it, or a
   /// provider from another package. Name those here.
   ///
-  /// An element is either a `Type`, or an [CobaltProvided] when the
+  /// An element is either a `Type`, or a [CobaltProvided] when the
   /// hand-written registration is named:
   ///
   /// ```dart
