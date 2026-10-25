@@ -1,3 +1,8 @@
+## 1.9.1
+
+- No code changes in this package. The icon is gone from the screenshots on
+  pub.dev.
+
 ## 1.9.0
 
 - `CobaltChildScopeParser` rejects a marker with two values of one type

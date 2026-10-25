@@ -1,6 +1,6 @@
 name: cobalt_logger
 description: Cobalt adapter for package:logger — sends the DI graph's events to a Logger with its pretty console output.
-version: 1.9.0
+version: 1.9.1
 repository: https://github.com/rutikeyone/cobalt
 issue_tracker: https://github.com/rutikeyone/cobalt/issues
 topics:
@@ -8,10 +8,6 @@ topics:
   - di
   - logging
   - observability
-
-screenshots:
-  - description: "The Cobalt icon: scopes inside scopes, each closing what it built."
-    path: screenshots/icon.png
 
 environment:
   sdk: ^3.10.0

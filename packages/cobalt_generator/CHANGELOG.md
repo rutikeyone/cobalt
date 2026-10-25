@@ -1,3 +1,9 @@
+## 1.9.1
+
+- No code changes in this package. The icon is gone from the screenshots on
+  pub.dev.
+- Depends on `cobalt` ^1.9.1, the runtime of its own version.
+
 ## 1.9.0
 
 - A generated child scope opened without an environment takes the one its

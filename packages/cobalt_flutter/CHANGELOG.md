@@ -1,3 +1,8 @@
+## 1.9.1
+
+- No code changes in this package. The icon is gone from the screenshots on
+  pub.dev.
+
 ## 1.9.0
 
 - `CobaltScopeWidget` rebuilt with a generated child scope builder of
