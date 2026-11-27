@@ -24,14 +24,35 @@ command -v dart-apitool > /dev/null || dart pub global activate dart_apitool > /
 
 packages=${1:-$(for p in packages/*/pubspec.yaml; do basename "$(dirname "$p")"; done)}
 failed=
+body=$(mktemp)
+trap 'rm -f "$body"' EXIT
 for package in $packages; do
-  published=$(curl -fsS "https://pub.dev/api/packages/$package" |
-    sed -n 's/.*"latest":{"version":"\([^"]*\)".*/\1/p')
-  echo "== $package: checkout against $published on pub.dev"
+  code=$(curl -sS -o "$body" -w '%{http_code}' "https://pub.dev/api/packages/$package") ||
+    code=unreachable
+  case "$code" in
+    200) ;;
+    unreachable)
+      echo "== $package: FAILED: pub.dev not reachable"
+      failed="$failed $package"
+      continue
+      ;;
+    404)
+      echo "== $package: not on pub.dev yet — nothing to compare against"
+      continue
+      ;;
+    *)
+      echo "== $package: FAILED: pub.dev answered $code"
+      failed="$failed $package"
+      continue
+      ;;
+  esac
+  published=$(sed -n 's/.*"latest":{"version":"\([^"]*\)".*/\1/p' "$body")
   if [ -z "$published" ]; then
-    echo "   not on pub.dev yet — nothing to compare against"
+    echo "== $package: FAILED: pub.dev answered without a latest version"
+    failed="$failed $package"
     continue
   fi
+  echo "== $package: checkout against $published on pub.dev"
   mode=onlyBreakingChanges
   [ "$package" = cobalt_analyzer ] && mode=none
   # Captured rather than piped: sh has no pipefail, and the exit code is the
@@ -57,8 +78,9 @@ done
 
 if [ -n "$failed" ]; then
   echo
-  echo "Breaking changes without a major version:$failed"
-  echo "Make the change non-breaking, mark it @experimental if it is not part of"
-  echo "the stable API, or release it as a major version. See RELEASING."
+  echo "API check failed:$failed"
+  echo "For a breaking change: make it non-breaking, mark it @experimental if it"
+  echo "is not part of the stable API, or release it as a major version. See"
+  echo "RELEASING."
   exit 1
 fi

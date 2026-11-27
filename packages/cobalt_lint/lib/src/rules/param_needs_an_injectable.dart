@@ -57,15 +57,23 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (_parser.declares(element) || _modules.declares(element)) return;
 
     final name = node.namePart.typeName.lexeme;
+    final primaryParameters = primaryConstructorOf(
+      node,
+    )?.formalParameters.parameters;
+    if (primaryParameters != null) _reportMarked(primaryParameters, name);
     for (final member in membersOf(node)) {
       if (member is! ConstructorDeclaration) continue;
-      for (final parameter in member.parameters.parameters) {
-        if (!_isMarked(parameter)) continue;
-        rule.reportAtNode(
-          parameter,
-          arguments: [parameter.name?.lexeme ?? '', name],
-        );
-      }
+      _reportMarked(member.parameters.parameters, name);
+    }
+  }
+
+  void _reportMarked(List<FormalParameter> parameters, String name) {
+    for (final parameter in parameters) {
+      if (!_isMarked(parameter)) continue;
+      rule.reportAtNode(
+        parameter,
+        arguments: [parameter.name?.lexeme ?? '', name],
+      );
     }
   }
 

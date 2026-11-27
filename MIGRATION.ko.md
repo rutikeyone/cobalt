@@ -280,7 +280,7 @@ class CounterCubit extends Cubit<int> with CobaltBloc {}
 
 ## 실제 진행 순서
 
-1. `cobalt`와 `cobalt_annotations`를 추가합니다. 기존 컨테이너는 그대로 둡니다.
+1. 어노테이션을 다시 내보내는 `cobalt`를 추가합니다. 기존 컨테이너는 그대로 둡니다.
 2. 아무것도 의존하지 않는 리프 서비스 두세 개로 루트 `CobaltScopeBuilder`를 작성합니다.
    `main`에서 기존 컨테이너와 나란히 시작합니다.
 3. 브리지: 그 인스턴스들을 기존 컨테이너에 등록해 기존 호출 위치가 계속

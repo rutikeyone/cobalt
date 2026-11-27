@@ -51,6 +51,41 @@ class _Reader extends StatelessWidget {
   }
 }
 
+class Screen implements CobaltScopeBuilder {
+  const Screen();
+
+  @override
+  void build(CobaltScope scope) => scope.registerLazySingleton<String>(
+    FnFactory((resolver) => 'screen ${resolver.get<Label>().text}'),
+  );
+}
+
+class _ScreenText extends StatelessWidget {
+  const _ScreenText();
+
+  @override
+  Widget build(BuildContext context) =>
+      Text(context.cobalt<String>(), textDirection: TextDirection.ltr);
+}
+
+class Visit {}
+
+final class VisitScope extends CobaltChildScopeBuilder {
+  VisitScope(this.id, this.builds);
+
+  final int id;
+  final List<int> builds;
+
+  @override
+  Type get marker => Visit;
+
+  @override
+  List<Object?> get markerValues => [id];
+
+  @override
+  void build(CobaltScope scope) => builds.add(id);
+}
+
 void main() {
   /// A mutation making `updateShouldNotify` always return false passed every
   /// test in this package. Swapping the scope is how a restarted graph reaches
@@ -102,6 +137,59 @@ void main() {
             'the same scope object is not a change, and notifying anyway '
             'would rebuild every reader on any parent rebuild',
       );
+    });
+  });
+
+  group('a scope widget below a provider handed a different scope', () {
+    testWidgets('closes its scope and opens one under the new scope', (
+      tester,
+    ) async {
+      final key = GlobalKey<_HostState>();
+      final first = scopeSaying('first');
+      final second = scopeSaying('second');
+
+      await tester.pumpWidget(
+        _Host(
+          key: key,
+          first: first,
+          child: const CobaltScopeWidget(
+            builder: Screen(),
+            child: _ScreenText(),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(find.text('screen first'), findsOneWidget);
+
+      key.currentState!.swap(second);
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text('screen second'), findsOneWidget);
+      expect(first.children, isEmpty);
+      expect(second.children, hasLength(1));
+    });
+
+    testWidgets('opens once when the builder changes in the same frame', (
+      tester,
+    ) async {
+      final builds = <int>[];
+      final first = scopeSaying('first');
+      final second = scopeSaying('second');
+      Widget tree(CobaltScope scope, int id) => CobaltScopeProvider(
+        scope: scope,
+        child: CobaltScopeWidget(
+          builder: VisitScope(id, builds),
+          child: const SizedBox.shrink(),
+        ),
+      );
+
+      await tester.pumpWidget(tree(first, 1));
+      await tester.pumpWidget(tree(second, 2));
+
+      expect(builds, [1, 2]);
+      expect(first.children, isEmpty);
+      expect(second.children, hasLength(1));
     });
   });
 }

@@ -515,6 +515,8 @@ CobaltHeldScope(
 )
 ```
 
+新的会话会让 `child` 从头开始：它的状态，以及在旧会话下打开的页面作用域，都会被关闭并为新用户重新创建。
+
 如果会话的寿命恰好等于界面的一部分，就让一个 widget 拥有它。widget 挂载时打开，卸载时销毁：
 
 ```dart
@@ -522,6 +524,8 @@ CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
 ```
 
 另一个用户登录时，控件会用值不同的 `SessionScope` 重建。生成的 builder 按这些值比较，所以控件会关闭旧会话，为新用户打开一个新会话。手写的 builder 只读一次：改为给控件 `key: ValueKey(user.id)`。
+
+标记值按 `==` 比较，因此没有自己的 `==` 的值（例如每次重建都新建的 `User(...)`）每次都会重新打开会话：给这个值实现 `==`，或者改为传入它的 id。
 
 ### 界面
 
@@ -648,6 +652,10 @@ mixin 够不着的地方，用 `@CobaltInject(dispose: closeBloc)`。
 它按设计是尽力而为的。抛异常的步骤会被记录，其余的照常执行；整棵树共用一个截止时间；
 作用域最终一定会到达 `disposed`。没做完的事列在 `CobaltDisposeError` 里——
 `failures`、`timeouts`、`hasTimeout`。
+
+第二次 `dispose()`，以及父作用域关闭一个已在销毁中的子作用域，都会等待进行中的销毁，并且不带错误地完成：
+只有发起销毁的那次调用会抛出 `CobaltDisposeError`，也只有它的 `timeout` 生效；父作用域到了自己的截止时间
+仍会停止等待。在这次销毁内部发起的调用——来自 `AsyncDisposable.dispose` 或观察者——会立即返回，而不是等待自己。
 
 `adopt` 把「不是依赖、但生命周期绑在作用域上」的对象挂上去：
 

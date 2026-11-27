@@ -219,6 +219,40 @@ void main() {
         ['fake', 'real b'],
       );
     });
+
+    test('an override is checked once the outermost builder returns', () {
+      final scope = cobaltTestRoot(
+        overrides: [CobaltOverride<Database>.value(Database('fake'))],
+      );
+
+      scope.runBuilder(
+        _Graph((scope) {
+          scope.runBuilder(_Graph((_) {}));
+          scope.registerLazySingleton<Database>(
+            FnFactory((_) => Database('real')),
+          );
+        }),
+      );
+
+      expect(scope.get<Database>().label, 'fake');
+    });
+
+    test('a promise kept after a nested builder is not broken', () {
+      final events = CapturingObserver();
+
+      cobaltTestRoot(observers: [events]).runBuilder(
+        _Graph((scope) {
+          scope
+            ..promise<Database>()
+            ..runBuilder(_Graph((_) {}))
+            ..registerLazySingleton<Database>(
+              FnFactory((_) => Database('real')),
+            );
+        }),
+      );
+
+      expect(events.saw(CobaltEventKind.promiseBroken), isFalse);
+    });
   });
 
   group('async registrations', () {

@@ -1,3 +1,8 @@
+## 1.9.3
+
+- `levelOf` ends in `_`, so a `CobaltLogLevel` added in a later `cobalt`
+  still compiles and maps to `info`.
+
 ## 1.9.2
 
 - No code changes in this package. No pictures on pub.dev: search shows no

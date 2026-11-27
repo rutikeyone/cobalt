@@ -1,3 +1,9 @@
+## 1.9.3
+
+- No code changes in this package. 1.9.3 fixes scope teardown and failed
+  builds in `cobalt`, and screen scopes that outlived a session in
+  `cobalt_flutter`.
+
 ## 1.9.2
 
 - No code changes in this package. No pictures on pub.dev: search shows no

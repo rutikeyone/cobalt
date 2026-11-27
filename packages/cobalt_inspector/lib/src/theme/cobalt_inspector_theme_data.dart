@@ -190,9 +190,7 @@ class CobaltInspectorThemeData {
       switch (level) {
         CobaltLogLevel.error => failure,
         CobaltLogLevel.warning => warning,
-        CobaltLogLevel.info ||
-        CobaltLogLevel.debug ||
-        CobaltLogLevel.trace => muted,
+        _ => muted,
       };
 
   /// The colour of one lifetime, from [lifetimeColors] or derived.

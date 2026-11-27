@@ -112,9 +112,9 @@ void main() {
 
     /// The reason the trail is built by `guard` alone.
     ///
-    /// `Future.wait` enters every registration in a level before any of them
-    /// suspends, so both keys are under construction at once. Reading that as
-    /// a chain would print a caller that never called.
+    /// Both keys of a level are under construction at once, and phase 1 stays
+    /// off the tracker. Reading them as a chain would print a caller that
+    /// never called.
     test('a parallel init level does not invent a caller', () async {
       final scope = cobaltTestRoot(name: 'app')
         ..registerAsyncSingleton<Ready>(

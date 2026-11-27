@@ -56,7 +56,7 @@ final class _Recorded extends CobaltRecordingObserver {
   void onRecord(CobaltLogRecord record) => records.add(record);
 }
 
-const _leafWork = Duration(milliseconds: 60);
+const _leafWork = Duration(milliseconds: 150);
 const _ownWork = Duration(milliseconds: 20);
 
 void main() {

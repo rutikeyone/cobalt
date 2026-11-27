@@ -461,22 +461,34 @@ class _IndexBuilder {
     edges[node] = wanted;
   }
 
-  /// Adds the types the first public generative constructor takes.
-  ///
-  /// `this.field` carries no type of its own, so the field declarations are
-  /// read first to give it one.
-  /// Whether the first public generative constructor takes an `@CobaltParam`
-  /// — the constructor the generator reads.
-  static bool _takesCallSiteValues(ClassDeclaration node) {
+  /// Whether the constructor the generator reads takes an `@CobaltParam`: a
+  /// public primary constructor, else the first public generative one.
+  static bool _takesCallSiteValues(ClassDeclaration node) =>
+      _publicConstructorParameters(node)?.any(_isCallSiteValue) ?? false;
+
+  static List<FormalParameter>? _publicConstructorParameters(
+    ClassDeclaration node,
+  ) {
+    final primary = primaryConstructorOf(node);
+    if (primary != null && !_isPrivate(primary.constructorName?.name)) {
+      return primary.formalParameters.parameters;
+    }
     for (final member in membersOf(node)) {
       if (member is! ConstructorDeclaration) continue;
       if (member.factoryKeyword != null) continue;
-      if (member.name?.lexeme.startsWith('_') ?? false) continue;
-      return member.parameters.parameters.any(_isCallSiteValue);
+      if (_isPrivate(member.name)) continue;
+      return member.parameters.parameters;
     }
-    return false;
+    return null;
   }
 
+  static bool _isPrivate(Token? name) => name?.lexeme.startsWith('_') ?? false;
+
+  /// Adds the parameter types of the constructor the generator reads: a public
+  /// primary constructor, else the first public generative one.
+  ///
+  /// `this.field` carries no type of its own, so the field declarations are
+  /// read first to give it one.
   void _addConstructorParameters(ClassDeclaration node, Set<String> out) {
     final fieldTypes = <String, String>{};
     for (final member in membersOf(node)) {
@@ -488,14 +500,9 @@ class _IndexBuilder {
       }
     }
 
-    for (final member in membersOf(node)) {
-      if (member is! ConstructorDeclaration) continue;
-      if (member.factoryKeyword != null) continue;
-      if (member.name?.lexeme.startsWith('_') ?? false) continue;
-      for (final parameter in member.parameters.parameters) {
-        _addParameter(parameter, fieldTypes, out);
-      }
-      return;
+    for (final parameter
+        in _publicConstructorParameters(node) ?? const <FormalParameter>[]) {
+      _addParameter(parameter, fieldTypes, out);
     }
   }
 

@@ -4,6 +4,29 @@ import 'package:test/test.dart';
 
 import 'support.dart';
 
+class HalfInjected extends Recorder implements CobaltInjectable {
+  HalfInjected() : super('half');
+
+  @override
+  void onInject(CobaltResolver resolver) => resolver.get<Greeting>();
+}
+
+final class InstanceEvents extends CobaltObserver {
+  final events = <String>[];
+
+  @override
+  void onInstanceCreated(
+    CobaltScopeRef scope,
+    CobaltKey key, {
+    required CobaltRegistrationKind kind,
+    required bool retained,
+  }) => events.add('created $key');
+
+  @override
+  void onInstanceDisposed(CobaltScopeRef scope, String label) =>
+      events.add('disposed $label');
+}
+
 void main() {
   setUp(resetLogs);
 
@@ -208,6 +231,74 @@ void main() {
 
       expect(injected.injected, isTrue);
       expect(injected.logger, same(scope.get<Logger>()));
+    });
+
+    test('a failed onInject is not cached and is closed later', () async {
+      final observer = InstanceEvents();
+      final scope = cobaltTestRoot(observers: [observer])
+        ..registerLazySingleton<HalfInjected>(FnFactory((_) => HalfInjected()));
+
+      for (var attempt = 0; attempt < 2; attempt++) {
+        expect(
+          () => scope.get<HalfInjected>(),
+          throwsA(isA<CobaltNotRegisteredError>()),
+        );
+      }
+      await scope.dispose();
+
+      expect(recorder.entries, ['half', 'half']);
+      expect(observer.events, [
+        'created HalfInjected',
+        'created HalfInjected',
+        'disposed HalfInjected',
+        'disposed HalfInjected',
+      ]);
+    });
+
+    test('a failed onInject is recorded as built and released', () async {
+      final events = CapturingObserver();
+      final scope = cobaltTestRoot(observers: [events])
+        ..registerLazySingleton<HalfInjected>(FnFactory((_) => HalfInjected()));
+
+      expect(
+        () => scope.get<HalfInjected>(),
+        throwsA(isA<CobaltNotRegisteredError>()),
+      );
+      await scope.dispose();
+
+      expect(events.saw(CobaltEventKind.instanceCreated), isTrue);
+      expect(events.saw(CobaltEventKind.instanceDisposed), isTrue);
+    });
+
+    test('a failed onInject in a lazy async build is built anew', () async {
+      final scope = cobaltTestRoot()
+        ..registerLazyAsyncSingleton<HalfInjected>(
+          AsyncFnFactory((_) async => HalfInjected()),
+        );
+
+      for (var attempt = 0; attempt < 2; attempt++) {
+        await expectLater(
+          scope.getAsync<HalfInjected>(),
+          throwsA(isA<CobaltNotRegisteredError>()),
+        );
+      }
+      await scope.dispose();
+
+      expect(recorder.entries, ['half', 'half']);
+    });
+
+    test('a failed onInject in an eager build is closed later', () async {
+      final scope = cobaltTestRoot();
+
+      expect(
+        () => scope.registerEagerSingleton<HalfInjected>(
+          FnFactory((_) => HalfInjected()),
+        ),
+        throwsA(isA<CobaltNotRegisteredError>()),
+      );
+      await scope.dispose();
+
+      expect(recorder.entries, ['half']);
     });
   });
 }

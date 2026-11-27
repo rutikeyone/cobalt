@@ -608,6 +608,12 @@ has one deadline; and the scope always reaches `disposed`. What did not finish i
 `CobaltDisposeError` — `failures`, `timeouts`, `hasTimeout` — instead of the first failure hiding the
 other nine.
 
+A second `dispose()`, and a parent closing a child that is already closing, waits for the teardown
+in progress and completes without an error: only the call that started it throws
+`CobaltDisposeError`, and only its `timeout` counts, while a parent still stops waiting at its own
+deadline. A call made from inside that teardown, from an `AsyncDisposable.dispose` or an observer,
+returns at once instead of waiting for itself.
+
 `adopt` ties an object to a scope's life without it being a dependency — useful for a subscription or
 a timer that nothing resolves:
 
@@ -788,6 +794,10 @@ registration through `getAsync`, and a build that asks, through its own awaits, 
 building is a `CobaltCycleError` rather than a hang. Reading it synchronously — `get`, `getOrNull`,
 `getAll` — throws `CobaltAsyncTransientError` naming `getAsync`. In a test,
 `CobaltOverride.transient` replaces it with a synchronous double.
+
+`CobaltAsyncBuilder<Report>` waits for it in the widget tree and shows `loading` meanwhile; each
+`retry` builds a new instance. The widget does not close it, so this suits a transient with nothing
+to release; one that holds a resource is closed by the code that uses it.
 
 In a widget, call `context.cobaltAsync` once — from `initState` or from an event — and keep the
 future: every call builds another.

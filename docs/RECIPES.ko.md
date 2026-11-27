@@ -69,6 +69,9 @@ CobaltHeldScope(
 )
 ```
 
+새 세션이 열리면 `child`는 처음부터 다시 시작합니다. 그 상태와 이전 세션 아래에서 열린 화면 스코프는 닫히고
+새 사용자를 위해 다시 만들어집니다.
+
 ```dart
 CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
 ```
@@ -76,6 +79,9 @@ CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
 다른 사용자가 로그인하면 위젯은 값이 다른 `SessionScope`로 다시 빌드됩니다. 생성된 builder는 그 값으로
 비교하므로, 위젯은 이전 세션을 닫고 새 사용자의 세션을 엽니다. 직접 작성한 builder는 한 번만 읽히므로
 대신 위젯에 `key: ValueKey(user.id)`를 주십시오.
+
+마커 값은 `==`로 비교되므로, 자체 `==`가 없는 값(예: 다시 빌드할 때마다 새로 만드는 `User(...)`)은
+빌드할 때마다 세션을 다시 엽니다. 값에 `==`를 구현하거나 id를 넘기십시오.
 
 실행되는 코드: [`examples/notes_app/lib/features/session`](../examples/notes_app/lib/features/session),
 그리고 갤러리의 「세션 스코프」 항목. 자세한 내용은

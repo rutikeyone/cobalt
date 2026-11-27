@@ -73,6 +73,9 @@ class. It is built anew on every call, so every call has to be awaited.
 
 - Use `await scope.getAsync<T>()`, or `getAllAsync` for a list. The lint rule
   `cobalt_async_transient_read_synchronously` points at it in the editor.
+- In a widget, `CobaltAsyncBuilder` does the waiting, and each `retry` builds a new instance.
+  The widget does not close it: that suits a transient with nothing to release, and one that holds
+  a resource is closed by the code that uses it.
 
 ### CobaltParamRequiredError
 

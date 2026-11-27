@@ -247,7 +247,7 @@ bloc，改为指定函数：`@CobaltInject(dispose: closeBloc)`。另外要用 `
 
 ## 一份可照做的顺序
 
-1. 添加 `cobalt` 和 `cobalt_annotations`；原有容器原地不动。
+1. 添加 `cobalt`，它会重新导出注解；原有容器原地不动。
 2. 写一个根 `CobaltScopeBuilder`，放进两三个没有任何东西依赖的叶子服务。在 `main` 中与旧容器并排启动它。
 3. 搭桥：把这些实例注册回旧容器，让现有调用点继续工作。
 4. 迁移这些叶子的消费者。每迁一个，桥上就少一行。

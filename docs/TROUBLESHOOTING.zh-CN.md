@@ -54,6 +54,7 @@ build_runner again.
 对异步 transient——`registerAsyncFactory`，或 `@CobaltInit` 类上的 `@cobaltTransient`——调用了 `get`。它每次调用都会重新构建，所以每次调用都必须等待。
 
 - 使用 `await scope.getAsync<T>()`，列表用 `getAllAsync`。lint 规则 `cobalt_async_transient_read_synchronously` 会在编辑器里标出这里。
+- 在 widget 里，由 `CobaltAsyncBuilder` 负责等待，每次 `retry` 都会构建一个新实例。组件不会关闭它：这适合没有资源要释放的 transient，持有资源的实例要由使用它的代码自己关闭。
 
 ### CobaltParamRequiredError
 

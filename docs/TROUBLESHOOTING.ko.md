@@ -73,6 +73,9 @@ build_runner again.
 
 - `await scope.getAsync<T>()`를 사용하고, 목록이라면 `getAllAsync`를 사용하십시오. 린트 규칙
   `cobalt_async_transient_read_synchronously`가 편집기에서 이 위치를 알려 줍니다.
+- 위젯에서는 `CobaltAsyncBuilder`가 기다리는 일을 맡고, `retry`할 때마다 새 인스턴스를 빌드합니다.
+  위젯은 이 인스턴스를 닫지 않으므로 해제할 것이 없는 transient에 적합하며, 리소스를 쥔 인스턴스는 그것을
+  사용하는 코드가 직접 닫아야 합니다.
 
 ### CobaltParamRequiredError
 

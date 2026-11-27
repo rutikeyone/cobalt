@@ -7,7 +7,11 @@ import 'package:flutter/widgets.dart';
 /// Made for a lazy async registration: something expensive that lives as long
 /// as its scope but is wanted by few screens. The first screen that asks
 /// builds it and shows [loading] meanwhile; every later one finds it built and
-/// renders straight away, without a frame of [loading].
+/// renders straight away, without a frame of [loading]. An async factory
+/// works too: each resolution, `retry` included, builds a new instance, and
+/// the scope does not keep it. Nor does this widget close it, so it suits a
+/// transient with nothing to release; one that holds a resource is closed by
+/// whoever uses it.
 ///
 /// ```dart
 /// CobaltAsyncBuilder<SearchEngine>(
@@ -83,7 +87,9 @@ class _CobaltAsyncBuilderState<T extends Object>
       _value = scope.get<T>(name: widget.name);
       return;
     } on Object catch (error) {
-      if (error is! CobaltLazyAsyncError && error is! CobaltNotReadyError) {
+      if (error is! CobaltLazyAsyncError &&
+          error is! CobaltNotReadyError &&
+          error is! CobaltAsyncTransientError) {
         _error = error;
         return;
       }

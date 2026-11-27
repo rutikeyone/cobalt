@@ -200,8 +200,8 @@ flutter run
 | `cobalt_lint` | `cobalt_analyzer`、`analysis_server_plugin` | 仅 dev_dependency |
 | `cobalt_test` | `cobalt`、`test_api`、`matcher` | 仅 dev_dependency |
 | `cobalt_test_flutter` | `cobalt_flutter`、`flutter_test` | 仅 dev_dependency |
-| `cobalt_inspector` | `cobalt_flutter`、`flutter` | 仅 dev_dependency |
-| `cobalt_talker_flutter` | `cobalt_inspector`、`cobalt_talker`、`talker_flutter` | 仅 dev_dependency |
+| `cobalt_inspector` | `cobalt_flutter`、`flutter` | 应用依赖，从调试菜单打开 |
+| `cobalt_talker_flutter` | `cobalt_inspector`、`cobalt_talker`、`talker_flutter` | 应用依赖，从调试菜单打开 |
 
 </details>
 

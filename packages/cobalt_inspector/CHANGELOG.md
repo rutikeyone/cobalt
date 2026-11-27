@@ -1,3 +1,13 @@
+## 1.9.3
+
+- The `switch` statements over `CobaltEventKind` and `CobaltLogLevel` end in
+  `_`, so a value added in a later `cobalt` still compiles: a new event is
+  shown as a failure, a new level in the muted colour.
+- The package has its own `analysis_options.yaml`, which ignores the
+  deprecation of `package:flutter/material.dart`.
+- The README installs the package as an app dependency, as the table in the
+  repository README now says too.
+
 ## 1.9.2
 
 - No code changes in this package. No pictures on pub.dev: search shows no

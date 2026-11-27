@@ -218,8 +218,8 @@ use code generation. Everything else is optional.
 | `cobalt_lint` | `cobalt_analyzer`, `analysis_server_plugin` | dev_dependency only |
 | `cobalt_test` | `cobalt`, `test_api`, `matcher` | dev_dependency only |
 | `cobalt_test_flutter` | `cobalt_flutter`, `flutter_test` | dev_dependency only |
-| `cobalt_inspector` | `cobalt_flutter`, `flutter` | dev_dependency only |
-| `cobalt_talker_flutter` | `cobalt_inspector`, `cobalt_talker`, `talker_flutter` | dev_dependency only |
+| `cobalt_inspector` | `cobalt_flutter`, `flutter` | app dependency, opened from a debug menu |
+| `cobalt_talker_flutter` | `cobalt_inspector`, `cobalt_talker`, `talker_flutter` | app dependency, opened from a debug menu |
 
 </details>
 
