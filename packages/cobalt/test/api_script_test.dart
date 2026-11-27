@@ -1,6 +1,7 @@
 @Tags(['repo'])
 library;
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:test/test.dart';
@@ -27,6 +28,36 @@ void main() {
     );
   }
 
+  ProcessResult runWithPublished(
+    List<Map<String, Object>> versions, {
+    required String latest,
+  }) {
+    File('${stubs.path}/answer.json').writeAsStringSync(
+      jsonEncode({
+        'name': 'cobalt',
+        'latest': {'version': latest},
+        'versions': versions,
+      }),
+    );
+    return runWithCurl('''
+while [ \$# -gt 0 ]; do
+  [ "\$1" = -o ] && out=\$2
+  shift
+done
+cp "${stubs.path}/answer.json" "\$out"
+printf 200''');
+  }
+
+  final major = int.parse(
+    File('pubspec.yaml')
+        .readAsLinesSync()
+        .firstWhere((line) => line.startsWith('version:'))
+        .substring('version:'.length)
+        .trim()
+        .split('.')
+        .first,
+  );
+
   test('a network failure fails the check', () {
     final result = runWithCurl('exit 6');
 
@@ -39,5 +70,30 @@ void main() {
 
     expect(result.exitCode, 0);
     expect(result.stdout, contains('not on pub.dev yet'));
+  });
+
+  test('a patch is compared with the newest release of its own major', () {
+    final result = runWithPublished([
+      {'version': '$major.9.0'},
+      {'version': '$major.10.0'},
+      {'version': '$major.999.0', 'retracted': true},
+      {'version': '${major + 1}.0.0'},
+    ], latest: '${major + 1}.0.0');
+
+    expect(result.exitCode, 0);
+    expect(result.stdout, contains('checkout against $major.10.0 on pub.dev'));
+  });
+
+  test('without a stable release of its own major, latest is the base', () {
+    final result = runWithPublished([
+      {'version': '${major + 1}.0.0'},
+      {'version': '$major.999.0-dev.1'},
+    ], latest: '${major + 1}.0.0');
+
+    expect(result.exitCode, 0);
+    expect(
+      result.stdout,
+      contains('checkout against ${major + 1}.0.0 on pub.dev'),
+    );
   });
 }

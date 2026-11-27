@@ -112,15 +112,31 @@ Lockstep is the whole policy, including the awkward cases:
   subset is what lets the set drift.
 - **The dependency constraint between our own packages stays exact-major**
   (`^X.Y.0`), never `>=X <Z`. Widening it is the same trap in slower motion.
+- **Narrower still where the API is not stable.** `^X.Y.0` holds between
+  stable APIs. A package that reads `cobalt_analyzer` or `@experimental`
+  members — `cobalt_generator` and `cobalt_lint` on `cobalt_analyzer`,
+  `cobalt_test` and `cobalt_inspector` on `cobalt` — will take one minor,
+  `>=X.Y.0 <X.(Y+1).0`, from 2.0 on: those members may change in a minor, so
+  a wider constraint lets pub pair versions that do not compile together.
 
 Through the 0.x releases, `0.x` majors meant `0.x` — a breaking change bumped
 the minor, so `^0.1.0` already refused `0.2.0`. Since 1.0.0 the rule above
 applies as written.
 
 A test enforces the mechanical half of this: every package declares the same
-version, and every changelog heads with the version its own pubspec declares.
+version, every changelog heads with the version its own pubspec declares, and
+every `cobalt*` constraint, dev dependencies included, is of that same major.
 Bumping a release is fifteen identical edits, and the one you miss is not
-visible in a diff you are scrolling past.
+visible in a diff you are scrolling past, so `python3 tool/version.py X.Y.Z`
+makes them: the fifteen `version:` lines, a `## X.Y.Z` heading in every
+changelog that lacks one (the entry under it is still written by hand), and
+`cobalt_generator`'s `cobalt: ^X.Y.Z`. On a new major it also moves every
+internal `^A.…` constraint to `^X.Y.Z` — for a pre-release such as
+`2.0.0-dev.1` that is `^2.0.0-dev.1`, because `^2.0.0` does not accept it.
+Within a major it moves only the internal constraints that name a pre-release,
+so `2.0.0` after `2.0.0-dev.1` gets `^2.0.0` back, while `1.11.0` after
+`1.11.0-dev.1` leaves `^1.5.0` as it is. On a new major it also lists the `cobalt*` constraints in documents and examples that still name
+`^A.`, which it leaves to you.
 
 ### What breaks
 
@@ -151,8 +167,10 @@ goes to it instead of being listed, so there is no `unreachable_switch_case` tod
 later still compiles. An application can resolve a newer `cobalt` next to an older companion
 package, so lockstep releases do not make an exhaustive `switch` safe.
 
-`tool/api.sh` — the `api` job in CI — runs `dart_apitool` against the version on pub.dev and names
-each change breaking or not, and it is a gate: a breaking change fails the job unless the checkout's
+`tool/api.sh` — the `api` job in CI — runs `dart_apitool` against the newest stable, not retracted
+release of the checkout's major on pub.dev (against `latest` while that major has none, as for a
+first `2.0.0-dev.1`), so a 1.x patch made after 2.0 is compared with 1.x. It names each change
+breaking or not, and it is a gate: a breaking change fails the job unless the checkout's
 version is a major step past the published one. So a breaking change reaches `main` only as part of
 a major release. When the job fails, there are three ways out, in the order to try them: make the
 change non-breaking (a new optional parameter, a new member with a default); if what changed is not
@@ -275,16 +293,23 @@ is why this was settled before the first publish rather than after.
 ## Publishing (automated, from a tag)
 
 `.github/workflows/publish.yml` publishes all fifteen packages when a `vX.Y.Z` tag is
-pushed: it checks the tag equals every pubspec version, then runs `dart pub publish --force`
-group by group in the order above, waiting for each group to appear on pub.dev and keeping at
-least 40 s between any two publishes. Versions already on pub.dev are skipped, so a failed run
+pushed. Its first job, `gate`, runs `tool/release_gate.sh` before the `pub.dev` environment asks
+for approval: the tagged commit has to be on `origin/main` or `origin/1.x`, and the `ci` run that a
+push of that commit started has to be green; a run still going is waited for, up to 30 minutes. A
+red or missing run, or a commit on neither branch, stops the release with nothing to approve.
+`ci` runs on pushes to `main` and to `1.x`, but only the commit at the head of a push gets a
+run, so the tag goes on such a commit, normally the merge commit. The `publish` job then checks the tag equals every pubspec version, and runs
+`dart pub publish --force` group by group in the order above, waiting for each group to appear
+on pub.dev and keeping at least 40 s between any two publishes. Versions already on pub.dev are skipped, so a failed run
 is simply re-run.
 
 Once every package is published, a second job creates the GitHub release on the tag, titled
 `Cobalt X.Y.Z`. Its body is built by `tool/release_notes.py X.Y.Z` from each package's
 `## X.Y.Z` CHANGELOG entry; packages with the same entry share one section, so the "no code
-changes" lines collapse into one. A version with a `-` suffix is marked as a pre-release. If
-the release already exists, the job skips it, so a re-run is safe.
+changes" lines collapse into one. A version with a `-` suffix is marked as a pre-release. A
+version whose major is below that of the repository's latest GitHub release — a 1.x patch after
+2.0.0 — is created with `--latest=false`, so it does not take the "Latest" mark from the newer
+major. If the release already exists, the job skips it, so a re-run is safe.
 
 - Every package must have the `## X.Y.Z` entry: the publish job checks this before
   publishing anything, so a missing entry stops the run while the tag can still be moved.

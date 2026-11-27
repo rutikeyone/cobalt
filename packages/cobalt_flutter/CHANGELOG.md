@@ -1,3 +1,8 @@
+## 1.10.0
+
+- No code changes in this package. Only the repository's release tooling
+  changed.
+
 ## 1.9.3
 
 - `CobaltHeldScope` starts its `child` over for a new scope, so a screen

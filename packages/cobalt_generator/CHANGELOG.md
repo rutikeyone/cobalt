@@ -1,3 +1,9 @@
+## 1.10.0
+
+- No code changes in this package. Only the repository's release tooling
+  changed.
+- Depends on `cobalt` ^1.10.0, the runtime of its own version.
+
 ## 1.9.3
 
 - No code changes in this package. Depends on `cobalt` ^1.9.3, the runtime

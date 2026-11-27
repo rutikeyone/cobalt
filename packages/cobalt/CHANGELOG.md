@@ -1,3 +1,8 @@
+## 1.10.0
+
+- No code changes in this package. Only the repository's release tooling
+  changed.
+
 ## 1.9.3
 
 - Two scopes building the same async singleton at the same time no longer

@@ -21,16 +21,33 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          fetch-depth: 0
+
+      - name: The tagged commit is on a release branch and green in CI
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./tool/release_gate.sh
+
   publish:
+    needs: gate
     runs-on: ubuntu-latest
     environment: pub.dev
     permissions:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
 
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
         with:
           flutter-version: 3.38.9
 
@@ -105,7 +122,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
 
       - name: GitHub release from the CHANGELOG entries
         env:
@@ -118,7 +135,13 @@ jobs:
             exit 0
           fi
           python3 tool/release_notes.py "$version" > notes.md
-          prerelease=()
-          case "$version" in *-*) prerelease=(--prerelease) ;; esac
+          flags=()
+          case "$version" in *-*) flags=(--prerelease) ;; esac
+          newest=$(gh api 'repos/{owner}/{repo}/releases/latest' --jq .tag_name 2>/dev/null || true)
+          newest_major=${newest#v}
+          newest_major=${newest_major%%.*}
+          if [ -n "$newest_major" ] && [ "${version%%.*}" -lt "$newest_major" ]; then
+            flags+=(--latest=false)
+          fi
           gh release create "$GITHUB_REF_NAME" --verify-tag \
-            --title "Cobalt $version" --notes-file notes.md "${prerelease[@]}"
+            --title "Cobalt $version" --notes-file notes.md "${flags[@]}"
