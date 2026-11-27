@@ -1,3 +1,14 @@
+## 1.9.3
+
+- `CobaltHeldScope` starts its `child` over for a new scope, so a screen
+  below it no longer stays on a session that was closed.
+- `CobaltScopeWidget` follows a change of the nearest scope: it closes its
+  scope and opens one under the new scope. A builder change in the same
+  frame still opens one scope.
+- `CobaltAsyncBuilder` takes an async factory (`registerAsyncFactory`): it
+  shows `loading` while the instance is built, and each `retry` builds a new
+  one.
+
 ## 1.9.2
 
 - No code changes in this package. No pictures on pub.dev: search shows no

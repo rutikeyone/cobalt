@@ -1,3 +1,8 @@
+## 1.9.3
+
+- The package has its own `analysis_options.yaml`, which ignores the
+  deprecation of `package:flutter/material.dart`.
+
 ## 1.9.2
 
 - No code changes in this package. No pictures on pub.dev: search shows no

@@ -1,3 +1,28 @@
+## 1.9.3
+
+- Two scopes building the same async singleton at the same time no longer
+  fail with a false `CobaltCycleError`, and neither does a lazy singleton of
+  that type resolved meanwhile, or a scope reopened after an init timeout.
+- A second `dispose()`, and a parent closing a child that is already
+  closing, now waits for the teardown in progress instead of returning at
+  once. Only the call that started it throws `CobaltDisposeError`; the
+  others complete without an error. The parent still stops waiting at its
+  own deadline. A call made from inside that teardown, from an
+  `AsyncDisposable.dispose` or an observer, returns at once as before.
+- A child's failures reported by its parent's `CobaltDisposeError` keep
+  their `stage`, so `isInitFailure` holds for a child's failed init.
+- An instance whose `onInject` throws is no longer cached: the next
+  resolution builds it again. A singleton built this way is closed with the
+  scope, and observers hear `onInstanceCreated`, `onInstanceSelfTime` and
+  `onInstanceBuilt` for it before `onInstanceDisposed`. A successful build
+  is unchanged.
+- A builder run with `runBuilder` from inside another builder is checked
+  with the outermost one: an override it leaves to the outer builder no
+  longer fails early, and a promise the outer builder keeps is no longer
+  reported broken.
+- `CobaltApplication.start` releases the bootstrap steps that ran when the
+  root scope cannot be created, for example for two overrides of one key.
+
 ## 1.9.2
 
 - No code changes in this package. No pictures on pub.dev: search shows no

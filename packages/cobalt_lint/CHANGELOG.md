@@ -1,3 +1,10 @@
+## 1.9.3
+
+- `cobalt_dependency_cycle` reads the parameters of a primary constructor,
+  so a cycle through `class A(final B b)` is reported.
+- `cobalt_param_needs_an_injectable` reads a primary constructor's
+  parameters too.
+
 ## 1.9.2
 
 - No code changes in this package. No pictures on pub.dev: search shows no

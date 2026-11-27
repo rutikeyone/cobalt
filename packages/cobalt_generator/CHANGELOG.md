@@ -1,3 +1,8 @@
+## 1.9.3
+
+- No code changes in this package. Depends on `cobalt` ^1.9.3, the runtime
+  of its own version.
+
 ## 1.9.2
 
 - No code changes in this package. No pictures on pub.dev: search shows no
