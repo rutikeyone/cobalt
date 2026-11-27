@@ -603,6 +603,11 @@ class CounterCubit extends Cubit<int> with CobaltBloc {
 나머지 아홉을 가리는 대신 `CobaltDisposeError`(`failures`, `timeouts`, `hasTimeout`)에
 나열됩니다.
 
+두 번째 `dispose()`와, 이미 해제 중인 자식을 닫는 부모는 진행 중인 해제를 기다린 뒤 오류 없이 끝납니다.
+`CobaltDisposeError`는 해제를 시작한 호출만 받고 그 호출의 `timeout`만 적용되며, 부모는 자신의 기한이 되면
+기다리기를 멈춥니다. 해제 도중 그 안에서, 즉 `AsyncDisposable.dispose`나 옵저버에서 한 호출은 자기 자신을
+기다리지 않고 바로 반환됩니다.
+
 `adopt`는 객체를 의존성으로 만들지 않고 스코프의 수명에 묶습니다. 아무것도 해석하지 않는 구독이나 타이머에
 유용합니다:
 
@@ -781,6 +786,10 @@ final report = await scope.getAsync<Report>();
 await를 거쳐 지금 빌드 중인 키를 요청하는 빌드는 멈춰 버리는 대신 `CobaltCycleError`가 됩니다. 동기로
 읽으면(`get`, `getOrNull`, `getAll`) `getAsync`를 안내하는 `CobaltAsyncTransientError`를 던집니다. 테스트에서는
 `CobaltOverride.transient`가 이를 동기 대역으로 교체합니다.
+
+`CobaltAsyncBuilder<Report>`는 위젯 트리에서 이를 기다리는 동안 `loading`을 보여 주며, `retry`할 때마다 새
+인스턴스를 빌드합니다. 위젯은 이 인스턴스를 닫지 않으므로 해제할 것이 없는 transient에 적합하며, 리소스를 쥔
+인스턴스는 그것을 사용하는 코드가 직접 닫아야 합니다.
 
 위젯에서는 `context.cobaltAsync`를 `initState`나 이벤트에서 한 번만 호출하고 그 future를 보관하십시오.
 호출할 때마다 또 하나를 빌드하기 때문입니다.

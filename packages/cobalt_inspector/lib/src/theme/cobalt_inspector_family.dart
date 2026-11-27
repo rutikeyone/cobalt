@@ -31,12 +31,7 @@ enum CobaltInspectorFamily {
     CobaltEventKind.bootstrapStepCompleted => CobaltInspectorFamily.startup,
     CobaltEventKind.instanceCreated ||
     CobaltEventKind.instanceDisposed => CobaltInspectorFamily.instance,
-    CobaltEventKind.promiseBroken ||
-    CobaltEventKind.scopeParentMismatch ||
-    CobaltEventKind.scopeInitFailed ||
-    CobaltEventKind.scopeDisposeFailed ||
-    CobaltEventKind.bootstrapStepFailed ||
-    CobaltEventKind.bootstrapStepReleaseFailed => CobaltInspectorFamily.failure,
+    _ => CobaltInspectorFamily.failure,
   };
 
   /// The title `cobalt_talker` files this family under.

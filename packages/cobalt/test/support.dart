@@ -108,13 +108,15 @@ class SlowService {
 }
 
 class SlowFactory implements CobaltAsyncFactory<SlowService> {
-  const SlowFactory(this.label, this.millis);
+  const SlowFactory(this.label, this.millis, {this.started});
 
   final String label;
   final int millis;
+  final List<String>? started;
 
   @override
   Future<SlowService> create(CobaltResolver resolver) async {
+    started?.add(label);
     await Future<void>.delayed(Duration(milliseconds: millis));
     initLog.add(label);
     return SlowService(label);

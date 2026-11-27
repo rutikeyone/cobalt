@@ -16,3 +16,10 @@ Iterable<ClassMember> membersOf(ClassDeclaration declaration) =>
       BlockClassBody(:final members) => members,
       _ => const <ClassMember>[],
     };
+
+PrimaryConstructorDeclaration? primaryConstructorOf(
+  ClassDeclaration declaration,
+) => switch (declaration.namePart) {
+  final PrimaryConstructorDeclaration primary => primary,
+  _ => null,
+};

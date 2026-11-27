@@ -20,7 +20,8 @@ import 'package:flutter/widgets.dart';
 ///
 /// It rebuilds on every change of the held scope. When the holder starts
 /// closing a scope, [absent] replaces [child] before that scope is torn down,
-/// so nothing below keeps reading from it.
+/// so nothing below keeps reading from it. A new scope starts [child] over:
+/// its state and the scopes it opened belong to the session that is gone.
 class CobaltHeldScope extends StatefulWidget {
   /// Publishes what [holder] holds to [child].
   const CobaltHeldScope({
@@ -76,6 +77,10 @@ class _CobaltHeldScopeState extends State<CobaltHeldScope> {
   Widget build(BuildContext context) {
     final scope = widget.holder.current;
     if (scope == null) return widget.absent;
-    return CobaltScopeProvider(scope: scope, child: widget.child);
+    return CobaltScopeProvider(
+      key: ValueKey(scope),
+      scope: scope,
+      child: widget.child,
+    );
   }
 }

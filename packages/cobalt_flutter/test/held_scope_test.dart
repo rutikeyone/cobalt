@@ -27,6 +27,29 @@ class _Greeter extends StatelessWidget {
       Text(context.cobalt<Greeting>().text, textDirection: TextDirection.ltr);
 }
 
+class Label {
+  const Label(this.text);
+
+  final String text;
+}
+
+class Screen implements CobaltScopeBuilder {
+  const Screen();
+
+  @override
+  void build(CobaltScope scope) => scope.registerLazySingleton<Label>(
+    FnFactory((resolver) => Label(resolver.get<Greeting>().text)),
+  );
+}
+
+class _LabelView extends StatelessWidget {
+  const _LabelView();
+
+  @override
+  Widget build(BuildContext context) =>
+      Text(context.cobalt<Label>().text, textDirection: TextDirection.ltr);
+}
+
 void main() {
   late CobaltScope app;
   late CobaltScopeHolder holder;
@@ -84,5 +107,37 @@ void main() {
     await tester.pump();
 
     expect(find.text('signed out'), findsOneWidget);
+  });
+
+  testWidgets('a screen scope below starts over under a new session', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      CobaltScopeProvider(
+        scope: app,
+        child: CobaltHeldScope(
+          holder: holder,
+          child: const CobaltScopeWidget(
+            builder: Screen(),
+            child: _LabelView(),
+          ),
+        ),
+      ),
+    );
+
+    await tester.runAsync(() => holder.open('session', const Session('Ada')));
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('Hello, Ada'), findsOneWidget);
+
+    await tester.runAsync(() => holder.open('session', const Session('Bo')));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('Hello, Bo'), findsOneWidget);
+    expect(holder.current!.children, hasLength(1));
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.runAsync(holder.dispose);
   });
 }

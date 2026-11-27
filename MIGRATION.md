@@ -286,7 +286,7 @@ the whole change. Skip either and the object is built, used and never closed, qu
 
 ## A worked order
 
-1. Add `cobalt` and `cobalt_annotations`; leave the old container in place.
+1. Add `cobalt`, which re-exports the annotations; leave the old container in place.
 2. Write a root `CobaltScopeBuilder` with the two or three leaf services nothing
    depends on. Start it in `main` alongside the old container.
 3. Bridge: register those instances into the old container so existing call

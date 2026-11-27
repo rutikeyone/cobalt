@@ -9,7 +9,7 @@ The live scope tree, what [Cobalt](https://pub.dev/packages/cobalt) built and wi
 everything the graph reported, on a screen inside your app with nothing attached from outside.
 
 ```bash
-flutter pub add dev:cobalt_inspector
+flutter pub add cobalt_inspector
 ```
 
 Hand the log to the graph when the app starts:

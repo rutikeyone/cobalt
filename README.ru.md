@@ -221,8 +221,8 @@ flutter run
 | `cobalt_lint` | `cobalt_analyzer`, `analysis_server_plugin` | только dev_dependency |
 | `cobalt_test` | `cobalt`, `test_api`, `matcher` | только dev_dependency |
 | `cobalt_test_flutter` | `cobalt_flutter`, `flutter_test` | только dev_dependency |
-| `cobalt_inspector` | `cobalt_flutter`, `flutter` | только dev_dependency |
-| `cobalt_talker_flutter` | `cobalt_inspector`, `cobalt_talker`, `talker_flutter` | только dev_dependency |
+| `cobalt_inspector` | `cobalt_flutter`, `flutter` | зависимость приложения, открывается из отладочного меню |
+| `cobalt_talker_flutter` | `cobalt_inspector`, `cobalt_talker`, `talker_flutter` | зависимость приложения, открывается из отладочного меню |
 
 </details>
 

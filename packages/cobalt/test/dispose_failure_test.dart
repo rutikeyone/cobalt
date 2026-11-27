@@ -72,6 +72,32 @@ class StuckInit implements CobaltAsyncFactory<Recorder> {
       Completer<Recorder>().future;
 }
 
+class ClosesScope implements AsyncDisposable {
+  ClosesScope(this.label) : _recorder = recorder;
+
+  final String label;
+  final DisposeRecorder _recorder;
+  late final CobaltScope scope;
+
+  @override
+  Future<void> dispose() async {
+    await scope.dispose();
+    _recorder.record(label);
+  }
+}
+
+final class DisposesOnStart extends CobaltObserver {
+  late final CobaltScope scope;
+  final calls = <Future<void>>[];
+  var started = 0;
+
+  @override
+  void onScopeDisposeStarted(CobaltScopeRef ref) {
+    started++;
+    calls.add(scope.dispose());
+  }
+}
+
 void main() {
   setUp(resetLogs);
 
@@ -133,10 +159,10 @@ void main() {
   });
 
   test('the deadline covers the whole tree, not each step', () async {
-    final scope = cobaltTestRoot()
-      ..registerSingleton(NeverFinishes('a'), name: 'a')
-      ..registerSingleton(NeverFinishes('b'), name: 'b')
-      ..registerSingleton(NeverFinishes('c'), name: 'c');
+    final scope = cobaltTestRoot();
+    for (var index = 0; index < 10; index++) {
+      scope.registerSingleton(NeverFinishes('$index'), name: '$index');
+    }
 
     final watch = Stopwatch()..start();
     await expectLater(
@@ -145,7 +171,7 @@ void main() {
     );
     watch.stop();
 
-    expect(watch.elapsedMilliseconds, lessThan(250));
+    expect(watch.elapsedMilliseconds, lessThan(500));
   });
 
   test('a child that overruns is reported under its own name', () async {
@@ -245,6 +271,97 @@ void main() {
     );
 
     expect(root.state, CobaltScopeState.disposed);
+  });
+
+  group('a teardown already running', () {
+    test('only the call that started it gets the error', () async {
+      final scope = cobaltTestRoot()
+        ..registerSingleton(ThrowingDisposable('broken'));
+
+      final first = scope.dispose();
+      final second = scope.dispose();
+
+      await expectLater(first, throwsA(isA<CobaltDisposeError>()));
+      await second;
+      await scope.dispose();
+      expect(scope.state, CobaltScopeState.disposed);
+    });
+
+    test('a parent joining a closing child keeps its own deadline', () async {
+      final root = cobaltTestRoot(name: 'app');
+      final child = root.push('session')
+        ..registerSingleton(NeverFinishes('stuck'));
+      child.dispose().ignore();
+
+      final watch = Stopwatch()..start();
+      await expectLater(
+        root.dispose(timeout: const Duration(milliseconds: 100)),
+        throwsA(
+          isA<CobaltDisposeError>().having(
+            (e) => e.timeouts.map((f) => f.label),
+            'timeouts',
+            ['session/dispose'],
+          ),
+        ),
+      );
+      watch.stop();
+
+      expect(watch.elapsedMilliseconds, lessThan(1000));
+    });
+
+    test('dispose from onScopeDisposeStarted starts no second one', () async {
+      final observer = DisposesOnStart();
+      final scope = observer.scope = cobaltTestRoot(observers: [observer])
+        ..registerSingleton(Recorder('only'));
+
+      await scope.dispose();
+      await Future.wait(observer.calls);
+
+      expect(observer.started, 1);
+      expect(recorder.entries, ['only']);
+    });
+
+    test('a disposable closing its own scope does not wait for it', () async {
+      final closer = ClosesScope('closer');
+      final scope = closer.scope = cobaltTestRoot()..registerSingleton(closer);
+
+      await scope.dispose(timeout: const Duration(seconds: 2));
+
+      expect(recorder.entries, ['closer']);
+      expect(scope.state, CobaltScopeState.disposed);
+    });
+
+    test('a child disposable closing the root does not wait for it', () async {
+      final closer = ClosesScope('closer');
+      final root = closer.scope = cobaltTestRoot();
+      root.push('session').registerSingleton(closer);
+
+      await root.dispose(timeout: const Duration(seconds: 2));
+
+      expect(recorder.entries, ['closer']);
+      expect(root.state, CobaltScopeState.disposed);
+    });
+
+    test('a failed child init keeps its stage under the parent', () async {
+      final root = cobaltTestRoot(name: 'app');
+      final child = root.push('session')
+        ..registerSingleton(ThrowingDisposable('broken'))
+        ..registerAsyncSingleton<Recorder>(const FailingInit());
+      await expectLater(child.init(), throwsA(isA<StateError>()));
+
+      try {
+        await root.dispose();
+        fail('expected CobaltDisposeError');
+      } on CobaltDisposeError catch (error) {
+        final context = error.initFailures.single;
+        expect(context.label, 'session/init');
+        expect(context.isInitFailure, isTrue);
+        expect(
+          error.releaseFailures.single.label,
+          'session/ThrowingDisposable.dispose',
+        );
+      }
+    });
   });
 
   group('a failed init', () {

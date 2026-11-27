@@ -227,6 +227,22 @@ void main() {
       expect(recorder.entries, isEmpty);
       expect(bootLog, isEmpty);
     });
+
+    test('a root that cannot be created releases the steps', () async {
+      await expectLater(
+        CobaltApplication.start(
+          root: const RootBuilder(),
+          bootstrap: [ClosingStep('first'), ClosingStep('second')],
+          overrides: [
+            const CobaltOverride<int>.value(1),
+            const CobaltOverride<int>.value(2),
+          ],
+        ),
+        throwsA(isA<CobaltDuplicateRegistrationError>()),
+      );
+
+      expect(recorder.entries, ['second', 'first']);
+    });
   });
 
   group('adopt', () {

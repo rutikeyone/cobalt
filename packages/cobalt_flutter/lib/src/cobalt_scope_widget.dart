@@ -7,9 +7,11 @@ import 'package:flutter/widgets.dart';
 /// Owns a child scope for as long as it is mounted.
 ///
 /// On mount it pushes a child of the nearest ancestor scope, fills it from
-/// [builder] and awaits its `init()`. On unmount it disposes it. That ties a
-/// scope's lifetime to a piece of UI: a screen's dependencies live exactly as
-/// long as the screen, with no teardown to remember.
+/// [builder] and awaits its `init()`. On unmount it disposes it. When the
+/// nearest ancestor scope changes, it disposes its scope and opens one under
+/// the new ancestor. That ties a scope's lifetime to a piece of UI: a screen's
+/// dependencies live exactly as long as the screen, with no teardown to
+/// remember.
 ///
 /// ```dart
 /// CobaltScopeWidget(
@@ -87,14 +89,13 @@ class _CobaltScopeWidgetState extends State<CobaltScopeWidget> {
   CobaltScope? _scope;
   Object? _error;
   var _isReady = false;
-  var _started = false;
+  CobaltScope? _parent;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_started) return;
-    _started = true;
-    _open();
+    if (identical(CobaltScopeProvider.of(context), _parent)) return;
+    _restart();
   }
 
   @override
@@ -106,6 +107,10 @@ class _CobaltScopeWidgetState extends State<CobaltScopeWidget> {
         builder == oldWidget.builder) {
       return;
     }
+    _restart();
+  }
+
+  void _restart() {
     final previous = _scope;
     _scope = null;
     _error = null;
@@ -115,7 +120,7 @@ class _CobaltScopeWidgetState extends State<CobaltScopeWidget> {
   }
 
   void _open() {
-    final parent = CobaltScopeProvider.of(context);
+    final parent = _parent = CobaltScopeProvider.of(context);
     final CobaltScope scope;
     try {
       scope = parent.push(

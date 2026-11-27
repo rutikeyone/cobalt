@@ -57,7 +57,7 @@ wait for the previous group to appear on pub.dev — the index is not instant.
 - [ ] Translations updated. `README.ru.md`, `README.zh-CN.md`, `README.ko.md`,
       the three translated `docs/OVERVIEW`, `docs/TROUBLESHOOTING`, `docs/RECIPES` and `docs/COMPARISON` pages, the six translated guides, `MIGRATION.ru.md`, `MIGRATION.zh-CN.md` and
       `MIGRATION.ko.md` track the English originals; a test checks that every set exists and links to each
-      other, and CI checks they are not empty, but nothing checks that they still
+      other and that none is empty, but nothing checks that they still
       say the same thing — so this box is the only thing that does. English is
       authoritative: if a translation is stale, fix it or say so in it.
 - [ ] Code in both guides still compiles against the API it describes. It is the
@@ -142,9 +142,14 @@ Semver, with three decisions about the cases semver leaves open. The Compatibili
 
 A new enum value breaks an exhaustive `switch` in user code; it is minor anyway, because the
 alternative freezes the set of registration kinds for a whole major, and `CobaltRegistrationKind`
-carries getters that answer every question the repository itself had. `CobaltEventKind` has none:
-its one `switch` in the repository is the inspector sorting events into its own families, which
-ships in lockstep.
+carries getters that answer every question the repository itself had. `CobaltEventKind` has none,
+and the inspector sorts events into its own families with a `switch` over it.
+
+So a `switch` in this repository over an enum that can grow — the inspector's families and level
+colours, the level mapping in `cobalt_logging` and `cobalt_logger` — ends in `_`: one group of values
+goes to it instead of being listed, so there is no `unreachable_switch_case` today and a value added
+later still compiles. An application can resolve a newer `cobalt` next to an older companion
+package, so lockstep releases do not make an exhaustive `switch` safe.
 
 `tool/api.sh` — the `api` job in CI — runs `dart_apitool` against the version on pub.dev and names
 each change breaking or not, and it is a gate: a breaking change fails the job unless the checkout's
@@ -250,6 +255,11 @@ repeats resolution, analysis, tests and the generated-code diff on `stable` and
 `beta`, so an upcoming Flutter change is found before release. It also runs
 weekly on a schedule: a new analyzer or go_router on pub.dev can break the
 build with no commit here.
+
+`cobalt_inspector` and `cobalt_talker_flutter` import `package:flutter/material.dart` too, and they
+ship: their own `analysis_options.yaml`, a copy of the root one with `deprecated_member_use: ignore`,
+keeps that deprecation from counting against them on pub.dev. It silences every deprecation in those
+two packages, here and in `forward`, so a new one there is found by reading the code, not by CI.
 
 One thing `forward` deliberately lets through. Flutter 3.47 deprecates `package:flutter/material.dart`,
 `cupertino.dart` and the global localizations in favour of the `material_ui` and `cupertino_ui`

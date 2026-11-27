@@ -218,8 +218,8 @@ flutter run
 | `cobalt_lint` | `cobalt_analyzer`, `analysis_server_plugin` | dev_dependency 전용 |
 | `cobalt_test` | `cobalt`, `test_api`, `matcher` | dev_dependency 전용 |
 | `cobalt_test_flutter` | `cobalt_flutter`, `flutter_test` | dev_dependency 전용 |
-| `cobalt_inspector` | `cobalt_flutter`, `flutter` | dev_dependency 전용 |
-| `cobalt_talker_flutter` | `cobalt_inspector`, `cobalt_talker`, `talker_flutter` | dev_dependency 전용 |
+| `cobalt_inspector` | `cobalt_flutter`, `flutter` | 앱 의존성, 디버그 메뉴에서 엽니다 |
+| `cobalt_talker_flutter` | `cobalt_inspector`, `cobalt_talker`, `talker_flutter` | 앱 의존성, 디버그 메뉴에서 엽니다 |
 
 </details>
 

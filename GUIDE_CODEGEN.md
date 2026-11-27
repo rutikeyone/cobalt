@@ -553,6 +553,9 @@ CobaltHeldScope(
 )
 ```
 
+A new session starts `child` over: its state, and the screen scopes opened under the old session,
+are closed and built again for the new user.
+
 When the session lives exactly as long as part of the UI, let a widget own it instead. It is opened
 when the widget mounts and disposed when it unmounts:
 
@@ -563,6 +566,9 @@ CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
 When another user signs in, the widget is rebuilt with a `SessionScope` of other values. A generated
 builder compares by them, so the widget closes the old session and opens one for the new user. A
 builder you write is read once: give the widget `key: ValueKey(user.id)` instead.
+
+Marker values are compared with `==`, so a value without its own `==`, such as a new `User(...)`
+on every rebuild, opens the session again on each one: give the value an `==` or pass its id.
 
 ### A screen
 
@@ -696,6 +702,12 @@ It is best-effort by design. A step that throws is recorded and the rest still r
 has one deadline; and the scope always reaches `disposed`. What did not finish is listed in
 `CobaltDisposeError` — `failures`, `timeouts`, `hasTimeout` — instead of the first failure hiding the
 other nine.
+
+A second `dispose()`, and a parent closing a child that is already closing, waits for the teardown
+in progress and completes without an error: only the call that started it throws
+`CobaltDisposeError`, and only its `timeout` counts, while a parent still stops waiting at its own
+deadline. A call made from inside that teardown, from an `AsyncDisposable.dispose` or an observer,
+returns at once instead of waiting for itself.
 
 `adopt` ties an object to a scope's life without it being a dependency:
 

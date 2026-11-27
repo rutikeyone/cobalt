@@ -5,7 +5,9 @@
 // ignore_for_file: non_constant_identifier_names
 
 import 'package:cobalt_lint/src/rules/param_needs_an_injectable.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'support.dart';
@@ -79,5 +81,24 @@ class PlatformModule {
   Channel channel(@cobaltParam int id) => Channel();
 }
 ''');
+  }
+
+  void test_markedPrimaryConstructorParameter_isReported() async {
+    final release = Feature.primary_constructors.releaseVersion;
+    if (release == null) {
+      markTestSkipped('primary constructors are not released in this analyzer');
+      return;
+    }
+    final code =
+        '''
+// @dart=${release.major}.${release.minor}
+import 'package:cobalt_annotations/cobalt_annotations.dart';
+
+class Orphan({@cobaltParam required final int id});
+''';
+    const parameter = '@cobaltParam required final int id';
+    await assertDiagnostics(code, [
+      lint(code.indexOf(parameter), parameter.length),
+    ]);
   }
 }

@@ -70,6 +70,9 @@ CobaltHeldScope(
 )
 ```
 
+A new session starts `child` over: its state, and the screen scopes opened under the old session,
+are closed and built again for the new user.
+
 ```dart
 CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
 ```
@@ -77,6 +80,9 @@ CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
 When another user signs in, the widget is rebuilt with a `SessionScope` of other values. A generated
 builder compares by them, so the widget closes the old session and opens one for the new user. A
 builder you write is read once: give the widget `key: ValueKey(user.id)` instead.
+
+Marker values are compared with `==`, so a value without its own `==`, such as a new `User(...)`
+on every rebuild, opens the session again on each one: give the value an `==` or pass its id.
 
 Running code: [`examples/notes_app/lib/features/session`](../examples/notes_app/lib/features/session)
 and the *Session scope* entry in the gallery. More in

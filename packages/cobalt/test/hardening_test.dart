@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cobalt/cobalt.dart';
 import 'package:cobalt_test/cobalt_test.dart';
 import 'package:test/test.dart';
@@ -70,6 +72,15 @@ class Exploding implements CobaltAsyncFactory<Counter> {
       throw StateError('init failed');
 }
 
+class NeverReady implements CobaltScopeBuilder {
+  const NeverReady();
+
+  @override
+  void build(CobaltScope scope) => scope.registerAsyncSingleton<Counter>(
+    AsyncFnFactory((_) => Completer<Counter>().future),
+  );
+}
+
 void main() {
   setUp(() {
     resetLogs();
@@ -138,11 +149,9 @@ void main() {
       expect(scope.get<Logger>(), isNotNull);
     });
 
-    /// A level is entered through `Future.wait`, so every registration in it
-    /// is on the tracker before any of them suspends. Unwinding has to remove
-    /// the right key rather than assume it is on top, or the one that finished
-    /// first stays behind — and the tracker is shared by the whole tree, so the
-    /// next scope registering that key is told it is a cycle.
+    /// Phase 1 stays off the tracker, which is shared by the whole tree: a key
+    /// one scope built in a parallel level must not be read as a cycle by the
+    /// next scope registering that key.
     test('a parallel level leaves no key behind for a later scope', () async {
       final root = cobaltTestRoot(name: 'app')
         ..registerAsyncSingleton<SlowService>(
@@ -165,6 +174,51 @@ void main() {
 
       expect(child.state, CobaltScopeState.active);
       expect(child.get<SlowService>(name: 'fast'), isNotNull);
+    });
+
+    test('siblings building the same async singleton are no cycle', () async {
+      final root = cobaltTestRoot();
+      final first = root.push('first')
+        ..registerAsyncSingleton<SlowService>(const SlowFactory('first', 20));
+      final second = root.push('second')
+        ..registerAsyncSingleton<SlowService>(const SlowFactory('second', 20));
+
+      await Future.wait([first.init(), second.init()]);
+
+      expect(first.get<SlowService>().label, 'first');
+      expect(second.get<SlowService>().label, 'second');
+    });
+
+    test(
+      'a lazy build of a key a sibling is initializing is no cycle',
+      () async {
+        final root = cobaltTestRoot();
+        final first = root.push('first')
+          ..registerAsyncSingleton<SlowService>(const SlowFactory('first', 20));
+        final second = root.push('second')
+          ..registerLazySingleton<SlowService>(
+            FnFactory((_) => SlowService('second')),
+          );
+        final init = first.init();
+
+        expect(second.get<SlowService>().label, 'second');
+        await init;
+      },
+    );
+
+    test('a scope reopened after an init timeout times out again', () async {
+      final root = cobaltTestRoot();
+
+      for (final name in ['first', 'second']) {
+        await expectLater(
+          root.open(
+            name,
+            const NeverReady(),
+            initTimeout: const Duration(milliseconds: 10),
+          ),
+          throwsA(isA<CobaltInitTimeoutError>()),
+        );
+      }
     });
 
     test('a diamond is not mistaken for a cycle', () {

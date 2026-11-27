@@ -38,8 +38,8 @@ final class CobaltLoggingSink implements CobaltLogSink {
   static logging.Level levelOf(CobaltLogLevel level) => switch (level) {
     CobaltLogLevel.trace => logging.Level.FINEST,
     CobaltLogLevel.debug => logging.Level.FINE,
-    CobaltLogLevel.info => logging.Level.INFO,
     CobaltLogLevel.warning => logging.Level.WARNING,
     CobaltLogLevel.error => logging.Level.SEVERE,
+    _ => logging.Level.INFO,
   };
 }

@@ -76,6 +76,9 @@ build_runner again.
 
 - Используйте `await scope.getAsync<T>()` или `getAllAsync` для списка. Правило линтера
   `cobalt_async_transient_read_synchronously` показывает это место в редакторе.
+- В виджете ожидание берёт на себя `CobaltAsyncBuilder`, и каждый `retry` строит новый экземпляр.
+  Виджет его не закрывает: так подходит транзиент, которому нечего освобождать, а тот, что держит
+  ресурс, закрывает код, который им пользуется.
 
 ### CobaltParamRequiredError
 

@@ -5,7 +5,9 @@
 // ignore_for_file: non_constant_identifier_names
 
 import 'package:cobalt_lint/src/rules/dependency_cycle.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'support.dart';
@@ -489,5 +491,28 @@ class LoggingApi implements Api {
   final Logger logger;
 }
 ''');
+  }
+
+  void test_primaryConstructors_formACycle() async {
+    final release = Feature.primary_constructors.releaseVersion;
+    if (release == null) {
+      markTestSkipped('primary constructors are not released in this analyzer');
+      return;
+    }
+    final code =
+        '''
+// @dart=${release.major}.${release.minor}
+$cobaltImport
+
+@cobaltInject
+class Api(final Cache cache);
+
+@cobaltInject
+class Cache(final Api api);
+''';
+    await assertDiagnostics(code, [
+      lint(code.indexOf('Api('), 'Api(final Cache cache)'.length),
+      lint(code.indexOf('Cache('), 'Cache(final Api api)'.length),
+    ]);
   }
 }

@@ -37,8 +37,8 @@ final class CobaltLoggerSink implements CobaltLogSink {
   static pretty.Level levelOf(CobaltLogLevel level) => switch (level) {
     CobaltLogLevel.trace => pretty.Level.trace,
     CobaltLogLevel.debug => pretty.Level.debug,
-    CobaltLogLevel.info => pretty.Level.info,
     CobaltLogLevel.warning => pretty.Level.warning,
     CobaltLogLevel.error => pretty.Level.error,
+    _ => pretty.Level.info,
   };
 }

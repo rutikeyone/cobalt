@@ -224,6 +224,11 @@ a parent rebuild neither restarts it nor retries a failed one by itself — `ret
 `errorBuilder` the failure is rethrown during build. For a one-off await outside a builder,
 `context.cobaltAsync<T>()` reads through the nearest scope.
 
+An async factory (`registerAsyncFactory`) works with `CobaltAsyncBuilder` too: it shows `loading`
+while the instance is built, and each `retry` builds a new one, which the scope does not keep. The
+widget does not close it either: it suits a transient with nothing to release, and one that holds a
+resource has to be closed by the code that uses it.
+
 To have it ready before the screen opens, list it in `CobaltAppScope(warmUp: [...])`: the build
 starts as soon as the graph is up, behind `child` rather than behind `loading`, and a screen that
 opens early waits for that same build. A failed warm-up goes to `FlutterError.reportError` — the app

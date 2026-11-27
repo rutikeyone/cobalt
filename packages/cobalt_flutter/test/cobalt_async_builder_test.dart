@@ -178,4 +178,54 @@ void main() {
 
     expect((await tester.runAsync(() => resolved))!.label, 'through context');
   });
+
+  testWidgets('an async factory is built without a sync error', (tester) async {
+    var builds = 0;
+    final scope = cobaltTestRoot()
+      ..registerAsyncFactory<Engine>(
+        AsyncFnFactory((_) async => Engine('build ${++builds}')),
+      );
+
+    await tester.pumpWidget(
+      _mount(
+        scope,
+        CobaltAsyncBuilder<Engine>(
+          loading: const Text('loading'),
+          builder: (context, engine) => Text('engine ${engine.label}'),
+        ),
+      ),
+    );
+    expect(find.text('loading'), findsOneWidget);
+    await tester.pump();
+    expect(find.text('engine build 1'), findsOneWidget);
+  });
+
+  testWidgets('retry asks an async factory for a new instance', (tester) async {
+    var builds = 0;
+    final scope = cobaltTestRoot()
+      ..registerAsyncFactory<Engine>(
+        AsyncFnFactory((_) async {
+          builds++;
+          if (builds == 1) throw StateError('offline');
+          return Engine('build $builds');
+        }),
+      );
+
+    await tester.pumpWidget(
+      _mount(
+        scope,
+        _engineView(
+          errorBuilder: (context, error, retry) =>
+              GestureDetector(onTap: retry, child: const Text('retry')),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.tap(find.text('retry'));
+    await tester.pump();
+    await tester.pump();
+
+    expect(builds, 2);
+    expect(find.text('engine build 2'), findsOneWidget);
+  });
 }

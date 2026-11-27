@@ -118,7 +118,11 @@ final class CobaltScope extends CobaltResolver {
   int _order = 0;
 
   final _lazyBuilding = <LazyAsyncSingletonRegistration>{};
-  var _closing = false;
+  Completer<void>? _disposal;
+
+  bool get _closing => _disposal != null;
+
+  bool get _insideTeardown => Zone.current[this] != null;
 
   final _overriddenKeys = <CobaltKey>{};
   final _claimed = <CobaltKey>{};
@@ -1365,7 +1369,12 @@ final class CobaltScope extends CobaltResolver {
   ///
   /// Idempotent, and safe to call while [init] is still running — it waits for
   /// it, so nothing that init built escapes teardown. After this the scope is
-  /// permanently unusable.
+  /// permanently unusable. A second call, and a parent closing a child that is
+  /// already closing, waits for the teardown in progress and completes without
+  /// an error: only the call that started it throws [CobaltDisposeError], and
+  /// only its [timeout] counts. A call made from inside that teardown — an
+  /// `AsyncDisposable.dispose` or an observer — returns at once rather than
+  /// wait for itself.
   ///
   /// Teardown is best-effort. A step that throws, or that runs past the
   /// deadline, is recorded and the remaining steps still run, so one broken
@@ -1386,13 +1395,19 @@ final class CobaltScope extends CobaltResolver {
   /// report says the scope was only half-built. If instead the wait ran past
   /// the deadline, that is teardown failing to finish, and it is reported like
   /// any other overrun.
-  Future<void> dispose({Duration timeout = defaultDisposeTimeout}) async {
-    if (_state == CobaltScopeState.disposed ||
-        _state == CobaltScopeState.disposing) {
-      return;
+  Future<void> dispose({Duration timeout = defaultDisposeTimeout}) {
+    final running = _disposal;
+    if (running != null) {
+      return _insideTeardown ? Future<void>.value() : running.future;
     }
-    _closing = true;
+    final disposal = _disposal = Completer<void>();
+    return runZoned(
+      () => _tearDown(timeout),
+      zoneValues: {this: true},
+    ).whenComplete(disposal.complete);
+  }
 
+  Future<void> _tearDown(Duration timeout) async {
     final elapsed = Stopwatch()..start();
     final failures = <CobaltDisposeFailure>[];
 
@@ -1435,10 +1450,6 @@ final class CobaltScope extends CobaltResolver {
         () => pendingInit,
         stage: CobaltDisposeStage.awaitingInit,
       );
-      if (_state == CobaltScopeState.disposed ||
-          _state == CobaltScopeState.disposing) {
-        return;
-      }
     }
 
     for (final building in _lazyBuilding.toList(growable: false)) {
@@ -1450,17 +1461,15 @@ final class CobaltScope extends CobaltResolver {
         stage: CobaltDisposeStage.awaitingLazyBuild,
       );
     }
-    if (_state == CobaltScopeState.disposed ||
-        _state == CobaltScopeState.disposing) {
-      return;
-    }
 
     _state = CobaltScopeState.disposing;
     _notify((observer) => observer.onScopeDisposeStarted(ref));
 
     for (final child in _children.reversed.toList(growable: false)) {
       try {
-        await child.dispose(timeout: remaining());
+        await (child._closing
+            ? child.dispose().timeout(remaining())
+            : child.dispose(timeout: remaining()));
       } on CobaltDisposeError catch (error) {
         failures.addAll([
           for (final failure in error.failures)
@@ -1468,6 +1477,7 @@ final class CobaltScope extends CobaltResolver {
               '${child.name}/${failure.label}',
               failure.error,
               failure.stackTrace,
+              stage: failure.stage,
             ),
         ]);
       } catch (error, stackTrace) {
@@ -1679,6 +1689,7 @@ final class CobaltScope extends CobaltResolver {
                 timing: timing,
                 retain: true,
                 teardown: registration.teardown,
+                uncache: () => registration.instance = null,
               );
               return instance;
             });
@@ -1898,6 +1909,7 @@ final class CobaltScope extends CobaltResolver {
           timing: timing,
           retain: true,
           teardown: registration.teardown,
+          uncache: () => registration.instance = null,
         );
         return instance;
       },
@@ -1950,35 +1962,38 @@ final class CobaltScope extends CobaltResolver {
     }
   }
 
-  Future<void> _createAsync(AsyncSingletonRegistration registration) =>
-      _tracker.guardAsync(registration.key, () async {
-        final timing = BuildTiming.start(observed: _observers.isNotEmpty);
-        final instance = await CobaltResolutionTracker.inPhaseOne(
-          this,
-          () => timing.during(() => registration.factory.create(this)),
-          zoneValues: timing.zoneValues,
-        );
-        if (_initAbandoned) {
-          // init() already failed for want of this: nobody will be handed
-          // it, and the scope is being or has been torn down without it.
-          try {
-            await _releaseLate(instance, registration.teardown);
-          } catch (error, stackTrace) {
-            Zone.current.handleUncaughtError(error, stackTrace);
-          }
-          return;
-        }
-        registration.instance = instance;
-        registration.isReady = true;
-        _afterCreate(
-          instance,
-          registration.key,
-          kind: CobaltRegistrationKind.asyncSingleton,
-          timing: timing,
-          retain: true,
-          teardown: registration.teardown,
-        );
-      });
+  Future<void> _createAsync(AsyncSingletonRegistration registration) async {
+    final timing = BuildTiming.start(observed: _observers.isNotEmpty);
+    final instance = await CobaltResolutionTracker.inPhaseOne(
+      this,
+      () => timing.during(() => registration.factory.create(this)),
+      zoneValues: timing.zoneValues,
+    );
+    if (_initAbandoned) {
+      // init() already failed for want of this: nobody will be handed
+      // it, and the scope is being or has been torn down without it.
+      try {
+        await _releaseLate(instance, registration.teardown);
+      } catch (error, stackTrace) {
+        Zone.current.handleUncaughtError(error, stackTrace);
+      }
+      return;
+    }
+    registration.instance = instance;
+    registration.isReady = true;
+    _afterCreate(
+      instance,
+      registration.key,
+      kind: CobaltRegistrationKind.asyncSingleton,
+      timing: timing,
+      retain: true,
+      teardown: registration.teardown,
+      uncache: () {
+        registration.instance = null;
+        registration.isReady = false;
+      },
+    );
+  }
 
   /// Hands out a retained instance, decorated once and shared from then on.
   Object _serve(CobaltKey key, Object inner) {
@@ -2018,15 +2033,61 @@ final class CobaltScope extends CobaltResolver {
     required BuildTiming timing,
     required bool retain,
     CobaltTeardown? teardown,
+    void Function()? uncache,
   }) {
     if (instance is CobaltInjectable) {
-      timing.during(() => instance.onInject(this));
+      _inject(
+        instance,
+        key,
+        kind: kind,
+        timing: timing,
+        retain: retain,
+        teardown: teardown,
+        uncache: uncache,
+      );
     }
     timing.stop();
-    final took = timing.took;
-    final self = timing.self;
     final hooks = _hooksFor(this, instance);
     if (retain) _own(instance, teardown: teardown, hooks: hooks);
+    _announce(key, kind: kind, timing: timing, retain: retain);
+    _hasBuilt = true;
+    if (hooks != null) {
+      for (final hook in hooks) {
+        hook.run(instance, this);
+      }
+    }
+  }
+
+  void _inject(
+    CobaltInjectable instance,
+    CobaltKey key, {
+    required CobaltRegistrationKind kind,
+    required BuildTiming timing,
+    required bool retain,
+    CobaltTeardown? teardown,
+    void Function()? uncache,
+  }) {
+    try {
+      timing.during(() => instance.onInject(this));
+    } catch (_) {
+      uncache?.call();
+      if (retain) {
+        timing.stop();
+        _own(instance, teardown: teardown);
+        _announce(key, kind: kind, timing: timing, retain: true);
+      }
+      rethrow;
+    }
+  }
+
+  void _announce(
+    CobaltKey key, {
+    required CobaltRegistrationKind kind,
+    required BuildTiming timing,
+    required bool retain,
+  }) {
+    final took = timing.took;
+    final self = timing.self;
     _notify(
       (observer) =>
           observer.onInstanceCreated(ref, key, kind: kind, retained: retain),
@@ -2041,12 +2102,6 @@ final class CobaltScope extends CobaltResolver {
         took: took,
       ),
     );
-    _hasBuilt = true;
-    if (hooks != null) {
-      for (final hook in hooks) {
-        hook.run(instance, this);
-      }
-    }
   }
 
   /// Erases the caller's typed callback down to what a registration can hold.
@@ -2070,10 +2125,11 @@ final class CobaltScope extends CobaltResolver {
 
   /// Whether a builder is running against this scope right now.
   ///
-  /// Only [runBuilder] sets it, and only for the length of one call. It exists
-  /// so a failed resolution can tell "not registered yet" from "not
-  /// registered": inside the window the registration may be three lines below,
-  /// outside it there is nothing to add. The scope state cannot answer this —
+  /// Only [runBuilder] sets it, and only for the length of the outermost call:
+  /// a builder run from inside another leaves it set. It exists so a failed
+  /// resolution can tell "not registered yet" from "not registered": inside
+  /// the window the registration may be three lines below, outside it there is
+  /// nothing to add. The scope state cannot answer this —
   /// it is `open` during composition and `open` afterwards, and a test scope
   /// that never calls init() stays `open` for its whole life.
   var _building = false;
@@ -2086,15 +2142,18 @@ final class CobaltScope extends CobaltResolver {
   ///
   /// It also checks, once [builder] returns, that every override handed to
   /// this scope replaced something, and throws [CobaltOverrideError] naming
-  /// the first that did not.
+  /// the first that did not. A builder run from inside another is checked
+  /// together with the outermost one, once that returns.
   void runBuilder(CobaltScopeBuilder builder) {
     if (builder is CobaltChildScopeBuilder) _placeChild(builder);
+    final outermost = !_building;
     _building = true;
     try {
       builder.build(this);
     } finally {
-      _building = false;
+      if (outermost) _building = false;
     }
+    if (!outermost) return;
     _assertOverridesClaimed();
     _assertDecoratorsOwned();
     _reportBrokenPromises();

@@ -545,6 +545,9 @@ CobaltHeldScope(
 )
 ```
 
+새 세션이 열리면 `child`는 처음부터 다시 시작합니다. 그 상태와 이전 세션 아래에서 열린 화면 스코프는 닫히고
+새 사용자를 위해 다시 만들어집니다.
+
 세션이 UI의 일부와 수명이 정확히 같다면 위젯이 소유하게 하십시오. 위젯이 마운트될 때 열리고 사라질 때
 해제됩니다.
 
@@ -555,6 +558,9 @@ CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
 다른 사용자가 로그인하면 위젯은 값이 다른 `SessionScope`로 다시 빌드됩니다. 생성된 builder는 그 값으로
 비교하므로, 위젯은 이전 세션을 닫고 새 사용자의 세션을 엽니다. 직접 작성한 builder는 한 번만 읽히므로
 대신 위젯에 `key: ValueKey(user.id)`를 주십시오.
+
+마커 값은 `==`로 비교되므로, 자체 `==`가 없는 값(예: 다시 빌드할 때마다 새로 만드는 `User(...)`)은
+빌드할 때마다 세션을 다시 엽니다. 값에 `==`를 구현하거나 id를 넘기십시오.
 
 ### 화면
 
@@ -688,6 +694,11 @@ class CounterCubit extends Cubit<int> with CobaltBloc {
 트리 전체가 기한 하나를 공유하고, 스코프는 언제나 `disposed`에 도달합니다. 끝나지 않은 것은 첫 번째 실패가
 나머지 아홉을 가리는 대신 `CobaltDisposeError`(`failures`, `timeouts`, `hasTimeout`)에
 나열됩니다.
+
+두 번째 `dispose()`와, 이미 해제 중인 자식을 닫는 부모는 진행 중인 해제를 기다린 뒤 오류 없이 끝납니다.
+`CobaltDisposeError`는 해제를 시작한 호출만 받고 그 호출의 `timeout`만 적용되며, 부모는 자신의 기한이 되면
+기다리기를 멈춥니다. 해제 도중 그 안에서, 즉 `AsyncDisposable.dispose`나 옵저버에서 한 호출은 자기 자신을
+기다리지 않고 바로 반환됩니다.
 
 `adopt`는 객체를 의존성으로 만들지 않고 스코프의 수명에 묶습니다:
 

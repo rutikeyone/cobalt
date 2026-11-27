@@ -44,6 +44,21 @@ class AsyncLeafFactory implements CobaltAsyncFactory<AsyncLeaf> {
   Future<AsyncLeaf> create(CobaltResolver resolver) async => AsyncLeaf();
 }
 
+class SlowClosing implements AsyncDisposable {
+  SlowClosing(this.label, [this.delay = Duration.zero]) : _recorder = recorder;
+
+  final String label;
+  final Duration delay;
+  final DisposeRecorder _recorder;
+
+  @override
+  Future<void> dispose() async {
+    _recorder.record('$label start');
+    await Future<void>.delayed(delay);
+    _recorder.record('$label end');
+  }
+}
+
 void main() {
   setUp(resetLogs);
 
@@ -119,6 +134,39 @@ void main() {
       expect(recorder.entries, ['only']);
     });
 
+    test('a second dispose waits for the first to finish', () async {
+      final scope = cobaltTestRoot()
+        ..registerSingleton(
+          SlowClosing('only', const Duration(milliseconds: 30)),
+        );
+
+      final first = scope.dispose();
+      await scope.dispose();
+      recorder.record('second returned');
+      await first;
+
+      expect(recorder.entries, ['only start', 'only end', 'second returned']);
+    });
+
+    test('a parent waits for a child that is already closing', () async {
+      final root = cobaltTestRoot()..registerSingleton(SlowClosing('parent'));
+      final child = root.push('child')
+        ..registerSingleton(
+          SlowClosing('child', const Duration(milliseconds: 30)),
+        );
+
+      final closing = child.dispose();
+      await root.dispose();
+      await closing;
+
+      expect(recorder.entries, [
+        'child start',
+        'child end',
+        'parent start',
+        'parent end',
+      ]);
+    });
+
     test('a disposed scope refuses further use', () async {
       final scope = cobaltTestRoot()
         ..registerLazySingleton<Leaf>(const LeafFactory());
@@ -145,19 +193,22 @@ void main() {
     });
 
     test('independent branches run in parallel', () async {
+      final started = <String>[];
       final scope = cobaltTestRoot()
-        ..registerAsyncSingleton<SlowService>(const SlowFactory('a', 120))
         ..registerAsyncSingleton<SlowService>(
-          const SlowFactory('b', 120),
+          SlowFactory('a', 30, started: started),
+        )
+        ..registerAsyncSingleton<SlowService>(
+          SlowFactory('b', 30, started: started),
           name: 'b',
         );
 
-      final watch = Stopwatch()..start();
-      await scope.init();
-      watch.stop();
+      final init = scope.init();
 
+      expect(started, ['a', 'b']);
+      expect(initLog, isEmpty);
+      await init;
       expect(initLog, hasLength(2));
-      expect(watch.elapsedMilliseconds, lessThan(220));
     });
 
     test('a dependent chain runs sequentially', () async {

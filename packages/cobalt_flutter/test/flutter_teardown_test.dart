@@ -1,6 +1,6 @@
-import 'package:cobalt/cobalt.dart';
+import 'package:cobalt_flutter/cobalt_flutter.dart';
 import 'package:cobalt_test/cobalt_test.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// The shape almost every Flutter object has: a `dispose` the scope cannot see.
@@ -44,6 +44,30 @@ class DeclaredSession implements AsyncDisposable {
 
   @override
   Future<void> dispose() => close();
+}
+
+class Closing implements AsyncDisposable {
+  Closing(this.label, this.log);
+
+  final String label;
+  final List<String> log;
+
+  @override
+  Future<void> dispose() async {
+    log.add('$label start');
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    log.add('$label end');
+  }
+}
+
+class _Graph implements CobaltScopeBuilder {
+  const _Graph(this.label, this.log);
+
+  final String label;
+  final List<String> log;
+
+  @override
+  void build(CobaltScope scope) => scope.registerSingleton(Closing(label, log));
 }
 
 void main() {
@@ -97,5 +121,28 @@ void main() {
       isTrue,
       reason: 'the route for a type you did not write and cannot change',
     );
+  });
+
+  testWidgets('a screen scope is closed before the app scope above it', (
+    tester,
+  ) async {
+    final log = <String>[];
+    await tester.pumpWidget(
+      CobaltAppScope(
+        root: _Graph('root', log),
+        child: CobaltScopeWidget(
+          builder: _Graph('screen', log),
+          child: const SizedBox.shrink(),
+        ),
+      ),
+    );
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await tester.pumpAndSettle();
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(log, ['screen start', 'screen end', 'root start', 'root end']);
   });
 }

@@ -570,6 +570,10 @@ mixin 够不着的地方，在注册处写 `dispose: closeBloc`。
 作用域最终一定会到达 `disposed`。没做完的事列在 `CobaltDisposeError` 里——
 `failures`、`timeouts`、`hasTimeout`——而不是让第一个错误盖住其余九个。
 
+第二次 `dispose()`，以及父作用域关闭一个已在销毁中的子作用域，都会等待进行中的销毁，并且不带错误地完成：
+只有发起销毁的那次调用会抛出 `CobaltDisposeError`，也只有它的 `timeout` 生效；父作用域到了自己的截止时间
+仍会停止等待。在这次销毁内部发起的调用——来自 `AsyncDisposable.dispose` 或观察者——会立即返回，而不是等待自己。
+
 `adopt` 把「不是依赖、但生命周期绑在作用域上」的对象挂上去——
 比如一个没人解析的订阅或定时器：
 
@@ -737,6 +741,8 @@ final report = await scope.getAsync<Report>();
 如果构建过程通过自己的 await 又去请求正在构建的键，会得到 `CobaltCycleError`，而不是挂起。同步读取——`get`、
 `getOrNull`、`getAll`——会抛出指明 `getAsync` 的 `CobaltAsyncTransientError`。在测试中，用
 `CobaltOverride.transient` 换成一个同步的替身。
+
+`CobaltAsyncBuilder<Report>` 会在 widget 树里等待它，并在此期间显示 `loading`；每次 `retry` 都会构建一个新实例。组件不会关闭它，所以这适合没有资源要释放的 transient；持有资源的实例要由使用它的代码自己关闭。
 
 在 widget 里，只调用一次 `context.cobaltAsync`——在 `initState` 或某个事件里——并保存这个 future：
 每次调用都会再构建一个。

@@ -28,7 +28,9 @@ final class CobaltApplication {
   /// A root that fails to assemble or initialize — a builder that throws, an
   /// override that replaced nothing, an async initializer that fails — is
   /// disposed before the error is rethrown, so the steps it adopted and
-  /// whatever it built are released.
+  /// whatever it built are released. A root that cannot even be created — two
+  /// [overrides] of one key — releases the steps that ran, in reverse order,
+  /// before the error is rethrown.
   ///
   /// A failing bootstrap step aborts startup: later steps do not run, the
   /// container is never assembled, and the failure is rethrown as
@@ -86,12 +88,13 @@ final class CobaltApplication {
       completed.add(step);
     }
 
-    final scope = CobaltScope.root(
+    final scope = await _openRoot(
       name: rootName == 'root' && root is CobaltRootBuilder
           ? root.name
           : rootName,
       observers: observers,
       overrides: overrides,
+      completed: completed,
     );
     for (final step in completed) {
       scope.adopt(step);
@@ -105,6 +108,24 @@ final class CobaltApplication {
       rethrow;
     }
     return scope;
+  }
+
+  static Future<CobaltScope> _openRoot({
+    required String name,
+    required List<CobaltObserver> observers,
+    required List<CobaltOverride<Object>> overrides,
+    required List<CobaltBootstrapStep> completed,
+  }) async {
+    try {
+      return CobaltScope.root(
+        name: name,
+        observers: observers,
+        overrides: overrides,
+      );
+    } catch (_) {
+      await _release(completed, observers);
+      rethrow;
+    }
   }
 
   /// Tears down a root that failed to assemble or initialize.
