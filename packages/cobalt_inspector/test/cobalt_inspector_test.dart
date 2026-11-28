@@ -32,6 +32,22 @@ void main() {
       expect(find.text('lazySingleton'), findsWidgets);
     });
 
+    testWidgets('paints a failed scope in the failure colour', (tester) async {
+      final failing = scope.pushForTest('session')
+        ..registerAsyncSingleton<Api>(
+          AsyncFnFactory((_) async => throw StateError('offline')),
+        );
+      await expectLater(failing.init(), throwsStateError);
+
+      await tester.pumpWidget(inspectorUnderTest(failing, log));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.widget<Text>(find.text('failed')).style?.color,
+        CobaltInspectorThemeData.of(ThemeData()).failure,
+      );
+    });
+
     testWidgets('names the owner of an inherited registration', (tester) async {
       final child = scope.pushForTest('session');
 

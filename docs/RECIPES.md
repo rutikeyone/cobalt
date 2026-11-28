@@ -82,7 +82,8 @@ builder compares by them, so the widget closes the old session and opens one for
 builder you write is read once: give the widget `key: ValueKey(user.id)` instead.
 
 Marker values are compared with `==`, so a value without its own `==`, such as a new `User(...)`
-on every rebuild, opens the session again on each one: give the value an `==` or pass its id.
+on every rebuild, opens the session again on each one, and a debug build says so in the console:
+give the value an `==` or pass its id.
 
 Running code: [`examples/notes_app/lib/features/session`](../examples/notes_app/lib/features/session)
 and the *Session scope* entry in the gallery. More in

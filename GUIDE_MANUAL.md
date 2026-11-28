@@ -401,13 +401,14 @@ below it. A `registerSingleton` builds *now*, and anything it resolves has to be
 Composing a hand-written builder on top of a generated one is where this shows up — put the eager
 ones after the container, or make them lazy.
 
-**A hot reload that changes the graph restarts it.** A reload patches code but does not run `build()`
-again, so a registration you just added would otherwise wait for a hot restart. On every reload
-`CobaltAppScope` runs `root` once more without building anything, compares its registrations with the
-live root's, and — only if a key was added, removed or given another lifetime — calls `restart()`,
-printing what changed. A reload that touched widgets or a factory's body leaves the graph and the
-screen state alone. `restartOnGraphChange: false` turns it off; `CobaltAppScope.start` has no builder
-to compare, and the `bootstrap` list is not compared.
+**A hot reload that changes the graph restarts it.** A reload patches code but does not run
+`build()` again, so a registration you just added would otherwise wait for a hot restart. On every
+reload `CobaltAppScope` runs `root` once more without building anything, compares its registrations
+with the live root's, and — only if a key was added, removed, given another lifetime or, for a
+generated factory, another implementation — calls `restart()`, printing what changed. A reload that
+touched widgets or a factory's body leaves the graph and the screen state alone.
+`restartOnGraphChange: false` turns it off; `CobaltAppScope.start` has no builder to compare, and
+the `bootstrap` list is not compared.
 
 ## 5. Reading from the graph in a widget
 
@@ -612,7 +613,10 @@ A second `dispose()`, and a parent closing a child that is already closing, wait
 in progress and completes without an error: only the call that started it throws
 `CobaltDisposeError`, and only its `timeout` counts, while a parent still stops waiting at its own
 deadline. A call made from inside that teardown, from an `AsyncDisposable.dispose` or an observer,
-returns at once instead of waiting for itself.
+returns at once instead of waiting for itself, and so does one made from a build that teardown waits
+for: an async singleton of `init()` or a lazy async singleton of the same scope. Disposing an
+ancestor from inside such a build is not covered: the ancestor waits for this scope, which waits for
+the build, until this scope's deadline.
 
 `adopt` ties an object to a scope's life without it being a dependency — useful for a subscription or
 a timer that nothing resolves:
@@ -714,6 +718,20 @@ root is disposed like any other that failed to start. A future cannot be cancell
 flight run to the end — each is closed as it arrives, and no later level starts. `scope.init(timeout:)`
 does the same for a scope you initialize yourself, and `CobaltAppScope(initTimeout:)` turns it into
 an `errorBuilder` screen. Without a timeout, init waits as long as it takes, as before.
+
+An `init()` that throws, whether an initializer failed, the timeout ran out or a `dependsOn` cannot
+be waited for, leaves the scope `failed`. It is still usable enough to be disposed: what was built
+resolves, an async singleton that was not throws `CobaltNotReadyError`, another `init()` returns the
+same error, and a new async singleton registration (`registerAsyncSingleton`) throws.
+`CobaltApplication.start` and `open` dispose such a scope for you; one you initialize yourself is
+yours to dispose.
+
+Everything Cobalt throws is a `CobaltError`, which extends `StateError`: most of it is a mistake in
+the graph, to fix rather than recover from. Four failures come from the environment instead and also
+implement `Exception`: `CobaltBootstrapError`, `CobaltInitTimeoutError`, `CobaltWarmUpError` and
+`CobaltDisposeError`. Since 1.10.0 `on CobaltError` also catches `CobaltCycleError`, and
+`on Exception` catches those four; a `catch` that lists `on CobaltError` before
+`on CobaltCycleError`, or `on Exception` before one of the four, never reaches the second branch.
 
 ### Built when first asked for
 

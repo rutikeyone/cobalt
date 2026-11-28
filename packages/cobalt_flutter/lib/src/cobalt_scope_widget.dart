@@ -107,7 +107,52 @@ class _CobaltScopeWidgetState extends State<CobaltScopeWidget> {
         builder == oldWidget.builder) {
       return;
     }
+    assert(() {
+      _warnOnIdentityValues(oldWidget.builder, builder);
+      return true;
+    }());
     _restart();
+  }
+
+  void _warnOnIdentityValues(
+    CobaltScopeBuilder previous,
+    CobaltChildScopeBuilder next,
+  ) {
+    if (previous is! CobaltChildScopeBuilder ||
+        previous.runtimeType != next.runtimeType) {
+      return;
+    }
+    final before = previous.markerValues;
+    final after = next.markerValues;
+    if (before == null || after == null || before.length != after.length) {
+      return;
+    }
+    for (var i = 0; i < after.length; i++) {
+      final value = after[i];
+      if (value == null || !_changedByIdentity(before[i], value)) continue;
+      final type = value.runtimeType;
+      debugPrint(
+        'CobaltScopeWidget "${widget.effectiveName}" reopened: $type compares '
+        'by identity, so every new instance opens a new scope, even one equal '
+        'in content. Give $type == and hashCode, or pass an id.',
+      );
+    }
+  }
+
+  bool _changedByIdentity(Object? previous, Object value) {
+    if (previous == value || previous.runtimeType != value.runtimeType) {
+      return false;
+    }
+    return switch (value) {
+      Enum() ||
+      num() ||
+      bool() ||
+      String() ||
+      Type() ||
+      Symbol() ||
+      Record() => false,
+      _ => value.hashCode == identityHashCode(value),
+    };
   }
 
   void _restart() {

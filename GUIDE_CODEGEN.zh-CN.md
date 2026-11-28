@@ -525,7 +525,7 @@ CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
 
 另一个用户登录时，控件会用值不同的 `SessionScope` 重建。生成的 builder 按这些值比较，所以控件会关闭旧会话，为新用户打开一个新会话。手写的 builder 只读一次：改为给控件 `key: ValueKey(user.id)`。
 
-标记值按 `==` 比较，因此没有自己的 `==` 的值（例如每次重建都新建的 `User(...)`）每次都会重新打开会话：给这个值实现 `==`，或者改为传入它的 id。
+标记值按 `==` 比较，因此没有自己的 `==` 的值（例如每次重建都新建的 `User(...)`）每次都会重新打开会话，debug 构建会在控制台中提示这一点：给这个值实现 `==`，或者改为传入它的 id。
 
 ### 界面
 

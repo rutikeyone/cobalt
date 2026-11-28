@@ -10,6 +10,8 @@ enum CobaltScopeState {
   /// Fully built. Every async singleton is ready to resolve.
   active,
 
+  failed,
+
   /// Teardown has begun. Any further use throws `CobaltScopeStateError`.
   disposing,
 

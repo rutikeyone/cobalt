@@ -199,9 +199,11 @@ class _ScopeNode extends StatelessWidget {
                         const SizedBox(width: 8),
                         _Pill(
                           text: scope.state.name,
-                          color: scope.state == CobaltScopeState.active
-                              ? theme.startup
-                              : theme.muted,
+                          color: switch (scope.state) {
+                            CobaltScopeState.active => theme.startup,
+                            CobaltScopeState.failed => theme.failure,
+                            _ => theme.muted,
+                          },
                           theme: theme,
                         ),
                       ],

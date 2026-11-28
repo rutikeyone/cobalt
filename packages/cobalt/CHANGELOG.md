@@ -1,7 +1,26 @@
 ## 1.10.0
 
-- No code changes in this package. Only the repository's release tooling
-  changed.
+- A scope whose `init()` throws, for a failed initializer, a timeout or a
+  `dependsOn` that cannot be waited for, is now in the new state
+  `CobaltScopeState.failed` instead of staying `initializing`. It is still
+  usable enough to be disposed: what was built resolves, another `init()`
+  returns the same error, and an async singleton registration
+  (`registerAsyncSingleton`) added to it throws `CobaltScopeStateError`
+  instead of being accepted and never built.
+  `describeTree` prints `[failed]`.
+- `dispose()` called from a build that teardown waits for, an async
+  singleton of `init()` or a lazy async singleton of the same scope, returns
+  at once instead of waiting until the teardown deadline.
+- `CobaltCycleError` extends `CobaltError` instead of `StateError` directly,
+  so it is still a `StateError` and its message does not change. A `catch`
+  with `on CobaltError` now catches cycles too, and an `on CobaltCycleError`
+  branch after `on CobaltError` is never reached.
+- `CobaltBootstrapError`, `CobaltInitTimeoutError`, `CobaltWarmUpError` and
+  `CobaltDisposeError` implement `Exception`: they come from the
+  environment, not from a mistake in the graph. `on Exception`,
+  `is Exception` and `throwsException` now match them, and an
+  `on CobaltDisposeError` branch after `on Exception` is never reached.
+  `on StateError` and `on CobaltError` catch them as before.
 
 ## 1.9.3
 

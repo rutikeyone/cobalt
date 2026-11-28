@@ -118,6 +118,8 @@ Dependency cycle detected: Session -> Api -> Session
   사용하는 시점에 해결하도록 하십시오.
 - 제너레이터를 쓰면 순환이 있을 때 빌드가 실패하고, 린트 규칙 `cobalt_dependency_cycle`이 편집기에서
   보여 줍니다.
+- 1.10.0부터 다른 오류처럼 `CobaltError`이므로 `on CobaltError`가 잡으며, `on CobaltError` 뒤에 있는
+  `on CobaltCycleError` 분기는 절대 실행되지 않습니다.
 
 ## 등록
 
@@ -179,6 +181,9 @@ override가 아무것도 바꾸지 않았습니다.
   `cobalt_hook_added_too_late`가 한 블록 안에서 이를 잡아 줍니다.
 
 ## 시작과 종료
+
+이 절의 네 가지 오류는 그래프가 아니라 환경에서 옵니다. 1.10.0부터 이들은 `CobaltError`와 `StateError`를
+상속할 뿐 아니라 `Exception`도 구현하므로 `on Exception`이 잡습니다.
 
 ### CobaltBootstrapError
 

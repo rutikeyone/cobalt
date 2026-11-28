@@ -6,7 +6,7 @@ import 'package:cobalt/src/key/cobalt_key.dart';
 /// Names what had not finished, which is the question a hung start leaves: a
 /// splash screen that never goes away says nothing about which of twenty
 /// initializers is waiting on a socket.
-final class CobaltInitTimeoutError extends CobaltError {
+final class CobaltInitTimeoutError extends CobaltError implements Exception {
   /// [scopeName] did not finish within [timeout]; [pending] were not built.
   CobaltInitTimeoutError(this.scopeName, this.timeout, this.pending)
     : super(

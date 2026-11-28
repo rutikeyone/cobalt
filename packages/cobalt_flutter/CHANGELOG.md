@@ -1,7 +1,12 @@
 ## 1.10.0
 
-- No code changes in this package. Only the repository's release tooling
-  changed.
+- A hot reload that keeps a key and its lifetime but swaps the
+  implementation of a generated factory restarts the graph too, and the
+  debug console says `changed the lifetime or implementation of ...`.
+- `CobaltScopeWidget` rebuilt with a generated builder whose marker value
+  compares by identity, a new `User(...)` without its own `==`, says so in
+  the debug console each time it reopens the scope. Enums, numbers,
+  booleans, strings, types, symbols and records are not reported.
 
 ## 1.9.3
 

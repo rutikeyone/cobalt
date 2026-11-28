@@ -93,6 +93,8 @@ Dependency cycle detected: Session -> Api -> Session
 
 - 打破循环：把双方都需要的部分移到第三个类里，或者让一方在使用时再解析另一方，而不是在构造函数里。
 - 使用生成器时，循环会让构建失败，lint 规则 `cobalt_dependency_cycle` 会在编辑器里指出它。
+- 自 1.10.0 起它和其他错误一样是 `CobaltError`，所以 `on CobaltError` 会捕获它，写在 `on CobaltError` 之后的
+  `on CobaltCycleError` 分支永远不会执行。
 
 ## 注册
 
@@ -139,6 +141,9 @@ override 什么也没替换。
 - 先添加 hook，在组装作用域的地方、在任何 `get` 或 eager 注册之前。lint 规则 `cobalt_hook_added_too_late` 能在同一个代码块里抓到它。
 
 ## 启动与停止
+
+本节的四种错误来自运行环境，而不是来自图。自 1.10.0 起，它们除了继承 `CobaltError` 和 `StateError`，还实现了
+`Exception`，所以 `on Exception` 会捕获它们。
 
 ### CobaltBootstrapError
 

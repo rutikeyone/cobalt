@@ -17,10 +17,6 @@ import 'package:cobalt/src/key/cobalt_key.dart';
 /// `CobaltNotReadyError` without ever reaching this class.
 final class CobaltResolutionTracker {
   final _stack = <CobaltKey>[];
-  final _chain = <CobaltKey>[];
-
-  /// What is under construction right now, outermost first.
-  List<CobaltKey> get pending => List.unmodifiable(_stack);
 
   /// The synchronous chain of factories currently on the Dart stack.
   ///
@@ -30,9 +26,9 @@ final class CobaltResolutionTracker {
   ///
   /// The cost of that is a shorter chain, never a wrong one: a resolve inside
   /// an async factory shows the sync calls below it and stops there.
-  List<CobaltKey> get chain => List.unmodifiable(_chain);
+  List<CobaltKey> get chain => List.unmodifiable(_stack);
 
-  void enter(CobaltKey key) {
+  T guard<T>(CobaltKey key, T Function() build) {
     final index = _stack.indexOf(key);
     if (index >= 0) {
       throw CobaltCycleError([
@@ -41,20 +37,10 @@ final class CobaltResolutionTracker {
       ]);
     }
     _stack.add(key);
-  }
-
-  /// Removes [key]. [enter] rejects duplicates, so there is at most one entry
-  /// to remove.
-  void exit(CobaltKey key) => _stack.remove(key);
-
-  T guard<T>(CobaltKey key, T Function() build) {
-    enter(key);
-    _chain.add(key);
     try {
       return build();
     } finally {
-      _chain.removeLast();
-      exit(key);
+      _stack.removeLast();
     }
   }
 

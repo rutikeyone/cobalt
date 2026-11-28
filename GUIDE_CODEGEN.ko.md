@@ -560,7 +560,8 @@ CobaltScopeWidget(builder: SessionScope(user), child: const HomeScreen())
 대신 위젯에 `key: ValueKey(user.id)`를 주십시오.
 
 마커 값은 `==`로 비교되므로, 자체 `==`가 없는 값(예: 다시 빌드할 때마다 새로 만드는 `User(...)`)은
-빌드할 때마다 세션을 다시 엽니다. 값에 `==`를 구현하거나 id를 넘기십시오.
+빌드할 때마다 세션을 다시 엽니다. 디버그 빌드는 이를 콘솔에 알려 줍니다. 값에 `==`를 구현하거나 id를
+넘기십시오.
 
 ### 화면
 

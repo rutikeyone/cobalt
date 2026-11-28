@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cobalt/cobalt.dart';
 import 'package:cobalt_test/cobalt_test.dart';
 import 'package:test/test.dart';
@@ -165,6 +167,28 @@ void main() {
         'parent start',
         'parent end',
       ]);
+    });
+
+    test('dispose from an init build returns at once', () async {
+      final gate = Completer<void>();
+      late final CobaltScope scope;
+      scope = cobaltTestRoot()
+        ..registerAsyncSingleton<AsyncLeaf>(
+          AsyncFnFactory((_) async {
+            await gate.future;
+            await scope.dispose();
+            return AsyncLeaf();
+          }),
+        );
+
+      final init = scope.init();
+      final disposing = scope.dispose();
+      gate.complete();
+
+      await init.timeout(const Duration(seconds: 2));
+      await disposing.timeout(const Duration(seconds: 2));
+      expect(recorder.entries, ['AsyncLeaf']);
+      expect(scope.state, CobaltScopeState.disposed);
     });
 
     test('a disposed scope refuses further use', () async {

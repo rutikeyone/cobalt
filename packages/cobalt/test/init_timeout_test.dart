@@ -72,6 +72,19 @@ void main() {
     expect(observer.failed.single, isA<CobaltInitTimeoutError>());
   });
 
+  test('a timed-out scope is failed', () async {
+    final scope = cobaltTestRoot()
+      ..registerAsyncSingleton<Slow>(AsyncFnFactory((_) => slow.future));
+
+    await expectLater(
+      scope.init(timeout: timeout),
+      throwsA(isA<CobaltInitTimeoutError>()),
+    );
+
+    expect(scope.state, CobaltScopeState.failed);
+    await scope.dispose();
+  });
+
   test('a graph that finishes in time is not affected', () async {
     final scope = cobaltTestRoot()
       ..registerAsyncSingleton<Fast>(AsyncFnFactory((_) async => Fast()));

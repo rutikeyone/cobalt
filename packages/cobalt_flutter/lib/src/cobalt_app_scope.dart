@@ -183,11 +183,12 @@ class CobaltAppScope extends StatefulWidget {
   /// graph.
   ///
   /// A hot reload patches code but does not run `build()` again, so a
-  /// registration added, removed or given another lifetime would otherwise
-  /// wait for a hot restart — and until then the app resolves against the
-  /// old graph. On each reload this runs [root] again without building
-  /// anything (`CobaltScope.previewRegistrations`) and compares its
-  /// registrations with the live root's; only when they differ does it call
+  /// registration added, removed, given another lifetime or, for a generated
+  /// factory, another implementation would otherwise wait for a hot restart —
+  /// and until then the app resolves against the old graph. On each reload
+  /// this runs [root] again without building anything
+  /// (`CobaltScope.previewRegistrations`) and compares its registrations with
+  /// the live root's; only when they differ does it call
   /// [CobaltAppScopeController.restart], and say what changed in the debug
   /// console. A reload that touched only widgets or factory bodies keeps the
   /// graph, and everything below it, as it was.
@@ -393,7 +394,7 @@ class _CobaltAppScopeState extends State<CobaltAppScope>
   /// words, or null when nothing does.
   ///
   /// A key an override stands in for is compared by presence only: the
-  /// override is free to register it with another lifetime.
+  /// override is free to register it with another lifetime or implementation.
   static String? _changeIn(List<CobaltRegistrationInfo> now, CobaltScope live) {
     final before = live.keys;
     final after = {for (final info in now) info.key};
@@ -406,17 +407,18 @@ class _CobaltAppScopeState extends State<CobaltAppScope>
         if (!after.contains(key)) key,
     ];
     final relived = [
-      for (final CobaltRegistrationInfo(:key, :kind) in now)
-        if (before.contains(key) &&
-            !live.overriddenKeys.contains(key) &&
-            live.registrationOf(key)?.kind != kind)
-          key,
+      for (final CobaltRegistrationInfo(:key, :kind, :implementation) in now)
+        if (before.contains(key) && !live.overriddenKeys.contains(key))
+          if (live.registrationOf(key) case final info?
+              when info.kind != kind || info.implementation != implementation)
+            key,
     ];
     if (added.isEmpty && removed.isEmpty && relived.isEmpty) return null;
     return [
       if (added.isNotEmpty) 'added ${added.join(', ')}',
       if (removed.isNotEmpty) 'removed ${removed.join(', ')}',
-      if (relived.isNotEmpty) 'changed the lifetime of ${relived.join(', ')}',
+      if (relived.isNotEmpty)
+        'changed the lifetime or implementation of ${relived.join(', ')}',
     ].join('; ');
   }
 

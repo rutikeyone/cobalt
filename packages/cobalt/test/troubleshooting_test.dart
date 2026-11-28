@@ -64,4 +64,25 @@ void main() {
       endsWith('\nSee $troubleshootingPage#cobaltcycleerror'),
     );
   });
+
+  test('a cycle is a CobaltError and names its entry once', () {
+    final error = CobaltCycleError(const ['A', 'B', 'A']);
+
+    expect(error, isA<CobaltError>());
+    expect(troubleshootingPage.allMatches(error.toString()), hasLength(1));
+  });
+
+  test('a failure of the environment is an Exception and a StateError', () {
+    final errors = <CobaltError>[
+      CobaltBootstrapError('db', 'offline', StackTrace.empty),
+      CobaltInitTimeoutError('app', const Duration(seconds: 1), const []),
+      CobaltWarmUpError('app', const {}, const {}),
+      CobaltDisposeError('app', const []),
+    ];
+
+    for (final error in errors) {
+      expect(error, isA<Exception>());
+      expect(error, isA<StateError>());
+    }
+  });
 }

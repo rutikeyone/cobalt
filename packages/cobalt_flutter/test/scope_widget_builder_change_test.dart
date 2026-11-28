@@ -38,6 +38,35 @@ final class OlderSessionScope extends CobaltChildScopeBuilder {
   void build(CobaltScope scope) => scope.registerSingleton<User>(user);
 }
 
+enum Plan { free, pro }
+
+class Account {
+  const Account(this.id);
+
+  final int id;
+
+  @override
+  bool operator ==(Object other) => other is Account && other.id == id;
+
+  @override
+  int get hashCode => id.hashCode;
+}
+
+final class ValueScope extends CobaltChildScopeBuilder {
+  const ValueScope(this.value);
+
+  final Object value;
+
+  @override
+  Type get marker => Session;
+
+  @override
+  List<Object?> get markerValues => [value];
+
+  @override
+  void build(CobaltScope scope) {}
+}
+
 final class HandWrittenScope implements CobaltScopeBuilder {
   HandWrittenScope(this.user);
 
@@ -122,5 +151,84 @@ void main() {
 
     expect(again, same(first));
     expect(find.text('ada'), findsOneWidget);
+  });
+
+  group('a reopened scope', () {
+    Future<List<String>> reopen(
+      WidgetTester tester,
+      CobaltScopeBuilder first,
+      CobaltScopeBuilder second,
+    ) async {
+      final app = cobaltTestRoot(name: 'app');
+      Future<void> pump(CobaltScopeBuilder builder) async {
+        await tester.pumpWidget(
+          CobaltScopeProvider(
+            scope: app,
+            child: CobaltScopeWidget(
+              name: 'session',
+              builder: builder,
+              child: const SizedBox(),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+      }
+
+      await pump(first);
+      final printed = <String>[];
+      final previous = debugPrint;
+      debugPrint = (message, {wrapWidth}) => printed.add(message!);
+      try {
+        await pump(second);
+      } finally {
+        debugPrint = previous;
+      }
+      return printed;
+    }
+
+    testWidgets('by a value that compares by identity is pointed out', (
+      tester,
+    ) async {
+      final printed = await reopen(
+        tester,
+        SessionScope(User('ada')),
+        SessionScope(User('ada')),
+      );
+
+      expect(printed, hasLength(1));
+      expect(
+        printed.single,
+        allOf(
+          contains('CobaltScopeWidget "session" reopened'),
+          contains('User compares by identity'),
+          contains('Give User == and hashCode, or pass an id.'),
+        ),
+      );
+    });
+
+    testWidgets('by a value with its own == is not', (tester) async {
+      final printed = await reopen(
+        tester,
+        const ValueScope(Account(1)),
+        const ValueScope(Account(2)),
+      );
+
+      expect(printed, isEmpty);
+    });
+
+    testWidgets('by another enum or int value is not', (tester) async {
+      expect(
+        await reopen(
+          tester,
+          const ValueScope(Plan.free),
+          const ValueScope(Plan.pro),
+        ),
+        isEmpty,
+      );
+      expect(
+        await reopen(tester, const ValueScope(1), const ValueScope(2)),
+        isEmpty,
+      );
+    });
   });
 }
