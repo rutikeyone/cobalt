@@ -564,10 +564,14 @@ class _IndexBuilder {
       final named =
           _namedAnnotationOf(parameter.metadata) ??
           _namedAnnotationOf(field?.metadata ?? const []);
+      final name = switch (named?.arguments?.arguments.firstOrNull) {
+        final first? => _valueOf(first),
+        null => null,
+      };
       _placeRegistration(
         type,
         marker,
-        named?.arguments?.arguments.firstOrNull,
+        name,
         const [],
         isCertain: named == null || named.arguments != null,
       );
