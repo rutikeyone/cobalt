@@ -56,6 +56,9 @@ An async registration â€” `registerAsyncSingleton`, or an `@CobaltInit` class â€
   `CobaltAppScope` shows `loading` until the graph is ready, so read inside the app, not before
   `runApp`.
 - For a scope you pushed yourself, `await child.init()` before reading from it.
+- During startup, from the constructor of another `@CobaltInit` class: the generator orders one that
+  takes the dependency in its constructor by itself. It cannot when the parameter is nullable, named
+  with `@Named`, or async in only some of the class's environments; list it in `dependsOn` then.
 
 ### CobaltLazyAsyncError
 

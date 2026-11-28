@@ -92,6 +92,26 @@ void main() {
         ),
       );
     });
+
+    test('an async singleton asked for too early says init() had not built '
+        'it', () {
+      final scope = cobaltTestRoot(name: 'app')
+        ..registerAsyncSingleton<Ready>(AsyncFnFactory((_) async => Ready()));
+
+      expect(
+        () => scope.get<Ready>(),
+        throwsA(
+          isA<CobaltNotReadyError>().having(
+            (e) => e.toString(),
+            'message',
+            contains(
+              'is an async registration and was requested before init() '
+              'had built it.',
+            ),
+          ),
+        ),
+      );
+    });
   });
 
   group('a failure outside one', () {

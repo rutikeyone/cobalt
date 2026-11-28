@@ -216,7 +216,7 @@ flow name it:
 ```dart
 @CobaltChildScope()
 class OrderFlow {
-  const OrderFlow(this.orderId);
+  const OrderFlow(@Named('orderId') this.orderId);
 
   final String orderId;
 }
@@ -227,7 +227,7 @@ class OrderFlow {
 ```dart
 @CobaltInject(scope: OrderFlow)
 class OrderNote implements Disposable {
-  OrderNote(this.orderId, this._log) {
+  OrderNote(@Named('orderId') this.orderId, this._log) {
 ```
 
 The route hands the generated `OrderFlowScope` to `CobaltShellRoute`, which takes any scope

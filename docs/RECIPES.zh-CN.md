@@ -185,7 +185,7 @@ class OrderFlowRoute extends CobaltShellRoute {
 ```dart
 @CobaltChildScope()
 class OrderFlow {
-  const OrderFlow(this.orderId);
+  const OrderFlow(@Named('orderId') this.orderId);
 
   final String orderId;
 }
@@ -196,7 +196,7 @@ class OrderFlow {
 ```dart
 @CobaltInject(scope: OrderFlow)
 class OrderNote implements Disposable {
-  OrderNote(this.orderId, this._log) {
+  OrderNote(@Named('orderId') this.orderId, this._log) {
 ```
 
 路由把生成的 `OrderFlowScope` 交给 `CobaltShellRoute`，它接受任何作用域 builder：

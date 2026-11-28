@@ -134,6 +134,10 @@ void main() {
     expect(scope.get<SearchIndex>().isBuilt, isTrue);
   });
 
+  test('an async initializer waits for what its constructor takes', () {
+    expect(scope.get<AuditSummary>().isReady, isTrue);
+  });
+
   test('property injection fills late final fields', () {
     expect(
       scope.get<Report>().render(),
@@ -485,6 +489,20 @@ void main() {
               'SearchIndex refuses a closed database; the double is handed '
               'over as it is, and init() is never called on it',
         );
+      },
+    );
+
+    test(
+      'a replaced dependency the generator waits for still starts',
+      () async {
+        final sink = AuditSink();
+        final overridden = await startCobalt(
+          overrides: [CobaltOverride<AuditSink>.value(sink)],
+        );
+        addTearDown(overridden.dispose);
+
+        expect(overridden.get<AuditSummary>().sink, same(sink));
+        expect(overridden.get<AuditSummary>().isReady, isTrue);
       },
     );
   });

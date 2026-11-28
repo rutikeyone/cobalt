@@ -357,7 +357,7 @@ void main() {
         ],
       );
 
-      expect(source, isNot(contains('dependsOn')));
+      expect(dependsOnOf(source, 'SearchIndex'), ['Database']);
     });
   });
 }

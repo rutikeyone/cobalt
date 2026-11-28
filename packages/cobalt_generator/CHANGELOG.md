@@ -1,7 +1,14 @@
 ## 1.10.0
 
-- No code changes in this package. Only the repository's release tooling
-  changed.
+- An `@CobaltInit` class waits for what its constructor takes: an unnamed,
+  non-nullable parameter on an async singleton of the same scope that is
+  async in every environment of the class is added to its `dependsOn`,
+  merged with what is written by hand. A class that read such a dependency
+  before it was built and failed the start with `CobaltNotReadyError` now
+  starts; the order of a graph that already started does not change, only
+  `dependsOn` in `cobalt.g.dart` lists more keys. A nullable or named
+  parameter, a dependency of the parent scope and `@injected` fields add
+  nothing, so those still need `dependsOn` by hand.
 - Depends on `cobalt` ^1.10.0, the runtime of its own version.
 
 ## 1.9.3

@@ -14,21 +14,21 @@ instead of when `build_runner` runs:
 ```dart
 @cobaltInject
 abstract class Broken {}
-// warning: Cobalt cannot construct 'Broken': it is abstract.
-//          — cobalt_injectable_must_be_constructible
+// info: Cobalt cannot construct 'Broken': it is abstract.
+//       — cobalt_injectable_must_be_constructible
 
 @cobaltInject
 class Controller {
   @injected
   Repository repository;
-  // warning: Controller.repository must be declared "late final" to receive
-  //          property injection. — cobalt_injected_field_must_be_late_final
+  // info: Controller.repository must be declared "late final" to receive
+  //       property injection. — cobalt_injected_field_must_be_late_final
 }
 
 @CobaltInit()
 class Telemetry {}
-// warning: Telemetry is annotated with @CobaltInit but declares no
-//          'Future<void> init()' method. — cobalt_init_requires_init_method
+// info: Telemetry is annotated with @CobaltInit but declares no
+//       'Future<void> init()' method. — cobalt_init_requires_init_method
 ```
 
 Every rule reads annotations through `cobalt_analyzer`, the same layer the

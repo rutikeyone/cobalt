@@ -22,7 +22,8 @@ final class CobaltNotReadyError extends CobaltError {
 
   static String _message(CobaltKey key, List<CobaltKey> resolving) {
     final what =
-        '$key is an async registration and was requested before init().';
+        '$key is an async registration and was requested before init() '
+        'had built it.';
     if (resolving.isEmpty) return what;
     final path = [...resolving, key].join(' -> ');
     return '$what Resolving: $path.';

@@ -211,7 +211,7 @@ class OrderFlowRoute extends CobaltShellRoute {
 ```dart
 @CobaltChildScope()
 class OrderFlow {
-  const OrderFlow(this.orderId);
+  const OrderFlow(@Named('orderId') this.orderId);
 
   final String orderId;
 }
@@ -222,7 +222,7 @@ class OrderFlow {
 ```dart
 @CobaltInject(scope: OrderFlow)
 class OrderNote implements Disposable {
-  OrderNote(this.orderId, this._log) {
+  OrderNote(@Named('orderId') this.orderId, this._log) {
 ```
 
 라우트는 생성된 `OrderFlowScope`를 어떤 스코프 builder든 받는 `CobaltShellRoute`에 넘깁니다:

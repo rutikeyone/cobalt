@@ -18,7 +18,7 @@
 - **图在构建期被检查**——没有人注册的依赖会让构建失败，并一次性点出所有缺口，
   而不是等到某个界面第一个解析到它时才失败；
 - **属性注入**——`late final` 字段由生成的 mixin 填充，于是有五个协作对象的类拥有一个空构造函数；
-- **二十一条 lint 规则**，在编辑器里抓住其余的问题。
+- **二十三条 lint 规则**，在编辑器里抓住其余的问题。
 
 如果这些你都不需要，或者你正在逐步迁移一个已有的容器，那么不用生成器一切照样能跑：
 [GUIDE_MANUAL.zh-CN.md](GUIDE_MANUAL.zh-CN.md)。
@@ -477,6 +477,19 @@ class Draft {
 有缺口就让构建失败并指出两边。在另一个子作用域之下打开的作用域，用 `@CobaltChildScope(parent: Session)` 说明；如果在别处打开，观察者会收到 `onScopeParentMismatch`，日志和 `cobalt_inspector` 里会出现警告，早于第一个缺失的注册报错。
 会话里放什么、何时结束，仍然由你决定：注解对这两者都不作声明。
 
+标记的值按其类型注册。裸的 `String`、`int`、`double`、`num` 或 `bool` 会交给作用域里每个请求该类型的类，
+并遮住应用注册的同类型无名注册。给它起名，并按同一个名字注入：
+
+```dart
+@CobaltChildScope()
+class OrderFlow {
+  const OrderFlow(@Named('orderId') this.orderId);
+  final String orderId;
+}
+```
+
+`@Named` 写在字段上也可以。`cobalt_marker_value_needs_a_name` 会指出没有名字的值。
+
 标记类的名字不带 `Scope`，由生成器补上；把标记类命名为 `SessionScope` 会得到 `SessionScopeScope`，构建会拒绝。
 装饰器放在它的目标注册的地方：在根里；对于只有子作用域注册的类，则放在每个这样的子作用域里，并注入从那个作用域能看到的东西。钩子加在根里，本来就能看到子作用域构建的东西。手写的 `CobaltScopeBuilder` 依然可以和生成的并存，用的是同一套公开 API。
 
@@ -694,7 +707,7 @@ class BindPlatform implements CobaltBootstrapStep {
 **阶段 1 —— `@CobaltInit`。** 在容器内部：异步单例，按依赖顺序构建。
 
 ```dart
-@CobaltInit(dependsOn: [Database])
+@cobaltInit
 class SearchIndex implements AsyncInitializable {
   SearchIndex(this._database);
 
@@ -714,8 +727,19 @@ class SearchIndex implements AsyncInitializable {
 `dependsOn` 被翻译成一组 `CobaltKey`。同一层上互不相关的初始化器通过 `Future.wait` 一起跑，
 只有真正存在依赖的才会等待。
 
-`dependsOn` 是排序的边，不是注入——依赖照常从构造函数拿。
-指向一个已注册但**不是**异步的键是构建错误，而不是它看起来的那种静默空操作：没有构建可等。
+构造函数参数本身就是一条排序的边。当它取的是同一作用域的异步注册时，生成器会把那个键加进 `dependsOn`，
+所以上面的 `SearchIndex` 不用写也会等 `Database`。父作用域注册的依赖什么都不用做：父作用域在子作用域打开前已完成
+自己的 `init()`。替换依赖的 override 也不会让启动失败：作用域不等待被 override 替换的键。
+
+手写的 `dependsOn` 是排序的边，不是注入，并会与推导出的边合并。只为排序、没有对应注入时手写它，以及生成器不处理的
+三种情况：
+
+- **可空**参数：在没有 `Database` 的构建里 `Database?` 得到 `null`，那里的边会让启动失败；
+- **具名**依赖 `@Named('main') Database`：`dependsOn` 列的是类型，不是名字；
+- 只在该类**部分**环境中是异步的依赖。
+
+`@injected` 字段也不参与排序。指向一个已注册但**不是**异步的键是构建错误，而不是它看起来的那种静默空操作：
+没有构建可等。
 
 `CobaltApplication.start` 在两个阶段都完成后才返回，
 所以没有 `allReady()` 要调用，也没有「已注册但尚未就绪」这种状态需要你去推理。
@@ -976,6 +1000,11 @@ class LoggingApi implements ApiClient {
 `scope.decorateAll<ApiClient>(...)`。它不能与 `name:` 一起用，在它生效的每处都至少要有该类型的一条注册，
 并与它所包装的每条注册的装饰器一起竞争 `order:`。
 
+根注册的装饰器留在根里。注册同一个键的子作用域会遮住它，子作用域交出的实例不会被包装：
+`@CobaltDecorates` 没有 `scope:` 可以伸到那里。把注册从子作用域去掉，或给它另一个名字
+（`allNames: true` 时只有去掉才有用）；`cobalt_decorator_misses_a_shadowing_scope` 会指出漏掉这种
+作用域的装饰器。没有把握时它保持沉默：带 `@CobaltEnvironment` 的注册、读不出的名字、同名的两个类型。
+
 
 **钩子。** 在继承 `CobaltHook<T>` 的类上加 `@cobaltHookAll`，会把它加进生成的根作用域——
 `scope.hookAll<T>(...)`，生成在所有注册之前，因此 eager 注册也会经过它。它在图构建的每一个 `T` 上运行，
@@ -1050,7 +1079,7 @@ bootstrap 步骤同样接受环境。只要其中任何一个用到，`cobaltBoo
 
 ## 16. lint 插件
 
-二十一条规则，建立在生成器所用的同一套解析层之上，
+二十三条规则，建立在生成器所用的同一套解析层之上，
 因此错误会在编辑器里出现，而不是非等到 `build_runner` 跑完。
 
 ```yaml
@@ -1079,6 +1108,8 @@ plugins:
 | `cobalt_read_does_not_match_registration` | 必然抛出的读取：对需要调用方传值的注册调用 `get`、`getAsync` 或 `context.cobalt`，对根据该值异步构建的注册调用 `getWithParam`，或对不需要值的注册调用 `getWithParam` |
 | `cobalt_depends_on_lazy_registration` | `@CobaltInit(dependsOn: [...])` 指向惰性异步注册，而 `init()` 从不构建它 |
 | `cobalt_override_needs_type_argument` | `CobaltOverride` 或 `CobaltParamOverride` 没写类型参数，替换哪个键就由 Dart 推断 |
+| `cobalt_decorator_misses_a_shadowing_scope` | 根注册的装饰器，而子作用域也注册了同一个键，于是子作用域交出的实例没有包装 |
+| `cobalt_marker_value_needs_a_name` | `@CobaltChildScope` 标记中没有 `@Named` 的 `String`、`int`、`double`、`num` 或 `bool` 值 |
 | `cobalt_hook_added_too_late` | 在同一作用域上、同一级联或同一代码块中较早处已有 eager 注册或 `get` 之后才调用 `hookAll`——作用域会以 `CobaltHookError` 拒绝；请在任何构建之前添加钩子 |
 | `cobalt_registration_is_not_generated` | 上次构建之后才加注解、`lib/cobalt.g.dart` 里还没有的已注册类：运行 `build_runner` |
 | `cobalt_bloc_provider_closes_a_scoped_bloc` | `BlocProvider(create:)` 交出从作用域读取的 bloc，会在作用域仍持有它时把它关掉：应使用 `BlocProvider.value` |

@@ -4,7 +4,7 @@ import 'package:cobalt_external_consumer/src/visit.dart';
 @CobaltInject(scope: Visit)
 @CobaltEnvironment.prod
 class VisitBadge {
-  VisitBadge(this.visitor);
+  VisitBadge(@Named('visitor') this.visitor);
 
   final String visitor;
 }

@@ -18,7 +18,7 @@ What the build step buys you, and what this document is mostly about:
   gap at once, instead of failing on whichever screen resolves it first;
 - **property injection** — `late final` fields filled by a generated mixin, so a class with five
   collaborators has an empty constructor;
-- **twenty-one lint rules** that catch the rest in the editor.
+- **twenty-three lint rules** that catch the rest in the editor.
 
 If you want none of that, or you are migrating an existing container gradually, everything works
 without the generator: [GUIDE_MANUAL.md](GUIDE_MANUAL.md).
@@ -508,6 +508,20 @@ under anything else, it reaches observers as `onScopeParentMismatch`, a warning 
 `cobalt_inspector`, before the first missing registration fails. What
 belongs in a session, and when it ends, stay your decisions: the annotation says neither.
 
+A marker value is registered under its type. A bare `String`, `int`, `double`, `num` or `bool` is
+then what every class in the scope asking for one receives, and it hides an unnamed one the app
+registers. Name it, and inject it by the same name:
+
+```dart
+@CobaltChildScope()
+class OrderFlow {
+  const OrderFlow(@Named('orderId') this.orderId);
+  final String orderId;
+}
+```
+
+`@Named` on the field works as well. `cobalt_marker_value_needs_a_name` points at a value left bare.
+
 The marker is named without `Scope`, which the generator appends; `SessionScope` as a marker would
 give `SessionScopeScope`, and the build refuses it. A decorator goes where its target is registered:
 in the root, or, for a class only child scopes register, in each of those scopes, injecting what that
@@ -748,7 +762,7 @@ released in reverse before the error is rethrown.
 **Phase 1 — `@CobaltInit`.** Inside the container: async singletons, built in dependency order.
 
 ```dart
-@CobaltInit(dependsOn: [Database])
+@cobaltInit
 class SearchIndex implements AsyncInitializable {
   SearchIndex(this._database);
 
@@ -769,9 +783,23 @@ The generated factory constructs the object, awaits `init()`, and registers it a
 with `dependsOn` translated into `CobaltKey`s. Independent initializers on the same level run together
 through `Future.wait`; only what actually depends waits.
 
-`dependsOn` is an ordering edge, not an injection — you take the dependency in the constructor as
-usual. Naming a key that is registered but **not** async is a build error rather than the silent
-no-op it looks like: there is no build to wait for.
+A constructor parameter is an ordering edge of its own. When it takes an async registration of the
+same scope, the generator adds that key to `dependsOn`, so `SearchIndex` above waits for `Database`
+without saying so. A dependency the parent scope registers needs nothing: the parent finished its
+`init()` before the child opened. An override of the dependency does not break the start either:
+the scope does not wait for a key an override replaced.
+
+`dependsOn` by hand is an ordering edge, not an injection, and what you write is merged with what
+is derived. Write it for an order with no injection behind it, and for the three cases the
+generator leaves alone:
+
+- a **nullable** parameter: `Database?` gets `null` in a build without `Database`, and an edge
+  there would fail the start;
+- a **named** dependency, `@Named('main') Database`: `dependsOn` lists types, not names;
+- a dependency that is async in **only some** of the environments the class is in.
+
+`@injected` fields are not read for ordering either. Naming a key that is registered but **not**
+async is a build error rather than the silent no-op it looks like: there is no build to wait for.
 
 `CobaltApplication.start` returns when both phases are done, so there is no `allReady()` to call and no
 "registered but not ready" state to reason about.
@@ -1063,6 +1091,13 @@ not, and becomes `scope.decorateAll<ApiClient>(...)`. It cannot be combined with
 least one registration of the type wherever it is active, and competes for `order:` with the
 decorators of each registration it wraps.
 
+A decorator of a root registration stays in the root. A child scope that registers the same key
+shadows it, and what the child hands out is not wrapped: `@CobaltDecorates` has no `scope:` to
+reach it. Drop the registration from the child scope, or give it another name (for
+`allNames: true` only dropping it helps); `cobalt_decorator_misses_a_shadowing_scope` points at the
+decorator that misses one. It stays silent where it cannot be sure: registrations restricted by
+`@CobaltEnvironment`, a name it cannot read, or two types of the same name.
+
 
 **Hooks.** `@cobaltHookAll` on a class that extends `CobaltHook<T>` adds it to the generated root
 scope — `scope.hookAll<T>(...)`, emitted before every registration so an eager one already passes
@@ -1149,7 +1184,7 @@ nothing registers, where it silently does nothing.
 
 ## 16. The lint plugin
 
-Twenty-one rules, built on the same parsing layer the generator uses, so a mistake surfaces in the editor
+Twenty-three rules, built on the same parsing layer the generator uses, so a mistake surfaces in the editor
 rather than only when `build_runner` runs.
 
 ```yaml
@@ -1178,6 +1213,8 @@ plugins:
 | `cobalt_read_does_not_match_registration` | a read that always throws: `get`, `getAsync` or `context.cobalt` on a registration that takes a call-site value, `getWithParam` on one built asynchronously from it, or `getWithParam` on one that takes none |
 | `cobalt_depends_on_lazy_registration` | `@CobaltInit(dependsOn: [...])` naming a lazy async registration, which `init()` never builds |
 | `cobalt_override_needs_type_argument` | a `CobaltOverride` or `CobaltParamOverride` with no type argument, so Dart infers the key it replaces |
+| `cobalt_decorator_misses_a_shadowing_scope` | a decorator of a root registration whose key a child scope registers too, so the child hands it out unwrapped |
+| `cobalt_marker_value_needs_a_name` | a `String`, `int`, `double`, `num` or `bool` value of a `@CobaltChildScope` marker without `@Named` |
 | `cobalt_hook_added_too_late` | `hookAll` after an eager registration or a `get` on the same scope — in one cascade or earlier in the block — which the scope refuses with `CobaltHookError`; add hooks before anything is built |
 | `cobalt_registration_is_not_generated` | a registered class that `lib/cobalt.g.dart` does not mention yet, annotated after the last build: run `build_runner` |
 | `cobalt_bloc_provider_closes_a_scoped_bloc` | `BlocProvider(create:)` handing out a bloc read from a scope, which closes it while the scope still holds it: use `BlocProvider.value` |

@@ -2,6 +2,7 @@ export 'package:cobalt_external_consumer/cobalt.g.dart';
 export 'package:cobalt_external_consumer/src/app_scope.dart';
 export 'package:cobalt_external_consumer/src/archive.dart';
 export 'package:cobalt_external_consumer/src/audit_sink.dart';
+export 'package:cobalt_external_consumer/src/audit_summary.dart';
 export 'package:cobalt_external_consumer/src/audit_trail.dart';
 export 'package:cobalt_external_consumer/src/audited_database.dart';
 export 'package:cobalt_external_consumer/src/bind_platform.dart';

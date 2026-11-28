@@ -56,6 +56,9 @@ build_runner again.
   그래프가 준비될 때까지 `CobaltAppScope`가 `loading`을 보여 주므로, `runApp` 전이 아니라 앱 안에서
   읽으십시오.
 - 직접 push한 스코프라면 읽기 전에 `await child.init()`을 실행하십시오.
+- 시작 중 다른 `@CobaltInit` 클래스의 생성자에서 읽었다면: 생성자에서 그 의존성을 받는 클래스는 제너레이터가
+  순서를 정합니다. 매개변수가 nullable이거나, `@Named`로 이름이 있거나, 의존성이 클래스 환경의 일부에서만
+  비동기라면 그럴 수 없으니 `dependsOn`에 적으십시오.
 
 ### CobaltLazyAsyncError
 

@@ -282,8 +282,10 @@ final class _OrderNoteFactory
   String get implementation => 'OrderNote';
 
   @override
-  _i1048.OrderNote create(_i573.CobaltResolver resolver) =>
-      _i1048.OrderNote(resolver.get<String>(), resolver.get<_i153.EventLog>());
+  _i1048.OrderNote create(_i573.CobaltResolver resolver) => _i1048.OrderNote(
+    resolver.get<String>(name: 'orderId'),
+    resolver.get<_i153.EventLog>(),
+  );
 }
 
 final class _SessionActivityLogFactory
@@ -399,7 +401,7 @@ final class OrderFlowScope extends _i573.CobaltChildScopeBuilder {
 
   @override
   void build(_i573.CobaltScope scope) {
-    scope.registerSingleton<String>(orderId);
+    scope.registerSingleton<String>(orderId, name: 'orderId');
     scope.registerLazySingleton<_i1048.OrderNote>(const _OrderNoteFactory());
   }
 }

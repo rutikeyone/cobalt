@@ -7,6 +7,7 @@ import 'dart:async' as _i687;
 import 'package:cobalt/cobalt.dart' as _i573;
 import 'package:cobalt_external_consumer/src/archive.dart' as _i768;
 import 'package:cobalt_external_consumer/src/audit_sink.dart' as _i604;
+import 'package:cobalt_external_consumer/src/audit_summary.dart' as _i431;
 import 'package:cobalt_external_consumer/src/audit_trail.dart' as _i720;
 import 'package:cobalt_external_consumer/src/audited_database.dart' as _i963;
 import 'package:cobalt_external_consumer/src/bind_platform.dart' as _i366;
@@ -87,6 +88,23 @@ final class _AuditSinkFactory
   @override
   _i687.Future<_i604.AuditSink> create(_i573.CobaltResolver resolver) async {
     final instance = _i604.AuditSink();
+    await instance.init();
+    return instance;
+  }
+}
+
+final class _AuditSummaryFactory
+    implements
+        _i573.CobaltAsyncFactory<_i431.AuditSummary>,
+        _i573.CobaltDescribedFactory {
+  const _AuditSummaryFactory();
+
+  @override
+  String get implementation => 'AuditSummary';
+
+  @override
+  _i687.Future<_i431.AuditSummary> create(_i573.CobaltResolver resolver) async {
+    final instance = _i431.AuditSummary(resolver.get<_i604.AuditSink>());
     await instance.init();
     return instance;
   }
@@ -474,7 +492,7 @@ final class _GreetingFactory
 
   @override
   _i296.Greeting create(_i573.CobaltResolver resolver) =>
-      _i296.Greeting(resolver.get<String>());
+      _i296.Greeting(resolver.get<String>(name: 'visitor'));
 }
 
 final class _VisitBadgeFactory
@@ -488,7 +506,7 @@ final class _VisitBadgeFactory
 
   @override
   _i112.VisitBadge create(_i573.CobaltResolver resolver) =>
-      _i112.VisitBadge(resolver.get<String>());
+      _i112.VisitBadge(resolver.get<String>(name: 'visitor'));
 }
 
 final class _AuditedDatabaseDecorator
@@ -567,6 +585,10 @@ final class CobaltRoot extends _i573.CobaltRootBuilder {
     scope.registerLazySingleton<_i160.BuiltLog>(const _BuiltLogFactory());
     scope.registerLazySingleton<_i160.Ledger>(const _LedgerFactory());
     scope.registerFactory<_i160.Receipt>(const _ReceiptFactory());
+    scope.registerAsyncSingleton<_i431.AuditSummary>(
+      const _AuditSummaryFactory(),
+      dependsOn: {const _i573.CobaltKey(_i604.AuditSink)},
+    );
     scope.registerAsyncSingleton<_i720.AuditTrail>(
       const _AuditTrailFactory(),
       dependsOn: {const _i573.CobaltKey(_i604.AuditSink)},
@@ -646,7 +668,7 @@ final class VisitScope extends _i573.CobaltChildScopeBuilder {
         scope.environment ??
         _i573.CobaltEnvironment.defaultEnvironment;
     scope.useEnvironment(environment);
-    scope.registerSingleton<String>(visitor);
+    scope.registerSingleton<String>(visitor, name: 'visitor');
     scope.registerLazySingleton<_i296.Greeting>(const _GreetingFactory());
     if (environment.matches(const <String>{'prod'})) {
       scope.registerLazySingleton<_i112.VisitBadge>(const _VisitBadgeFactory());

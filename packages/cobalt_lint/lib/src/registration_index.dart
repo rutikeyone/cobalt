@@ -6,6 +6,13 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/file_system/file_system.dart';
 
+typedef CobaltPlacedRegistration = ({
+  String? scope,
+  String? name,
+  bool isRestricted,
+  bool isCertain,
+});
+
 /// What the package registers, and what each registration asks for.
 ///
 /// The generator answers both questions from a fully resolved, whole-package
@@ -39,6 +46,9 @@ class CobaltRegistrationIndex {
     this.withParams = const {},
     this.asyncWithParams = const {},
     this.withoutParams = const {},
+    this.placements = const {},
+    this.repeatedTypeNames = const {},
+    this.classNames = const {},
   ]);
 
   /// Every type name something in the package registers, except a generic
@@ -122,6 +132,34 @@ class CobaltRegistrationIndex {
 
   final Set<String> withoutParams;
 
+  final Map<String, List<CobaltPlacedRegistration>> placements;
+
+  final Set<String> repeatedTypeNames;
+
+  final Set<String> classNames;
+
+  Set<String> scopesShadowingRoot(
+    String type, {
+    String? name,
+    bool allNames = false,
+  }) {
+    if (repeatedTypeNames.contains(type)) return const {};
+    final placed = placements[type] ?? const <CobaltPlacedRegistration>[];
+    if (placed.any(
+      (registration) => !registration.isCertain || registration.isRestricted,
+    )) {
+      return const {};
+    }
+    final wrapped = [
+      for (final registration in placed)
+        if (allNames || registration.name == name) registration,
+    ];
+    if (!wrapped.any((registration) => registration.scope == null)) {
+      return const {};
+    }
+    return {for (final registration in wrapped) ?registration.scope};
+  }
+
   /// The child scopes that register [name], when the root does not.
   ///
   /// Null when the root registers it, or when no child scope does, so a rule
@@ -198,6 +236,8 @@ class _IndexBuilder {
   final _withParams = <String>{};
   final _asyncWithParams = <String>{};
   final _withoutParams = <String>{};
+  final placements = <String, List<CobaltPlacedRegistration>>{};
+  final _classDeclarations = <String, int>{};
   final _unsure = <String>{};
   final _readClaims = <String, int>{};
 
@@ -283,6 +323,13 @@ class _IndexBuilder {
       _withParams.intersection(certain),
       _asyncWithParams.intersection(certain),
       _withoutParams.intersection(certain),
+      placements,
+      {
+        for (final MapEntry(key: name, value: count)
+            in _classDeclarations.entries)
+          if (count > 1) name,
+      },
+      _classDeclarations.keys.toSet(),
     );
   }
 
@@ -292,6 +339,7 @@ class _IndexBuilder {
 
       final claimed = declaration.namePart.typeName.lexeme;
       _claims[claimed] = (_claims[claimed] ?? 0) + 1;
+      _classDeclarations[claimed] = (_classDeclarations[claimed] ?? 0) + 1;
 
       var registers = false;
       var isModule = false;
@@ -301,6 +349,8 @@ class _IndexBuilder {
       var isTransient = false;
       String? exposed;
       String? scope;
+      Expression? registeredName;
+      Expression? exposedAs;
       var generic = false;
       final wanted = <String>{};
 
@@ -338,7 +388,9 @@ class _IndexBuilder {
             }
             _addArgument(annotation, 'exposeAs', names);
             exposed ??= _firstName(_namedArgument(annotation, 'exposeAs'));
+            exposedAs ??= _namedArgument(annotation, 'exposeAs');
             scope ??= _firstName(_namedArgument(annotation, 'scope'));
+            registeredName ??= _namedArgument(annotation, 'name');
             _addArgumentList(annotation, 'dependsOn', wanted);
           case 'CobaltScopeRoot':
             final provided = <String>{};
@@ -346,6 +398,7 @@ class _IndexBuilder {
             names.addAll(provided);
             _unsure.addAll(provided);
             _place(null, provided);
+            _placeProvided(null, annotation);
           case 'CobaltChildScope':
             final marker = declaration.namePart.typeName.lexeme;
             final held = <String>{};
@@ -354,6 +407,8 @@ class _IndexBuilder {
             names.addAll(held);
             _unsure.addAll(held);
             _place(marker, held);
+            _placeProvided(marker, annotation);
+            _placeValues(marker, declaration);
             parents[marker] = _firstName(_namedArgument(annotation, 'parent'));
           case 'CobaltModule':
           case 'cobaltModule':
@@ -378,6 +433,13 @@ class _IndexBuilder {
       if (registers) {
         _place(scope, {declaration.namePart.typeName.lexeme, ?exposed});
         final node = exposed ?? declaration.namePart.typeName.lexeme;
+        _placeRegistration(
+          node,
+          scope,
+          registeredName,
+          declaration.metadata,
+          isCertain: !generic && !_isPrefixed(exposedAs, null),
+        );
         _addConstructorParameters(declaration, wanted);
         _addInjectedFields(declaration, wanted);
         _link(node, wanted);
@@ -427,6 +489,16 @@ class _IndexBuilder {
                 _firstName(_namedArgument(annotation, 'exposeAs')) ??
                 _returnedName(member.returnType);
             if (node == null) continue;
+            _placeRegistration(
+              node,
+              _firstName(_namedArgument(annotation, 'scope')),
+              _namedArgument(annotation, 'name'),
+              member.metadata,
+              isCertain: !_isPrefixed(
+                _namedArgument(annotation, 'exposeAs'),
+                member.returnType,
+              ),
+            );
 
             // A member registers by its return type, not by a declaration, so
             // the class-declaration count above never sees it. Without this a
@@ -452,6 +524,93 @@ class _IndexBuilder {
     }
   }
 
+  void _placeRegistration(
+    String type,
+    String? scope,
+    Expression? name,
+    List<Annotation> metadata, {
+    bool isCertain = true,
+  }) {
+    final spelled = _stringOf(name);
+    placements.putIfAbsent(type, () => []).add((
+      scope: scope,
+      name: spelled,
+      isRestricted: _isRestricted(metadata),
+      isCertain: isCertain && (name == null || spelled != null),
+    ));
+  }
+
+  void _placeProvided(String? scope, Annotation annotation) {
+    final provides = _namedArgument(annotation, 'provides');
+    if (provides is! ListLiteral) return;
+    for (final element in provides.elements) {
+      if (element is! Expression) continue;
+      final type = _firstName(element);
+      if (type == null) continue;
+      _placeRegistration(type, scope, _providedName(element), const []);
+    }
+  }
+
+  void _placeValues(String marker, ClassDeclaration declaration) {
+    final fields = _fieldsOf(declaration);
+    for (final parameter
+        in publicConstructorParametersOf(declaration) ??
+            const <FormalParameter>[]) {
+      final field = fields[_declaredBy(parameter).name?.lexeme];
+      final type =
+          _returnedName(_typeOf(_declaredBy(parameter))) ??
+          _returnedName(field?.fields.type);
+      if (type == null) continue;
+      final named =
+          _namedAnnotationOf(parameter.metadata) ??
+          _namedAnnotationOf(field?.metadata ?? const []);
+      final name = switch (named?.arguments?.arguments.firstOrNull) {
+        final first? => _valueOf(first),
+        null => null,
+      };
+      _placeRegistration(
+        type,
+        marker,
+        name,
+        const [],
+        isCertain: named == null || named.arguments != null,
+      );
+    }
+  }
+
+  Map<String?, FieldDeclaration> _fieldsOf(ClassDeclaration node) => {
+    for (final member in membersOf(node))
+      if (member is FieldDeclaration)
+        for (final variable in member.fields.variables)
+          variable.name.lexeme: member,
+  };
+
+  Annotation? _namedAnnotationOf(List<Annotation> metadata) => metadata
+      .where((annotation) => annotation.name.name.split('.').last == 'Named')
+      .firstOrNull;
+
+  Expression? _providedName(Expression provided) => switch (provided) {
+    InstanceCreationExpression(:final argumentList) ||
+    MethodInvocation(:final argumentList) => _namedIn(argumentList, 'name'),
+    _ => null,
+  };
+
+  String? _stringOf(Expression? expression) =>
+      expression is SimpleStringLiteral ? expression.value : null;
+
+  bool _isRestricted(List<Annotation> metadata) => metadata.any(
+    (annotation) =>
+        annotation.name.name.split('.').contains('CobaltEnvironment'),
+  );
+
+  bool _isPrefixed(Expression? exposed, TypeAnnotation? returned) {
+    if (exposed != null) return exposed is PrefixedIdentifier;
+    if (returned is! NamedType) return false;
+    if (returned.importPrefix != null) return true;
+    if (returned.name.lexeme != 'Future') return false;
+    return _isPrefixed(null, returned.typeArguments?.arguments.firstOrNull);
+  }
+
   /// Records that [node] depends on [wanted], or marks it [ambiguous].
   void _link(String node, Set<String> wanted) {
     if (edges.containsKey(node)) {
@@ -464,25 +623,7 @@ class _IndexBuilder {
   /// Whether the constructor the generator reads takes an `@CobaltParam`: a
   /// public primary constructor, else the first public generative one.
   static bool _takesCallSiteValues(ClassDeclaration node) =>
-      _publicConstructorParameters(node)?.any(_isCallSiteValue) ?? false;
-
-  static List<FormalParameter>? _publicConstructorParameters(
-    ClassDeclaration node,
-  ) {
-    final primary = primaryConstructorOf(node);
-    if (primary != null && !_isPrivate(primary.constructorName?.name)) {
-      return primary.formalParameters.parameters;
-    }
-    for (final member in membersOf(node)) {
-      if (member is! ConstructorDeclaration) continue;
-      if (member.factoryKeyword != null) continue;
-      if (_isPrivate(member.name)) continue;
-      return member.parameters.parameters;
-    }
-    return null;
-  }
-
-  static bool _isPrivate(Token? name) => name?.lexeme.startsWith('_') ?? false;
+      publicConstructorParametersOf(node)?.any(_isCallSiteValue) ?? false;
 
   /// Adds the parameter types of the constructor the generator reads: a public
   /// primary constructor, else the first public generative one.
@@ -501,7 +642,7 @@ class _IndexBuilder {
     }
 
     for (final parameter
-        in _publicConstructorParameters(node) ?? const <FormalParameter>[]) {
+        in publicConstructorParametersOf(node) ?? const <FormalParameter>[]) {
       _addParameter(parameter, fieldTypes, out);
     }
   }
@@ -650,6 +791,10 @@ class _IndexBuilder {
   static Expression? _namedArgument(Annotation annotation, String parameter) {
     final arguments = annotation.arguments;
     if (arguments == null) return null;
+    return _namedIn(arguments, parameter);
+  }
+
+  static Expression? _namedIn(ArgumentList arguments, String parameter) {
     for (final argument in arguments.arguments) {
       if (_labelOf(argument) == parameter) return _valueOf(argument);
     }

@@ -217,7 +217,7 @@ class OrderFlowRoute extends CobaltShellRoute {
 ```dart
 @CobaltChildScope()
 class OrderFlow {
-  const OrderFlow(this.orderId);
+  const OrderFlow(@Named('orderId') this.orderId);
 
   final String orderId;
 }
@@ -228,7 +228,7 @@ class OrderFlow {
 ```dart
 @CobaltInject(scope: OrderFlow)
 class OrderNote implements Disposable {
-  OrderNote(this.orderId, this._log) {
+  OrderNote(@Named('orderId') this.orderId, this._log) {
 ```
 
 Маршрут отдает сгенерированный `OrderFlowScope` в `CobaltShellRoute`, который принимает любой
