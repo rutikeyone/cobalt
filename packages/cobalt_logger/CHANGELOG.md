@@ -1,3 +1,8 @@
+## 1.10.0
+
+- No code changes in this package. Only the repository's release tooling
+  changed.
+
 ## 1.9.3
 
 - `levelOf` ends in `_`, so a `CobaltLogLevel` added in a later `cobalt`

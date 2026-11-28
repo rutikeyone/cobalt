@@ -60,6 +60,44 @@ void main() {
     return null;
   }
 
+  Map<String, String> internalConstraintsOf(String package) => {
+    for (final line in read('packages/$package/pubspec.yaml').split('\n'))
+      if (RegExp(r'^  (cobalt[a-z_]*):(.*)$').firstMatch(line) case final it?)
+        it.group(1)!: it.group(2)!.trim(),
+  };
+
+  Map<String, int> releasingGroups() {
+    final order = read('RELEASING.md');
+    final block = order.substring(
+      order.indexOf('## Order'),
+      order.indexOf('Steps within a numbered group'),
+    );
+
+    final group = <String, int>{};
+    var current = 0;
+    for (final line in block.split('\n')) {
+      final numbered = RegExp(
+        r'^\s*(\d+)\.\s+(cobalt[a-z_]*)\s',
+      ).firstMatch(line);
+      if (numbered != null) {
+        current = int.parse(numbered.group(1)!);
+        group[numbered.group(2)!] = current;
+        continue;
+      }
+      final continued = RegExp(r'^\s+(cobalt[a-z_]*)\s').firstMatch(line);
+      if (continued != null) group[continued.group(1)!] = current;
+    }
+    return group;
+  }
+
+  Set<String> shellList(String path, String variable) =>
+      RegExp('^$variable="([^"]*)"', multiLine: true)
+          .firstMatch(read(path))!
+          .group(1)!
+          .split(' ')
+          .where((it) => it.isNotEmpty)
+          .toSet();
+
   test('there are packages to check', () => expect(shipped, isNotEmpty));
 
   group('every package is named in', () {
@@ -136,26 +174,7 @@ void main() {
     /// are not transitive, so nothing a consumer resolves needs the order to
     /// hold for them.
     test('the release order is one a publisher can follow', () {
-      final order = read('RELEASING.md');
-      final block = order.substring(
-        order.indexOf('## Order'),
-        order.indexOf('Steps within a numbered group'),
-      );
-
-      final group = <String, int>{};
-      var current = 0;
-      for (final line in block.split('\n')) {
-        final numbered = RegExp(
-          r'^\s*(\d+)\.\s+(cobalt[a-z_]*)\s',
-        ).firstMatch(line);
-        if (numbered != null) {
-          current = int.parse(numbered.group(1)!);
-          group[numbered.group(2)!] = current;
-          continue;
-        }
-        final continued = RegExp(r'^\s+(cobalt[a-z_]*)\s').firstMatch(line);
-        if (continued != null) group[continued.group(1)!] = current;
-      }
+      final group = releasingGroups();
 
       // Before comparing anything: a block this cannot read leaves the map
       // empty, and every comparison below would be skipped rather than run.
@@ -203,6 +222,49 @@ void main() {
         reason:
             'a package the dry run does not name is one whose archive nobody '
             'checks before it is published',
+      );
+    });
+
+    test('the publish workflow, in the groups of the release order', () {
+      final workflow = read('.github/workflows/publish.yml').split('\n');
+      final start = workflow.indexWhere(
+        (it) => it.trim() == 'PUBLISH_ORDER: |',
+      );
+      expect(start, isNot(-1), reason: 'publish.yml has no PUBLISH_ORDER');
+
+      final groups = workflow
+          .skip(start + 1)
+          .takeWhile((it) => it.trim().startsWith('cobalt'))
+          .toList();
+      final published = {
+        for (final (index, group) in groups.indexed)
+          for (final package in group.trim().split(RegExp(r'\s+')))
+            package: index + 1,
+      };
+
+      expect(
+        published,
+        releasingGroups(),
+        reason:
+            'the workflow is what actually publishes, and RELEASING is what '
+            'the dependency check above reads; a package in another group '
+            'there is published before what it needs',
+      );
+    });
+
+    test('the coverage run', () {
+      const unmeasured = {'cobalt_annotations'};
+      final measured = shellList(
+        'tool/coverage.sh',
+        'DART_PACKAGES',
+      ).union(shellList('tool/coverage.sh', 'FLUTTER_PACKAGES'));
+
+      expect(
+        measured,
+        shipped.difference(unmeasured),
+        reason:
+            'a package coverage.sh does not name is one whose tests can '
+            'stop covering it without the floor noticing',
       );
     });
   });
@@ -254,6 +316,30 @@ void main() {
             'generator resolved next to an older cobalt writes code that does '
             'not compile; the constraint is what keeps pub from choosing that '
             'pair',
+      );
+    });
+
+    test('every Cobalt dependency is of the major the package declares', () {
+      final wrong = <String>[];
+      for (final package in shipped) {
+        final major = versionsOf(package).$1?.split('.').first;
+        for (final MapEntry(key: needed, value: constraint)
+            in internalConstraintsOf(package).entries) {
+          final needs = RegExp(r'^\^(\d+)\.').firstMatch(constraint)?.group(1);
+          if (needs != major) {
+            wrong.add('$package $major needs $needed $constraint');
+          }
+        }
+      }
+
+      expect(
+        wrong,
+        isEmpty,
+        reason:
+            'a major bump that leaves one of these behind publishes a set pub '
+            'cannot resolve together: cobalt of the new major next to a '
+            'companion that still asks for the old one. tool/version.py moves '
+            'them all',
       );
     });
 
@@ -343,6 +429,16 @@ void main() {
             'analyzer for one of them and the three stop agreeing about what '
             'a declaration means.\n'
             'Declared: $declared',
+      );
+    });
+
+    test('the analyzer matrix tests the toolchain packages', () {
+      expect(
+        shellList('tool/matrix.sh', 'copied'),
+        toolchain,
+        reason:
+            'matrix.sh pins each analyzer row on the packages it copies, so '
+            'one left out is tested only on the row the floor resolves',
       );
     });
   });

@@ -4,10 +4,11 @@
 #   tool/api.sh            # every package
 #   tool/api.sh cobalt     # one
 #
-# dart_apitool compares the checkout with the latest published release and
-# names each change breaking or not. From 1.0 on it is a gate: a breaking
-# change fails unless the checkout's version is a major step past what is on
-# pub.dev (`--version-check-mode onlyBreakingChanges`), so one reaches `main`
+# dart_apitool compares the checkout with the newest stable release of the
+# checkout's major on pub.dev, or with the latest release while that major has
+# none, and names each change breaking or not. From 1.0 on it is a gate: a
+# breaking change fails unless the checkout's version is a major step past what
+# is on pub.dev (`--version-check-mode onlyBreakingChanges`), so one reaches `main`
 # only on its way into a major release. Two things are exempt by design and
 # say so in the README's Compatibility section: members marked @experimental
 # — dart_apitool itself treats changes there as non-breaking — and
@@ -21,6 +22,31 @@
 set -eu
 cd "$(dirname "$0")/.."
 command -v dart-apitool > /dev/null || dart pub global activate dart_apitool > /dev/null
+
+newest_of_major() {
+  python3 - "$1" "$2" <<'PY'
+import json
+import re
+import sys
+
+answer = json.load(open(sys.argv[1], encoding="utf-8"))
+major = sys.argv[2].split(".", 1)[0]
+
+
+def order(version):
+    return tuple(int(part) for part in re.match(r"(\d+)\.(\d+)\.(\d+)", version).groups())
+
+
+stable = [
+    entry["version"]
+    for entry in answer.get("versions", [])
+    if entry["version"].split(".", 1)[0] == major
+    and "-" not in entry["version"].split("+", 1)[0]
+    and not entry.get("retracted", False)
+]
+print(max(stable, key=order) if stable else answer.get("latest", {}).get("version", ""))
+PY
+}
 
 packages=${1:-$(for p in packages/*/pubspec.yaml; do basename "$(dirname "$p")"; done)}
 failed=
@@ -46,7 +72,8 @@ for package in $packages; do
       continue
       ;;
   esac
-  published=$(sed -n 's/.*"latest":{"version":"\([^"]*\)".*/\1/p' "$body")
+  checkout=$(sed -n 's/^version: *//p' "packages/$package/pubspec.yaml")
+  published=$(newest_of_major "$body" "$checkout") || published=
   if [ -z "$published" ]; then
     echo "== $package: FAILED: pub.dev answered without a latest version"
     failed="$failed $package"
