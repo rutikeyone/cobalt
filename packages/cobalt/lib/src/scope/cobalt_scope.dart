@@ -124,6 +124,10 @@ final class CobaltScope extends CobaltResolver {
 
   bool get _insideTeardown => Zone.current[this] != null;
 
+  final _buildZoneKey = Object();
+
+  bool get _insideAwaitedBuild => Zone.current[_buildZoneKey] != null;
+
   final _overriddenKeys = <CobaltKey>{};
   final _claimed = <CobaltKey>{};
   final _promised = <CobaltKey>{};
@@ -484,7 +488,8 @@ final class CobaltScope extends CobaltResolver {
   bool get isUsable =>
       _state == CobaltScopeState.open ||
       _state == CobaltScopeState.initializing ||
-      _state == CobaltScopeState.active;
+      _state == CobaltScopeState.active ||
+      _state == CobaltScopeState.failed;
 
   /// Creates a child scope that resolves through this one.
   ///
@@ -968,7 +973,8 @@ final class CobaltScope extends CobaltResolver {
   /// and have no phase to miss.
   void _assertPhaseOneIsStillOpen(CobaltKey key) {
     if (_state != CobaltScopeState.initializing &&
-        _state != CobaltScopeState.active) {
+        _state != CobaltScopeState.active &&
+        _state != CobaltScopeState.failed) {
       return;
     }
     throw CobaltScopeStateError(
@@ -1218,7 +1224,12 @@ final class CobaltScope extends CobaltResolver {
     if (pending != null) return pending;
     if (_state == CobaltScopeState.active) return Future<void>.value();
     _assertUsable();
-    return _initFuture = _run(timeout);
+    return _initFuture = _run(timeout).onError<Object>((error, stackTrace) {
+      if (_state == CobaltScopeState.initializing) {
+        _state = CobaltScopeState.failed;
+      }
+      Error.throwWithStackTrace(error, stackTrace);
+    });
   }
 
   /// Set once init() has given up on the builds still in flight.
@@ -1374,7 +1385,9 @@ final class CobaltScope extends CobaltResolver {
   /// an error: only the call that started it throws [CobaltDisposeError], and
   /// only its [timeout] counts. A call made from inside that teardown — an
   /// `AsyncDisposable.dispose` or an observer — returns at once rather than
-  /// wait for itself.
+  /// wait for itself, and so does one made from a build that teardown waits
+  /// for: an async singleton of [init] or a lazy async singleton of this
+  /// scope.
   ///
   /// Teardown is best-effort. A step that throws, or that runs past the
   /// deadline, is recorded and the remaining steps still run, so one broken
@@ -1398,13 +1411,22 @@ final class CobaltScope extends CobaltResolver {
   Future<void> dispose({Duration timeout = defaultDisposeTimeout}) {
     final running = _disposal;
     if (running != null) {
-      return _insideTeardown ? Future<void>.value() : running.future;
+      return _insideTeardown || _insideAwaitedBuild
+          ? Future<void>.value()
+          : running.future;
     }
     final disposal = _disposal = Completer<void>();
     return runZoned(
       () => _tearDown(timeout),
       zoneValues: {this: true},
     ).whenComplete(disposal.complete);
+  }
+
+  Future<void> _closeUnderParent(Duration left) {
+    final running = _disposal;
+    if (running == null) return dispose(timeout: left);
+    if (_insideTeardown) return Future<void>.value();
+    return running.future.timeout(left);
   }
 
   Future<void> _tearDown(Duration timeout) async {
@@ -1467,9 +1489,7 @@ final class CobaltScope extends CobaltResolver {
 
     for (final child in _children.reversed.toList(growable: false)) {
       try {
-        await (child._closing
-            ? child.dispose().timeout(remaining())
-            : child.dispose(timeout: remaining()));
+        await child._closeUnderParent(remaining());
       } on CobaltDisposeError catch (error) {
         failures.addAll([
           for (final failure in error.failures)
@@ -1913,7 +1933,7 @@ final class CobaltScope extends CobaltResolver {
         );
         return instance;
       },
-      zoneValues: timing.zoneValues,
+      zoneValues: {...timing.zoneValues, _buildZoneKey: true},
     ).then(completer.complete, onError: completer.completeError);
 
     return build;
@@ -1967,7 +1987,7 @@ final class CobaltScope extends CobaltResolver {
     final instance = await CobaltResolutionTracker.inPhaseOne(
       this,
       () => timing.during(() => registration.factory.create(this)),
-      zoneValues: timing.zoneValues,
+      zoneValues: {...timing.zoneValues, _buildZoneKey: true},
     );
     if (_initAbandoned) {
       // init() already failed for want of this: nobody will be handed

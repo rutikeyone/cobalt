@@ -40,6 +40,18 @@ void main() {
       );
     });
 
+    test('a dependsOn that fails init leaves the scope failed', () async {
+      final scope = cobaltTestRoot(name: 'app')
+        ..registerAsyncSingleton<Index>(
+          AsyncFnFactory((_) async => Index()),
+          dependsOn: {const CobaltKey(Database)},
+        );
+
+      await expectLater(scope.init(), throwsA(isA<CobaltDependsOnError>()));
+
+      expect(scope.state, CobaltScopeState.failed);
+    });
+
     test('naming something nothing registers fails init', () async {
       final scope = cobaltTestRoot(name: 'app')
         ..registerAsyncSingleton<Index>(

@@ -295,4 +295,43 @@ void main() {
       expect(scope.state, CobaltScopeState.disposed);
     });
   });
+
+  group('a failed init', () {
+    test('nobody awaits still reaches the zone once, unhandled', () async {
+      final errors = <Object>[];
+      runZonedGuarded(() {
+        final scope = cobaltTestRoot()
+          ..registerAsyncSingleton<Counter>(const Exploding());
+        unawaited(scope.init());
+      }, (error, _) => errors.add(error));
+      await pumpEventQueue();
+
+      expect(errors, hasLength(1));
+      expect(errors.single, isA<StateError>());
+    });
+
+    test('leaves the scope failed and still usable', () async {
+      final scope = cobaltTestRoot()
+        ..registerLazySingleton<Logger>(const LoggerFactory())
+        ..registerAsyncSingleton<Counter>(const Exploding());
+
+      Object? first;
+      await scope.init().catchError((Object error) => first = error);
+
+      expect(scope.state, CobaltScopeState.failed);
+      expect(scope.isUsable, isTrue);
+      expect(scope.get<Logger>(), isNotNull);
+      expect(
+        () => scope.registerAsyncSingleton<SlowService>(
+          const SlowFactory('late', 0),
+        ),
+        throwsA(isA<CobaltScopeStateError>()),
+      );
+      await expectLater(scope.init(), throwsA(same(first)));
+
+      await scope.dispose();
+
+      expect(scope.state, CobaltScopeState.disposed);
+    });
+  });
 }

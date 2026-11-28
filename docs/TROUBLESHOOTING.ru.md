@@ -122,6 +122,8 @@ Dependency cycle detected: Session -> Api -> Session
   получает другую в момент использования, а не в конструкторе.
 - С генератором сборка падает на цикле, а правило линтера `cobalt_dependency_cycle` показывает его в
   редакторе.
+- С 1.10.0 это `CobaltError`, как и остальные, поэтому `on CobaltError` его ловит, а ветка
+  `on CobaltCycleError` после `on CobaltError` не выполняется никогда.
 
 ## Регистрация
 
@@ -183,6 +185,9 @@ Override ничего не заменил.
   линтера `cobalt_hook_added_too_late` ловит это в пределах одного блока.
 
 ## Старт и остановка
+
+Четыре ошибки этого раздела приходят из среды, а не из графа. С 1.10.0 они не только наследуют
+`CobaltError` и `StateError`, но и реализуют `Exception`, поэтому `on Exception` их ловит.
 
 ### CobaltBootstrapError
 

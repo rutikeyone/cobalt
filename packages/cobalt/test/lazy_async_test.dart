@@ -401,6 +401,67 @@ void main() {
       expect(recorder.entries, ['late']);
     });
 
+    test('dispose from a lazy build returns at once', () async {
+      final gate = Completer<void>();
+      late final CobaltScope scope;
+      scope = CobaltScope.root()
+        ..registerLazyAsyncSingleton<Engine>(
+          AsyncFnFactory((_) async {
+            await gate.future;
+            await scope.dispose();
+            return Engine('engine', recorder);
+          }),
+        );
+
+      final engine = scope.getAsync<Engine>();
+      final disposing = scope.dispose();
+      gate.complete();
+
+      expect((await engine.timeout(_deadlock)).label, 'engine');
+      await disposing.timeout(_deadlock);
+      expect(recorder.entries, ['engine']);
+      expect(scope.state, CobaltScopeState.disposed);
+    });
+
+    test(
+      'a parent closed from a lazy build of its closing child closes after it',
+      () async {
+        final gate = Completer<void>();
+        final root = CobaltScope.root()
+          ..registerSingleton(Engine('root', recorder));
+        final child = root.push('child')
+          ..registerSingleton(Engine('child', recorder))
+          ..registerLazyAsyncSingleton<First>(
+            AsyncFnFactory((_) async {
+              await gate.future;
+              await root.dispose();
+              return First();
+            }),
+          );
+
+        final building = expectLater(
+          child.getAsync<First>(),
+          throwsA(isA<CobaltScopeStateError>()),
+        );
+        final closing = expectLater(
+          child.dispose(timeout: const Duration(milliseconds: 50)),
+          throwsA(
+            isA<CobaltDisposeError>().having(
+              (error) => error.hasTimeout,
+              'hasTimeout',
+              isTrue,
+            ),
+          ),
+        );
+        gate.complete();
+
+        await closing;
+        await building;
+        expect(recorder.entries, ['child', 'root']);
+        expect(root.state, CobaltScopeState.disposed);
+      },
+    );
+
     test('a build that threw does not make dispose throw', () async {
       final gate = Completer<void>();
       final scope = CobaltScope.root()

@@ -120,6 +120,8 @@ The registrations in the list need each other, so none of them can be built firs
   when it is used rather than in its constructor.
 - With the generator, the build fails on a cycle, and the lint rule `cobalt_dependency_cycle` shows
   it in the editor.
+- Since 1.10.0 it is a `CobaltError` like the rest, so `on CobaltError` catches it, and a branch
+  `on CobaltCycleError` after `on CobaltError` is never reached.
 
 ## Registering
 
@@ -181,6 +183,10 @@ never pass through the hook.
   rule `cobalt_hook_added_too_late` catches it in one block.
 
 ## Starting and stopping
+
+The four errors in this section come from the environment rather than from the graph. Since 1.10.0
+they implement `Exception` as well as extending `CobaltError` and `StateError`, so `on Exception`
+catches them.
 
 ### CobaltBootstrapError
 

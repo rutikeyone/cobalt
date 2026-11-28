@@ -300,6 +300,56 @@ void main() {
       expect(disposeLog, isEmpty);
     });
 
+    testWidgets('that swapped an implementation restarts the graph', (
+      tester,
+    ) async {
+      final current = _Implementation();
+      await tester.pumpWidget(
+        CobaltAppScope(
+          root: _Swapping(current, disposeLog),
+          child: const Probe(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final before = rendered();
+
+      current.name = 'FakeMarker';
+      final printed = <String>[];
+      final previous = debugPrint;
+      debugPrint = (message, {wrapWidth}) => printed.add(message!);
+      try {
+        unawaited(tester.binding.reassembleApplication());
+        await tester.pumpAndSettle();
+      } finally {
+        debugPrint = previous;
+      }
+
+      expect(rendered(), isNot(before), reason: 'a new graph, a new Marker');
+      expect(disposeLog, ['root'], reason: 'the old graph was released');
+      expect(
+        printed.single,
+        contains('changed the lifetime or implementation of Marker'),
+      );
+    });
+
+    testWidgets('that kept the implementation keeps the graph', (tester) async {
+      final current = _Implementation();
+      await tester.pumpWidget(
+        CobaltAppScope(
+          root: _Swapping(current, disposeLog),
+          child: const Probe(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final before = rendered();
+
+      unawaited(tester.binding.reassembleApplication());
+      await tester.pumpAndSettle();
+
+      expect(rendered(), before);
+      expect(disposeLog, isEmpty);
+    });
+
     testWidgets('keeps the graph when restartOnGraphChange is off', (
       tester,
     ) async {
@@ -670,6 +720,34 @@ final class _Growing implements CobaltScopeBuilder {
       scope.registerLazySingleton<String>(const _NameFactory());
     }
   }
+}
+
+class _Implementation {
+  var name = 'LiveMarker';
+}
+
+final class _DescribedMarkerFactory
+    implements CobaltFactory<Marker>, CobaltDescribedFactory {
+  const _DescribedMarkerFactory(this.implementation, this.log);
+
+  @override
+  final String implementation;
+  final List<String> log;
+
+  @override
+  Marker create(CobaltResolver resolver) => Marker('root', log);
+}
+
+final class _Swapping implements CobaltScopeBuilder {
+  const _Swapping(this.current, this.log);
+
+  final _Implementation current;
+  final List<String> log;
+
+  @override
+  void build(CobaltScope scope) => scope.registerLazySingleton<Marker>(
+    _DescribedMarkerFactory(current.name, log),
+  );
 }
 
 /// A root whose one async singleton never finishes building.

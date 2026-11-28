@@ -15,7 +15,7 @@ environment:
 
 
 dependencies:
-  cobalt: ^1.8.0
+  cobalt: ^1.10.0
   cobalt_flutter: ^1.2.0
   flutter:
     sdk: flutter

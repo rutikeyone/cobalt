@@ -376,7 +376,7 @@ builder: (context, child) => CobaltAppScope(
 
 **改变了图的热重载会重启它。** 热重载会替换代码，但不会再次运行 `build()`，所以刚加上的注册原本要等到热重启才生效。
 每次重载时，`CobaltAppScope` 会在不构建任何东西的前提下再运行一次 `root`，把它的注册与当前根作用域比较——只有当某个键被
-添加、删除或换了生命周期时——才调用 `restart()`，并打印变化内容。只改动了 widget 或工厂函数体的重载，会让图和页面状态保持原样。
+添加、删除、换了生命周期，或（对生成的工厂而言）换了实现时——才调用 `restart()`，并打印变化内容。只改动了 widget 或工厂函数体的重载，会让图和页面状态保持原样。
 `restartOnGraphChange: false` 可关闭此行为；`CobaltAppScope.start` 没有可比较的构建器，`bootstrap` 列表也不参与比较。
 
 ## 5. 在 widget 中读取依赖
@@ -572,7 +572,9 @@ mixin 够不着的地方，在注册处写 `dispose: closeBloc`。
 
 第二次 `dispose()`，以及父作用域关闭一个已在销毁中的子作用域，都会等待进行中的销毁，并且不带错误地完成：
 只有发起销毁的那次调用会抛出 `CobaltDisposeError`，也只有它的 `timeout` 生效；父作用域到了自己的截止时间
-仍会停止等待。在这次销毁内部发起的调用——来自 `AsyncDisposable.dispose` 或观察者——会立即返回，而不是等待自己。
+仍会停止等待。在这次销毁内部发起的调用——来自 `AsyncDisposable.dispose` 或观察者——会立即返回，而不是等待自己；
+从销毁正在等待的构建中发起的调用也一样：`init()` 的异步单例，或同一作用域的懒加载异步单例。从这样的构建中释放祖先作用域
+不在此保证之内：祖先等待这个作用域，这个作用域等待构建，一直到这个作用域的截止时间。
 
 `adopt` 把「不是依赖、但生命周期绑在作用域上」的对象挂上去——
 比如一个没人解析的订阅或定时器：
@@ -670,6 +672,16 @@ final app = await CobaltApplication.start(
 future 无法取消，所以仍在进行中的构建会跑完——每一个在完成时立即被关闭，下一层不会开始。对你自己初始化的作用域，
 `scope.init(timeout:)` 起同样作用；`CobaltAppScope(initTimeout:)` 则把它变成 `errorBuilder` 页面。不设时限时，
 init 会像以前一样一直等下去。
+
+抛出错误的 `init()`——无论是初始化器失败、超时，还是某个 `dependsOn` 无法等待——会让作用域处于 `failed` 状态。
+它仍然可以被释放：已构建的照常解析，未构建完成的异步单例抛出 `CobaltNotReadyError`，再次调用 `init()` 返回同一个错误，
+新的异步单例注册（`registerAsyncSingleton`）会抛出。`CobaltApplication.start` 和 `open` 会替你释放这样的作用域；你自己初始化的作用域由你释放。
+
+Cobalt 抛出的一切都是 `CobaltError`，它继承自 `StateError`：大多数是图中的错误，应当修正而不是在运行时恢复。
+有四种失败来自运行环境，同时实现了 `Exception`：`CobaltBootstrapError`、`CobaltInitTimeoutError`、
+`CobaltWarmUpError` 和 `CobaltDisposeError`。自 1.10.0 起，`on CobaltError` 也会捕获 `CobaltCycleError`，
+`on Exception` 会捕获这四种；如果 `catch` 中 `on CobaltError` 写在 `on CobaltCycleError` 之前，或 `on Exception`
+写在这四种之一之前，第二个分支永远不会执行。
 
 ### 第一次被请求时才构建
 

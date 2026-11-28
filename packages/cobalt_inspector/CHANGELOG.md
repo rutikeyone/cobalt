@@ -1,7 +1,7 @@
 ## 1.10.0
 
-- No code changes in this package. Only the repository's release tooling
-  changed.
+- A scope in the new `CobaltScopeState.failed` is shown in the failure
+  colour in the scope tree. Requires `cobalt` 1.10.0.
 
 ## 1.9.3
 

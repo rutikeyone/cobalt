@@ -399,10 +399,10 @@ builder: (context, child) => CobaltAppScope(
 **그래프를 바꾸는 핫 리로드는 그래프를 다시 시작합니다.** 리로드는 코드를 패치하지만 `build()`를 다시
 실행하지 않으므로, 그렇지 않다면 방금 추가한 등록은 핫 리스타트를 기다려야 합니다. 리로드할 때마다
 `CobaltAppScope`는 아무것도 빌드하지 않고 `root`를 한 번 더 실행해 그 등록을 살아 있는 루트의 등록과
-비교하며, 키가 추가되거나 제거되거나 수명이 바뀐 경우에만 `restart()`를 호출하고 무엇이 바뀌었는지
-출력합니다. 위젯이나 팩토리 본문만 건드린 리로드는 그래프와 화면 상태를 그대로 둡니다.
-`restartOnGraphChange: false`로 끌 수 있습니다. `CobaltAppScope.start`에는 비교할 빌더가 없으며,
-`bootstrap` 리스트는 비교하지 않습니다.
+비교하며, 키가 추가되거나 제거되거나 수명이 바뀌었거나, 생성된 팩토리라면 구현이 바뀐 경우에만
+`restart()`를 호출하고 무엇이 바뀌었는지 출력합니다. 위젯이나 팩토리 본문만 건드린 리로드는 그래프와
+화면 상태를 그대로 둡니다. `restartOnGraphChange: false`로 끌 수 있습니다. `CobaltAppScope.start`에는
+비교할 빌더가 없으며, `bootstrap` 리스트는 비교하지 않습니다.
 
 ## 5. 위젯에서 그래프 읽기
 
@@ -606,7 +606,9 @@ class CounterCubit extends Cubit<int> with CobaltBloc {
 두 번째 `dispose()`와, 이미 해제 중인 자식을 닫는 부모는 진행 중인 해제를 기다린 뒤 오류 없이 끝납니다.
 `CobaltDisposeError`는 해제를 시작한 호출만 받고 그 호출의 `timeout`만 적용되며, 부모는 자신의 기한이 되면
 기다리기를 멈춥니다. 해제 도중 그 안에서, 즉 `AsyncDisposable.dispose`나 옵저버에서 한 호출은 자기 자신을
-기다리지 않고 바로 반환됩니다.
+기다리지 않고 바로 반환됩니다. 해제가 기다리는 빌드, 즉 `init()`의 비동기 싱글턴이나 같은 스코프의 지연 비동기
+싱글턴에서 한 호출도 마찬가지입니다. 그런 빌드 안에서 조상 스코프를 해제하는 경우는 다루지 않습니다. 조상은 이
+스코프를, 이 스코프는 빌드를 기다리며, 이 스코프의 기한까지 이어집니다.
 
 `adopt`는 객체를 의존성으로 만들지 않고 스코프의 수명에 묶습니다. 아무것도 해석하지 않는 구독이나 타이머에
 유용합니다:
@@ -707,6 +709,18 @@ final app = await CobaltApplication.start(
 실행됩니다. 각 빌드는 끝나는 대로 닫히며, 다음 계층은 시작되지 않습니다. 직접 초기화하는 스코프에는
 `scope.init(timeout:)`이 같은 일을 하고, `CobaltAppScope(initTimeout:)`는 이를 `errorBuilder` 화면으로
 바꿉니다. 타임아웃이 없으면 init은 이전처럼 필요한 만큼 기다립니다.
+
+예외를 던진 `init()`은, 초기화 함수가 실패했든 타임아웃이 지났든 `dependsOn`을 기다릴 수 없든, 스코프를 `failed` 상태로 남깁니다. 이 스코프는 여전히
+해제할 수 있습니다. 빌드된 것은 해석되고, 빌드되지 않은 비동기 싱글턴은 `CobaltNotReadyError`를 던지며, 다시 호출한 `init()`은 같은 오류를 돌려주고,
+새 비동기 싱글턴 등록(`registerAsyncSingleton`)은 예외를 던집니다. `CobaltApplication.start`와 `open`은 이런 스코프를 대신
+해제하고, 직접 초기화한 스코프는 직접 해제합니다.
+
+Cobalt가 던지는 모든 것은 `StateError`를 상속하는 `CobaltError`입니다. 대부분은 런타임에 복구할 것이 아니라
+고쳐야 할 그래프의 실수입니다. 네 가지 실패는 환경에서 오며 `Exception`도 구현합니다. `CobaltBootstrapError`,
+`CobaltInitTimeoutError`, `CobaltWarmUpError`, `CobaltDisposeError`입니다. 1.10.0부터 `on CobaltError`는
+`CobaltCycleError`도 잡고, `on Exception`은 이 네 가지를 잡습니다. `catch`에서 `on CobaltError`가
+`on CobaltCycleError`보다, 또는 `on Exception`이 네 가지 중 하나보다 앞에 있으면 두 번째 분기는 절대 실행되지
+않습니다.
 
 ### 처음 요청될 때 빌드
 
