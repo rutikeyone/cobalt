@@ -21,6 +21,9 @@
   `is Exception` and `throwsException` now match them, and an
   `on CobaltDisposeError` branch after `on Exception` is never reached.
   `on StateError` and `on CobaltError` catch them as before.
+- `CobaltNotReadyError` says the key "was requested before init() had
+  built it" instead of "before init()": it is also thrown during `init()`,
+  when a build reads an async singleton of its own level.
 
 ## 1.9.3
 

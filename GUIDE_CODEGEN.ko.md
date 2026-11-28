@@ -20,7 +20,7 @@
   빌드를 실패시키며, 빠진 것을 한 번에 모두 알려 줍니다.
 - **프로퍼티 주입**: `late final` 필드를 생성된 믹스인이 채우므로, 협력 객체가 다섯 개인 클래스도 생성자가
   비어 있습니다.
-- **린트 규칙 스물한 개**: 나머지를 에디터에서 잡아냅니다.
+- **린트 규칙 스물세 개**: 나머지를 에디터에서 잡아냅니다.
 
 이 중 아무것도 필요하지 않거나 기존 컨테이너를 점진적으로 마이그레이션하는 중이라면, 제너레이터 없이도 모든 것이
 동작합니다: [GUIDE_MANUAL.ko.md](GUIDE_MANUAL.ko.md).
@@ -501,6 +501,20 @@ class Draft {
 나타납니다. 세션에 무엇이 들어가고 언제
 끝나는지는 여전히 여러분이 정합니다. 어노테이션은 둘 다 말하지 않습니다.
 
+마커 값은 자신의 타입으로 등록됩니다. 이름 없는 `String`, `int`, `double`, `num`, `bool`은 스코프에서
+그 타입을 요청하는 모든 클래스가 받게 되고, 앱이 등록한 이름 없는 같은 타입을 가립니다. 이름을 붙이고 같은
+이름으로 주입하십시오:
+
+```dart
+@CobaltChildScope()
+class OrderFlow {
+  const OrderFlow(@Named('orderId') this.orderId);
+  final String orderId;
+}
+```
+
+필드에 붙인 `@Named`도 됩니다. 이름 없이 남은 값은 `cobalt_marker_value_needs_a_name`이 알려 줍니다.
+
 마커 이름에는 `Scope`를 붙이지 않으며, 제너레이터가 덧붙입니다. 마커를 `SessionScope`라고 하면
 `SessionScopeScope`가 되므로 빌드가 거부합니다. 데코레이터는 대상이 등록된 곳에 들어갑니다. 루트에
 등록된 대상이면 루트에, 자식 스코프만 등록하는 클래스라면 그 각 스코프에 들어가며, 그 스코프에서 보이는
@@ -738,7 +752,7 @@ class BindPlatform implements CobaltBootstrapStep {
 **1단계: `@CobaltInit`.** 컨테이너 안에서입니다. 비동기 싱글턴이며, 의존성 순서대로 빌드됩니다.
 
 ```dart
-@CobaltInit(dependsOn: [Database])
+@cobaltInit
 class SearchIndex implements AsyncInitializable {
   SearchIndex(this._database);
 
@@ -758,9 +772,21 @@ class SearchIndex implements AsyncInitializable {
 생성된 팩토리는 객체를 생성하고 `init()`을 기다린 뒤, `dependsOn`을 `CobaltKey`로 옮겨 비동기 싱글턴으로
 등록합니다. 같은 계층의 독립된 초기화는 `Future.wait`로 함께 실행되며, 실제로 의존하는 것만 기다립니다.
 
-`dependsOn`은 주입이 아니라 순서를 정하는 간선입니다. 의존성은 평소처럼 생성자에서 받습니다. 등록되어 있지만
-비동기가 **아닌** 키를 지정하면 겉보기처럼 조용히 아무 일도 하지 않는 것이 아니라 빌드 오류입니다. 기다릴
-빌드가 없기 때문입니다.
+생성자 매개변수는 그 자체로 순서를 정하는 간선입니다. 같은 스코프의 비동기 등록을 받으면 제너레이터가 그 키를
+`dependsOn`에 넣으므로, 위의 `SearchIndex`는 따로 적지 않아도 `Database`를 기다립니다. 부모 스코프가 등록한
+의존성에는 아무것도 필요 없습니다. 부모는 자식이 열리기 전에 자신의 `init()`을 마쳤습니다. 의존성을 바꾸는
+오버라이드도 시작을 깨뜨리지 않습니다. 스코프는 오버라이드가 대체한 키를 기다리지 않습니다.
+
+직접 쓴 `dependsOn`은 주입이 아니라 순서를 정하는 간선이며, 추론된 간선과 합쳐집니다. 주입 없는 순서에, 그리고
+제너레이터가 건드리지 않는 세 경우에 쓰십시오:
+
+- **nullable** 매개변수: `Database`가 없는 빌드에서 `Database?`는 `null`을 받으며, 그곳의 간선은 시작을
+  실패시킵니다;
+- **이름 있는** 의존성 `@Named('main') Database`: `dependsOn`은 이름이 아니라 타입을 나열합니다;
+- 클래스 환경의 **일부에서만** 비동기인 의존성.
+
+`@injected` 필드도 순서에 쓰이지 않습니다. 등록되어 있지만 비동기가 **아닌** 키를 지정하면 겉보기처럼 조용히
+아무 일도 하지 않는 것이 아니라 빌드 오류입니다. 기다릴 빌드가 없기 때문입니다.
 
 `CobaltApplication.start`는 두 단계가 모두 끝나야 반환하므로, 호출할 `allReady()`도, 따져 봐야 할
 "등록되었지만 준비되지 않은" 상태도 없습니다.
@@ -1050,6 +1076,12 @@ class LoggingApi implements ApiClient {
 하나 이상 있어야 하며, 자신이 감싸는 각 등록의 데코레이터들과 `order:`를 두고
 경쟁합니다.
 
+루트 등록의 데코레이터는 루트에 남습니다. 같은 키를 등록하는 자식 스코프는 그것을 가리고, 자식이 내주는
+인스턴스는 감싸지지 않습니다. `@CobaltDecorates`에는 거기까지 닿을 `scope:`가 없습니다. 자식 스코프에서 등록을
+빼거나 다른 이름을 주십시오(`allNames: true`라면 빼는 것만 도움이 됩니다). 그런 스코프를 놓친 데코레이터는
+`cobalt_decorator_misses_a_shadowing_scope`가 알려 줍니다. 확신할 수 없는 곳에서는 조용합니다:
+`@CobaltEnvironment`가 붙은 등록, 읽을 수 없는 이름, 이름이 같은 두 타입.
+
 
 **훅.** `CobaltHook<T>`를 상속하는 클래스에 `@cobaltHookAll`을 붙이면 생성된 루트 스코프에 추가됩니다. 모든
 등록보다 앞에 내보내지는 `scope.hookAll<T>(...)`이므로, 즉시 생성 등록도 이미 이 훅을 거칩니다. 훅은 어느 등록이
@@ -1135,7 +1167,7 @@ if (environment.matches(const <String>{'dev', 'test'})) {
 
 ## 16. 린트 플러그인
 
-제너레이터가 쓰는 것과 같은 파싱 계층 위에 만든 규칙 스물한 개이므로, 실수가 `build_runner`를 실행할 때만이
+제너레이터가 쓰는 것과 같은 파싱 계층 위에 만든 규칙 스물세 개이므로, 실수가 `build_runner`를 실행할 때만이
 아니라 에디터에서 바로 드러납니다.
 
 ```yaml
@@ -1164,6 +1196,8 @@ plugins:
 | `cobalt_read_does_not_match_registration` | 항상 예외를 던지는 읽기. 호출하는 쪽에서 값을 받는 등록에 `get`, `getAsync`, `context.cobalt`, 그 값으로 비동기 빌드되는 등록에 `getWithParam`, 값을 받지 않는 등록에 `getWithParam` |
 | `cobalt_depends_on_lazy_registration` | 지연 비동기 등록을 지목하는 `@CobaltInit(dependsOn: [...])`. `init()`은 그것을 빌드하지 않습니다 |
 | `cobalt_override_needs_type_argument` | 타입 인자가 없는 `CobaltOverride` 또는 `CobaltParamOverride`. 이 경우 교체할 키를 Dart가 추론합니다 |
+| `cobalt_decorator_misses_a_shadowing_scope` | 자식 스코프도 같은 키를 등록해서, 자식이 감싸지 않은 채 내주는 루트 등록의 데코레이터 |
+| `cobalt_marker_value_needs_a_name` | `@Named` 없는 `@CobaltChildScope` 마커의 `String`, `int`, `double`, `num`, `bool` 값 |
 | `cobalt_hook_added_too_late` | 같은 스코프에서 즉시 생성 등록이나 `get` 이후에 호출한 `hookAll`(같은 캐스케이드 안이든 블록의 앞부분이든). 스코프가 `CobaltHookError`로 거부하므로, 무엇이든 빌드되기 전에 훅을 추가하십시오 |
 | `cobalt_registration_is_not_generated` | 마지막 빌드 뒤에 어노테이션을 붙여 `lib/cobalt.g.dart`에 아직 없는 등록된 클래스. `build_runner`를 실행하십시오 |
 | `cobalt_bloc_provider_closes_a_scoped_bloc` | 스코프에서 읽은 bloc을 내주는 `BlocProvider(create:)`. 스코프가 아직 보유한 bloc을 닫으므로 `BlocProvider.value`를 쓰십시오 |

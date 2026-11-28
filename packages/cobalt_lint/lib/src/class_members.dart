@@ -1,4 +1,5 @@
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 
 /// The members of a class, or nothing when it has no body to hold any.
 ///
@@ -23,3 +24,19 @@ PrimaryConstructorDeclaration? primaryConstructorOf(
   final PrimaryConstructorDeclaration primary => primary,
   _ => null,
 };
+
+List<FormalParameter>? publicConstructorParametersOf(ClassDeclaration node) {
+  final primary = primaryConstructorOf(node);
+  if (primary != null && !_isPrivate(primary.constructorName?.name)) {
+    return primary.formalParameters.parameters;
+  }
+  for (final member in membersOf(node)) {
+    if (member is! ConstructorDeclaration) continue;
+    if (member.factoryKeyword != null) continue;
+    if (_isPrivate(member.name)) continue;
+    return member.parameters.parameters;
+  }
+  return null;
+}
+
+bool _isPrivate(Token? name) => name?.lexeme.startsWith('_') ?? false;

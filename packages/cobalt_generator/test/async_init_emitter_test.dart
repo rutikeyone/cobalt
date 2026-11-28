@@ -106,4 +106,125 @@ void main() {
       expect(order.last, startsWith('scope.registerAsyncSingleton<'));
     });
   });
+  group('dependsOn derived from the constructor', () {
+    test('an async dependency of the same scope becomes an edge', () {
+      final source = generate([
+        declare('Database', isAsyncInit: true),
+        declare('Cache', isAsyncInit: true, constructor: [dep('Database')]),
+      ]);
+
+      expect(dependsOnOf(source, 'Cache'), ['Database']);
+    });
+
+    test('a dependency the parent scope registers is no edge', () {
+      final source = generate(
+        [
+          declare('Database', isAsyncInit: true),
+          declare(
+            'Sync',
+            isAsyncInit: true,
+            constructor: [dep('Database')],
+            scope: 'Session',
+          ),
+        ],
+        childScopes: [childScope('Session')],
+      );
+
+      expect(dependsOnOf(source, 'Sync'), isEmpty);
+    });
+
+    test('a named dependency is no edge', () {
+      final source = generate([
+        declare('Database', isAsyncInit: true, name: 'main'),
+        declare(
+          'Cache',
+          isAsyncInit: true,
+          constructor: [dep('Database', name: 'main')],
+        ),
+      ]);
+
+      expect(dependsOnOf(source, 'Cache'), isEmpty);
+    });
+
+    test('a nullable dependency is no edge', () {
+      final source = generate([
+        declare('Database', isAsyncInit: true),
+        declare(
+          'Cache',
+          isAsyncInit: true,
+          constructor: [dep('Database', isNullable: true)],
+        ),
+      ]);
+
+      expect(dependsOnOf(source, 'Cache'), isEmpty);
+    });
+
+    test('a dependency async in only some environments is no edge', () {
+      final source = generate([
+        declare('Database', isAsyncInit: true, environments: {'prod'}),
+        declare('Database', environments: {'dev'}),
+        declare('Cache', isAsyncInit: true, constructor: [dep('Database')]),
+      ]);
+
+      expect(dependsOnOf(source, 'Cache'), isEmpty);
+    });
+
+    test('a dependency async in every environment of the consumer is an '
+        'edge', () {
+      final source = generate([
+        declare('Database', isAsyncInit: true, environments: {'prod'}),
+        declare('Database', environments: {'dev'}),
+        declare(
+          'Cache',
+          isAsyncInit: true,
+          constructor: [dep('Database')],
+          environments: {'prod'},
+        ),
+      ]);
+
+      expect(dependsOnOf(source, 'Cache'), ['Database']);
+    });
+
+    test('a lazy async dependency is no edge', () {
+      final source = generate([
+        declare('Database', isLazyAsync: true),
+        declare('Cache', isLazyAsync: true, constructor: [dep('Database')]),
+      ]);
+
+      expect(dependsOnOf(source, 'Cache'), isEmpty);
+    });
+
+    test('merges with dependsOn written by hand, without duplicates', () {
+      final source = generate([
+        declare('Database', isAsyncInit: true),
+        declare('Settings', isAsyncInit: true),
+        declare(
+          'Cache',
+          isAsyncInit: true,
+          dependsOn: [ref('Settings'), ref('Database')],
+          constructor: [dep('Database')],
+        ),
+        declare(
+          'Index',
+          isAsyncInit: true,
+          dependsOn: [ref('Settings')],
+          constructor: [dep('Database')],
+        ),
+      ]);
+
+      expect(dependsOnOf(source, 'Cache'), ['Settings', 'Database']);
+      expect(dependsOnOf(source, 'Index'), ['Settings', 'Database']);
+    });
+
+    test('registers the dependency first', () {
+      final source = generate([
+        declare('Cache', isAsyncInit: true, constructor: [dep('Database')]),
+        declare('Database', isAsyncInit: true),
+      ]);
+
+      final order = registrationsOf(source);
+      expect(order.first, contains('Database'));
+      expect(order.last, contains('Cache'));
+    });
+  });
 }

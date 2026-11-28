@@ -22,6 +22,7 @@ application:
 | `@CobaltBootstrap` + release on dispose | `lib/src/bind_platform.dart` |
 | `@CobaltInject(exposeAs:)` | `lib/src/system_clock.dart` |
 | `@CobaltInit` and `@CobaltInit(dependsOn:)` | `lib/src/database.dart`, `lib/src/search_index.dart` |
+| `@CobaltInit` waiting for what its constructor takes | `lib/src/audit_summary.dart` |
 | property injection (`cobalt_property_injection` + `source_gen\|combining_builder`) | `lib/src/report.dart` |
 | generic dependencies | `lib/src/repository.dart` |
 

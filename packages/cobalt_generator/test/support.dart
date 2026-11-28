@@ -219,3 +219,17 @@ List<String> registrationsOf(String source) => source
     .map((line) => line.trim())
     .where((line) => line.startsWith('scope.register'))
     .toList();
+
+List<String> dependsOnOf(String source, String type) {
+  final start = source.indexOf(
+    RegExp('scope\\.register\\w*<_i\\d+\\.${RegExp.escape(type)}>\\('),
+  );
+  final end = source.indexOf(';', start);
+  final registration = source.substring(start, end);
+  return [
+    for (final match in RegExp(
+      r'CobaltKey\(_i\d+\.(\w+)\)',
+    ).allMatches(registration))
+      match.group(1)!,
+  ];
+}

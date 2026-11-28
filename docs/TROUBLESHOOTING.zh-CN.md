@@ -41,6 +41,7 @@ build_runner again.
 
 - 等待启动完成：`await CobaltApplication.start(...)` 或 `await startCobalt()`。在 Flutter 中，`CobaltAppScope` 在图就绪之前显示 `loading`，所以要在应用内部读取，而不是在 `runApp` 之前。
 - 对于自己 push 的作用域，读取前先 `await child.init()`。
+- 启动期间，从另一个 `@CobaltInit` 类的构造函数读取：构造函数取了该依赖的类，生成器会自己排好顺序。参数可空、用 `@Named` 命名，或依赖只在该类部分环境中是异步时它做不到；这时把它写进 `dependsOn`。
 
 ### CobaltLazyAsyncError
 

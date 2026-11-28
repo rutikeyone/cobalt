@@ -1,7 +1,16 @@
 ## 1.10.0
 
-- No code changes in this package. Only the repository's release tooling
-  changed.
+- New rule `cobalt_decorator_misses_a_shadowing_scope`: a decorator of a
+  root registration whose key a child scope registers too, so the child
+  hands it out unwrapped. It stays silent for registrations restricted by
+  `@CobaltEnvironment`, names it cannot read and two types of one name.
+- New rule `cobalt_marker_value_needs_a_name`: a `String`, `int`,
+  `double`, `num` or `bool` value of a `@CobaltChildScope` marker without
+  `@Named` on the parameter or the field.
+- Both are on by default, like every rule of this package: a project with
+  the plugin enabled gets new diagnostics after the upgrade without changing
+  its code, and `dart analyze --fatal-infos` fails on them. Fix what they
+  report, or turn the rule off in `analysis_options.yaml`.
 
 ## 1.9.3
 

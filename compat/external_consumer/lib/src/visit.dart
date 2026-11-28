@@ -3,14 +3,14 @@ import 'package:cobalt_external_consumer/src/audit_trail.dart';
 
 @CobaltChildScope()
 class Visit {
-  const Visit(this.visitor);
+  const Visit(@Named('visitor') this.visitor);
 
   final String visitor;
 }
 
 @CobaltInject(scope: Visit)
 class Greeting {
-  Greeting(this.visitor);
+  Greeting(@Named('visitor') this.visitor);
 
   final String visitor;
 

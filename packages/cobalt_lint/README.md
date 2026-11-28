@@ -15,8 +15,8 @@ The IDE and `dart analyze` then flag a mistake where you make it:
 ```dart
 @cobaltInject
 class CartController extends ChangeNotifier {}
-// warning: 'CartController' is registered and declares 'dispose()', but nothing
-//          tells the scope to call it. (cobalt_registration_is_never_released)
+// info: 'CartController' is registered and declares 'dispose()', but nothing
+//       tells the scope to call it. (cobalt_registration_is_never_released)
 ```
 
 Its quick fix adds `implements Disposable`, and the scope closes the controller with everything else.
@@ -97,11 +97,14 @@ The overrides above are gone from this repository's own copy now that `cobalt_li
 | `cobalt_read_does_not_match_registration` | a read that always throws: `get`, `getAsync` or `context.cobalt` on a registration that takes a call-site value, `getWithParam` on one built asynchronously from it, or `getWithParam` on one that takes none |
 | `cobalt_depends_on_lazy_registration` | `@CobaltInit(dependsOn: [...])` naming a lazy async registration, which `init()` never builds |
 | `cobalt_override_needs_type_argument` | a `CobaltOverride` or `CobaltParamOverride` with no type argument, so Dart infers the key it replaces |
+| `cobalt_decorator_misses_a_shadowing_scope` | a decorator of a root registration whose key a child scope registers too, so the child hands it out unwrapped: drop that registration or give it another name (with `allNames: true`, only dropping it helps) |
+| `cobalt_marker_value_needs_a_name` | a `String`, `int`, `double`, `num` or `bool` value of a `@CobaltChildScope` marker without `@Named` on the parameter or the field |
 | `cobalt_hook_added_too_late` | `hookAll` after an eager registration or a `get` on the same scope — in one cascade or earlier in the block — which the scope refuses with `CobaltHookError`; add hooks before anything is built |
 | `cobalt_registration_is_not_generated` | a registered class that `lib/cobalt.g.dart` does not mention yet, annotated after the last build: run `build_runner` |
 | `cobalt_bloc_provider_closes_a_scoped_bloc` | `BlocProvider(create:)` handing out a bloc read from a scope, which closes it while the scope still holds it: use `BlocProvider.value` |
 
-All rules are warnings, so they are on by default. Every rule reads annotations through
+All rules are registered as warning rules, which turns them on by default. They are reported as
+infos: `dart analyze` lists them, and fails on them only with `--fatal-infos`. Every rule reads annotations through
 `cobalt_analyzer`, the same layer the generator uses.
 
 ## Quick fixes
@@ -138,10 +141,11 @@ registration are not retained. It also stays quiet when a `Disposable` from some
 the supertypes, because it matches by name rather than by library — a rule that cannot see the
 whole graph should fail towards silence.
 
-Fifteen of the twenty-one rules answer a question about one declaration or one expression. The
-other six — `cobalt_dependency_is_not_registered`, `cobalt_dependency_cycle`,
+Sixteen of the twenty-three rules answer a question about one declaration or one expression. The
+other seven — `cobalt_dependency_is_not_registered`, `cobalt_dependency_cycle`,
 `cobalt_lazy_registration_injected_synchronously`, `cobalt_depends_on_lazy_registration`,
-`cobalt_async_transient_read_synchronously` and `cobalt_read_does_not_match_registration` — answer one about the whole package, and the
+`cobalt_async_transient_read_synchronously`, `cobalt_read_does_not_match_registration` and
+`cobalt_decorator_misses_a_shadowing_scope` — answer one about the whole package, and the
 analysis server does not offer that view: it hands a rule one library at a time,
 and the only synchronous window onto the others is their **parsed**, unresolved source.
 
@@ -179,6 +183,19 @@ reported at a time, which is what the build does with the same graph.
 `@CobaltInject(lazyInit: true)` — only as the literal `true`, the one spelling syntax can read without
 guessing. A name two declarations claim is left out, so the rule cannot report a class for injecting
 something that may not be lazy at all.
+
+`cobalt_decorator_misses_a_shadowing_scope` reads from the same index where each registration sits
+— the root or a child scope — under which name, and whether `@CobaltEnvironment` restricts it. The
+name is the `name:` of `@CobaltInject` on a class or a module member, the `name:` of a
+`CobaltProvided`, or the `@Named` of a marker value, and only as a string literal. One case it
+still gets wrong: a module member that returns a same-named type from another package without an
+import prefix, while the class of this package is the one decorated. The rule says
+nothing when any registration of the type has a name it cannot read or an environment, or when two
+classes in the package share the type's name, or a decorated type from another package shares its
+name with a class of this one, or a module member names its type through an import prefix: from
+syntax alone it cannot tell whether the child scope really hides the decorated key. Only
+`@CobaltEnvironment(...)` written out on the declaration is recognized; an environment given
+through a constant, `@canary` for `const canary = CobaltEnvironment('canary')`, is not seen.
 
 The index is rebuilt when a file in `lib` changes, and checked by modification stamp otherwise —
 listing costs a stat per file, building costs a parse per file. If any file will not parse, the

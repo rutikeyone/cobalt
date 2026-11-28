@@ -848,13 +848,19 @@ class ContainerSourceEmitter {
     );
   }
 
-  /// Fills in async ordering for module members.
+  /// Fills in async ordering from constructor parameters.
   ///
-  /// An `@CobaltInit` class states `dependsOn` by hand. A module member has
-  /// nowhere to write it, and does not need to: the whole package is in hand
-  /// here, so which of its parameters are themselves async is a fact the
-  /// generator can read off the graph rather than ask for. What it emits is
-  /// exactly what a hand-written registration would say.
+  /// A module member has nowhere to write `dependsOn`, and does not need to:
+  /// the whole package is in hand here, so which of its parameters are
+  /// themselves async is a fact the generator can read off the graph rather
+  /// than ask for. What it emits is exactly what a hand-written registration
+  /// would say.
+  ///
+  /// An `@CobaltInit` class gets the same edges on top of its own
+  /// `dependsOn`, but only for a parameter that is not nullable and whose
+  /// dependency is async in every environment the class is. A nullable
+  /// parameter may read nothing where the dependency is absent, and an edge
+  /// there would fail the start. Fields marked `@injected` are not read.
   ///
   /// Named async dependencies are left out, because `dependsOn` in the IR
   /// carries a type and no qualifier.
@@ -910,6 +916,37 @@ class ContainerSourceEmitter {
       return reached;
     }
 
+    List<CobaltTypeRef> fromModuleMember(CobaltInjectableClass declaration) => [
+      if (declaration.dependsOn.isEmpty)
+        for (final parameter in declaration.constructorParameters)
+          if (parameter.name == null &&
+              asyncKeys.contains(_refKey(parameter.type, null)))
+            parameter.type,
+    ];
+
+    bool awaitable(
+      CobaltInjectedProperty parameter,
+      Set<String> needed,
+      String own,
+    ) {
+      final key = _refKey(parameter.type, null);
+      return parameter.name == null &&
+          key != own &&
+          (asyncPresence[key]?.containsAll(needed) ?? false);
+    }
+
+    List<CobaltTypeRef> fromClass(CobaltInjectableClass declaration) {
+      final needed = presentIn(declaration.environments);
+      final own = _keyOf(declaration);
+      return [
+        for (final parameter in declaration.constructorParameters)
+          if (!parameter.isParam &&
+              !parameter.type.isNullable &&
+              awaitable(parameter, needed, own))
+            parameter.type,
+      ];
+    }
+
     List<CobaltTypeRef> fromDecorators(CobaltInjectableClass declaration) {
       if (decorators.isEmpty) return const [];
       final needed = presentIn(declaration.environments);
@@ -919,13 +956,7 @@ class ContainerSourceEmitter {
           for (final decorator
               in decoratorsByTarget[key] ?? const <CobaltDecoratorClass>[])
             for (final parameter in decorator.dependencies)
-              if (parameter.name == null &&
-                  _refKey(parameter.type, null) != own &&
-                  (asyncPresence[_refKey(parameter.type, null)]?.containsAll(
-                        needed,
-                      ) ??
-                      false))
-                parameter.type,
+              if (awaitable(parameter, needed, own)) parameter.type,
       ];
     }
 
@@ -935,11 +966,10 @@ class ContainerSourceEmitter {
           declaration
         else
           _withExtraDependsOn(declaration, [
-            if (declaration.provider != null && declaration.dependsOn.isEmpty)
-              for (final parameter in declaration.constructorParameters)
-                if (parameter.name == null &&
-                    asyncKeys.contains(_refKey(parameter.type, null)))
-                  parameter.type,
+            ...switch (declaration.provider) {
+              null => fromClass(declaration),
+              _ => fromModuleMember(declaration),
+            },
             ...fromDecorators(declaration),
           ]),
     ];

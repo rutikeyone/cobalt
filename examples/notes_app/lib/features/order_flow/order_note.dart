@@ -4,7 +4,7 @@ import 'package:notes_app/features/order_flow/order_flow.dart';
 
 @CobaltInject(scope: OrderFlow)
 class OrderNote implements Disposable {
-  OrderNote(this.orderId, this._log) {
+  OrderNote(@Named('orderId') this.orderId, this._log) {
     _log.record('order $orderId opened');
   }
 
